@@ -1,0 +1,7 @@
+echo "Verifying project structure..."
+[ -f "manage.py" ] && echo "✅ manage.py exists" || echo "❌ Missing: manage.py"
+[ -d "safa_global" ] && echo "✅ safa_global/ exists" || echo "❌ Missing: safa_global/"
+[ -d "geography" ] && echo "✅ geography/ exists" || echo "❌ Missing: geography/"
+[ -f "safa_global/settings.py" ] && echo "✅ settings.py exists" || echo "❌ Missing: settings.py"
+[ -f "geography/models.py" ] && echo "✅ models.py exists" || echo "❌ Missing: models.py"
+[ -f "geography/admin.py" ] && echo "✅ admin.py exists" || echo "❌ Missing: admin.py"
