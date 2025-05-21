@@ -2,12 +2,24 @@
 
 {% block content %}
 <h2>Login</h2>
-<form method="post">
+<form method="post" novalidate>
     {% csrf_token %}
-    <label for="username">Username:</label>
-    <input type="text" name="username" required>
-    <label for="password">Password:</label>
-    <input type="password" name="password" required>
+    {% if form.errors %}
+        <div class="errorlist">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <label for="id_username">Username:</label>
+    <input id="id_username" type="text" name="username" value="{{ form.username.value|default_if_none:'' }}" required>
+    <label for="id_password">Password:</label>
+    <input id="id_password" type="password" name="password" required>
     <button type="submit">Login</button>
 </form>
 {% endblock %}
