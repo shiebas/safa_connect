@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Country Details{% endblock %}
+{% block content %}
+<h2>{{ country.name }} ({{ country.fifa_code }})</h2>
+<ul>
+    <li>Association Acronym: {{ country.association_acronym }}</li>
+    <li>Continent Region: {{ country.continent_region }}</li>
+    <li>Is Default: {{ country.is_default }}</li>
+</ul>
+<a href="{% url 'country-update' country.pk %}">Edit</a>
+<a href="{% url 'country-delete' country.pk %}">Delete</a>
+<a href="{% url 'country-list' %}">Back to list</a>
+{% endblock %}

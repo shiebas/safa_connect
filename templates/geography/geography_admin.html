@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Geography Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2>Geography Admin Dashboard</h2>
+
+<ul>
+    <li><a href="{% url 'country-list' %}">Manage Countries</a></li>
+    <!-- Add similar links for other models as you implement their CRUD views -->
+    <!-- Example:
+    <li><a href="{% url 'club-list' %}">Manage Clubs</a></li>
+    -->
+</ul>
+
+<p>Welcome, {{ user.get_full_name|default:user.username }}!</p>
+<p>Use the links above to manage geography-related data.</p>
+{% endblock %}

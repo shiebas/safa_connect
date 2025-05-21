@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}SAFA Global Platform{% endblock %}
+
+{% block content %}
+<div class="homepage-banner">
+    <h1>Welcome to SAFA Global Platform</h1>
+    <p class="lead">
+        Empowering football associations and clubs worldwide.<br>
+        Select your country or explore our features to get started.
+    </p>
+</div>
+
+<section class="country-selector">
+    <h2>Choose Your Country</h2>
+    <form method="get" action="{% url 'country-list' %}">
+        <select name="country" onchange="window.location.href=this.value;">
+            <option value="">-- Select Country --</option>
+            {% for country in countries %}
+                <option value="{% url 'country-detail' country.pk %}">{{ country.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</section>
+
+<section class="features">
+    <h2>Platform Features</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <h3>Clubs & Associations</h3>
+            <p>Manage football clubs, associations, and registrations efficiently.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Geographical Data</h3>
+            <p>Explore countries, regions, and cities participating in the platform.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Secure Access</h3>
+            <p>Multi-language and secure authentication for global users via Allauth.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Dynamic Reporting</h3>
+            <p>Generate real-time reports and analytics for your region or club.</p>
+        </div>
+        <!-- Add more feature cards as needed -->
+    </div>
+</section>
+
+<section class="quick-links">
+    <h2>Quick Links</h2>
+    <ul>
+        <li><a href="{% url 'geography_admin' %}">Geography Admin Dashboard</a></li>
+        <li><a href="{% url 'country-list' %}">Browse All Countries</a></li>
+        <!-- Add more quick links as your platform grows -->
+    </ul>
+</section>
+
+<footer>
+    <p>Contact us at <a href="mailto:support@safa-global.com">support@safa-global.com</a> | &copy; {{ year }} SAFA Global</p>
+</footer>
+
+<style>
+.homepage-banner { text-align: center; margin-bottom: 2em; }
+.lead { font-size: 1.2em; color: #333; }
+.country-selector { margin: 2em 0; }
+.features-grid { display: flex; gap: 1em; flex-wrap: wrap; }
+.feature-card { background: #f8f8f8; padding: 1em; border-radius: 8px; flex: 1; min-width: 220px; }
+.quick-links ul { list-style: none; padding: 0; }
+.quick-links li { margin-bottom: 0.5em; }
+footer { margin-top: 2em; text-align: center; color: #888; }
+</style>
+{% endblock %}

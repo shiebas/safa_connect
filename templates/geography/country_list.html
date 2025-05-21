@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Countries{% endblock %}
+{% block content %}
+<h2>Country List</h2>
+<a href="{% url 'country-create' %}">Add new country</a>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>FIFA Code</th>
+        <th>Association</th>
+        <th>Actions</th>
+    </tr>
+    {% for country in countries %}
+    <tr>
+        <td><a href="{% url 'country-detail' country.pk %}">{{ country.name }}</a></td>
+        <td>{{ country.fifa_code }}</td>
+        <td>{{ country.association_acronym }}</td>
+        <td>
+            <a href="{% url 'country-update' country.pk %}">Edit</a> |
+            <a href="{% url 'country-delete' country.pk %}">Delete</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4">No countries available.</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

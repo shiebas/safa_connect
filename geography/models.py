@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from django.utils import timezone
+from django.utils.functional import cached_property
+
 
 # ===== CHOICE DEFINITIONS =====
 DOCUMENT_TYPES = (
@@ -79,7 +81,21 @@ class RegistrationType(models.Model):
 
 # ===== HIERARCHICAL SPORTS ORGANIZATION MODELS =====
 
-class WorldSportsBody(TimeStampedModel):
+
+class ModelWithLogo(models.Model):
+    # Your existing fields
+    logo = models.ImageField(upload_to='logos/', null=True, blank=True)
+    
+    @cached_property
+    def logo_url(self):
+        if self.logo and hasattr(self.logo, 'url'):
+            return self.logo.url
+        return '/static/images/default_logo.png'  # Path to your default logo
+    
+    class Meta:
+        abstract = True
+
+class WorldSportsBody(TimeStampedModel, ModelWithLogo):
     """Represents global governing bodies like FIFA, World Rugby, etc."""
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10, unique=True)
@@ -106,7 +122,7 @@ class Continent(TimeStampedModel):
     class Meta:
         ordering = ['name']
 
-class ContinentFederation(TimeStampedModel):
+class ContinentFederation(TimeStampedModel, ModelWithLogo):
     """Continental federations like CAF, UEFA, etc."""
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10, unique=True)
@@ -124,7 +140,7 @@ class ContinentFederation(TimeStampedModel):
         verbose_name_plural = "Continental Federations"
         unique_together = ['continent', 'world_body']
 
-class ContinentRegion(TimeStampedModel):
+class ContinentRegion(TimeStampedModel, ModelWithLogo):
     """Regional confederations like COSAFA, CECAFA, etc."""
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10, unique=True)
@@ -140,13 +156,14 @@ class ContinentRegion(TimeStampedModel):
         verbose_name = "Continental Region"
         verbose_name_plural = "Continental Regions"
 
-class Country(TimeStampedModel):
+class Country(TimeStampedModel, ModelWithLogo):
     """Core country model with FIFA codes"""
     name = models.CharField(max_length=100, unique=True)
     fifa_code = models.CharField(max_length=3, unique=True)  # ZAF, NAM, LSO
     association_acronym = models.CharField(max_length=15, default='SAFA')
     continent_region = models.ForeignKey(ContinentRegion, on_delete=models.PROTECT, related_name='countries', null=True, blank=True)
     is_default = models.BooleanField(default=False)
+    logo = models.ImageField(upload_to='country_logos/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         """Ensure only one default country exists"""
@@ -162,7 +179,7 @@ class Country(TimeStampedModel):
         verbose_name_plural = "Countries"
         ordering = ['name']
 
-class NationalFederation(TimeStampedModel):
+class NationalFederation(TimeStampedModel, ModelWithLogo):
     """National sports associations like SAFA, USA Soccer, etc."""
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10)
@@ -180,38 +197,41 @@ class NationalFederation(TimeStampedModel):
         verbose_name_plural = "National Federations"
         unique_together = ['country', 'world_body']
 
-class Province(TimeStampedModel):
+class Province(TimeStampedModel, ModelWithLogo):
     """Provinces or states within a country"""
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=5)
     country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='provinces')
-    
+    logo = models.ImageField(upload_to='province_logos/', blank=True, null=True)
+
     def __str__(self):
         return f"{self.name}, {self.country.name}"
     
     class Meta:
         unique_together = ['code', 'country']
 
-class Region(TimeStampedModel):
+class Region(TimeStampedModel, ModelWithLogo):
     """Regions within provinces/states"""
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=10)
     province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='regions')
     national_federation = models.ForeignKey(NationalFederation, on_delete=models.PROTECT, related_name='regions')
-    
+    logo = models.ImageField(upload_to='region_logos/', blank=True, null=True)
+
     def __str__(self):
         return f"{self.name}, {self.province.name}"
     
     class Meta:
         unique_together = ['code', 'province', 'national_federation']
 
-class Association(TimeStampedModel):
+class Association(TimeStampedModel, ModelWithLogo):
     """Special interest associations like Referee Association, Schools Association, etc."""
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10)
     national_federation = models.ForeignKey(NationalFederation, on_delete=models.PROTECT, related_name='associations')
     association_type = models.CharField(max_length=50)  # e.g., "Referee", "Schools", "Coaches"
     description = models.TextField(blank=True)
+    logo = models.ImageField(upload_to='association_logos/', blank=True, null=True)
     
     def __str__(self):
         return f"{self.acronym} - {self.name}"
@@ -219,7 +239,7 @@ class Association(TimeStampedModel):
     class Meta:
         unique_together = ['acronym', 'national_federation']
 
-class Club(TimeStampedModel):
+class Club(TimeStampedModel, ModelWithLogo):
     """Local sports clubs"""
     name = models.CharField(max_length=100)
     short_name = models.CharField(max_length=20)
@@ -234,7 +254,7 @@ class Club(TimeStampedModel):
 
 # ===== USER MODELS =====
 
-class CustomUser(AbstractUser):
+class CustomUser(AbstractUser, ModelWithLogo):
     registration_type = models.ForeignKey(
         RegistrationType,
         on_delete=models.PROTECT,
@@ -248,7 +268,6 @@ class CustomUser(AbstractUser):
     middle_name = models.CharField(max_length=100, blank=True)
     surname = models.CharField(max_length=100, blank=True)
     alias = models.CharField(max_length=100, blank=True)
-    username = models.CharField(max_length=50, blank=True, unique=True)
     email = models.EmailField(_('email address'), blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True) # extract from id_number
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
@@ -277,21 +296,7 @@ class CustomUser(AbstractUser):
     # Registration date
     registration_date = models.DateField(default=timezone.now)
 
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='geography_customuser_set',
-        blank=True,
-        help_text=_('The groups this user belongs to.'),
-        verbose_name=_('groups'),
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='geography_customuser_set',
-        blank=True,
-        help_text=_('Specific permissions for this user.'),
-        verbose_name=_('user permissions'),
-    )
-    
+
     def __str__(self):
         if self.name and self.surname:
             return f"{self.name} {self.surname}"
