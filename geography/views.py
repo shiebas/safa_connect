@@ -8,6 +8,7 @@ from .models import (
 )
 from django.shortcuts import render
 import datetime
+from django.views.generic import CreateView
 
 # Advanced global home page
 def advanced_home(request):
@@ -76,6 +77,13 @@ class WorldSportsBodyDetailView(DetailView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_detail.html'
     context_object_name = 'worldsportsbody'
+
+@login_decorator
+class WorldSportsBodyCreateView(CreateView):
+    model = WorldSportsBody
+    template_name = 'geography/worldsportsbody_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:worldsportsbody-list')
 
 # --- Continent ---
 @login_decorator

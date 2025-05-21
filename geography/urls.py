@@ -1,8 +1,6 @@
 from django.urls import path
-from . import views
-from .views import geography_admin,WorldSportsBodyListView, WorldSportsBodyDetailView,
-    WorldSportsBodyCreateView, WorldSportsBodyUpdateView,
-    WorldSportsBodyDeleteView
+from .views import (geography_admin, WorldSportsBodyListView, WorldSportsBodyDetailView,
+                    WorldSportsBodyCreateView, WorldSportsBodyUpdateView, WorldSportsBodyDeleteView )
 
 app_name = 'geography'
 
@@ -27,7 +25,7 @@ urlpatterns = [
     path('worldsportsbodies/<int:pk>/', WorldSportsBodyDetailView.as_view(), name='worldsportsbody-detail'),
     path('worldsportsbodies/<int:pk>/edit/', WorldSportsBodyUpdateView.as_view(), name='worldsportsbody-update'),
     path('worldsportsbodies/<int:pk>/delete/', WorldSportsBodyDeleteView.as_view(), name='worldsportsbody-delete'),
-]
+
     # Continent
     path('continents/', views.ContinentListView.as_view(), name='continent-list'),
     path('continents/<int:pk>/', views.ContinentDetailView.as_view(), name='continent-detail'),
