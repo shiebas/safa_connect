@@ -7,22 +7,9 @@
         <h1>Welcome to SAFA Global Platform</h1>
         <p class="lead">
             Empowering football associations and clubs worldwide.<br>
-            Select your country or explore our features to get started.
+            Explore our features to get started.
         </p>
     </div>
-
-    <section class="country-selector" aria-labelledby="country-selector-heading">
-        <h2 id="country-selector-heading">Choose Your Country</h2>
-        <form method="get" action="{% url 'country-list' %}">
-            <label for="country-select" class="visually-hidden">Country</label>
-            <select name="country" id="country-select" onchange="window.location.href=this.value;">
-                <option value="">-- Select Country --</option>
-                {% for country in countries %}
-                    <option value="{% url 'country-detail' country.pk %}">{{ country.name }}</option>
-                {% endfor %}
-            </select>
-        </form>
-    </section>
 
     <section class="features" aria-labelledby="features-heading">
         <h2 id="features-heading">Platform Features</h2>
