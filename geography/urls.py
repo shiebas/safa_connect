@@ -1,9 +1,12 @@
 from django.urls import path
 from . import views
+from .views import geography_admin
 
 app_name = 'geography'
 
 urlpatterns = [
+    path('admin/', geography_admin, name='geography_admin'),
+    
     # Country
     path('countries/', views.CountryListView.as_view(), name='country-list'),
     path('countries/<int:pk>/', views.CountryDetailView.as_view(), name='country-detail'),
