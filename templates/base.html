@@ -5,12 +5,15 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safa Global</title>
+    <title>Safa Global Administration</title>
 </head>
 <body>
     <nav>
         <a href="{% url 'accounts:login' %}">Login</a>
-        <a href="{% url 'accounts:logout' %}">Logout</a>
+        <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" style="background:none; border:none; color:blue; text-decoration:underline; cursor:pointer;">Logout</button>
+        </form>
     </nav>
     <div>
         {% block content %}{% endblock %}
