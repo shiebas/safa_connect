@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% block title %}World Sports Body Details{% endblock %}
+{% block content %}
+<h2>{{ worldsportsbody.name }}</h2>
+<p><strong>Acronym:</strong> {{ worldsportsbody.acronym }}</p>
+<p><strong>Sport:</strong> {{ worldsportsbody.get_sport_code_display }}</p>
+<p><strong>Description:</strong> {{ worldsportsbody.description }}</p>
+<p><strong>Website:</strong> 
+    {% if worldsportsbody.website %}
+        <a href="{{ worldsportsbody.website }}" target="_blank">{{ worldsportsbody.website }}</a>
+    {% else %}
+        N/A
+    {% endif %}
+</p>
+{% if worldsportsbody.logo %}
+    <p><strong>Logo:</strong><br><img src="{{ worldsportsbody.logo.url }}" width="120"></p>
+{% endif %}
+<a href="{% url 'geography:worldsportsbody-update' worldsportsbody.pk %}">Edit</a> |
+<a href="{% url 'geography:worldsportsbody-delete' worldsportsbody.pk %}">Delete</a> |
+<a href="{% url 'geography:worldsportsbody-list' %}">Back to list</a>
+{% endblock %}

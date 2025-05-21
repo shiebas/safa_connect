@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+{% block title %}{{ view.object|default:"New" }} World Sports Body{% endblock %}
+{% block content %}
+<h2>{% if view.object %}Edit{% else %}Add{% endif %} World Sports Body</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+    <a href="{% url 'geography:worldsportsbody-list' %}">Cancel</a>
+</form>
+{% endblock %}

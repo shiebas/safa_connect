@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+{% block title %}World Sports Bodies{% endblock %}
+{% block content %}
+<h2>World Sports Bodies</h2>
+<a href="{% url 'geography:worldsportsbody-create' %}">Add new World Sports Body</a>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Acronym</th>
+        <th>Sport</th>
+        <th>Website</th>
+        <th>Actions</th>
+    </tr>
+    {% for wsbody in worldsportsbodies %}
+    <tr>
+        <td><a href="{% url 'geography:worldsportsbody-detail' wsbody.pk %}">{{ wsbody.name }}</a></td>
+        <td>{{ wsbody.acronym }}</td>
+        <td>{{ wsbody.get_sport_code_display }}</td>
+        <td>
+            {% if wsbody.website %}
+                <a href="{{ wsbody.website }}" target="_blank">{{ wsbody.website }}</a>
+            {% endif %}
+        </td>
+        <td>
+            <a href="{% url 'geography:worldsportsbody-update' wsbody.pk %}">Edit</a> |
+            <a href="{% url 'geography:worldsportsbody-delete' wsbody.pk %}">Delete</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No World Sports Bodies available.</td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{% url 'geography:geography-admin' %}">Back to Admin Dashboard</a>
+{% endblock %}
