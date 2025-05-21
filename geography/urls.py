@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
-from .views import geography_admin
+from .views import geography_admin,WorldSportsBodyListView, WorldSportsBodyDetailView,
+    WorldSportsBodyCreateView, WorldSportsBodyUpdateView,
+    WorldSportsBodyDeleteView
 
 app_name = 'geography'
 
