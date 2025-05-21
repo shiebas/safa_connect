@@ -20,9 +20,12 @@ urlpatterns = [
     path('regions/<int:pk>/', views.RegionDetailView.as_view(), name='region-detail'),
 
     # WorldSportsBody
-    path('world-bodies/', views.WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
-    path('world-bodies/<int:pk>/', views.WorldSportsBodyDetailView.as_view(), name='worldsportsbody-detail'),
-
+    path('worldsportsbodies/', WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
+    path('worldsportsbodies/add/', WorldSportsBodyCreateView.as_view(), name='worldsportsbody-create'),
+    path('worldsportsbodies/<int:pk>/', WorldSportsBodyDetailView.as_view(), name='worldsportsbody-detail'),
+    path('worldsportsbodies/<int:pk>/edit/', WorldSportsBodyUpdateView.as_view(), name='worldsportsbody-update'),
+    path('worldsportsbodies/<int:pk>/delete/', WorldSportsBodyDeleteView.as_view(), name='worldsportsbody-delete'),
+]
     # Continent
     path('continents/', views.ContinentListView.as_view(), name='continent-list'),
     path('continents/<int:pk>/', views.ContinentDetailView.as_view(), name='continent-detail'),
