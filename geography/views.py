@@ -27,7 +27,7 @@ def geography_admin(request):
 login_decorator = method_decorator(login_required, name='dispatch')
 
 
- @login_decorator
+@login_decorator
 class WorldSportsBodyListView(ListView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_list.html'
