@@ -103,6 +103,7 @@ class WorldSportsBody(TimeStampedModel, ModelWithLogo):
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
     logo = models.ImageField(upload_to='world_bodies_logos/', blank=True, null=True)
+    continents = models.ManyToManyField('Continent', related_name='world_bodies')  # <-- Add this line
     
     def __str__(self):
         return f"{self.acronym} - {self.get_sport_code_display()}"
@@ -117,7 +118,7 @@ class Continent(TimeStampedModel):
     code = models.CharField(max_length=2, choices=CONTINENT, unique=True)
     
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.code})"
     
     class Meta:
         ordering = ['name']

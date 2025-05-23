@@ -11,7 +11,8 @@ from .models import (
     Region,
     Club,
     Association,
-    NationalFederation
+    NationalFederation,
+    WorldSportsBody
 )
 
 class RegistrationForm(UserCreationForm):
@@ -200,3 +201,11 @@ class MembershipForm(forms.ModelForm):
             self.add_error('membership_type', 'Please select only one organization type')
             
         return cleaned_data
+
+class WorldSportsBodyForm(forms.ModelForm):
+    class Meta:
+        model = WorldSportsBody
+        fields = ['name', 'acronym', 'sport_code', 'description', 'website', 'logo', 'continents']
+        widgets = {
+            'continents': forms.CheckboxSelectMultiple,
+        }

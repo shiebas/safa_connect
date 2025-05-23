@@ -4,11 +4,13 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .models import (
     Country, Province, Region, WorldSportsBody, Continent,
-    ContinentFederation, Club, Association, Membership
+    ContinentFederation, Club, Association, Membership, ContinentRegion, NationalFederation
 )
 from django.shortcuts import render
 import datetime
-from django.views.generic import CreateView
+from geography.forms import WorldSportsBodyForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 # Advanced global home page
 def advanced_home(request):
@@ -26,36 +28,368 @@ def geography_admin(request):
 # Decorator for all CBVs
 login_decorator = method_decorator(login_required, name='dispatch')
 
+# WorldSportsBody
 
-@login_decorator
-class WorldSportsBodyListView(ListView):
+class WorldSportsBodyListView(LoginRequiredMixin, ListView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_list.html'
-    context_object_name = 'worldsportsbodies'
+    context_object_name = 'object_list'
 
-@login_decorator
-class WorldSportsBodyDetailView(DetailView):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(sport_code__icontains=q)
+        return queryset
+
+class WorldSportsBodyDetailView(LoginRequiredMixin, DetailView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_detail.html'
-    context_object_name = 'worldsportsbody'
+    context_object_name = 'object'
 
-@login_decorator
-class WorldSportsBodyCreateView(CreateView):
+class WorldSportsBodyCreateView(LoginRequiredMixin, CreateView):
     model = WorldSportsBody
+    form_class = WorldSportsBodyForm
     template_name = 'geography/worldsportsbody_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:worldsportsbody-list')
 
-@login_decorator
-class WorldSportsBodyUpdateView(UpdateView):
+class WorldSportsBodyUpdateView(LoginRequiredMixin, UpdateView):
     model = WorldSportsBody
+    form_class = WorldSportsBodyForm
     template_name = 'geography/worldsportsbody_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:worldsportsbody-list')
 
-@login_decorator
-class WorldSportsBodyDeleteView(DeleteView):
+class WorldSportsBodyDeleteView(LoginRequiredMixin, DeleteView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_confirm_delete.html'
-    success_url = reverse_lazy('geography:worldsportsbody-list') 
+    success_url = reverse_lazy('geography:worldsportsbody-list')
 
+# Continent
+@login_decorator
+class ContinentListView(ListView):
+    model = Continent
+    template_name = 'geography/continent_list.html'
+    context_object_name = 'continents'
+
+@login_decorator
+class ContinentDetailView(DetailView):
+    model = Continent
+    template_name = 'geography/continent_detail.html'
+    context_object_name = 'continent'
+
+@login_decorator
+class ContinentCreateView(CreateView):
+    model = Continent
+    template_name = 'geography/continent_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:continent-list')
+
+@login_decorator
+class ContinentUpdateView(UpdateView):
+    model = Continent
+    template_name = 'geography/continent_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:continent-list')
+
+@login_decorator
+class ContinentDeleteView(DeleteView):
+    model = Continent
+    template_name = 'geography/continent_confirm_delete.html'
+    success_url = reverse_lazy('geography:continent-list') 
+
+# ContinentFederation
+@login_decorator
+class ContinentFederationListView(ListView):
+    model = ContinentFederation
+    template_name = 'geography/continentfederation_list.html'
+    context_object_name = 'continentfederations'
+
+@login_decorator
+class ContinentFederationDetailView(DetailView):
+    model = ContinentFederation
+    template_name = 'geography/continentfederation_detail.html'
+    context_object_name = 'continentfederation'
+
+@login_decorator
+class ContinentFederationCreateView(CreateView):
+    model = ContinentFederation
+    template_name = 'geography/continentfederation_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:continentfederation-list')
+
+@login_decorator
+class ContinentFederationUpdateView(UpdateView):
+    model = ContinentFederation
+    template_name = 'geography/continentfederation_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:continentfederation-list')
+
+@login_decorator
+class ContinentFederationDeleteView(DeleteView):
+    model = ContinentFederation
+    template_name = 'geography/continentfederation_confirm_delete.html'
+    success_url = reverse_lazy('geography:continentfederation-list')
+
+# ContinentRegion
+@login_decorator
+class ContinentRegionListView(ListView):
+    model = ContinentRegion
+    template_name = 'geography/continentregion_list.html'
+    context_object_name = 'continentregions'
+
+@login_decorator
+class ContinentRegionDetailView(DetailView):
+    model = ContinentRegion
+    template_name = 'geography/continentregion_detail.html'
+    context_object_name = 'continentregion'
+
+@login_decorator
+class ContinentRegionCreateView(CreateView):
+    model = ContinentRegion
+    template_name = 'geography/continentregion_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:continentregion-list')
+
+@login_decorator
+class ContinentRegionUpdateView(UpdateView):
+    model = ContinentRegion
+    template_name = 'geography/continentregion_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:continentregion-list')
+
+@login_decorator
+class ContinentRegionDeleteView(DeleteView):
+    model = ContinentRegion
+    template_name = 'geography/continentregion_confirm_delete.html'
+    success_url = reverse_lazy('geography:continentregion-list')
+
+# Country
+@login_decorator
+class CountryListView(ListView):
+    model = Country
+    template_name = 'geography/country_list.html'
+    context_object_name = 'countries'
+
+@login_decorator
+class CountryDetailView(DetailView):
+    model = Country
+    template_name = 'geography/country_detail.html'
+    context_object_name = 'country'
+
+@login_decorator
+class CountryCreateView(CreateView):
+    model = Country
+    template_name = 'geography/country_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:country-list')
+
+@login_decorator
+class CountryUpdateView(UpdateView):
+    model = Country
+    template_name = 'geography/country_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:country-list')
+
+@login_decorator
+class CountryDeleteView(DeleteView):
+    model = Country
+    template_name = 'geography/country_confirm_delete.html'
+    success_url = reverse_lazy('geography:country-list')
+
+# NationalFederation
+@login_decorator
+class NationalFederationListView(ListView):
+    model = NationalFederation
+    template_name = 'geography/nationalfederation_list.html'
+    context_object_name = 'nationalfederations'
+
+@login_decorator
+class NationalFederationDetailView(DetailView):
+    model = NationalFederation
+    template_name = 'geography/nationalfederation_detail.html'
+    context_object_name = 'nationalfederation'
+
+@login_decorator
+class NationalFederationCreateView(CreateView):
+    model = NationalFederation
+    template_name = 'geography/nationalfederation_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:nationalfederation-list')
+
+@login_decorator
+class NationalFederationUpdateView(UpdateView):
+    model = NationalFederation
+    template_name = 'geography/nationalfederation_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:nationalfederation-list')
+
+@login_decorator
+class NationalFederationDeleteView(DeleteView):
+    model = NationalFederation
+    template_name = 'geography/nationalfederation_confirm_delete.html'
+    success_url = reverse_lazy('geography:nationalfederation-list')
+
+# Association
+@login_decorator
+class AssociationListView(ListView):
+    model = Association
+    template_name = 'geography/association_list.html'
+    context_object_name = 'associations'
+
+@login_decorator
+class AssociationDetailView(DetailView):
+    model = Association
+    template_name = 'geography/association_detail.html'
+    context_object_name = 'association'
+
+@login_decorator
+class AssociationCreateView(CreateView):
+    model = Association
+    template_name = 'geography/association_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:association-list')
+
+@login_decorator
+class AssociationUpdateView(UpdateView):
+    model = Association
+    template_name = 'geography/association_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:association-list')
+
+@login_decorator
+class AssociationDeleteView(DeleteView):
+    model = Association
+    template_name = 'geography/association_confirm_delete.html'
+    success_url = reverse_lazy('geography:association-list')
+
+# Province
+@login_decorator
+class ProvinceListView(ListView):
+    model = Province
+    template_name = 'geography/province_list.html'
+    context_object_name = 'provinces'
+
+@login_decorator
+class ProvinceDetailView(DetailView):
+    model = Province
+    template_name = 'geography/province_detail.html'
+    context_object_name = 'province'
+
+@login_decorator
+class ProvinceCreateView(CreateView):
+    model = Province
+    template_name = 'geography/province_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:province-list')
+
+@login_decorator
+class ProvinceUpdateView(UpdateView):
+    model = Province
+    template_name = 'geography/province_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:province-list')
+
+@login_decorator
+class ProvinceDeleteView(DeleteView):
+    model = Province
+    template_name = 'geography/province_confirm_delete.html'
+    success_url = reverse_lazy('geography:province-list')
+
+# Region
+@login_decorator
+class RegionListView(ListView):
+    model = Region
+    template_name = 'geography/region_list.html'
+    context_object_name = 'regions'
+
+@login_decorator
+class RegionDetailView(DetailView):
+    model = Region
+    template_name = 'geography/region_detail.html'
+    context_object_name = 'region'
+
+@login_decorator
+class RegionCreateView(CreateView):
+    model = Region
+    template_name = 'geography/region_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:region-list')
+
+@login_decorator
+class RegionUpdateView(UpdateView):
+    model = Region
+    template_name = 'geography/region_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:region-list')
+
+@login_decorator
+class RegionDeleteView(DeleteView):
+    model = Region
+    template_name = 'geography/region_confirm_delete.html'
+    success_url = reverse_lazy('geography:region-list')
+
+# Club
+@login_decorator
+class ClubListView(ListView):
+    model = Club
+    template_name = 'geography/club_list.html'
+    context_object_name = 'clubs'
+
+@login_decorator
+class ClubDetailView(DetailView):
+    model = Club
+    template_name = 'geography/club_detail.html'
+    context_object_name = 'club'
+
+@login_decorator
+class ClubCreateView(CreateView):
+    model = Club
+    template_name = 'geography/club_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:club-list')
+
+@login_decorator
+class ClubUpdateView(UpdateView):
+    model = Club
+    template_name = 'geography/club_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:club-list')
+
+@login_decorator
+class ClubDeleteView(DeleteView):
+    model = Club
+    template_name = 'geography/club_confirm_delete.html'
+    success_url = reverse_lazy('geography:club-list')
+
+# Membership
+@login_decorator
+class MembershipListView(ListView):
+    model = Membership
+    template_name = 'geography/membership_list.html'
+    context_object_name = 'memberships'
+
+@login_decorator
+class MembershipDetailView(DetailView):
+    model = Membership
+    template_name = 'geography/membership_detail.html'
+    context_object_name = 'membership'
+
+@login_decorator
+class MembershipCreateView(CreateView):
+    model = Membership
+    template_name = 'geography/membership_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:membership-list')
+
+@login_decorator
+class MembershipUpdateView(UpdateView):
+    model = Membership
+    template_name = 'geography/membership_form.html'
+    fields = '__all__'
+    success_url = reverse_lazy('geography:membership-list')
+
+@login_decorator
+class MembershipDeleteView(DeleteView):
+    model = Membership
+    template_name = 'geography/membership_confirm_delete.html'
+    success_url = reverse_lazy('geography:membership-list')

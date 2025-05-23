@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>
+    {% if object %}
+        Update Continent: {{ object.name }}
+    {% else %}
+        Add New Continent
+    {% endif %}
+</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">
+        {% if object %}Save Changes{% else %}Create Continent{% endif %}
+    </button>
+    <a href="{% url 'geography:continent-list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
