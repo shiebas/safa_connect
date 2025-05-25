@@ -9,7 +9,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('geography/', include('geography.urls', namespace='geography')),
     path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('accounts/', include('allauth.urls')),
     path('', advanced_home, name='home'),
   
 

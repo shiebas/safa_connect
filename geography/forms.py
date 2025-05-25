@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import (
     CustomUser,
+    Continent,
     Membership,
     Country,
     Province,
@@ -13,10 +14,13 @@ from .models import (
     Association,
     NationalFederation,
     WorldSportsBody,
-    ContinentFederation
+    ContinentFederation,
+    SPORT_CODES
 )
 import re
-
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Row, Column, Submit, Field
+from crispy_forms.bootstrap import FormActions
 
 class RegistrationForm(UserCreationForm):
     """Form for user registration"""
@@ -212,22 +216,89 @@ class WorldSportsBodyForm(forms.ModelForm):
         widgets = {
             'continents': forms.CheckboxSelectMultiple,
         }
+def clean_logo(self):
+        logo = self.cleaned_data.get('logo', False)
+        if logo:
+            # Check file size (e.g., max 2MB)
+            if logo.size > 2 * 1024 * 1024: # 2MB
+                raise ValidationError(_("Image file is too large (max 2MB). Please upload a smaller file."))
+            
+            # Check content type
+            allowed_content_types = ['image/jpeg', 'image/png', 'image/gif']
+            if logo.content_type not in allowed_content_types:
+                raise ValidationError(_("Invalid file type. Only JPEG, PNG, and GIF images are allowed."))
+            
+            # Optional: For more advanced image validation like dimensions, you can use the Pillow library.
+            # from PIL import Image
+            # try:
+            #     img = Image.open(logo)
+            #     img.verify() # Verifies that it is, in fact an image
+            #     # Example: Check dimensions
+            #     # if img.width > 800 or img.height > 600:
+            #     #     raise ValidationError(_("Image dimensions are too large (max 800x600px)."))
+            # except Exception as e: # Catch more specific exceptions if possible
+            #     raise ValidationError(_("Invalid image file: %(error)s", params={'error': str(e)}))
+        return logo
 
 class ContinentFederationForm(forms.ModelForm):
-    sport_code = forms.ChoiceField(choices=[], required=True, label="Sport Code")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Initialize empty choices for dependent fields
+        self.fields['world_body'].queryset = WorldSportsBody.objects.none()
+        self.fields['continent'].queryset = Continent.objects.none()
+        
+        # If form has data (editing existing or form submission)
+        if 'sport_code' in self.data:
+            try:
+                sport_code = self.data.get('sport_code')
+                self.fields['world_body'].queryset = WorldSportsBody.objects.filter(sport_code=sport_code)
+                
+                # Get continents based on selected world body
+                if 'world_body' in self.data:
+                    world_body_id = self.data.get('world_body')
+                    if world_body_id:
+                        world_body = WorldSportsBody.objects.get(id=world_body_id)
+                        self.fields['continent'].queryset = world_body.continents.all()
+            except (ValueError, TypeError, WorldSportsBody.DoesNotExist):
+                pass
+        
+        # If editing existing instance
+        elif self.instance.pk:
+            self.fields['world_body'].queryset = WorldSportsBody.objects.filter(
+                sport_code=self.instance.sport_code
+            )
+            if self.instance.world_body:
+                self.fields['continent'].queryset = self.instance.world_body.continents.all()
+        
+        # Crispy forms helper
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('name', css_class='col-md-8'),
+                Column('acronym', css_class='col-md-4'),
+            ),
+            Row(
+                Column('sport_code', css_class='col-md-4'),
+                Column('world_body', css_class='col-md-4'),
+                Column('continent', css_class='col-md-4'),
+            ),
+            Row(
+                Column('website', css_class='col-md-6'),
+                Column('logo', css_class='col-md-6'),
+            ),
+            'description',
+            FormActions(
+                Submit('submit', 'Save Continent Federation', css_class='btn-primary'),
+            )
+        )
     
     class Meta:
         model = ContinentFederation
-        fields = ['continent', 'sport_code', 'world_body', 'name', 'acronym', 'description', 'website', 'logo']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Dynamically populate sport_code choices from WorldSportsBody
-        sport_codes = WorldSportsBody.objects.values_list('sport_code', flat=True).distinct()
-        self.fields['sport_code'].choices = [('', 'Select a sport code')] + [(code, code) for code in sport_codes]
-        self.fields['world_body'].queryset = WorldSportsBody.objects.none()
-
-        if 'sport_code' in self.data:
-            self.fields['world_body'].queryset = WorldSportsBody.objects.filter(sport_code=self.data.get('sport_code'))
-        elif self.instance.pk:
-            self.fields['world_body'].queryset = WorldSportsBody.objects.filter(sport_code=self.instance.world_body.sport_code)
+        fields = ['name', 'acronym', 'sport_code', 'world_body', 'continent', 'description', 'website', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'sport_code': forms.Select(attrs={'class': 'form-control'}),
+            'world_body': forms.Select(attrs={'class': 'form-control'}),
+            'continent': forms.Select(attrs={'class': 'form-control'}),
+        }

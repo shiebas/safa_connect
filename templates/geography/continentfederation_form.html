@@ -1,36 +1,235 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Add Continent Federation{% endblock %}
+
+{% block extra_css %}
+<style>
+.logo-preview {
+    max-width: 100px;
+    max-height: 100px;
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+.loading-option {
+    color: #6c757d;
+    font-style: italic;
+}
+.form-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<h2>Add Continent Federation</h2>
-<form method="post" enctype="multipart/form-data" id="cf-form">
-  {% csrf_token %}
-  {{ form|crispy }}
-  <button type="submit" class="btn btn-primary">Save</button>
-</form>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        {% if form.instance.pk %}Edit{% else %}Add{% endif %} Continent Federation
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="cf-form">
+                        {% csrf_token %}
+                        
+                        <div class="form-section">
+                            <h5 class="mb-3">Basic Information</h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    {{ form.name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.acronym|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h5 class="mb-3">Sport & Organization</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {{ form.sport_code|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.world_body|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.continent|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h5 class="mb-3">Additional Details</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.website|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.logo|as_crispy_field }}
+                                    <div id="logo-preview" style="display: none;">
+                                        <img id="preview-image" class="logo-preview" src="" alt="Logo Preview">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    {{ form.description|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Continent Federation
+                            </button>
+                            <a href="{% url 'geography:continentfederation-detail' form.instance.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times" aria-hidden="true"></i> Cancel
+                            </a>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(function() {
-    $('#id_sport_code').change(function() {
-        var sportCode = $(this).val();
-        var worldBodySelect = $('#id_world_body');
-        worldBodySelect.html('<option value="">Loading...</option>');
+$(document).ready(function() {
+    // Cache selectors
+    const $sportCode = $('#id_sport_code');
+    const $worldBody = $('#id_world_body');
+    const $continent = $('#id_continent');
+    const $logoInput = $('#id_logo');
+    const $logoPreview = $('#logo-preview');
+    const $previewImage = $('#preview-image');
+    
+    // Function to reset dropdown
+    function resetDropdown($dropdown, defaultText) {
+        $dropdown.empty().append(`<option value="">${defaultText}</option>`);
+    }
+    
+    // Function to show loading state
+    function showLoading($dropdown, text = 'Loading...') {
+        $dropdown.empty().append(`<option value="" class="loading-option">${text}</option>`);
+    }
+    
+    // Sport code change handler
+    $sportCode.change(function() {
+        const sportCode = $(this).val();
+        
+        // Reset dependent dropdowns
+        resetDropdown($worldBody, 'Select World Sports Body');
+        resetDropdown($continent, 'Select Continent');
+        
         if (sportCode) {
+            showLoading($worldBody);
+            
             $.ajax({
                 url: "{% url 'geography:ajax_get_worldsportsbodies' %}",
-                data: {
-                    'sport_code': sportCode
-                },
+                data: { 'sport_code': sportCode },
                 success: function(data) {
-                    worldBodySelect.empty();
-                    worldBodySelect.append('<option value="">Select World Sports Body</option>');
-                    $.each(data.wsbs, function(idx, wsb) {
-                        worldBodySelect.append('<option value="' + wsb.id + '">' + wsb.name + '</option>');
-                    });
+                    resetDropdown($worldBody, 'Select World Sports Body');
+                    
+                    if (data.wsbs && data.wsbs.length > 0) {
+                        $.each(data.wsbs, function(idx, wsb) {
+                            $worldBody.append(`<option value="${wsb.id}">${wsb.name} (${wsb.acronym})</option>`);
+                        });
+                    } else {
+                        $worldBody.append('<option value="" disabled>No world bodies found</option>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading world sports bodies:', error);
+                    resetDropdown($worldBody, 'Error loading data');
                 }
             });
-        } else {
-            worldBodySelect.html('<option value="">Select World Sports Body</option>');
         }
+    });
+    
+    // World body change handler
+    $worldBody.change(function() {
+        const worldBodyId = $(this).val();
+        
+        resetDropdown($continent, 'Select Continent');
+        
+        if (worldBodyId) {
+            showLoading($continent);
+            
+            $.ajax({
+                url: "{% url 'geography:ajax_get_continents' %}",
+                data: { 'world_body_id': worldBodyId },
+                success: function(data) {
+                    resetDropdown($continent, 'Select Continent');
+                    
+                    if (data.continents && data.continents.length > 0) {
+                        $.each(data.continents, function(idx, continent) {
+                            $continent.append(`<option value="${continent.id}">${continent.name} (${continent.code})</option>`);
+                        });
+                    } else {
+                        $continent.append('<option value="" disabled>No continents found</option>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading continents:', error);
+                    resetDropdown($continent, 'Error loading data');
+                }
+            });
+        }
+    });
+    
+    // Logo preview handler
+    $logoInput.change(function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $previewImage.attr('src', e.target.result);
+                $logoPreview.show();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            $logoPreview.hide();
+        }
+    });
+    
+    // Form validation
+    $('#cf-form').submit(function(e) {
+        let isValid = true;
+        const requiredFields = ['name', 'acronym', 'sport_code', 'world_body', 'continent'];
+        
+        requiredFields.forEach(function(fieldName) {
+            const $field = $(`#id_${fieldName}`);
+            if (!$field.val().trim()) {
+                $field.addClass('is-invalid');
+                isValid = false;
+            } else {
+                $field.removeClass('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Remove validation styling on input
+    $('input, select, textarea').on('input change', function() {
+        $(this).removeClass('is-invalid');
     });
 });
 </script>

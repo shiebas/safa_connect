@@ -13,6 +13,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render
 
+# geography/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .forms import ContinentFederationForm
+
 # Advanced global home page
 def advanced_home(request):
     countries = Country.objects.all().order_by('name')
@@ -111,7 +116,16 @@ def get_worldsportsbodies_by_sport(request):
 class ContinentFederationListView(ListView):
     model = ContinentFederation
     template_name = 'geography/continentfederation_list.html'
-    context_object_name = 'continentfederations'
+    context_object_name = 'federations'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        return ContinentFederation.objects.select_related(
+            'world_body', 'continent'
+        ).order_by('sport_code', 'continent__name')
+
+
+
 
 @login_decorator
 class ContinentFederationDetailView(DetailView):
@@ -122,9 +136,15 @@ class ContinentFederationDetailView(DetailView):
 @login_decorator
 class ContinentFederationCreateView(CreateView):
     model = ContinentFederation
+    form_class = ContinentFederationForm
     template_name = 'geography/continentfederation_form.html'
-    fields = '__all__'
-    success_url = reverse_lazy('geography:continentfederation-list')
+    success_url = reverse_lazy('geography:continentfederation_list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Continent Federation created successfully!')
+        return super().form_valid(form)
+
+
 
 @login_decorator
 class ContinentFederationUpdateView(UpdateView):

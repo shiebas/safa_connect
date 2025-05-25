@@ -1,12 +1,13 @@
 # geography/models.py
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.crypto import get_random_string
-
+import os
 
 # ===== CHOICE DEFINITIONS =====
 DOCUMENT_TYPES = (
@@ -82,16 +83,20 @@ class RegistrationType(models.Model):
 
 # ===== HIERARCHICAL SPORTS ORGANIZATION MODELS =====
 
-
 class ModelWithLogo(models.Model):
-    # Your existing fields
-    logo = models.ImageField(upload_to='logos/', null=True, blank=True)
+    """Abstract model to provide logo functionality with default logo support"""
     
-    @cached_property
-    def logo_url(self):
+    def get_logo_url(self):
+        """Return logo URL or default logo if not available"""
         if self.logo and hasattr(self.logo, 'url'):
             return self.logo.url
-        return '/static/images/default_logo.png'  # Path to your default logo
+        return self.get_default_logo_url()
+    
+    def get_default_logo_url(self):
+        """Return default logo URL based on model type"""
+        model_name = self.__class__.__name__.lower()
+        default_logo_path = f'images/defaults/{model_name}_default.png'
+        return f'{settings.STATIC_URL}{default_logo_path}'
     
     class Meta:
         abstract = True
@@ -112,6 +117,7 @@ class WorldSportsBody(TimeStampedModel, ModelWithLogo):
     class Meta:
         verbose_name = "World Sports Body"
         verbose_name_plural = "World Sports Bodies"
+        ordering = ['sport_code', 'name']
 
 class Continent(TimeStampedModel):
     """Represents the six continents as geographical entities"""
@@ -129,18 +135,62 @@ class ContinentFederation(TimeStampedModel, ModelWithLogo):
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10, unique=True)
     continent = models.ForeignKey(Continent, on_delete=models.PROTECT, related_name='federations')
-    world_body = models.ForeignKey(WorldSportsBody, on_delete=models.PROTECT, related_name='continent_federations')
+    world_body = models.ForeignKey(WorldSportsBody, on_delete=models.PROTECT, related_name='continental_federations')
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
     logo = models.ImageField(upload_to='continent_federation_logos/', blank=True, null=True)
-    
+    sport_code = models.CharField(
+    max_length=10,  # adjust as needed
+    choices=SPORT_CODES,
+    help_text="Sport code for this continental federation"
+    )
+        
     def __str__(self):
-        return f"{self.acronym} - {self.name}"
+        return f"{self.acronym} - {self.continent.name} ({self.get_sport_code_display()})"
     
+    def save(self, *args, **kwargs):
+        if self.sport_code:
+            # Automatically set world_body based on sport_code
+            try:
+                # Attempt to fetch the corresponding WorldSportsBody
+                self.world_body = WorldSportsBody.objects.get(sport_code=self.sport_code)
+            except WorldSportsBody.DoesNotExist:
+                
+                if self._meta.get_field('world_body').null:
+                    self.world_body = None
+                    
+                else:
+                    
+                    pass 
+            except WorldSportsBody.MultipleObjectsReturned:
+               
+                raise 
+        else:
+            # If sport_code is not set (e.g., empty or None),
+            # and if the world_body field is nullable, ensure it's set to None.
+            world_body_field = self._meta.get_field('world_body') # Get field object once
+            if world_body_field.null:
+                # If world_body can be null, and it's not already None, set it to None.
+                # This avoids an unnecessary database update if the value is already correct.
+                if self.world_body is not None: # Avoids redundant assignment
+                    self.world_body = None
+            # else:
+                # If world_body is not nullable and sport_code is not set:
+                # This implies a potential design inconsistency if the business rule is
+                # "if no sport_code, then no world_body".
+                # Current behavior: self.world_body is left as is.
+                # If self.world_body is None here (and field is non-nullable without a default),
+                # super().save() will likely raise an IntegrityError.
+                # Consider logging a warning or raising a custom ValidationError
+                # if this state represents an invalid model state according to business rules.
+                pass # Explicitly note no action if not nullable here.
+        super().save(*args, **kwargs)
+
     class Meta:
-        verbose_name = "Continental Federation"
-        verbose_name_plural = "Continental Federations"
-        unique_together = ['continent', 'world_body']
+        verbose_name = "Continent Federation"
+        verbose_name_plural = "Continent Federations"
+        unique_together = [('continent', 'sport_code')]
+        ordering = ['continent', 'sport_code']
 
 class ContinentRegion(TimeStampedModel, ModelWithLogo):
     """Regional confederations like COSAFA, CECAFA, etc."""
