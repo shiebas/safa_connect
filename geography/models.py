@@ -84,22 +84,17 @@ class RegistrationType(models.Model):
 # ===== HIERARCHICAL SPORTS ORGANIZATION MODELS =====
 
 class ModelWithLogo(models.Model):
-    """Abstract model to provide logo functionality with default logo support"""
+    logo = models.ImageField(upload_to='logos/', null=True, blank=True)
     
-    def get_logo_url(self):
-        """Return logo URL or default logo if not available"""
+    @cached_property
+    def logo_url(self):
         if self.logo and hasattr(self.logo, 'url'):
             return self.logo.url
-        return self.get_default_logo_url()
-    
-    def get_default_logo_url(self):
-        """Return default logo URL based on model type"""
-        model_name = self.__class__.__name__.lower()
-        default_logo_path = f'images/defaults/{model_name}_default.png'
-        return f'{settings.STATIC_URL}{default_logo_path}'
+        return '/static/images/default_logo.png'
     
     class Meta:
         abstract = True
+
 
 class WorldSportsBody(TimeStampedModel, ModelWithLogo):
     """Represents global governing bodies like FIFA, World Rugby, etc."""
@@ -108,7 +103,6 @@ class WorldSportsBody(TimeStampedModel, ModelWithLogo):
     sport_code = models.CharField(max_length=20, choices=SPORT_CODES)
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
-    logo = models.ImageField(upload_to='world_bodies_logos/', blank=True, null=True)
     continents = models.ManyToManyField('Continent', related_name='world_bodies')  # <-- Add this line
     
     def __str__(self):
@@ -138,7 +132,6 @@ class ContinentFederation(TimeStampedModel, ModelWithLogo):
     world_body = models.ForeignKey(WorldSportsBody, on_delete=models.PROTECT, related_name='continental_federations')
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
-    logo = models.ImageField(upload_to='continent_federation_logos/', blank=True, null=True)
     sport_code = models.CharField(
     max_length=10,  # adjust as needed
     choices=SPORT_CODES,
@@ -199,7 +192,7 @@ class ContinentRegion(TimeStampedModel, ModelWithLogo):
     continent_federation = models.ForeignKey(ContinentFederation, on_delete=models.PROTECT, related_name='regions')
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
-    logo = models.ImageField(upload_to='continent_region_logos/', blank=True, null=True)
+    
     
     def __str__(self):
         return f"{self.acronym} - {self.name}"
@@ -215,8 +208,7 @@ class Country(TimeStampedModel, ModelWithLogo):
     association_acronym = models.CharField(max_length=15, default='SAFA')
     continent_region = models.ForeignKey(ContinentRegion, on_delete=models.PROTECT, related_name='countries', null=True, blank=True)
     is_default = models.BooleanField(default=False)
-    logo = models.ImageField(upload_to='country_logos/', blank=True, null=True)
-
+    
     def save(self, *args, **kwargs):
         """Ensure only one default country exists"""
         if self.is_default:
@@ -239,7 +231,7 @@ class NationalFederation(TimeStampedModel, ModelWithLogo):
     world_body = models.ForeignKey(WorldSportsBody, on_delete=models.PROTECT, related_name='national_federations')
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
-    logo = models.ImageField(upload_to='national_federation_logos/', blank=True, null=True)
+    
     
     def __str__(self):
         return f"{self.acronym} - {self.country.name}"
@@ -254,7 +246,6 @@ class Province(TimeStampedModel, ModelWithLogo):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=5)
     country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='provinces')
-    logo = models.ImageField(upload_to='province_logos/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}, {self.country.name}"
@@ -268,7 +259,7 @@ class Region(TimeStampedModel, ModelWithLogo):
     code = models.CharField(max_length=10)
     province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='regions')
     national_federation = models.ForeignKey(NationalFederation, on_delete=models.PROTECT, related_name='regions')
-    logo = models.ImageField(upload_to='region_logos/', blank=True, null=True)
+    
 
     def __str__(self):
         return f"{self.name}, {self.province.name}"
@@ -283,7 +274,7 @@ class Association(TimeStampedModel, ModelWithLogo):
     national_federation = models.ForeignKey(NationalFederation, on_delete=models.PROTECT, related_name='associations')
     association_type = models.CharField(max_length=50)  # e.g., "Referee", "Schools", "Coaches"
     description = models.TextField(blank=True)
-    logo = models.ImageField(upload_to='association_logos/', blank=True, null=True)
+    
     
     def __str__(self):
         return f"{self.acronym} - {self.name}"
@@ -299,7 +290,7 @@ class Club(TimeStampedModel, ModelWithLogo):
     founded_year = models.PositiveIntegerField(null=True, blank=True)
     home_ground = models.CharField(max_length=100, blank=True)
     club_colors = models.CharField(max_length=100, blank=True)
-    logo = models.ImageField(upload_to='club_logos/', blank=True, null=True)
+    
     
     def __str__(self):
         return f"{self.name} ({self.region.name})"
