@@ -6,12 +6,12 @@ from .models import (
     Country, Province, Region, WorldSportsBody, Continent,
     ContinentFederation, Club, Association, Membership, ContinentRegion, NationalFederation
 )
-from django.shortcuts import render
+
 import datetime
 from geography.forms import WorldSportsBodyForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-
+from django.shortcuts import render
 
 # Advanced global home page
 def advanced_home(request):

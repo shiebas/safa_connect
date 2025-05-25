@@ -22,6 +22,8 @@
             <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Sport Code</th>
+                <th scope="col">Website</th>
+                <th scope="col">Countries</th>
                 <th scope="col">Actions</th>
                
             </tr>
@@ -31,6 +33,8 @@
             <tr>
                 <td><a href="{% url 'geography:worldsportsbody-detail' obj.pk %}">{{ obj.name }}</a></td>
                 <td>{{ obj.sport_code }}</td>
+                <td><a href="{% url 'geography:worldsportsbody-detail' obj.pk %}">{{ obj.website }}</a></td>
+                <td><a href="{% url 'geography:worldsportsbody-detail' obj.pk %}">{{ obj.continents }}</a></td>
                 <td>
                     <a href="{% url 'geography:worldsportsbody-detail' obj.pk %}" class="btn btn-sm btn-info">View</a>
                     <a href="{% url 'geography:worldsportsbody-update' obj.pk %}" class="btn btn-sm btn-warning">Edit</a>

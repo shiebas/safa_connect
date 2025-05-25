@@ -25,7 +25,7 @@ app_name = 'geography'
 urlpatterns = [
 
     path('admin/', geography_admin, name='geography_admin'),
-    
+    path('advanced/', views.advanced_home, name='advance_home'),
     # WorldSportsBody
     path('worldsportsbodies/', WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
     path('worldsportsbodies/add/', WorldSportsBodyCreateView.as_view(), name='worldsportsbody-create'),
