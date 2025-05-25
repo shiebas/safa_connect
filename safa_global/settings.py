@@ -41,7 +41,8 @@ INSTALLED_APPS = [
  #   'debug_toolbar', 
      'model_utils',
      'crispy_forms',
-    'crispy_bootstrap5',             
+    'crispy_bootstrap5',
+    'widget_tweaks',             
                      
 ]
 
