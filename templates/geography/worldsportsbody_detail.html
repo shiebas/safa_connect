@@ -13,12 +13,30 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <p><strong>Sport Code:</strong> {{ object.sport_code }}</p>
-        {% if object.description %}
-        <p><strong>Description:</strong> {{ object.description }}</p>
-        {% endif %}
+<div class="card mb-4" style="max-width: 600px;">
+    <div class="row g-0">
+        <div class="col-md-4 d-flex align-items-center justify-content-center">
+            <img src="{{ object.logo_url }}" alt="{{ object.name }}" width="120" height="120" style="object-fit:contain;border-radius:8px;">
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ object.name }}</p>
+                <p><strong>Sport Code:</strong> {{ object.sport_code }}</p>
+                {% if object.description %}
+                <p><strong>Description:</strong> {{ object.description }}</p>
+                {% endif %}
+                {% if object.website %}
+                <p><strong>Website:</strong> <a href="{{ object.website }}" target="_blank">{{ object.website }}</a></p>
+                {% endif %}
+                <p><strong>Continents:</strong>
+                    {% for continent in object.continents.all %}
+                        {{ continent.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        <span class="text-muted">None</span>
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
