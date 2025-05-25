@@ -1,11 +1,24 @@
-{% extends "admin/base_site.html" %}
-{% block title %}Delete World Sports Body{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete {{ object.name }}{% endblock %}
+
 {% block content %}
-<h2>Delete World Sports Body</h2>
-<p>Are you sure you want to delete "<strong>{{ worldsportsbody.name }}</strong>"?</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Yes, delete</button>
-    <a href="{% url 'geography:worldsportsbody-list' %}">Cancel</a>
-</form>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h3>Delete World Sports Body</h3>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete <strong>{{ object.name }}</strong>?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                    <a href="{% url 'geography:worldsportsbody-detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

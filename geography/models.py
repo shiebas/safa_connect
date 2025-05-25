@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.crypto import get_random_string
 
 
 # ===== CHOICE DEFINITIONS =====
@@ -290,6 +291,12 @@ class CustomUser(AbstractUser, ModelWithLogo):
         choices=DOCUMENT_TYPES,
         default='ID'
     )
+    is_active = models.BooleanField(default=False)  # overwrite default=True from AbstractUser
+    membership_card = models.BooleanField(default=False)
+    payment_required = models.BooleanField(default=True)
+    
+    safa_id = models.CharField(max_length=5, unique=True, blank=True, null=True)
+    fifa_id = models.CharField(max_length=7, unique=True, blank=True, null=True)
 
     # Profile image
     profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
@@ -302,6 +309,21 @@ class CustomUser(AbstractUser, ModelWithLogo):
         if self.name and self.surname:
             return f"{self.name} {self.surname}"
         return self.username
+
+    def generate_safa_id(self):
+        """Generate a unique 5-character uppercase alphanumeric code"""
+        while True:
+            code = get_random_string(length=5, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if not CustomUser.objects.filter(safa_id=code).exists():
+                self.safa_id = code
+                break
+    def fetch_fifa_id_from_api(self, api_key):
+        # You would call the external API here
+        # Example placeholder
+        if not self.fifa_id:
+            self.fifa_id = get_random_string(length=7, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            self.save()
+
 
 class Membership(TimeStampedModel):
     """Represents a membership relationship between a user and an organization"""

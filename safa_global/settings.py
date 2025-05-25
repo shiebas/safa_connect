@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'allauth.socialaccount',           
     'corsheaders', 
  #   'debug_toolbar', 
-     'model_utils'             
+     'model_utils',
+     'crispy_forms',
+    'crispy_bootstrap5',             
                      
 ]
 
@@ -157,3 +159,6 @@ ACCOUNT_RATE_LIMITS = {
 
 # Optional:
 # ACCOUNT_SIGNUP_REDIRECT_URL = '/your-signup-complete/'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

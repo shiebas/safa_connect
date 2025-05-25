@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Clubs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Clubs</h1>
+    <a href="{% url 'geography:club-create' %}" class="btn btn-success">Add New</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for club in clubs %}
+            <tr>
+                <td><a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a></td>
+                <td>
+                    <a href="{% url 'geography:club-detail' club.pk %}" class="btn btn-sm btn-info">View</a>
+                    <a href="{% url 'geography:club-update' club.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'geography:club-delete' club.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2">No clubs found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

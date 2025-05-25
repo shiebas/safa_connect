@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ province.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ province.name }}</h1>
+    <div>
+        <a href="{% url 'geography:province-update' province.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'geography:province-delete' province.pk %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'geography:province-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>Name:</strong> {{ province.name }}</p>
+        {% if province.description %}
+        <p><strong>Description:</strong> {{ province.description }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

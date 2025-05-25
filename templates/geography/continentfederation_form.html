@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<h2>Add Continent Federation</h2>
+<form method="post" enctype="multipart/form-data" id="cf-form">
+  {% csrf_token %}
+  {{ form|crispy }}
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function() {
+    $('#id_sport_code').change(function() {
+        var sportCode = $(this).val();
+        var worldBodySelect = $('#id_world_body');
+        worldBodySelect.html('<option value="">Loading...</option>');
+        if (sportCode) {
+            $.ajax({
+                url: "{% url 'geography:ajax_get_worldsportsbodies' %}",
+                data: {
+                    'sport_code': sportCode
+                },
+                success: function(data) {
+                    worldBodySelect.empty();
+                    worldBodySelect.append('<option value="">Select World Sports Body</option>');
+                    $.each(data.wsbs, function(idx, wsb) {
+                        worldBodySelect.append('<option value="' + wsb.id + '">' + wsb.name + '</option>');
+                    });
+                }
+            });
+        } else {
+            worldBodySelect.html('<option value="">Select World Sports Body</option>');
+        }
+    });
+});
+</script>
+{% endblock %}

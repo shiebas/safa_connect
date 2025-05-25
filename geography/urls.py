@@ -16,7 +16,8 @@ from .views import (
     RegionListView, RegionCreateView, RegionDetailView, RegionUpdateView, RegionDeleteView, 
     ClubListView, ClubCreateView, ClubDetailView, ClubUpdateView, ClubDeleteView,
     MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, 
-    MembershipDeleteView                     
+    MembershipDeleteView, get_worldsportsbodies_by_sport
+                     
 )
 
 app_name = 'geography'
@@ -24,7 +25,9 @@ app_name = 'geography'
 urlpatterns = [
 
     path('admin/', geography_admin, name='geography_admin'),
-    
+    path('ajax/get-worldsportsbodies/', get_worldsportsbodies_by_sport, name='ajax_get_worldsportsbodies'),
+
+
     # WorldSportsBody
     path('worldsportsbodies/', WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
     path('worldsportsbodies/add/', WorldSportsBodyCreateView.as_view(), name='worldsportsbody-create'),

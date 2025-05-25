@@ -12,8 +12,11 @@ from .models import (
     Club,
     Association,
     NationalFederation,
-    WorldSportsBody
+    WorldSportsBody,
+    ContinentFederation
 )
+import re
+
 
 class RegistrationForm(UserCreationForm):
     """Form for user registration"""
@@ -209,3 +212,22 @@ class WorldSportsBodyForm(forms.ModelForm):
         widgets = {
             'continents': forms.CheckboxSelectMultiple,
         }
+
+class ContinentFederationForm(forms.ModelForm):
+    sport_code = forms.ChoiceField(choices=[], required=True, label="Sport Code")
+    
+    class Meta:
+        model = ContinentFederation
+        fields = ['continent', 'sport_code', 'world_body', 'name', 'acronym', 'description', 'website', 'logo']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Dynamically populate sport_code choices from WorldSportsBody
+        sport_codes = WorldSportsBody.objects.values_list('sport_code', flat=True).distinct()
+        self.fields['sport_code'].choices = [('', 'Select a sport code')] + [(code, code) for code in sport_codes]
+        self.fields['world_body'].queryset = WorldSportsBody.objects.none()
+
+        if 'sport_code' in self.data:
+            self.fields['world_body'].queryset = WorldSportsBody.objects.filter(sport_code=self.data.get('sport_code'))
+        elif self.instance.pk:
+            self.fields['world_body'].queryset = WorldSportsBody.objects.filter(sport_code=self.instance.world_body.sport_code)

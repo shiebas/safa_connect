@@ -10,6 +10,7 @@ from django.shortcuts import render
 import datetime
 from geography.forms import WorldSportsBodyForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 
 
 # Advanced global home page
@@ -33,7 +34,7 @@ login_decorator = method_decorator(login_required, name='dispatch')
 class WorldSportsBodyListView(LoginRequiredMixin, ListView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_list.html'
-    context_object_name = 'object_list'
+    context_object_name = 'object_list'  # Use 'object_list' in your template
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -96,6 +97,14 @@ class ContinentDeleteView(DeleteView):
     model = Continent
     template_name = 'geography/continent_confirm_delete.html'
     success_url = reverse_lazy('geography:continent-list') 
+
+    
+def get_worldsportsbodies_by_sport(request):
+    sport_code = request.GET.get('sport_code')
+    wsbs = WorldSportsBody.objects.filter(sport_code=sport_code).order_by('name')
+    result = [{'id': wsb.id, 'name': wsb.name} for wsb in wsbs]
+    return JsonResponse({'wsbs': result})
+
 
 # ContinentFederation
 @login_decorator

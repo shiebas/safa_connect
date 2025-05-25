@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Continent Regions{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Continent Regions</h1>
+    <a href="{% url 'geography:continentregion-create' %}" class="btn btn-success">Add New</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for continentregion in continentregions %}
+            <tr>
+                <td><a href="{% url 'geography:continentregion-detail' continentregion.pk %}">{{ continentregion.name }}</a></td>
+                <td>
+                    <a href="{% url 'geography:continentregion-detail' continentregion.pk %}" class="btn btn-sm btn-info">View</a>
+                    <a href="{% url 'geography:continentregion-update' continentregion.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'geography:continentregion-delete' continentregion.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2">No continent regions found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,13 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Country Details{% endblock %}
+{% load static %}
+
+{% block title %}{{ country.name }}{% endblock %}
+
 {% block content %}
-<h2>{{ country.name }} ({{ country.fifa_code }})</h2>
-<ul>
-    <li>Association Acronym: {{ country.association_acronym }}</li>
-    <li>Continent Region: {{ country.continent_region }}</li>
-    <li>Is Default: {{ country.is_default }}</li>
-</ul>
-<a href="{% url 'country-update' country.pk %}">Edit</a>
-<a href="{% url 'country-delete' country.pk %}">Delete</a>
-<a href="{% url 'country-list' %}">Back to list</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ country.name }}</h1>
+    <div>
+        <a href="{% url 'geography:country-update' country.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'geography:country-delete' country.pk %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'geography:country-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>Name:</strong> {{ country.name }}</p>
+        {% if country.code %}
+        <p><strong>Code:</strong> {{ country.code }}</p>
+        {% endif %}
+        {% if country.description %}
+        <p><strong>Description:</strong> {{ country.description }}</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

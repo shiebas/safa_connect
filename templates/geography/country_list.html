@@ -1,29 +1,36 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Countries{% endblock %}
+
 {% block content %}
-<h2>Country List</h2>
-<a href="{% url 'country-create' %}">Add new country</a>
-<table>
-    <tr>
-        <th>Name</th>
-        <th>FIFA Code</th>
-        <th>Association</th>
-        <th>Actions</th>
-    </tr>
-    {% for country in countries %}
-    <tr>
-        <td><a href="{% url 'country-detail' country.pk %}">{{ country.name }}</a></td>
-        <td>{{ country.fifa_code }}</td>
-        <td>{{ country.association_acronym }}</td>
-        <td>
-            <a href="{% url 'country-update' country.pk %}">Edit</a> |
-            <a href="{% url 'country-delete' country.pk %}">Delete</a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4">No countries available.</td>
-    </tr>
-    {% endfor %}
-</table>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Countries</h1>
+    <a href="{% url 'geography:country-create' %}" class="btn btn-success">Add New</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for country in countries %}
+            <tr>
+                <td><a href="{% url 'geography:country-detail' country.pk %}">{{ country.name }}</a></td>
+                <td>
+                    <a href="{% url 'geography:country-detail' country.pk %}" class="btn btn-sm btn-info">View</a>
+                    <a href="{% url 'geography:country-update' country.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'geography:country-delete' country.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2">No countries found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

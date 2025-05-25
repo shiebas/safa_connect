@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{% if object %}Edit{% else %}Add{% endif %} World Sports Body{% endblock %}
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Association{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <h1>{% if object %}Edit{% else %}Add{% endif %} World Sports Body</h1>
+        <h1>{% if object %}Edit{% else %}Add{% endif %} Association</h1>
         
         <form method="post">
             {% csrf_token %}
@@ -16,7 +16,7 @@
                 </div>
                 <div class="card-footer">
                     <button type="submit" class="btn btn-primary">Save</button>
-                    <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-secondary">Cancel</a>
+                    <a href="{% url 'geography:association-list' %}" class="btn btn-secondary">Cancel</a>
                 </div>
             </div>
         </form>

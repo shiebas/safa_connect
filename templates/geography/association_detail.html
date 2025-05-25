@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ association.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ association.name }}</h1>
+    <div>
+        <a href="{% url 'geography:association-update' association.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'geography:association-delete' association.pk %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'geography:association-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>Name:</strong> {{ association.name }}</p>
+        {% if association.description %}
+        <p><strong>Description:</strong> {{ association.description }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

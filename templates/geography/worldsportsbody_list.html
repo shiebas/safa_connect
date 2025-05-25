@@ -1,36 +1,45 @@
-{% extends "admin/base_site.html" %}
+{% extends "base.html" %}
+{% load static %}
+
 {% block title %}World Sports Bodies{% endblock %}
+
 {% block content %}
-<h2>World Sports Bodies</h2>
-<a href="{% url 'geography:worldsportsbody-create' %}">Add new World Sports Body</a>
-<table>
-    <tr>
-        <th>Name</th>
-        <th>Acronym</th>
-        <th>Sport</th>
-        <th>Website</th>
-        <th>Actions</th>
-    </tr>
-    {% for wsbody in worldsportsbodies %}
-    <tr>
-        <td><a href="{% url 'geography:worldsportsbody-detail' wsbody.pk %}">{{ wsbody.name }}</a></td>
-        <td>{{ wsbody.acronym }}</td>
-        <td>{{ wsbody.get_sport_code_display }}</td>
-        <td>
-            {% if wsbody.website %}
-                <a href="{{ wsbody.website }}" target="_blank">{{ wsbody.website }}</a>
-            {% endif %}
-        </td>
-        <td>
-            <a href="{% url 'geography:worldsportsbody-update' wsbody.pk %}">Edit</a> |
-            <a href="{% url 'geography:worldsportsbody-delete' wsbody.pk %}">Delete</a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="5">No World Sports Bodies available.</td>
-    </tr>
-    {% endfor %}
-</table>
-<a >Back to Admin Dashboard</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>World Sports Bodies</h1>
+    <a href="{% url 'geography:worldsportsbody-create' %}" class="btn btn-success">Add New</a>
+</div>
+
+<div class="mb-3">
+    <form method="get" class="d-flex">
+        <input type="text" name="q" class="form-control me-2" placeholder="Search by sport code..." value="{{ request.GET.q }}">
+        <button type="submit" class="btn btn-outline-primary">Search</button>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sport Code</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in object_list %}
+            <tr>
+                <td><a href="{% url 'geography:worldsportsbody-detail' obj.pk %}">{{ obj.name }}</a></td>
+                <td>{{ obj.sport_code }}</td>
+                <td>
+                    <a href="{% url 'geography:worldsportsbody-detail' obj.pk %}" class="btn btn-sm btn-info">View</a>
+                    <a href="{% url 'geography:worldsportsbody-update' obj.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'geography:worldsportsbody-delete' obj.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No world sports bodies found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ region.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ region.name }}</h1>
+    <div>
+        <a href="{% url 'geography:region-update' region.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'geography:region-delete' region.pk %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'geography:region-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>Name:</strong> {{ region.name }}</p>
+        {% if region.description %}
+        <p><strong>Description:</strong> {{ region.description }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

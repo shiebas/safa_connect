@@ -1,10 +1,136 @@
-{% extends "admin/base_site.html" %}
-{% block title %}Geography Admin Dashboard{% endblock %}
+<!-- geography/geography_admin.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Geography Admin{% endblock %}
+
 {% block content %}
-<h2>Geography Admin Dashboard</h2>
-<ul>
-    <li><a href="{% url 'geography:worldsportsbody-list' %}">Manage World Sports Bodies</a></li>
-</ul>
-<p>Welcome, {{ user.get_full_name|default:user.username }}!</p>
-<p>Use the links above to manage geography-related data.</p>
+<div class="row">
+    <div class="col-12">
+        <h1>Global Administration</h1>
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>World Sports Bodies</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:worldsportsbody-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Continents</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:continent-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:continent-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Continent Federations</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:continentfederation-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:continentfederation-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Continent Regions</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:continentregion-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:continentregion-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Countries</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:country-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:country-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>National Federations</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:nationalfederation-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:nationalfederation-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Associations</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:association-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:association-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Provinces</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:province-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:province-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Regions</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:region-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:region-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Clubs</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:club-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:club-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Memberships</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'geography:membership-list' %}" class="btn btn-primary">View All</a>
+                        <a href="{% url 'geography:membership-create' %}" class="btn btn-success">Add New</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

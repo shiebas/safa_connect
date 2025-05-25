@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ membership.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ membership.name }}</h1>
+    <div>
+        <a href="{% url 'geography:membership-update' membership.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'geography:membership-delete' membership.pk %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'geography:membership-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>Name:</strong> {{ membership.name }}</p>
+        {% if membership.description %}
+        <p><strong>Description:</strong> {{ membership.description }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

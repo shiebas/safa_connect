@@ -1,8 +1,24 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ continent.name }}{% endblock %}
+
 {% block content %}
-<h1>{{ object.name }}</h1>
-<!-- Add more Continent fields as needed -->
-<a href="{% url 'geography:continent-update' object.pk %}" class="btn btn-warning">Edit</a>
-<a href="{% url 'geography:continent-delete' object.pk %}" class="btn btn-danger">Delete</a>
-<a href="{% url 'geography:continent-list' %}" class="btn btn-secondary">Back to List</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ continent.name }}</h1>
+    <div>
+        <a href="{% url 'geography:continent-update' continent.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'geography:continent-delete' continent.pk %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'geography:continent-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>Name:</strong> {{ continent.name }}</p>
+        {% if continent.description %}
+        <p><strong>Description:</strong> {{ continent.description }}</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
