@@ -8,7 +8,7 @@
     <div class="col-md-8">
         <h1>{% if object %}Edit{% else %}Add{% endif %} National Federation</h1>
         
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="card">
                 <div class="card-body">

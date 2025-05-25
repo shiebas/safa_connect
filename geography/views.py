@@ -144,14 +144,45 @@ class ContinentFederationCreateView(CreateView):
         messages.success(self.request, 'Continent Federation created successfully!')
         return super().form_valid(form)
 
-
-
 @login_decorator
 class ContinentFederationUpdateView(UpdateView):
     model = ContinentFederation
+    form_class = ContinentFederationForm
     template_name = 'geography/continentfederation_form.html'
-    fields = '__all__'
-    success_url = reverse_lazy('geography:continentfederation-list')
+    success_url = reverse_lazy('geography:continentfederation_list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Continent Federation updated successfully!')
+        return super().form_valid(form)
+
+# Ajax Views
+def ajax_get_worldsportsbodies(request):
+    """Ajax view to get world sports bodies based on sport code"""
+    sport_code = request.GET.get('sport_code')
+    wsbs = []
+    
+    if sport_code:
+        world_bodies = WorldSportsBody.objects.filter(sport_code=sport_code).order_by('name')
+        wsbs = [{'id': wb.id, 'name': wb.name, 'acronym': wb.acronym} for wb in world_bodies]
+    
+    return JsonResponse({'wsbs': wsbs})
+
+def ajax_get_continents(request):
+    """Ajax view to get continents based on world sports body"""
+    world_body_id = request.GET.get('world_body_id')
+    continents = []
+    
+    if world_body_id:
+        try:
+            world_body = WorldSportsBody.objects.get(id=world_body_id)
+            continents_qs = world_body.continents.all().order_by('name')
+            continents = [{'id': c.id, 'name': c.name, 'code': c.code} for c in continents_qs]
+        except WorldSportsBody.DoesNotExist:
+            pass
+    
+    return JsonResponse({'continents': continents})
+
+        
 
 @login_decorator
 class ContinentFederationDeleteView(DeleteView):
