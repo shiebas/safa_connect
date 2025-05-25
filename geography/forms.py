@@ -15,6 +15,7 @@ from .models import (
     NationalFederation,
     WorldSportsBody,
     ContinentFederation,
+    ContinentRegion,
     SPORT_CODES
 )
 import re
@@ -241,64 +242,88 @@ def clean_logo(self):
         return logo
 
 class ContinentFederationForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Initialize empty choices for dependent fields
-        self.fields['world_body'].queryset = WorldSportsBody.objects.none()
-        self.fields['continent'].queryset = Continent.objects.none()
-        
-        # If form has data (editing existing or form submission)
-        if 'sport_code' in self.data:
-            try:
-                sport_code = self.data.get('sport_code')
-                self.fields['world_body'].queryset = WorldSportsBody.objects.filter(sport_code=sport_code)
-                
-                # Get continents based on selected world body
-                if 'world_body' in self.data:
-                    world_body_id = self.data.get('world_body')
-                    if world_body_id:
-                        world_body = WorldSportsBody.objects.get(id=world_body_id)
-                        self.fields['continent'].queryset = world_body.continents.all()
-            except (ValueError, TypeError, WorldSportsBody.DoesNotExist):
-                pass
-        
-        # If editing existing instance
-        elif self.instance.pk:
-            self.fields['world_body'].queryset = WorldSportsBody.objects.filter(
-                sport_code=self.instance.sport_code
-            )
-            if self.instance.world_body:
-                self.fields['continent'].queryset = self.instance.world_body.continents.all()
-        
-        # Crispy forms helper
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Row(
-                Column('name', css_class='col-md-8'),
-                Column('acronym', css_class='col-md-4'),
-            ),
-            Row(
-                Column('sport_code', css_class='col-md-4'),
-                Column('world_body', css_class='col-md-4'),
-                Column('continent', css_class='col-md-4'),
-            ),
-            Row(
-                Column('website', css_class='col-md-6'),
-                Column('logo', css_class='col-md-6'),
-            ),
-            'description',
-            FormActions(
-                Submit('submit', 'Save Continent Federation', css_class='btn-primary'),
-            )
-        )
-    
     class Meta:
         model = ContinentFederation
-        fields = ['name', 'acronym', 'sport_code', 'world_body', 'continent', 'description', 'website', 'logo']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'sport_code': forms.Select(attrs={'class': 'form-control'}),
-            'world_body': forms.Select(attrs={'class': 'form-control'}),
-            'continent': forms.Select(attrs={'class': 'form-control'}),
-        }
+        fields = [
+            "name",
+            "acronym",
+            "continent",
+            "sport_code",
+            "description",
+            "website",
+            "logo",
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        continent = cleaned_data.get('continent')
+        sport_code = cleaned_data.get('sport_code')
+        if continent and sport_code:
+            qs = ContinentFederation.objects.filter(continent=continent, sport_code=sport_code)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(
+                    "A federation for this continent and sport code already exists."
+                )
+        return cleaned_data
+
+class ContinentRegionForm(forms.ModelForm):
+    class Meta:
+        model = ContinentRegion
+        fields = [
+            "name",
+            "acronym",
+            "continent_federation",
+            "description",
+            "website",
+            "logo",
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        acronym = cleaned_data.get("acronym")
+        continent_federation = cleaned_data.get("continent_federation")
+        qs = ContinentRegion.objects.filter(acronym=acronym, continent_federation=continent_federation)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("This acronym is already used for this federation.")
+        return cleaned_data
+
+class CountryForm(forms.ModelForm):
+    class Meta:
+        model = Country
+        fields = [
+            "name",
+            "fifa_code",
+            "association_acronym",
+            "continent_region",
+            "is_default",
+            "logo",
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get("name")
+        fifa_code = cleaned_data.get("fifa_code")
+        # Ensure FIFA code is unique (database already enforces, but for user-friendly error)
+        qs = Country.objects.filter(fifa_code=fifa_code)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            self.add_error("fifa_code", "This FIFA code is already used by another country.")
+
+        # You could also enforce only one default country, but your model's save() already does this
+        # If you want to warn in the form:
+        is_default = cleaned_data.get("is_default")
+        if is_default:
+            qs_default = Country.objects.filter(is_default=True)
+            if self.instance.pk:
+                qs_default = qs_default.exclude(pk=self.instance.pk)
+            if qs_default.exists():
+                raise forms.ValidationError(
+                    "There is already a default country. Saving this will replace the previous default."
+                )
+
+        return cleaned_data

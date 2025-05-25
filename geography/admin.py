@@ -5,6 +5,7 @@ from .models import (
     Association, Club, CustomUser, Membership
 )
 
+
 admin.site.register(RegistrationType)
 admin.site.register(WorldSportsBody)
 admin.site.register(Continent)

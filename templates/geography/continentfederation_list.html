@@ -1,36 +1,57 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}Continent Federations{% endblock %}
-
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Continent Federations</h1>
-    <a href="{% url 'geography:continentfederation-create' %}" class="btn btn-success">Add New</a>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-               <th scope="col">Name</th>
-                <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for continentfederation in continentfederations %}
-            <tr>
-                <td><a href="{% url 'geography:continentfederation-detail' continentfederation.pk %}">{{ continentfederation.name }}</a></td>
-                <td>
-                    <a href="{% url 'geography:continentfederation-detail' continentfederation.pk %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'geography:continentfederation-update' continentfederation.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'geography:continentfederation-delete' continentfederation.pk %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="2">No continent federations found.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<h1>Continent Federations</h1>
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Logo</th>
+            <th>Name</th>
+            <th>Acronym</th>
+            <th>Continent</th>
+            <th>Sport</th>
+            <th>World Body</th>
+            <th>Website</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for continentfederation in continentfederations %}
+        <tr>
+            <td>
+                {% if continentfederation.logo %}
+                    <img src="{{ continentfederation.logo.url }}" alt="{{ continentfederation.name }} logo" style="height:40px;">
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'geography:continentfederation-detail' continentfederation.pk %}">
+                  {{ continentfederation.name }}
+                </a>
+            </td>
+            <td>{{ continentfederation.acronym }}</td>
+            <td>{{ continentfederation.continent.name }}</td>
+            <td>{{ continentfederation.get_sport_code_display }}</td>
+            <td>
+                {% if continentfederation.world_body %}
+                  {{ continentfederation.world_body.name }}
+                {% endif %}
+            </td>
+            <td>
+                {% if continentfederation.website %}
+                    <a href="{{ continentfederation.website }}" target="_blank">Website</a>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'geography:continentfederation-update' continentfederation.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                <a href="{% url 'geography:continentfederation-delete' continentfederation.pk %}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="8">No continent federations found.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'geography:continentfederation-create' %}" class="btn btn-primary">Add Federation</a>
 {% endblock %}

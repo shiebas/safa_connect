@@ -1,20 +1,33 @@
 {% extends "base.html" %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}{% if object %}Edit{% else %}Add{% endif %} Continent{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-6">
         <h1>{% if object %}Edit{% else %}Add{% endif %} Continent</h1>
-        
-        <form method="post">
+        <form method="post" novalidate>
             {% csrf_token %}
             <div class="card">
                 <div class="card-body">
-                    {{ form.as_p }}
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
+                        {% render_field form.name class="form-control" %}
+                        {% if form.name.errors %}
+                        <div class="text-danger small">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.code.id_for_label }}" class="form-label">Code</label>
+                        {% render_field form.code class="form-control" %}
+                        {% if form.code.errors %}
+                        <div class="text-danger small">{{ form.code.errors }}</div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="card-footer">
+                <div class="card-footer text-end">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <a href="{% url 'geography:continent-list' %}" class="btn btn-secondary">Cancel</a>
                 </div>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}{% if object %}Edit{% else %}Add{% endif %} Membership{% endblock %}
 
@@ -7,14 +8,40 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         <h1>{% if object %}Edit{% else %}Add{% endif %} Membership</h1>
-        
-       <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             <div class="card">
                 <div class="card-body">
-                    {{ form.as_p }}
+                    <div class="mb-3">
+                        <label for="{{ form.membership_type.id_for_label }}" class="form-label">Membership Type</label>
+                        {% render_field form.membership_type class="form-select" %}
+                        {% if form.membership_type.errors %}
+                            <div class="text-danger small">{{ form.membership_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <!-- Repeat for each field as above -->
+                    <!-- Example for a date field: -->
+                    <div class="mb-3">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
+                        {% render_field form.start_date class="form-control" %}
+                        {% if form.start_date.errors %}
+                            <div class="text-danger small">{{ form.start_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <!-- Example for a custom fieldset for a ManyToMany or special field -->
+                    <div class="mb-3">
+                        <fieldset class="border p-3 rounded shadow-sm">
+                            <legend class="w-auto px-2 fw-bold text-primary">Player Category</legend>
+                            <div>
+                                {% render_field form.player_category %}
+                            </div>
+                            {% if form.player_category.errors %}
+                                <div class="text-danger mt-2 small">{{ form.player_category.errors }}</div>
+                            {% endif %}
+                        </fieldset>
+                    </div>
                 </div>
-                <div class="card-footer">
+                <div class="card-footer text-end">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <a href="{% url 'geography:membership-list' %}" class="btn btn-secondary">Cancel</a>
                 </div>

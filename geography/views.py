@@ -16,7 +16,8 @@ from django.shortcuts import render
 # geography/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .forms import ContinentFederationForm
+from .forms import ContinentFederationForm, ContinentRegionForm, CountryForm
+
 
 # Advanced global home page
 def advanced_home(request):
@@ -116,7 +117,7 @@ def get_worldsportsbodies_by_sport(request):
 class ContinentFederationListView(ListView):
     model = ContinentFederation
     template_name = 'geography/continentfederation_list.html'
-    context_object_name = 'federations'
+    context_object_name = 'continentfederations'
     paginate_by = 20
     
     def get_queryset(self):
@@ -138,7 +139,7 @@ class ContinentFederationCreateView(CreateView):
     model = ContinentFederation
     form_class = ContinentFederationForm
     template_name = 'geography/continentfederation_form.html'
-    success_url = reverse_lazy('geography:continentfederation_list')
+    success_url = reverse_lazy('geography:continentfederation-list')
     
     def form_valid(self, form):
         messages.success(self.request, 'Continent Federation created successfully!')
@@ -149,7 +150,7 @@ class ContinentFederationUpdateView(UpdateView):
     model = ContinentFederation
     form_class = ContinentFederationForm
     template_name = 'geography/continentfederation_form.html'
-    success_url = reverse_lazy('geography:continentfederation_list')
+    success_url = reverse_lazy('geography:continentfederation-list')
     
     def form_valid(self, form):
         messages.success(self.request, 'Continent Federation updated successfully!')
@@ -196,6 +197,10 @@ class ContinentRegionListView(ListView):
     model = ContinentRegion
     template_name = 'geography/continentregion_list.html'
     context_object_name = 'continentregions'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return ContinentRegion.objects.select_related('continent_federation').order_by('continent_federation__name', 'name')
 
 @login_decorator
 class ContinentRegionDetailView(DetailView):
@@ -206,9 +211,13 @@ class ContinentRegionDetailView(DetailView):
 @login_decorator
 class ContinentRegionCreateView(CreateView):
     model = ContinentRegion
+    form_class = ContinentRegionForm
     template_name = 'geography/continentregion_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:continentregion-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Continent Region created successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class ContinentRegionUpdateView(UpdateView):
@@ -239,9 +248,13 @@ class CountryDetailView(DetailView):
 @login_decorator
 class CountryCreateView(CreateView):
     model = Country
+    form_class = CountryForm
     template_name = 'geography/country_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:country-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Country created successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class CountryUpdateView(UpdateView):

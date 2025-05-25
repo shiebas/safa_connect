@@ -186,20 +186,25 @@ class ContinentFederation(TimeStampedModel, ModelWithLogo):
         ordering = ['continent', 'sport_code']
 
 class ContinentRegion(TimeStampedModel, ModelWithLogo):
-    """Regional confederations like COSAFA, CECAFA, etc."""
+  
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10, unique=True)
-    continent_federation = models.ForeignKey(ContinentFederation, on_delete=models.PROTECT, related_name='regions')
+    continent_federation = models.ForeignKey(
+        'ContinentFederation',
+        on_delete=models.PROTECT,
+        related_name='regions'
+    )
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
-    
-    
-    def __str__(self):
-        return f"{self.acronym} - {self.name}"
-    
+    # logo is provided by ModelWithLogo
+
     class Meta:
-        verbose_name = "Continental Region"
-        verbose_name_plural = "Continental Regions"
+        verbose_name = "Continent Region"
+        verbose_name_plural = "Continent Regions"
+        ordering = ['continent_federation', 'name']
+
+    def __str__(self):
+        return f"{self.acronym} - {self.continent_federation.name}"
 
 class Country(TimeStampedModel, ModelWithLogo):
     """Core country model with FIFA codes"""
