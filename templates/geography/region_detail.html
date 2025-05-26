@@ -15,9 +15,37 @@
 
 <div class="card">
     <div class="card-body">
-        <p><strong>Name:</strong> {{ region.name }}</p>
-        {% if region.description %}
-        <p><strong>Description:</strong> {{ region.description }}</p>
+        <div class="row">
+            <div class="col-md-8">
+                <p><strong>Name:</strong> {{ region.name }}</p>
+                <p><strong>Code:</strong> {{ region.code }}</p>
+                <p><strong>Province:</strong> <a href="{% url 'geography:province-detail' region.province.pk %}">{{ region.province.name }}</a></p>
+                <p><strong>National Federation:</strong> <a href="{% url 'geography:nationalfederation-detail' region.national_federation.pk %}">{{ region.national_federation.name }}</a></p>
+            </div>
+            <div class="col-md-4 text-center">
+                {% if region.logo %}
+                <img src="{{ region.logo.url }}" alt="{{ region.name }} logo" class="img-fluid" style="max-height: 200px;">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Clubs</h3>
+    </div>
+    <div class="card-body">
+        {% if region.clubs.all %}
+        <ul class="list-group">
+            {% for club in region.clubs.all %}
+            <li class="list-group-item">
+                <a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No clubs found for this region.</p>
         {% endif %}
     </div>
 </div>

@@ -15,10 +15,27 @@
 
 <div class="card">
     <div class="card-body">
-        <p><strong>Name:</strong> {{ club.name }}</p>
-        {% if club.description %}
-        <p><strong>Description:</strong> {{ club.description }}</p>
-        {% endif %}
+        <div class="row">
+            <div class="col-md-8">
+                <p><strong>Name:</strong> {{ club.name }}</p>
+                <p><strong>Short Name:</strong> {{ club.short_name }}</p>
+                <p><strong>Region:</strong> <a href="{% url 'geography:region-detail' club.region.pk %}">{{ club.region.name }}</a></p>
+                {% if club.founded_year %}
+                <p><strong>Founded Year:</strong> {{ club.founded_year }}</p>
+                {% endif %}
+                {% if club.home_ground %}
+                <p><strong>Home Ground:</strong> {{ club.home_ground }}</p>
+                {% endif %}
+                {% if club.club_colors %}
+                <p><strong>Club Colors:</strong> {{ club.club_colors }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                {% if club.logo %}
+                <img src="{{ club.logo.url }}" alt="{{ club.name }} logo" class="img-fluid" style="max-height: 200px;">
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

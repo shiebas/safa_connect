@@ -15,9 +15,40 @@
 
 <div class="card">
     <div class="card-body">
-        <p><strong>Name:</strong> {{ association.name }}</p>
-        {% if association.description %}
-        <p><strong>Description:</strong> {{ association.description }}</p>
+        <div class="row">
+            <div class="col-md-8">
+                <p><strong>Name:</strong> {{ association.name }}</p>
+                <p><strong>Acronym:</strong> {{ association.acronym }}</p>
+                <p><strong>National Federation:</strong> <a href="{% url 'geography:nationalfederation-detail' association.national_federation.pk %}">{{ association.national_federation.name }}</a></p>
+                <p><strong>Association Type:</strong> {{ association.association_type }}</p>
+                {% if association.description %}
+                <p><strong>Description:</strong> {{ association.description }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                {% if association.logo %}
+                <img src="{{ association.logo.url }}" alt="{{ association.name }} logo" class="img-fluid" style="max-height: 200px;">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Members</h3>
+    </div>
+    <div class="card-body">
+        {% if association.members.all %}
+        <ul class="list-group">
+            {% for member in association.members.all %}
+            <li class="list-group-item">
+                {{ member.user.name }} {{ member.user.surname }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No members found for this association.</p>
         {% endif %}
     </div>
 </div>

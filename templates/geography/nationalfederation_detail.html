@@ -15,9 +15,43 @@
 
 <div class="card">
     <div class="card-body">
-        <p><strong>Name:</strong> {{ nationalfederation.name }}</p>
-        {% if nationalfederation.description %}
-        <p><strong>Description:</strong> {{ nationalfederation.description }}</p>
+        <div class="row">
+            <div class="col-md-8">
+                <p><strong>Name:</strong> {{ nationalfederation.name }}</p>
+                <p><strong>Acronym:</strong> {{ nationalfederation.acronym }}</p>
+                <p><strong>Country:</strong> <a href="{% url 'geography:country-detail' nationalfederation.country.pk %}">{{ nationalfederation.country.name }}</a></p>
+                <p><strong>World Sports Body:</strong> <a href="{% url 'geography:worldsportsbody-detail' nationalfederation.world_body.pk %}">{{ nationalfederation.world_body.name }}</a></p>
+                {% if nationalfederation.website %}
+                <p><strong>Website:</strong> <a href="{{ nationalfederation.website }}" target="_blank">{{ nationalfederation.website }}</a></p>
+                {% endif %}
+                {% if nationalfederation.description %}
+                <p><strong>Description:</strong> {{ nationalfederation.description }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                {% if nationalfederation.logo %}
+                <img src="{{ nationalfederation.logo.url }}" alt="{{ nationalfederation.name }} logo" class="img-fluid" style="max-height: 200px;">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Associations</h3>
+    </div>
+    <div class="card-body">
+        {% if nationalfederation.associations.all %}
+        <ul class="list-group">
+            {% for association in nationalfederation.associations.all %}
+            <li class="list-group-item">
+                <a href="{% url 'geography:association-detail' association.pk %}">{{ association.name }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No associations found for this federation.</p>
         {% endif %}
     </div>
 </div>

@@ -34,6 +34,13 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
+                        <label for="{{ form.association_type.id_for_label }}" class="form-label">Association Type</label>
+                        {% render_field form.association_type class="form-control" %}
+                        {% if form.association_type.errors %}
+                        <div class="text-danger small">{{ form.association_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
                         <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
                         {% render_field form.description class="form-control" %}
                         {% if form.description.errors %}

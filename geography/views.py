@@ -16,7 +16,7 @@ from django.shortcuts import render
 # geography/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .forms import ContinentFederationForm, ContinentRegionForm, CountryForm
+from .forms import ContinentFederationForm, ContinentRegionForm, CountryForm, NationalFederationForm, AssociationForm, ProvinceForm, RegionForm, ClubForm
 
 
 # Advanced global home page
@@ -244,6 +244,12 @@ class CountryListView(ListView):
     model = Country
     template_name = 'geography/country_list.html'
     context_object_name = 'countries'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Country.objects.select_related(
+            'continent_region'
+        ).order_by('name')
 
 @login_decorator
 class CountryDetailView(DetailView):
@@ -265,9 +271,13 @@ class CountryCreateView(CreateView):
 @login_decorator
 class CountryUpdateView(UpdateView):
     model = Country
+    form_class = CountryForm
     template_name = 'geography/country_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:country-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Country updated successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class CountryDeleteView(DeleteView):
@@ -281,6 +291,12 @@ class NationalFederationListView(ListView):
     model = NationalFederation
     template_name = 'geography/nationalfederation_list.html'
     context_object_name = 'nationalfederations'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return NationalFederation.objects.select_related(
+            'country', 'world_body'
+        ).order_by('name')
 
 @login_decorator
 class NationalFederationDetailView(DetailView):
@@ -291,16 +307,24 @@ class NationalFederationDetailView(DetailView):
 @login_decorator
 class NationalFederationCreateView(CreateView):
     model = NationalFederation
+    form_class = NationalFederationForm
     template_name = 'geography/nationalfederation_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:nationalfederation-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'National Federation created successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class NationalFederationUpdateView(UpdateView):
     model = NationalFederation
+    form_class = NationalFederationForm
     template_name = 'geography/nationalfederation_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:nationalfederation-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'National Federation updated successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class NationalFederationDeleteView(DeleteView):
@@ -314,6 +338,12 @@ class AssociationListView(ListView):
     model = Association
     template_name = 'geography/association_list.html'
     context_object_name = 'associations'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Association.objects.select_related(
+            'national_federation'
+        ).order_by('name')
 
 @login_decorator
 class AssociationDetailView(DetailView):
@@ -324,16 +354,24 @@ class AssociationDetailView(DetailView):
 @login_decorator
 class AssociationCreateView(CreateView):
     model = Association
+    form_class = AssociationForm
     template_name = 'geography/association_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:association-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Association created successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class AssociationUpdateView(UpdateView):
     model = Association
+    form_class = AssociationForm
     template_name = 'geography/association_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:association-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Association updated successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class AssociationDeleteView(DeleteView):
@@ -347,6 +385,12 @@ class ProvinceListView(ListView):
     model = Province
     template_name = 'geography/province_list.html'
     context_object_name = 'provinces'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Province.objects.select_related(
+            'country'
+        ).order_by('name')
 
 @login_decorator
 class ProvinceDetailView(DetailView):
@@ -357,16 +401,24 @@ class ProvinceDetailView(DetailView):
 @login_decorator
 class ProvinceCreateView(CreateView):
     model = Province
+    form_class = ProvinceForm
     template_name = 'geography/province_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:province-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Province created successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class ProvinceUpdateView(UpdateView):
     model = Province
+    form_class = ProvinceForm
     template_name = 'geography/province_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:province-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Province updated successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class ProvinceDeleteView(DeleteView):
@@ -380,6 +432,12 @@ class RegionListView(ListView):
     model = Region
     template_name = 'geography/region_list.html'
     context_object_name = 'regions'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Region.objects.select_related(
+            'province', 'national_federation'
+        ).order_by('name')
 
 @login_decorator
 class RegionDetailView(DetailView):
@@ -390,16 +448,24 @@ class RegionDetailView(DetailView):
 @login_decorator
 class RegionCreateView(CreateView):
     model = Region
+    form_class = RegionForm
     template_name = 'geography/region_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:region-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Region created successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class RegionUpdateView(UpdateView):
     model = Region
+    form_class = RegionForm
     template_name = 'geography/region_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:region-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Region updated successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class RegionDeleteView(DeleteView):
@@ -413,6 +479,12 @@ class ClubListView(ListView):
     model = Club
     template_name = 'geography/club_list.html'
     context_object_name = 'clubs'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Club.objects.select_related(
+            'region'
+        ).order_by('name')
 
 @login_decorator
 class ClubDetailView(DetailView):
@@ -423,16 +495,24 @@ class ClubDetailView(DetailView):
 @login_decorator
 class ClubCreateView(CreateView):
     model = Club
+    form_class = ClubForm
     template_name = 'geography/club_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:club-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Club created successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class ClubUpdateView(UpdateView):
     model = Club
+    form_class = ClubForm
     template_name = 'geography/club_form.html'
-    fields = '__all__'
     success_url = reverse_lazy('geography:club-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Club updated successfully!')
+        return super().form_valid(form)
 
 @login_decorator
 class ClubDeleteView(DeleteView):

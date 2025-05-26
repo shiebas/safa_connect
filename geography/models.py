@@ -264,7 +264,6 @@ class Region(TimeStampedModel, ModelWithLogo):
     code = models.CharField(max_length=10)
     province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='regions')
     national_federation = models.ForeignKey(NationalFederation, on_delete=models.PROTECT, related_name='regions')
-    
 
     def __str__(self):
         return f"{self.name}, {self.province.name}"

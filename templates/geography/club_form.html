@@ -20,6 +20,13 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
+                        <label for="{{ form.short_name.id_for_label }}" class="form-label">Short Name</label>
+                        {% render_field form.short_name class="form-control" %}
+                        {% if form.short_name.errors %}
+                        <div class="text-danger small">{{ form.short_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
                         <label for="{{ form.region.id_for_label }}" class="form-label">Region</label>
                         {% render_field form.region class="form-select" %}
                         {% if form.region.errors %}
@@ -27,17 +34,24 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-                        {% render_field form.description class="form-control" %}
-                        {% if form.description.errors %}
-                        <div class="text-danger small">{{ form.description.errors }}</div>
+                        <label for="{{ form.founded_year.id_for_label }}" class="form-label">Founded Year</label>
+                        {% render_field form.founded_year class="form-control" %}
+                        {% if form.founded_year.errors %}
+                        <div class="text-danger small">{{ form.founded_year.errors }}</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        <label for="{{ form.website.id_for_label }}" class="form-label">Website</label>
-                        {% render_field form.website class="form-control" %}
-                        {% if form.website.errors %}
-                        <div class="text-danger small">{{ form.website.errors }}</div>
+                        <label for="{{ form.home_ground.id_for_label }}" class="form-label">Home Ground</label>
+                        {% render_field form.home_ground class="form-control" %}
+                        {% if form.home_ground.errors %}
+                        <div class="text-danger small">{{ form.home_ground.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.club_colors.id_for_label }}" class="form-label">Club Colors</label>
+                        {% render_field form.club_colors class="form-control" %}
+                        {% if form.club_colors.errors %}
+                        <div class="text-danger small">{{ form.club_colors.errors }}</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
