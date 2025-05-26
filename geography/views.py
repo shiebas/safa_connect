@@ -41,6 +41,7 @@ class WorldSportsBodyListView(LoginRequiredMixin, ListView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_list.html'
     context_object_name = 'object_list'  # Use 'object_list' in your template
+    paginate_by = 20
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -77,6 +78,7 @@ class ContinentListView(ListView):
     model = Continent
     template_name = 'geography/continent_list.html'
     context_object_name = 'continents'
+    paginate_by = 20
 
 @login_decorator
 class ContinentDetailView(DetailView):
@@ -432,7 +434,7 @@ class RegionListView(ListView):
     model = Region
     template_name = 'geography/region_list.html'
     context_object_name = 'regions'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         return Region.objects.select_related(
