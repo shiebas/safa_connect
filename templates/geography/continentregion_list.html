@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 <h1>Continent Regions</h1>
 <table class="table table-hover align-middle">
@@ -13,28 +14,28 @@
         </tr>
     </thead>
     <tbody>
-    {% for region in continentregions %}
+    {% for continentregion in continentregions %}
         <tr>
             <td>
-                {% if region.logo %}
-                    <img src="{{ region.logo.url }}" alt="{{ region.name }} logo" style="height:40px;">
+                {% if continentregion.logo %}
+                    <img src="{{ continentregion.logo.url }}" alt="{{ continentregion.name }} logo" style="height:40px;">
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'geography:continentregion-detail' region.pk %}">
-                  {{ region.name }}
+                <a href="{% url 'geography:continentregion-detail' continentregion.pk %}">
+                  {{ continentregion.name }}
                 </a>
             </td>
-            <td>{{ region.acronym }}</td>
-            <td>{{ region.continent_federation.name }}</td>
+            <td>{{ continentregion.acronym }}</td>
+            <td>{{ continentregion.continent_federation.name }}</td>
             <td>
-                {% if region.website %}
-                    <a href="{{ region.website }}" target="_blank">Website</a>
+                {% if continentregion.website %}
+                    <a href="{{ continentregion.website }}" target="_blank">Website</a>
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'geography:continentregion-update' region.pk %}" class="btn btn-warning btn-sm">Edit</a>
-                <a href="{% url 'geography:continentregion-delete' region.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                <a href="{% url 'geography:continentregion-update' continentregion.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                <a href="{% url 'geography:continentregion-delete' continentregion.pk %}" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>
     {% empty %}
