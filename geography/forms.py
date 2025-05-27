@@ -464,10 +464,26 @@ class LocalFootballAssociationForm(forms.ModelForm):
 
 
 class ClubForm(forms.ModelForm):
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all(),
+        required=False,
+        empty_label="Select province"
+    )
+
     class Meta:
         model = Club
-        fields = ['name', 'short_name', 'province', 'region', 'local_football_association', 'founded_year', 'home_ground', 'club_colors', 'logo', 'notes']
-
+        fields = [
+            "name",
+            "short_name",
+            "province",
+            "region",
+            "local_football_association",  # <-- add this line!
+            "founded_year",
+            "home_ground",
+            "club_colors",
+            "logo",
+            "notes",
+        ]
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -519,15 +535,5 @@ class ClubForm(forms.ModelForm):
                 )
 
         return cleaned_data
-
-    def save(self, *args, **kwargs):
-        if self.local_football_association and not self.region:
-            self.region = self.local_football_association.region
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        if self.local_football_association:
-            return f"{self.name} ({self.local_football_association.name})"
-        elif self.region:
-            return f"{self.name} ({self.region.name})"
-        return self.name
+         
+         
