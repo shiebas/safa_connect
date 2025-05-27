@@ -24,6 +24,8 @@
                 <td>
                     {% if localfootballassociation.logo %}
                         <img src="{{ localfootballassociation.logo.url }}" alt="{{ localfootballassociation.name }} logo" style="height:40px;">
+                    {% else %}
+                        <img src="{% static 'default_logo.png' %}" alt="Default logo" style="height:40px;">
                     {% endif %}
                 </td>
                 <td><a href="{% url 'geography:localfootballassociation-detail' localfootballassociation.pk %}">{{ localfootballassociation.name }}</a></td>
