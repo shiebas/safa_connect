@@ -1,13 +1,11 @@
 # geography/models.py
-from django.db import models
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
-from django.utils import timezone
-from django.utils.functional import cached_property
-from django.utils.crypto import get_random_string
-import os
 
 # ===== CHOICE DEFINITIONS =====
 DOCUMENT_TYPES = (

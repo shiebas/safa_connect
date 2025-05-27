@@ -294,7 +294,7 @@ class NationalFederationListView(ListView):
     model = NationalFederation
     template_name = 'geography/nationalfederation_list.html'
     context_object_name = 'nationalfederations'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         return NationalFederation.objects.select_related(
@@ -341,7 +341,7 @@ class AssociationListView(ListView):
     model = Association
     template_name = 'geography/association_list.html'
     context_object_name = 'associations'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         return Association.objects.select_related(
@@ -388,7 +388,7 @@ class ProvinceListView(ListView):
     model = Province
     template_name = 'geography/province_list.html'
     context_object_name = 'provinces'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         return Province.objects.select_related(
@@ -482,7 +482,7 @@ class ClubListView(ListView):
     model = Club
     template_name = 'geography/club_list.html'
     context_object_name = 'clubs'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         return Club.objects.select_related(
@@ -529,7 +529,7 @@ class LocalFootballAssociationListView(ListView):
     model = LocalFootballAssociation
     template_name = 'geography/localfootballassociation_list.html'
     context_object_name = 'localfootballassociations'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         return LocalFootballAssociation.objects.select_related(

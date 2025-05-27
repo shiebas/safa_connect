@@ -27,11 +27,11 @@
                         <img src="{{ club.logo.url }}" alt="{{ club.name }} logo" style="height:40px;">
                     {% endif %}
                 </td>
-                <td>{ { club.notes|default:"-" } }</td>
                 <td><a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a></td>
                 <td>{{ club.short_name }}</td>
                 <td>{{ club.region.name }}</td>
                 <td>{{ club.founded_year|default:"-" }}</td>
+                <td></td>
                 <td>
                     <a href="{% url 'geography:club-detail' club.pk %}" class="btn btn-sm btn-info">View</a>
                     <a href="{% url 'geography:club-update' club.pk %}" class="btn btn-sm btn-warning">Edit</a>

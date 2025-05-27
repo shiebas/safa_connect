@@ -19,7 +19,13 @@
             <div class="col-md-8">
                 <p><strong>Name:</strong> {{ club.name }}</p>
                 <p><strong>Short Name:</strong> {{ club.short_name }}</p>
-                <p><strong>Region:</strong> <a href="{% url 'geography:region-detail' club.region.pk %}">{{ club.region.name }}</a></p>
+                <p><strong>Region:</strong>
+                  {% if club.region %}
+                <a href="{% url 'geography:region-detail' club.region.pk %}">{{ club.region.name }}</a>
+                 {% else %}
+                    -
+                  {% endif %}
+                </p>
                 {% if club.founded_year %}
                 <p><strong>Founded Year:</strong> {{ club.founded_year }}</p>
                 {% endif %}
