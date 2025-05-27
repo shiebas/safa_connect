@@ -472,7 +472,11 @@ $(document).ready(function() {
                 $('#{{ form.gender.id_for_label }}').prop('disabled', true);
 
                 // Set the values from the ID number
-                var formattedDate = validationResult.dateOfBirth.toISOString().split('T')[0];
+                var date = validationResult.dateOfBirth;
+                var yyyy = date.getFullYear();
+                var mm = String(date.getMonth() + 1).padStart(2, '0');
+                var dd = String(date.getDate()).padStart(2, '0');
+                var formattedDate = yyyy + '-' + mm + '-' + dd;
                 $('#{{ form.date_of_birth.id_for_label }}').val(formattedDate);
                 $('#{{ form.gender.id_for_label }}').val(validationResult.gender);
             } else {
