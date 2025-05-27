@@ -16,6 +16,7 @@ from .models import (
     WorldSportsBody,
     ContinentFederation,
     ContinentRegion,
+    LocalFootballAssociation,
     SPORT_CODES
 )
 import re
@@ -394,6 +395,7 @@ class ProvinceForm(forms.ModelForm):
             "name",
             "code",
             "country",
+            "province_type",
             "logo",
         ]
 
@@ -443,23 +445,84 @@ class RegionForm(forms.ModelForm):
 
         return cleaned_data
 
-class ClubForm(forms.ModelForm):
+class LocalFootballAssociationForm(forms.ModelForm):
     class Meta:
-        model = Club
+        model = LocalFootballAssociation
         fields = [
             "name",
-            "short_name",
+            "acronym",
             "region",
-            "founded_year",
-            "home_ground",
-            "club_colors",
+            "contact_email",
+            "contact_phone",
+            "website",
             "logo",
         ]
 
     def clean(self):
         cleaned_data = super().clean()
+        return cleaned_data
+
+
+class ClubForm(forms.ModelForm):
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all(),
+        required=False,
+        empty_label="Select province"
+    )
+
+    class Meta:
+        model = Club
+        fields = [
+            "name",
+            "short_name",
+            "province",
+            "region",
+            "founded_year",
+            "home_ground",
+            "club_colors",
+            "logo",
+            "notes",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Initially set region queryset to empty
+        self.fields['region'].queryset = Region.objects.none()
+
+        # If editing an existing club, initialize the province field
+        if 'instance' in kwargs and kwargs['instance'] and kwargs['instance'].region:
+            instance = kwargs['instance']
+            region = instance.region
+            province = region.province
+
+            # Set the province field
+            self.fields['province'].initial = province
+
+            # Update the region queryset based on the province
+            self.fields['region'].queryset = Region.objects.filter(province=province)
+
+        # If province is provided in POST data, filter regions
+        if 'data' in kwargs and kwargs['data'].get('province'):
+            try:
+                province_id = int(kwargs['data'].get('province'))
+                self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
+            except (ValueError, TypeError):
+                pass
+
+    def clean(self):
+        cleaned_data = super().clean()
         short_name = cleaned_data.get("short_name")
         region = cleaned_data.get("region")
+        province = cleaned_data.get("province")
+
+        # Ensure province is selected
+        if not province:
+            self.add_error("province", "Please select a province.")
+
+        # Ensure region is selected and belongs to the selected province
+        if region and province and region.province != province:
+            self.add_error("region", "The selected region does not belong to the selected province.")
 
         # Check for unique constraint on short_name and region
         if short_name and region:

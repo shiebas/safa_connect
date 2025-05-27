@@ -15,9 +15,11 @@ from .views import (
     ProvinceCreateView, ProvinceDetailView, ProvinceUpdateView, ProvinceDeleteView, 
     RegionListView, RegionCreateView, RegionDetailView, RegionUpdateView, RegionDeleteView, 
     ClubListView, ClubCreateView, ClubDetailView, ClubUpdateView, ClubDeleteView,
+    LocalFootballAssociationListView, LocalFootballAssociationCreateView, LocalFootballAssociationDetailView,
+    LocalFootballAssociationUpdateView, LocalFootballAssociationDeleteView,
     MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, 
     MembershipDeleteView
-                     
+
 )
 
 app_name = 'geography'
@@ -74,7 +76,7 @@ urlpatterns = [
     path('associations/<int:pk>/', AssociationDetailView.as_view(), name='association-detail'),
     path('associations/<int:pk>/edit/', AssociationUpdateView.as_view(), name='association-update'),
     path('associations/<int:pk>/delete/', AssociationDeleteView.as_view(), name='association-delete'),
-    
+
     # Province
     path('provinces/', ProvinceListView.as_view(), name='province-list'),
     path('provinces/add/', ProvinceCreateView.as_view(), name='province-create'),
@@ -96,6 +98,13 @@ urlpatterns = [
     path('clubs/<int:pk>/edit/', ClubUpdateView.as_view(), name='club-update'),
     path('clubs/<int:pk>/delete/', ClubDeleteView.as_view(), name='club-delete'),
 
+    # LocalFootballAssociation
+    path('localfootballassociations/', LocalFootballAssociationListView.as_view(), name='localfootballassociation-list'),
+    path('localfootballassociations/add/', LocalFootballAssociationCreateView.as_view(), name='localfootballassociation-create'),
+    path('localfootballassociations/<int:pk>/', LocalFootballAssociationDetailView.as_view(), name='localfootballassociation-detail'),
+    path('localfootballassociations/<int:pk>/edit/', LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),
+    path('localfootballassociations/<int:pk>/delete/', LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
+
     # Membership
     path('memberships/', MembershipListView.as_view(), name='membership-list'),
     path('memberships/add/', MembershipCreateView.as_view(), name='membership-create'),
@@ -103,4 +112,6 @@ urlpatterns = [
     path('memberships/<int:pk>/edit/', MembershipUpdateView.as_view(), name='membership-update'),
     path('memberships/<int:pk>/delete/', MembershipDeleteView.as_view(), name='membership-delete'),
 
+    # API endpoints
+    path('api/regions-by-province/<int:province_id>/', views.regions_by_province, name='regions-by-province'),
 ]

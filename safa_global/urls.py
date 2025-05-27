@@ -9,20 +9,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('geography/', include('geography.urls', namespace='geography')),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('pdf/', include('pdf_processor.urls', namespace='pdf_processor')),
     path('', advanced_home, name='home'),
-  
+
 
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
       + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-
-
-
-
-
-
-
-
-
- 

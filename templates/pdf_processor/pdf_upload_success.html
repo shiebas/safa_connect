@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}PDF Upload Successful{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h2>PDF Upload Successful</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <p class="lead">Your PDF document has been uploaded successfully!</p>
+                    </div>
+                    
+                    <p>You can now process the document to extract information from it.</p>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'pdf_processor:pdf-list' %}" class="btn btn-primary">
+                            View All Documents
+                        </a>
+                        <a href="{% url 'pdf_processor:pdf-upload' %}" class="btn btn-outline-primary">
+                            Upload Another PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

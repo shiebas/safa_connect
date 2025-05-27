@@ -1,25 +1,52 @@
 {% extends 'base.html' %}
 
+{% block title %}Login - SAFA ADMINISTRATION{% endblock %}
+
 {% block content %}
-<h2>Login</h2>
-<form method="post" novalidate>
-    {% csrf_token %}
-    {% if form.errors %}
-        <div class="errorlist">
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <div>{{ error }}</div>
-                {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <div>{{ error }}</div>
-            {% endfor %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card" style="border: 2px solid var(--safa-black);">
+            <div class="card-header text-center">
+                <h2 class="mb-0">Login to SAFA</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Username:</label>
+                        <input id="id_username" type="text" name="username" 
+                               value="{{ form.username.value|default_if_none:'' }}" 
+                               class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Password:</label>
+                        <input id="id_password" type="password" name="password" 
+                               class="form-control" required>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn" 
+                                style="background-color: var(--safa-black); color: var(--safa-yellow);">
+                            Login
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    {% endif %}
-    <label for="id_username">Username:</label>
-    <input id="id_username" type="text" name="username" value="{{ form.username.value|default_if_none:'' }}" required>
-    <label for="id_password">Password:</label>
-    <input id="id_password" type="password" name="password" required>
-    <button type="submit">Login</button>
-</form>
+    </div>
+</div>
 {% endblock %}

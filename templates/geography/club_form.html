@@ -27,8 +27,15 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
+                        <label for="{{ form.province.id_for_label }}" class="form-label">Province</label>
+                        {% render_field form.province class="form-select" id="id_province" %}
+                        {% if form.province.errors %}
+                        <div class="text-danger small">{{ form.province.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
                         <label for="{{ form.region.id_for_label }}" class="form-label">Region</label>
-                        {% render_field form.region class="form-select" %}
+                        {% render_field form.region class="form-select" id="id_region" %}
                         {% if form.region.errors %}
                         <div class="text-danger small">{{ form.region.errors }}</div>
                         {% endif %}
@@ -65,7 +72,14 @@
                         <div class="text-danger small">{{ form.logo.errors }}</div>
                         {% endif %}
                     </div>
-                </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                        {% render_field form.notes class="form-control" %}
+                        {% if form.notes.errors %}
+                        <div class="text-danger small">{{ form.notes.errors }}</div>
+                        {% endif %}
+                    </div></div>
                 <div class="card-footer text-end">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <a href="{% url 'geography:club-list' %}" class="btn btn-secondary">Cancel</a>
@@ -74,4 +88,57 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const provinceSelect = document.getElementById('id_province');
+        const regionSelect = document.getElementById('id_region');
+
+        // Function to update regions based on selected province
+        function updateRegions() {
+            const provinceId = provinceSelect.value;
+            console.log('updateRegions called with provinceId:', provinceId);
+
+            // Clear current options
+            regionSelect.innerHTML = '<option value="">Select region</option>';
+
+            // Disable the region select if no province is selected
+            if (!provinceId) {
+                console.log('No province selected, disabling region dropdown');
+                regionSelect.disabled = true;
+                return;
+            }
+
+            // Enable the region select
+            regionSelect.disabled = false;
+
+            console.log('Fetching regions for province ID:', provinceId);
+            // Fetch regions for the selected province
+            fetch(`/geography/api/regions-by-province/${provinceId}/`)
+                .then(response => {
+                    console.log('API response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Regions data received:', data);
+                    // Add new options
+                    data.forEach(region => {
+                        const option = document.createElement('option');
+                        option.value = region.id;
+                        option.textContent = region.name;
+                        regionSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching regions:', error));
+        }
+
+        // Update regions when province changes
+        provinceSelect.addEventListener('change', updateRegions);
+
+        // Always trigger initial update
+        updateRegions();
+    });
+</script>
 {% endblock %}

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Clubs{% endblock %}
+{% block title %}Local Football Associations{% endblock %}
 
 {% block content %}
-<h1>Clubs</h1>
+<h1>Local Football Associations</h1>
 
 <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
@@ -12,34 +12,32 @@
             <tr>
                 <th>Logo</th>
                 <th>Name</th>
-                <th>Short Name</th>
+                <th>Acronym</th>
                 <th>Region</th>
-                <th>Founded</th>
-                <th>Notes</th>
+                <th>Contact Email</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for club in clubs %}
+            {% for localfootballassociation in localfootballassociations %}
             <tr>
                 <td>
-                    {% if club.logo %}
-                        <img src="{{ club.logo.url }}" alt="{{ club.name }} logo" style="height:40px;">
+                    {% if localfootballassociation.logo %}
+                        <img src="{{ localfootballassociation.logo.url }}" alt="{{ localfootballassociation.name }} logo" style="height:40px;">
                     {% endif %}
                 </td>
-                <td>{ { club.notes|default:"-" } }</td>
-                <td><a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a></td>
-                <td>{{ club.short_name }}</td>
-                <td>{{ club.region.name }}</td>
-                <td>{{ club.founded_year|default:"-" }}</td>
+                <td><a href="{% url 'geography:localfootballassociation-detail' localfootballassociation.pk %}">{{ localfootballassociation.name }}</a></td>
+                <td>{{ localfootballassociation.acronym }}</td>
+                <td>{{ localfootballassociation.region.name }}</td>
+                <td>{{ localfootballassociation.contact_email|default:"-" }}</td>
                 <td>
-                    <a href="{% url 'geography:club-detail' club.pk %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'geography:club-update' club.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'geography:club-delete' club.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    <a href="{% url 'geography:localfootballassociation-detail' localfootballassociation.pk %}" class="btn btn-sm btn-info">View</a>
+                    <a href="{% url 'geography:localfootballassociation-update' localfootballassociation.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'geography:localfootballassociation-delete' localfootballassociation.pk %}" class="btn btn-sm btn-danger">Delete</a>
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6">No clubs found.</td></tr>
+            <tr><td colspan="6">No local football associations found.</td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -106,5 +104,5 @@
     </ul>
 </nav>
 {% endif %}
-<a href="{% url 'geography:club-create' %}" class="btn btn-primary">Add Club</a>
+<a href="{% url 'geography:localfootballassociation-create' %}" class="btn btn-primary">Add Local Football Association</a>
 {% endblock %}

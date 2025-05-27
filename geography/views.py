@@ -4,19 +4,20 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .models import (
     Country, Province, Region, WorldSportsBody, Continent,
-    ContinentFederation, Club, Association, Membership, ContinentRegion, NationalFederation
+    ContinentFederation, Club, Association, Membership, ContinentRegion, NationalFederation,
+    LocalFootballAssociation
 )
 
 import datetime
 from geography.forms import WorldSportsBodyForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 # geography/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .forms import ContinentFederationForm, ContinentRegionForm, CountryForm, NationalFederationForm, AssociationForm, ProvinceForm, RegionForm, ClubForm
+from .forms import ContinentFederationForm, ContinentRegionForm, CountryForm, NationalFederationForm, AssociationForm, ProvinceForm, RegionForm, ClubForm, LocalFootballAssociationForm
 
 
 # Advanced global home page
@@ -522,6 +523,54 @@ class ClubDeleteView(DeleteView):
     template_name = 'geography/club_confirm_delete.html'
     success_url = reverse_lazy('geography:club-list')
 
+# LocalFootballAssociation
+@login_decorator
+class LocalFootballAssociationListView(ListView):
+    model = LocalFootballAssociation
+    template_name = 'geography/localfootballassociation_list.html'
+    context_object_name = 'localfootballassociations'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return LocalFootballAssociation.objects.select_related(
+            'region'
+        ).order_by('name')
+
+@login_decorator
+class LocalFootballAssociationDetailView(DetailView):
+    model = LocalFootballAssociation
+    template_name = 'geography/localfootballassociation_detail.html'
+    context_object_name = 'localfootballassociation'
+
+@login_decorator
+class LocalFootballAssociationCreateView(CreateView):
+    model = LocalFootballAssociation
+    form_class = LocalFootballAssociationForm
+    template_name = 'geography/localfootballassociation_form.html'
+    success_url = reverse_lazy('geography:localfootballassociation-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Local Football Association created successfully!')
+        return super().form_valid(form)
+
+@login_decorator
+class LocalFootballAssociationUpdateView(UpdateView):
+    model = LocalFootballAssociation
+    form_class = LocalFootballAssociationForm
+    template_name = 'geography/localfootballassociation_form.html'
+    success_url = reverse_lazy('geography:localfootballassociation-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Local Football Association updated successfully!')
+        return super().form_valid(form)
+
+@login_decorator
+class LocalFootballAssociationDeleteView(DeleteView):
+    model = LocalFootballAssociation
+    template_name = 'geography/localfootballassociation_confirm_delete.html'
+    success_url = reverse_lazy('geography:localfootballassociation-list')
+
+
 # Membership
 @login_decorator
 class MembershipListView(ListView):
@@ -554,3 +603,10 @@ class MembershipDeleteView(DeleteView):
     model = Membership
     template_name = 'geography/membership_confirm_delete.html'
     success_url = reverse_lazy('geography:membership-list')
+
+# API Views
+def regions_by_province(request, province_id):
+    """API endpoint to get regions for a given province"""
+    province = get_object_or_404(Province, pk=province_id)
+    regions = Region.objects.filter(province=province).values('id', 'name')
+    return JsonResponse(list(regions), safe=False)

@@ -1,6 +1,11 @@
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from django.http import HttpResponse 
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.contrib import messages
+from .forms import UserRegistrationForm
+from geography.models import Membership, CustomUser
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -9,3 +14,92 @@ class WorkingLoginView(LoginView):
 
 def working_home(request):
     return HttpResponse("CONFIRMED WORKING - LOGIN SUCCESS")
+
+def register(request):
+    """
+    View for handling user registration including players, administrators, etc.
+    """
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Save the user
+            user = form.save(commit=False)
+            # Set user as inactive until approved by an admin
+            user.is_active = False
+
+            # Set document type and handle file upload
+            user.id_document_type = form.cleaned_data.get('id_document_type')
+            if form.cleaned_data.get('document'):
+                user.document = form.cleaned_data.get('document')
+
+            user.save()
+
+            # Create membership if club is selected
+            if form.cleaned_data.get('club'):
+                Membership.objects.create(
+                    user=user,
+                    membership_type='club',
+                    club=form.cleaned_data.get('club'),
+                    start_date=user.date_joined.date(),
+                    is_active=False  # Inactive until approved
+                )
+
+            # Display success message
+            messages.success(request, 'Registration successful! Your account is pending approval.')
+            return redirect('accounts:login')
+    else:
+        form = UserRegistrationForm()
+
+    return render(request, 'accounts/register.html', {'form': form})
+
+def check_username(request):
+    """
+    AJAX view to check if a username is available.
+    Returns JSON response with available: true/false.
+    """
+    username = request.GET.get('username', '')
+    if not username:
+        return JsonResponse({'available': False})
+
+    # Check if the username exists
+    exists = CustomUser.objects.filter(username=username).exists()
+
+    return JsonResponse({'available': not exists})
+
+def user_qr_code(request, user_id=None):
+    """
+    View to display a QR code for a user.
+    If user_id is provided, displays the QR code for that user.
+    Otherwise, displays the QR code for the current user.
+    """
+    from django.contrib.auth.decorators import login_required
+    from django.shortcuts import get_object_or_404
+
+    @login_required
+    def view_func(request, user_id=None):
+        # If user_id is provided, get that user
+        # Otherwise, use the current user
+        if user_id:
+            # Only staff can view other users' QR codes
+            if not request.user.is_staff:
+                messages.error(request, "You don't have permission to view this QR code.")
+                return redirect('home')
+            user = get_object_or_404(CustomUser, id=user_id)
+        else:
+            user = request.user
+
+        # Generate the QR code
+        qr_code = user.generate_qr_code()
+
+        # If QR code generation failed, show an error
+        if not qr_code:
+            messages.error(request, "Failed to generate QR code. Please make sure the qrcode library is installed.")
+            return redirect('home')
+
+        # Render the template with the QR code
+        return render(request, 'accounts/qr_code.html', {
+            'user': user,
+            'qr_code': qr_code,
+        })
+
+    return view_func(request, user_id)

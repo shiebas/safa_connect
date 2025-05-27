@@ -8,24 +8,59 @@
     <link rel="icon" type="image/x-icon" href="{% static 'favicon.png' %}">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
+
+    <!-- SAFA Custom CSS -->
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
-    
+
     <style>
-        body {
-            background-color: #f8f9fa;
+        /* SAFA Color Scheme */
+        :root {
+            --safa-yellow: #ffe600;
+            --safa-black: #1a1a1a;
+            --safa-bg: #fffbe6;
         }
+
+        body {
+            background-color: var(--safa-bg);
+        }
+
         .navbar-brand {
             font-weight: bold;
+            color: var(--safa-yellow) !important;
         }
+
+        .navbar-dark {
+            background-color: var(--safa-black) !important;
+        }
+
+        .nav-link {
+            color: var(--safa-yellow) !important;
+        }
+
+        .dropdown-menu {
+            background-color: var(--safa-black);
+            border: 1px solid var(--safa-yellow);
+        }
+
+        .dropdown-item {
+            color: var(--safa-yellow);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--safa-yellow);
+            color: var(--safa-black);
+        }
+
         .card {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            border: 1px solid rgba(0, 0, 0, 0.125);
+            border: 1px solid var(--safa-black);
         }
+
         .card-header {
-            background-color: #e9ecef;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            background-color: var(--safa-yellow);
+            border-bottom: 1px solid var(--safa-black);
+            color: var(--safa-black);
         }
     </style>
 </head>
@@ -33,24 +68,90 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'geography:geography_admin' %}">Global Management</a>
-            
+            <a class="navbar-brand" href="{% url 'home' %}">SAFA ADMINISTRATION</a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Dashboard</a>
                     </li>
-                    <!-- Add more navigation items as needed -->
-                </ul>
-                
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <span class="navbar-text">Admin</span>
+
+                    <!-- Geography Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="geographyDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Geography
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="geographyDropdown">
+                            <li><a class="dropdown-item" href="{% url 'geography:geography_admin' %}">Geography Admin</a></li>
+                            <li><a class="dropdown-item" href="{% url 'geography:worldsportsbody-list' %}">World Sports Bodies</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'geography:country-list' %}">Countries</a></li>
+                            <li><a class="dropdown-item" href="{% url 'geography:province-list' %}">Provinces</a></li>
+                            <li><a class="dropdown-item" href="{% url 'geography:localfootballassociation-list' %}">Local Football Associations</a></li>
+                        </ul>
                     </li>
+
+                    <!-- Clubs Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="clubsDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Clubs
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="clubsDropdown">
+                            <li><a class="dropdown-item" href="{% url 'geography:club-list' %}">All Clubs</a></li>
+                            <li><a class="dropdown-item" href="{% url 'geography:membership-list' %}">Memberships</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- PDF Processor Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="pdfDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            PDF Tools
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="pdfDropdown">
+                            <li><a class="dropdown-item" href="{% url 'pdf_processor:pdf-list' %}">PDF Documents</a></li>
+                            <li><a class="dropdown-item" href="{% url 'pdf_processor:pdf-upload' %}">Upload PDF</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Login/Logout -->
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin Panel</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'accounts:user_qr_code' %}">My QR Code</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'accounts:logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-sm btn-outline-warning ms-2" href="{% url 'accounts:login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-sm btn-outline-warning ms-2" href="{% url 'accounts:register' %}">Register</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -70,11 +171,12 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-3 mt-5">
+    <footer class="py-3 mt-5" style="background-color: var(--safa-black); color: var(--safa-yellow);">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12 text-center">
                     <p class="mb-0">&copy; 2025 SAFA GLOBAL MANAGEMENT SYSTEM</p>
+                    <p class="small mt-1">Contact us at <a href="mailto:support@safaglobaladmin.co.za" style="color: var(--safa-yellow);">support@safaglobaladmin.co.za</a></p>
                 </div>
             </div>
         </div>
@@ -82,7 +184,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Custom JS -->
     {% block extra_js %}{% endblock %}
 </body>

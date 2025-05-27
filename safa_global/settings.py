@@ -27,6 +27,7 @@ INSTALLED_APPS = [
 
     'geography.apps.GeographyConfig',  # Geography app config
     'accounts.apps.AccountsConfig',
+    'pdf_processor.apps.PdfProcessorConfig',  # PDF processing app
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,7 +44,7 @@ INSTALLED_APPS = [
      'crispy_forms',
     'crispy_bootstrap5',
     'widget_tweaks',             
-                     
+
 ]
 
 MIDDLEWARE = [

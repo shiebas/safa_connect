@@ -37,8 +37,10 @@
     <section class="quick-links" aria-labelledby="quick-links-heading">
         <h2 id="quick-links-heading">Quick Links</h2>
         <ul>
+            <li><a class="btn" href="{% url 'accounts:register' %}" style="background-color: var(--safa-black); color: var(--safa-yellow); font-weight: bold;">Register Players & Administrators</a></li>
             <li><a class="btn" href="{% url 'geography:geography_admin' %}">Geography Admin Dashboard</a></li>
             <li><a class="btn" href="{% url 'geography:worldsportsbody-list' %}">World Sports Bodies</a></li>
+            <li><a class="btn" href="{% url 'geography:club-list' %}">Manage Clubs</a></li>
             <!-- Add more quick links as your platform grows -->
         </ul>
     </section>

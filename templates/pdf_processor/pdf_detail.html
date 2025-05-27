@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load static %}
+{% load pdf_filters %}
+
+{% block title %}PDF Document: {{ pdf_document.original_filename }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .json-key {
+        color: #881391;
+        font-weight: bold;
+    }
+    .json-string {
+        color: #1A5632;
+    }
+    .json-number {
+        color: #0000FF;
+    }
+    .json-boolean {
+        color: #FF5000;
+    }
+    .json-null {
+        color: #808080;
+    }
+    pre {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+    }
+    .extracted-data-section {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .data-card {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h1>PDF Document Details</h1>
+            <h4>{{ pdf_document.original_filename }}</h4>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'pdf_processor:pdf-list' %}" class="btn btn-secondary">
+                Back to List
+            </a>
+            {% if pdf_document.status != 'PROCESSING' %}
+            <a href="{% url 'pdf_processor:pdf-process' pdf_document.pk %}" class="btn btn-primary">
+                Process PDF
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Document Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Filename:</th>
+                            <td>{{ pdf_document.original_filename }}</td>
+                        </tr>
+                        <tr>
+                            <th>Size:</th>
+                            <td>{{ pdf_document.file_size|filesizeformat }}</td>
+                        </tr>
+                        <tr>
+                            <th>Pages:</th>
+                            <td>{{ pdf_document.num_pages }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if pdf_document.status == 'PENDING' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif pdf_document.status == 'PROCESSING' %}
+                                    <span class="badge bg-info">Processing</span>
+                                {% elif pdf_document.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif pdf_document.status == 'FAILED' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Uploaded:</th>
+                            <td>{{ pdf_document.created|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Modified:</th>
+                            <td>{{ pdf_document.modified|date:"M d, Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ pdf_document.file.url }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                        View Original PDF
+                    </a>
+                    {% if extracted_data %}
+                    <a href="{% url 'pdf_processor:pdf-export' pdf_document.pk %}" class="btn btn-outline-success btn-sm">
+                        Export Data (JSON)
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if pdf_document.error_message %}
+            <div class="card mt-3">
+                <div class="card-header bg-danger text-white">
+                    <h5>Error</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ pdf_document.error_message }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-8">
+            {% if extracted_data %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Extracted Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="extractedDataTabs" role="tablist">
+                            {% if extracted_data.structured_data %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="structured-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#structured" type="button" role="tab" 
+                                        aria-controls="structured" aria-selected="true">
+                                    Structured Data
+                                </button>
+                            </li>
+                            {% endif %}
+                            {% if extracted_data.metadata %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link {% if not extracted_data.structured_data %}active{% endif %}" 
+                                        id="metadata-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#metadata" type="button" role="tab" 
+                                        aria-controls="metadata" aria-selected="false">
+                                    Metadata
+                                </button>
+                            </li>
+                            {% endif %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link {% if not extracted_data.structured_data and not extracted_data.metadata %}active{% endif %}" 
+                                        id="text-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#text" type="button" role="tab" 
+                                        aria-controls="text" aria-selected="false">
+                                    Full Text
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="json-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#json" type="button" role="tab" 
+                                        aria-controls="json" aria-selected="false">
+                                    Raw JSON
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content p-3" id="extractedDataTabContent">
+                            <!-- Structured Data Tab -->
+                            {% if extracted_data.structured_data %}
+                            <div class="tab-pane fade show active" id="structured" role="tabpanel" aria-labelledby="structured-tab">
+                                <div class="extracted-data-section">
+                                    {% for key, values in extracted_data.structured_data.items %}
+                                    <div class="card data-card">
+                                        <div class="card-header">
+                                            <h6>{{ key|title }}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if values|length == 1 %}
+                                                <p>{{ values.0 }}</p>
+                                            {% else %}
+                                                <ul>
+                                                    {% for value in values %}
+                                                    <li>{{ value }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Metadata Tab -->
+                            {% if extracted_data.metadata %}
+                            <div class="tab-pane fade {% if not extracted_data.structured_data %}show active{% endif %}" 
+                                 id="metadata" role="tabpanel" aria-labelledby="metadata-tab">
+                                <div class="extracted-data-section">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Property</th>
+                                                <th>Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for key, value in extracted_data.metadata.items %}
+                                            <tr>
+                                                <td>{{ key }}</td>
+                                                <td>{{ value }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Full Text Tab -->
+                            <div class="tab-pane fade {% if not extracted_data.structured_data and not extracted_data.metadata %}show active{% endif %}" 
+                                 id="text" role="tabpanel" aria-labelledby="text-tab">
+                                <div class="extracted-data-section">
+                                    <pre>{{ extracted_data.text }}</pre>
+                                </div>
+                            </div>
+
+                            <!-- Raw JSON Tab -->
+                            <div class="tab-pane fade" id="json" role="tabpanel" aria-labelledby="json-tab">
+                                <div class="extracted-data-section">
+                                    <pre id="json-display">{{ extracted_data|pprint }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% elif pdf_document.status == 'PENDING' or pdf_document.status == 'PROCESSING' %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4>PDF is {% if pdf_document.status == 'PENDING' %}waiting to be processed{% else %}being processed{% endif %}</h4>
+                        <p>Please wait while we extract data from your PDF document.</p>
+                        {% if pdf_document.status == 'PENDING' %}
+                        <a href="{% url 'pdf_processor:pdf-process' pdf_document.pk %}" class="btn btn-primary">
+                            Process Now
+                        </a>
+                        {% else %}
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% elif pdf_document.status == 'FAILED' %}
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5>Processing Failed</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>There was an error processing this PDF document:</p>
+                        <div class="alert alert-danger">
+                            {{ pdf_document.error_message }}
+                        </div>
+                        <a href="{% url 'pdf_processor:pdf-process' pdf_document.pk %}" class="btn btn-primary">
+                            Try Again
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to syntax highlight JSON
+    function syntaxHighlight(json) {
+        if (typeof json != 'string') {
+            json = JSON.stringify(json, undefined, 2);
+        }
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'json-number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'json-key';
+                } else {
+                    cls = 'json-string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'json-boolean';
+            } else if (/null/.test(match)) {
+                cls = 'json-null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
+    // Apply syntax highlighting to JSON display
+    document.addEventListener('DOMContentLoaded', function() {
+        var jsonElement = document.getElementById('json-display');
+        if (jsonElement) {
+            try {
+                var jsonContent = jsonElement.textContent;
+                var obj = JSON.parse(jsonContent);
+                jsonElement.innerHTML = syntaxHighlight(obj);
+            } catch (e) {
+                console.error("Error parsing JSON:", e);
+            }
+        }
+    });
+</script>
+{% endblock %}

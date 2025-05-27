@@ -4,10 +4,7 @@
 {% block title %}Memberships{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Memberships</h1>
-    <a href="{% url 'geography:membership-create' %}" class="btn btn-success">Add New</a>
-</div>
+<h1>Memberships</h1>
 
 <div class="table-responsive">
     <table class="table table-striped">
@@ -33,4 +30,5 @@
         </tbody>
     </table>
 </div>
+<a href="{% url 'geography:membership-create' %}" class="btn btn-primary">Add Membership</a>
 {% endblock %}

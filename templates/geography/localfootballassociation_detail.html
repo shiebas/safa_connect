@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ localfootballassociation.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ localfootballassociation.name }}</h1>
+    <div>
+        <a href="{% url 'geography:localfootballassociation-update' localfootballassociation.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'geography:localfootballassociation-delete' localfootballassociation.pk %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'geography:localfootballassociation-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <p><strong>Name:</strong> {{ localfootballassociation.name }}</p>
+                <p><strong>Acronym:</strong> {{ localfootballassociation.acronym }}</p>
+                <p><strong>Region:</strong> <a href="{% url 'geography:region-detail' localfootballassociation.region.pk %}">{{ localfootballassociation.region.name }}</a></p>
+                {% if localfootballassociation.contact_email %}
+                <p><strong>Contact Email:</strong> {{ localfootballassociation.contact_email }}</p>
+                {% endif %}
+                {% if localfootballassociation.contact_phone %}
+                <p><strong>Contact Phone:</strong> {{ localfootballassociation.contact_phone }}</p>
+                {% endif %}
+                {% if localfootballassociation.website %}
+                <p><strong>Website:</strong> <a href="{{ localfootballassociation.website }}" target="_blank">{{ localfootballassociation.website }}</a></p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                {% if localfootballassociation.logo %}
+                <img src="{{ localfootballassociation.logo.url }}" alt="{{ localfootballassociation.name }} logo" class="img-fluid" style="max-height: 200px;">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Clubs</h3>
+    </div>
+    <div class="card-body">
+        {% if localfootballassociation.clubs.all %}
+        <ul class="list-group">
+            {% for club in localfootballassociation.clubs.all %}
+            <li class="list-group-item">
+                <a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No clubs found for this local football association.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
