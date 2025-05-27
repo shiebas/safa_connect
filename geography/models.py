@@ -21,10 +21,9 @@ GENDER_CHOICES = (
     ('F', _('Female')),
 )
 
-PROVINCE_TYPE_CHOICES = (
-    ('INLAND', _('Inland Province')),
-    ('COASTAL', _('Coastal Province')),
-)
+class ProvinceType(models.TextChoices):
+    INLAND = 'INLAND', _('Inland Province')
+    COASTAL = 'COASTAL', _('Coastal Province')
 
 SPORT_CODES = (
     ('SOCCER', _('Soccer')),
@@ -254,7 +253,7 @@ class Province(TimeStampedModel, ModelWithLogo):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=5)
     country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='provinces')
-    province_type = models.CharField(max_length=10, choices=PROVINCE_TYPE_CHOICES, default="Inland")
+    province_type = models.CharField(max_length=10, choices=ProvinceType.choices, default=ProvinceType.INLAND)
 
     def __str__(self):
         return f"{self.name}, {self.country.name}"
@@ -676,3 +675,10 @@ class Membership(TimeStampedModel):
     class Meta:
         verbose_name = "Membership"
         verbose_name_plural = "Memberships"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'membership_type', 'club', 'association', 'national_federation'],
+                name='unique_membership_combination'  # Descriptive name for the constraint
+            )
+        ]
+

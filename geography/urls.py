@@ -114,4 +114,5 @@ urlpatterns = [
 
     # API endpoints
     path('api/regions-by-province/<int:province_id>/', views.regions_by_province, name='regions-by-province'),
+    path('api/lfas-by-region/<int:region_id>/', views.lfas_by_region, name='lfas-by-region'),
 ]

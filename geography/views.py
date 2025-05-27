@@ -610,3 +610,7 @@ def regions_by_province(request, province_id):
     province = get_object_or_404(Province, pk=province_id)
     regions = Region.objects.filter(province=province).values('id', 'name')
     return JsonResponse(list(regions), safe=False)
+
+def lfas_by_region(request, region_id):
+    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name')
+    return JsonResponse(list(lfas), safe=False)

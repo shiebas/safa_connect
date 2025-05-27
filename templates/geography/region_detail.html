@@ -30,7 +30,35 @@
         </div>
     </div>
 </div>
-
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Local Football Associations</h3>
+    </div>
+    <div class="card-body">
+        {% if region.localfootballassociation_set.all %}
+        <ul class="list-group">
+            {% for lfa in region.localfootballassociation_set.all %}
+            <li class="list-group-item">
+                <a href="{% url 'geography:localfootballassociation-detail' lfa.pk %}">{{ lfa.name }}</a>
+                {% if lfa.clubs.all %}
+                <ul class="list-group mt-2">
+                    {% for club in lfa.clubs.all %}
+                    <li class="list-group-item">
+                        <a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-muted small">No clubs for this LFA.</div>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No Local Football Associations found for this region.</p>
+        {% endif %}
+    </div>
+</div>
 <div class="card mt-4">
     <div class="card-header">
         <h3>Clubs</h3>
