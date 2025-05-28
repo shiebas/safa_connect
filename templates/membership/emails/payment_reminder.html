@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Reminder</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #ffc107; color: #212529; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f8f9fa; }
+        .footer { background: #6c757d; color: white; padding: 15px; text-align: center; font-size: 12px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+        .warning-box { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .amount { font-size: 24px; font-weight: bold; color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Payment Reminder</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Dear {{ player.first_name }} {{ player.last_name }},</h2>
+            
+            <p>This is a friendly reminder that your membership payment is due.</p>
+            
+            <div class="warning-box">
+                <h3>Payment Details</h3>
+                <p><strong>Member ID:</strong> {{ player.member_id }}</p>
+                <p><strong>Amount Due:</strong> <span class="amount">${{ amount_due }}</span></p>
+                <p><strong>Due Date:</strong> {{ due_date|date:"F d, Y" }}</p>
+                <p><strong>Days Overdue:</strong> {{ days_overdue }}</p>
+            </div>
+            
+            <p>To avoid any disruption to your membership, please make your payment as soon as possible.</p>
+            
+            <h3>Payment Options:</h3>
+            <ul>
+                <li><strong>Online:</strong> <a href="{{ payment_link }}" class="btn">Pay Now</a></li>
+                <li><strong>Bank Transfer:</strong> Account: 1234567890, Sort Code: 12-34-56</li>
+                <li><strong>Cash:</strong> Pay at the club reception</li>
+            </ul>
+            
+            <p>If you have already made this payment, please ignore this reminder or contact us to update your records.</p>
+            
+            <p>Thank you for your continued membership.</p>
+            
+            <p>Best regards,<br>{{ club.name }} Management</p>
+        </div>
+        
+        <div class="footer">
+            <p>Questions? Contact us at {{ club.email }} or {{ club.phone }}</p>
+            <p>© {{ current_year }} {{ club.name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

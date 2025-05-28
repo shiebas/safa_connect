@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Player Transfers" %}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% trans "Player Transfers" %}</h1>
+        {% if perms.membership.add_transfer %}
+        <a href="{% url 'membership:transfer_request' %}" class="btn btn-primary">
+            {% trans "Request Transfer" %}
+        </a>
+        {% endif %}
+    </div>
+
+    {% if transfers %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans "Player" %}</th>
+                    <th>{% trans "From Club" %}</th>
+                    <th>{% trans "To Club" %}</th>
+                    <th>{% trans "Request Date" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transfer in transfers %}
+                <tr>
+                    <td>{{ transfer.player.get_full_name }}</td>
+                    <td>{{ transfer.from_club.name }}</td>
+                    <td>{{ transfer.to_club.name }}</td>
+                    <td>{{ transfer.request_date }}</td>
+                    <td>
+                        {% if transfer.status == 'PENDING' %}
+                        <span class="badge badge-warning">{% trans "Pending" %}</span>
+                        {% elif transfer.status == 'APPROVED' %}
+                        <span class="badge badge-success">{% trans "Approved" %}</span>
+                        {% elif transfer.status == 'REJECTED' %}
+                        <span class="badge badge-danger">{% trans "Rejected" %}</span>
+                        {% else %}
+                        <span class="badge badge-secondary">{% trans "Cancelled" %}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'membership:transfer_detail' transfer.pk %}" class="btn btn-sm btn-info">
+                            {% trans "View" %}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        {% trans "No transfer requests found." %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

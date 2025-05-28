@@ -24,10 +24,6 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'          # Where to go after logout
 # Application definition
 
 INSTALLED_APPS = [
-
-    'geography.apps.GeographyConfig',  # Geography app config
-    'accounts.apps.AccountsConfig',
-    'pdf_processor.apps.PdfProcessorConfig',  # PDF processing app
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +41,10 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'widget_tweaks',             
 
+    'geography.apps.GeographyConfig',  # Must be first as it contains the custom user model
+    'membership.apps.MembershipConfig',
+    'accounts.apps.AccountsConfig',
+    'pdf_processor.apps.PdfProcessorConfig',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,186 @@
+{% extends 'membership/base.html' %}
+
+{% block title %}Edit Member{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit Member</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="id_first_name" name="first_name" value="{{ member.first_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="id_last_name" name="last_name" value="{{ member.last_name }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="id_email" name="email" value="{{ member.email }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="id_phone" name="phone" value="{{ member.phone }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_club" class="form-label">Club</label>
+                        <select class="form-select" id="id_club" name="club" required>
+                            {% for club in clubs %}
+                                <option value="{{ club.id }}" {% if club.id == member.club.id %}selected{% endif %}>{{ club.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_payment_status" class="form-label">Payment Status</label>
+                        <select class="form-select" id="id_payment_status" name="payment_status">
+                            <option value="pending" {% if member.payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="paid" {% if member.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                            <option value="overdue" {% if member.payment_status == 'overdue' %}selected{% endif %}>Overdue</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_position" class="form-label">Position</label>
+                        <select class="form-select" id="id_position" name="position">
+                            <option value="">Select position...</option>
+                            <option value="goalkeeper" {% if member.position == 'goalkeeper' %}selected{% endif %}>Goalkeeper</option>
+                            <option value="defender" {% if member.position == 'defender' %}selected{% endif %}>Defender</option>
+                            <option value="midfielder" {% if member.position == 'midfielder' %}selected{% endif %}>Midfielder</option>
+                            <option value="forward" {% if member.position == 'forward' %}selected{% endif %}>Forward</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_emergency_contact" class="form-label">Emergency Contact</label>
+                        <input type="text" class="form-control" id="id_emergency_contact" name="emergency_contact" value="{{ member.emergency_contact }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_emergency_phone" class="form-label">Emergency Contact Phone</label>
+                        <input type="tel" class="form-control" id="id_emergency_phone" name="emergency_phone" value="{{ member.emergency_phone }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_medical_conditions" class="form-label">Medical Conditions</label>
+                        <textarea class="form-control" id="id_medical_conditions" name="medical_conditions" rows="3">{{ member.medical_conditions }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="id_active" name="active" {% if member.active %}checked{% endif %}>
+                            <label class="form-check-label" for="id_active">
+                                Active Member
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{% url 'membership:members_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Member Activity Log -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Activity Log</h5>
+            </div>
+            <div class="card-body">
+                {% if member.activity_log %}
+                    <div class="timeline">
+                        {% for activity in member.activity_log %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">{{ activity.action }}</h6>
+                                <p class="timeline-description">{{ activity.description }}</p>
+                                <small class="text-muted">{{ activity.timestamp|date:"M d, Y H:i" }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No activity recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #007bff;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 3px solid #007bff;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.timeline-description {
+    margin-bottom: 5px;
+    color: #6c757d;
+}
+</style>
+{% endblock %}

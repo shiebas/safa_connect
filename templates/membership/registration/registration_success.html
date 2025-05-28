@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Registration Successful" %} - {{ club.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="mb-4">{% trans "Registration Successful!" %}</h2>
+                    
+                    <div class="alert alert-success">
+                        {% trans "Player has been registered successfully with" %} {{ club.name }}.
+                    </div>
+
+                    <div class="text-left mt-4">
+                        <h4>{% trans "Registration Details" %}</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th>{% trans "Player Name" %}</th>
+                                        <td>{{ player.get_full_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Club" %}</th>
+                                        <td>{{ club.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Registration Status" %}</th>
+                                        <td>
+                                            <span class="badge badge-warning">{% trans "Pending Payment" %}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Payment Reference" %}</th>
+                                        <td>{{ payment_reference }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if not registration.status == 'ACTIVE' %}
+                    <div class="alert alert-info mt-4">
+                        <h5>{% trans "Next Steps" %}</h5>
+                        <p>{% trans "Your registration will be activated once payment has been confirmed." %}</p>
+                        <p class="mb-0">{% trans "Please save your payment reference number for future correspondence:" %} <strong>{{ payment_reference }}</strong></p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'membership:player-list' %}" class="btn btn-primary">{% trans "Back to Players" %}</a>
+                        <a href="{% url 'membership:player_registration' %}" class="btn btn-outline-primary">{% trans "Register Another Player" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

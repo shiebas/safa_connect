@@ -1,0 +1,106 @@
+{% extends 'membership/base.html' %}
+
+{% block title %}Payment Selection{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Selection</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6>Registration Summary</h6>
+                    <p><strong>Name:</strong> {{ player.first_name }} {{ player.last_name }}</p>
+                    <p><strong>Club:</strong> {{ player.club.name }}</p>
+                    <p><strong>Registration Fee:</strong> ${{ club.registration_fee }}</p>
+                    <p><strong>Monthly Fee:</strong> ${{ club.monthly_fee }}</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <h5>Select Payment Plan</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-primary">
+                                    <div class="card-body text-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_plan" id="monthly" value="monthly" checked>
+                                            <label class="form-check-label" for="monthly">
+                                                <h6>Monthly Payment</h6>
+                                                <p class="text-muted">Pay monthly fees</p>
+                                                <h4 class="text-primary">${{ club.monthly_fee }}/month</h4>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_plan" id="annual" value="annual">
+                                            <label class="form-check-label" for="annual">
+                                                <h6>Annual Payment</h6>
+                                                <p class="text-muted">Save 10% with annual payment</p>
+                                                <h4 class="text-success">${{ annual_fee }}</h4>
+                                                <small class="text-success">Save ${{ savings }}!</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Payment Method</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="credit_card" checked>
+                                    <label class="form-check-label" for="credit_card">
+                                        <i class="fas fa-credit-card me-2"></i>Credit Card
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="paypal" value="paypal">
+                                    <label class="form-check-label" for="paypal">
+                                        <i class="fab fa-paypal me-2"></i>PayPal
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                                    <label class="form-check-label" for="bank_transfer">
+                                        <i class="fas fa-university me-2"></i>Bank Transfer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{% url 'membership:player_registration' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-arrow-right me-2"></i>Continue
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

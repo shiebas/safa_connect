@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Review Transfer Appeal" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% trans "Review Transfer Appeal" %}</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Appeal Information" %}</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">{% trans "Transfer" %}</dt>
+                <dd class="col-sm-9">{{ appeal.transfer }}</dd>
+                
+                <dt class="col-sm-3">{% trans "Submitted By" %}</dt>
+                <dd class="col-sm-9">{{ appeal.submitted_by }}</dd>
+                
+                <dt class="col-sm-3">{% trans "Submission Date" %}</dt>
+                <dd class="col-sm-9">{{ appeal.appeal_submission_date|date:"d/m/Y H:i" }}</dd>
+                
+                <dt class="col-sm-3">{% trans "Appeal Reason" %}</dt>
+                <dd class="col-sm-9">{{ appeal.appeal_reason }}</dd>
+                
+                {% if appeal.supporting_document %}
+                <dt class="col-sm-3">{% trans "Supporting Document" %}</dt>
+                <dd class="col-sm-9">
+                    <a href="{{ appeal.supporting_document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        {% trans "View Document" %}
+                    </a>
+                </dd>
+                {% endif %}
+            </dl>
+        </div>
+    </div>
+
+    <form method="post" id="appealForm">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="review_notes">{% trans "Review Notes" %}</label>
+            <textarea name="review_notes" id="review_notes" 
+                      class="form-control" rows="4" required></textarea>
+            <small class="form-text text-muted">
+                {% trans "Please provide detailed notes for your decision." %}
+            </small>
+        </div>
+
+        {% if appeal.status == "PENDING" %}
+            <div class="form-group mt-3">
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" 
+                           id="requires_federation_approval" 
+                           name="requires_federation_approval">
+                    <label class="custom-control-label" for="requires_federation_approval">
+                        {% trans "Requires Federation Approval" %}
+                    </label>
+                    <small class="form-text text-muted">
+                        {% trans "Check this if the appeal needs to be reviewed at federation level" %}
+                    </small>
+                </div>
+            </div>
+
+            <div class="mt-4 action-buttons">
+                <button type="button" 
+                        class="btn btn-success appeal-action-button" 
+                        data-form-id="appealForm"
+                        data-action="uphold"
+                        data-message="{% trans 'Are you sure you want to uphold this appeal? This may require federation approval.' %}">
+                    {% trans "Uphold Appeal" %}
+                </button>
+                
+                <button type="button" 
+                        class="btn btn-danger appeal-action-button" 
+                        data-form-id="appealForm"
+                        data-action="dismiss"
+                        data-message="{% trans 'Are you sure you want to dismiss this appeal?' %}">
+                    {% trans "Dismiss Appeal" %}
+                </button>
+            </div>
+        {% elif appeal.status == "ESCALATED" and perms.membership.can_review_federation_appeals %}
+            <div class="alert alert-info">
+                {% trans "This appeal has been escalated to federation level for review." %}
+            </div>
+            
+            <div class="mt-4 action-buttons">
+                <button type="button" 
+                        class="btn btn-success appeal-action-button" 
+                        data-form-id="appealForm"
+                        data-action="federation_approve"
+                        data-message="{% trans 'Are you sure you want to approve this appeal at federation level? This will finalize the transfer.' %}">
+                    {% trans "Federation Approve" %}
+                </button>
+                
+                <button type="button" 
+                        class="btn btn-danger appeal-action-button" 
+                        data-form-id="appealForm"
+                        data-action="federation_reject"
+                        data-message="{% trans 'Are you sure you want to reject this appeal at federation level?' %}">
+                    {% trans "Federation Reject" %}
+                </button>
+            </div>
+        {% endif %}
+
+        <div class="mt-3">
+            <a href="{% url 'membership:appeal_detail' appeal.pk %}" 
+               class="btn btn-secondary">
+                {% trans "Cancel" %}
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/appeal-handlers.js' %}"></script>
+{% endblock %}

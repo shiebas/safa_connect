@@ -1,0 +1,133 @@
+{% extends 'membership/base.html' %}
+
+{% block title %}Payment Confirmation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-check-circle me-2"></i>Payment Confirmation</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Please review your information before completing payment.
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Player Information</h6>
+                        <p><strong>Name:</strong> {{ player.first_name }} {{ player.last_name }}</p>
+                        <p><strong>Email:</strong> {{ player.email }}</p>
+                        <p><strong>Phone:</strong> {{ player.phone }}</p>
+                        <p><strong>Club:</strong> {{ player.club.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Payment Details</h6>
+                        <p><strong>Plan:</strong> {{ payment_plan|title }}</p>
+                        <p><strong>Method:</strong> {{ payment_method|title }}</p>
+                        <p><strong>Amount:</strong> ${{ total_amount }}</p>
+                        {% if payment_plan == 'annual' %}
+                            <p class="text-success"><strong>Savings:</strong> ${{ savings }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if payment_method == 'credit_card' %}
+                <div class="mb-4">
+                    <h6>Credit Card Information</h6>
+                    <form id="payment-form">
+                        {% csrf_token %}
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="card_number" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="card_number" placeholder="1234 5678 9012 3456" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="card_name" class="form-label">Cardholder Name</label>
+                                <input type="text" class="form-control" id="card_name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="card_cvv" class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="card_cvv" placeholder="123" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="card_month" class="form-label">Expiry Month</label>
+                                <select class="form-select" id="card_month" required>
+                                    <option value="">Month</option>
+                                    {% for i in "123456789012"|make_list %}
+                                        <option value="{{ forloop.counter|stringformat:"02d" }}">{{ forloop.counter|stringformat:"02d" }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="card_year" class="form-label">Expiry Year</label>
+                                <select class="form-select" id="card_year" required>
+                                    <option value="">Year</option>
+                                    {% for year in years %}
+                                        <option value="{{ year }}">{{ year }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% if payment_method == 'bank_transfer' %}
+                <div class="alert alert-info mb-4">
+                    <h6>Bank Transfer Details</h6>
+                    <p><strong>Account Name:</strong> Sports Club Management</p>
+                    <p><strong>Account Number:</strong> 1234567890</p>
+                    <p><strong>Sort Code:</strong> 12-34-56</p>
+                    <p><strong>Reference:</strong> {{ player.registration_reference }}</p>
+                    <small>Please use the reference number when making the transfer.</small>
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'membership:payment_selection' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button type="button" class="btn btn-success btn-lg" onclick="processPayment()">
+                            <i class="fas fa-lock me-2"></i>Complete Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function processPayment() {
+    // Show loading state
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    btn.disabled = true;
+
+    // Simulate payment processing
+    setTimeout(function() {
+        window.location.href = '{% url "membership:registration_success" %}';
+    }, 2000);
+}
+
+// Format card number input
+document.getElementById('card_number')?.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+    this.value = formattedValue;
+});
+</script>
+{% endblock %}

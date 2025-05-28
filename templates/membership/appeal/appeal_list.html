@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% trans "Transfer Appeals" %}</h2>
+
+    {% if appeals %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans "Transfer" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Submitted By" %}</th>
+                    <th>{% trans "Submission Date" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appeal in appeals %}
+                <tr>
+                    <td>{{ appeal.transfer }}</td>
+                    <td>
+                        <span class="badge {% if appeal.status == 'PENDING' %}badge-warning
+                                         {% elif appeal.status == 'UPHELD' %}badge-success
+                                         {% elif appeal.status == 'DISMISSED' %}badge-danger
+                                         {% else %}badge-secondary{% endif %}">
+                            {{ appeal.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ appeal.submitted_by }}</td>
+                    <td>{{ appeal.appeal_submission_date|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'membership:appeal_detail' appeal.pk %}" 
+                           class="btn btn-sm btn-primary">
+                            {% trans "View" %}
+                        </a>
+                        {% if appeal.status == 'PENDING' and perms.membership.can_review_appeals %}
+                        <a href="{% url 'membership:appeal_review' appeal.pk %}" 
+                           class="btn btn-sm btn-info">
+                            {% trans "Review" %}
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>{% trans "No appeals found." %}</p>
+    {% endif %}
+</div>
+{% endblock %}

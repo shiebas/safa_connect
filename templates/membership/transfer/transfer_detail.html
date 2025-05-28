@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Transfer Details" %} - {{ transfer.player.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{% trans "Transfer Details" %}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>{% trans "Player Information" %}</h5>
+                            <p><strong>{% trans "Name" %}:</strong> {{ transfer.player.get_full_name }}</p>
+                            <p><strong>{% trans "SAFA ID" %}:</strong> {{ transfer.player.safa_id }}</p>
+                            <p><strong>{% trans "Date of Birth" %}:</strong> {{ transfer.player.date_of_birth }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>{% trans "Transfer Information" %}</h5>
+                            <p><strong>{% trans "From Club" %}:</strong> {{ transfer.from_club.name }}</p>
+                            <p><strong>{% trans "To Club" %}:</strong> {{ transfer.to_club.name }}</p>
+                            <p><strong>{% trans "Request Date" %}:</strong> {{ transfer.request_date }}</p>
+                            <p><strong>{% trans "Status" %}:</strong> 
+                                {% if transfer.status == 'PENDING' %}
+                                <span class="badge badge-warning">{% trans "Pending" %}</span>
+                                {% elif transfer.status == 'APPROVED' %}
+                                <span class="badge badge-success">{% trans "Approved" %}</span>
+                                {% elif transfer.status == 'REJECTED' %}
+                                <span class="badge badge-danger">{% trans "Rejected" %}</span>
+                                {% else %}
+                                <span class="badge badge-secondary">{% trans "Cancelled" %}</span>
+                                {% endif %}
+                            </p>
+                            {% if transfer.transfer_fee %}
+                            <p><strong>{% trans "Transfer Fee" %}:</strong> R{{ transfer.transfer_fee }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if transfer.reason %}
+                    <div class="mt-4">
+                        <h5>{% trans "Transfer Reason" %}</h5>
+                        <p>{{ transfer.reason }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if transfer.status == 'REJECTED' and transfer.rejection_reason %}
+                    <div class="mt-4">
+                        <h5>{% trans "Rejection Reason" %}</h5>
+                        <p>{{ transfer.rejection_reason }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if transfer.status == 'PENDING' %}
+                        {% if can_approve or can_reject %}
+                        <div class="mt-4">
+                            <h5>{% trans "Actions" %}</h5>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                {% if can_approve %}
+                                <button type="submit" name="action" value="approve" class="btn btn-success">
+                                    {% trans "Approve Transfer" %}
+                                </button>
+                                {% endif %}
+                                {% if can_reject %}
+                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#rejectModal">
+                                    {% trans "Reject Transfer" %}
+                                </button>
+                                {% endif %}
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if registration_history %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4>{% trans "Registration History" %}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Club" %}</th>
+                                    <th>{% trans "Registration Date" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Position" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reg in registration_history %}
+                                <tr>
+                                    <td>{{ reg.club.name }}</td>
+                                    <td>{{ reg.registration_date }}</td>
+                                    <td>{{ reg.get_status_display }}</td>
+                                    <td>{{ reg.get_position_display|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{% trans "Timeline" %}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6>{% trans "Request Submitted" %}</h6>
+                                <p>{{ transfer.request_date }}</p>
+                            </div>
+                        </div>
+                        {% if transfer.status != 'PENDING' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6>{% trans "Request" %} {{ transfer.get_status_display }}</h6>
+                                <p>{{ transfer.approved_date }}</p>
+                                {% if transfer.approved_by %}
+                                <p>{% trans "By" %}: {{ transfer.approved_by.get_full_name }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if transfer.status == 'APPROVED' and transfer.effective_date %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6>{% trans "Transfer Effective" %}</h6>
+                                <p>{{ transfer.effective_date }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if can_reject %}
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectModalLabel">{% trans "Reject Transfer" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="rejection_reason">{% trans "Reason for Rejection" %}</label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">{% trans "Reject" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

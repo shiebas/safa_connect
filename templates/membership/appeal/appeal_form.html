@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% trans "Submit Transfer Appeal" %}</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Transfer Details" %}</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">{% trans "Player" %}</dt>
+                <dd class="col-sm-9">{{ view.get_transfer.player }}</dd>
+                
+                <dt class="col-sm-3">{% trans "From Club" %}</dt>
+                <dd class="col-sm-9">{{ view.get_transfer.from_club }}</dd>
+                
+                <dt class="col-sm-3">{% trans "To Club" %}</dt>
+                <dd class="col-sm-9">{{ view.get_transfer.to_club }}</dd>
+                
+                <dt class="col-sm-3">{% trans "Rejection Reason" %}</dt>
+                <dd class="col-sm-9">{{ view.get_transfer.rejection_reason }}</dd>
+            </dl>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">
+                {% trans "Submit Appeal" %}
+            </button>
+            <a href="{% url 'membership:transfer_detail' view.get_transfer.pk %}" 
+               class="btn btn-secondary">
+                {% trans "Cancel" %}
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

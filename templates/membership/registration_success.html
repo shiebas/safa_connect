@@ -1,0 +1,54 @@
+{% extends 'membership/base.html' %}
+
+{% block title %}Registration Success{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-check-circle me-2"></i>Registration Successful!</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-trophy text-success" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h4 class="text-success mb-3">Welcome to {{ player.club.name }}!</h4>
+                
+                <div class="alert alert-success">
+                    <p><strong>Registration Reference:</strong> {{ player.registration_reference }}</p>
+                    <p><strong>Member ID:</strong> {{ player.member_id }}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h6>What's Next?</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope text-primary me-2"></i>Check your email for confirmation details</li>
+                        <li><i class="fas fa-calendar text-primary me-2"></i>Attend your first training session</li>
+                        <li><i class="fas fa-id-card text-primary me-2"></i>Collect your membership card from the club</li>
+                        <li><i class="fas fa-phone text-primary me-2"></i>Contact us if you have any questions</li>
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <h6>Club Contact Information</h6>
+                    <p><strong>{{ player.club.name }}</strong></p>
+                    <p><i class="fas fa-map-marker-alt me-2"></i>{{ player.club.address }}</p>
+                    <p><i class="fas fa-phone me-2"></i>{{ player.club.phone }}</p>
+                    <p><i class="fas fa-envelope me-2"></i>{{ player.club.email }}</p>
+                </div>
+
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{% url 'membership:player_registration' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Register Another Player
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-secondary">
+                        <i class="fas fa-print me-2"></i>Print Confirmation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

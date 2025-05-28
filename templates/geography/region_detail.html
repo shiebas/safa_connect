@@ -59,22 +59,5 @@
         {% endif %}
     </div>
 </div>
-<div class="card mt-4">
-    <div class="card-header">
-        <h3>Clubs</h3>
-    </div>
-    <div class="card-body">
-        {% if region.clubs.all %}
-        <ul class="list-group">
-            {% for club in region.clubs.all %}
-            <li class="list-group-item">
-                <a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>No clubs found for this region.</p>
-        {% endif %}
-    </div>
-</div>
+
 {% endblock %}

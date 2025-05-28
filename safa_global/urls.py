@@ -10,6 +10,7 @@ urlpatterns = [
     path('geography/', include('geography.urls', namespace='geography')),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('pdf/', include('pdf_processor.urls', namespace='pdf_processor')),
+    path('membership/', include('membership.urls', namespace='membership')),
     path('', advanced_home, name='home'),
 
 

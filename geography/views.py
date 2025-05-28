@@ -443,10 +443,15 @@ class RegionListView(ListView):
         ).order_by('name')
 
 @login_decorator
-class RegionDetailView(DetailView):
+class RegionDetailView(LoginRequiredMixin, DetailView):
     model = Region
     template_name = 'geography/region_detail.html'
     context_object_name = 'region'
+
+    def get_queryset(self):
+        return Region.objects.select_related(
+            'province', 'national_federation'
+        ).prefetch_related('localfootballassociation_set', 'localfootballassociation_set__clubs')
 
 @login_decorator
 class RegionCreateView(CreateView):

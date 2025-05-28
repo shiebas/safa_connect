@@ -1,0 +1,312 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import CreateView, TemplateView
+from django.contrib import messages
+from django.urls import reverse_lazy, reverse
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
+from .models import Member, Player, Club, PlayerClubRegistration
+from .forms import PlayerRegistrationForm, PaymentSelectionForm
+
+
+class ClubAdminRequiredMixin(LoginRequiredMixin):
+    """Mixin to ensure user is a club admin"""
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        
+        # Check if user has CLUB_ADMIN role or is admin
+        if request.user.role not in ['CLUB_ADMIN', 'ADMIN']:
+            raise PermissionDenied("You must be a club administrator to register players.")
+        
+        # Get the user's club
+        try:
+            self.admin_member = Member.objects.get(
+                user=request.user,
+                role='CLUB_ADMIN',
+                status='ACTIVE',
+                club__isnull=False
+            )
+            self.user_club = self.admin_member.club
+        except Member.DoesNotExist:
+            raise PermissionDenied("You must be associated with a club to register players.")
+        
+        return super().dispatch(request, *args, **kwargs)
+
+
+class PlayerRegistrationView(ClubAdminRequiredMixin, CreateView):
+    """Step 1: Player personal details registration"""
+    model = Player
+    form_class = PlayerRegistrationForm
+    template_name = 'registration/player_registration.html'
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['club'] = self.user_club
+        return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['club'] = self.user_club
+        context['step'] = 1
+        return context
+    
+    def form_valid(self, form):
+        # Don't save yet, store in session for next step
+        player_data = form.cleaned_data
+        
+        # Store player data in session
+        self.request.session['player_data'] = {
+            'first_name': player_data['first_name'],
+            'last_name': player_data['last_name'],
+            'email': player_data['email'],
+            'date_of_birth': player_data['date_of_birth'].isoformat(),
+            'gender': player_data['gender'],
+            'id_number': player_data.get('id_number', ''),
+            'phone_number': player_data.get('phone_number', ''),
+            'street_address': player_data.get('street_address', ''),
+            'suburb': player_data.get('suburb', ''),
+            'city': player_data.get('city', ''),
+            'state': player_data.get('state', ''),
+            'postal_code': player_data.get('postal_code', ''),
+            'country': player_data.get('country', ''),
+            'emergency_contact': player_data.get('emergency_contact', ''),
+            'emergency_phone': player_data.get('emergency_phone', ''),
+            'medical_notes': player_data.get('medical_notes', ''),
+            'jersey_number': player_data.get('jersey_number'),
+            'position': player_data.get('position', ''),
+        }
+        
+        return redirect('membership:payment_selection')
+
+
+class PaymentSelectionView(ClubAdminRequiredMixin, TemplateView):
+    """Step 2: Select membership type and payment method"""
+    template_name = 'registration/payment_selection.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Check if player data exists in session
+        if 'player_data' not in request.session:
+            messages.error(request, "Please complete player registration first.")
+            return redirect('membership:player_registration')
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['club'] = self.user_club
+        context['step'] = 2
+        context['junior_fee'] = 100  # R100
+        context['senior_fee'] = 200  # R200
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        membership_type = request.POST.get('membership_type')
+        payment_method = request.POST.get('payment_method')
+        
+        if not membership_type or not payment_method:
+            messages.error(request, "Please select both membership type and payment method.")
+            return self.get(request, *args, **kwargs)
+        
+        if membership_type not in ['JR', 'SR']:
+            messages.error(request, "Invalid membership type selected.")
+            return self.get(request, *args, **kwargs)
+        
+        if payment_method not in ['EFT', 'CARD']:
+            messages.error(request, "Invalid payment method selected.")
+            return self.get(request, *args, **kwargs)
+        
+        # Store payment selection in session
+        request.session['payment_data'] = {
+            'membership_type': membership_type,
+            'payment_method': payment_method,
+            'fee_amount': 100 if membership_type == 'JR' else 200
+        }
+        
+        return redirect('membership:payment_confirmation')
+
+
+class PaymentConfirmationView(ClubAdminRequiredMixin, TemplateView):
+    """Step 3: Generate payment reference and show payment details"""
+    template_name = 'registration/payment_confirmation.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Check if required data exists in session
+        if 'player_data' not in request.session or 'payment_data' not in request.session:
+            messages.error(request, "Registration data missing. Please start again.")
+            return redirect('membership:player_registration')
+        return super().dispatch(request, *args, **kwargs)
+    
+    def generate_payment_reference(self):
+        """Generate unique payment reference code"""
+        while True:
+            timestamp = str(int(timezone.now().timestamp()))[-6:]
+            random_part = get_random_string(6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            reference = f"PAY-{timestamp}-{random_part}"
+            break
+        return reference
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Generate payment reference if not exists
+        if 'payment_reference' not in self.request.session:
+            self.request.session['payment_reference'] = self.generate_payment_reference()
+        
+        player_data = self.request.session['player_data']
+        payment_data = self.request.session['payment_data']
+        
+        context.update({
+            'club': self.user_club,
+            'step': 3,
+            'player_data': player_data,
+            'payment_data': payment_data,
+            'payment_reference': self.request.session['payment_reference'],
+            'membership_type_display': 'Junior' if payment_data['membership_type'] == 'JR' else 'Senior',
+        })
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        """Process final registration"""
+        if request.POST.get('action') == 'confirm_registration':
+            return self.process_registration()
+        elif request.POST.get('action') == 'proceed_card_payment':
+            return self.process_card_payment()
+        
+        return self.get(request, *args, **kwargs)
+    
+    @transaction.atomic
+    def process_registration(self):
+        """Create the player and club registration records"""
+        try:
+            player_data = self.request.session['player_data']
+            payment_data = self.request.session['payment_data']
+            payment_reference = self.request.session['payment_reference']
+            
+            # Create the player
+            player = Player.objects.create(
+                first_name=player_data['first_name'],
+                last_name=player_data['last_name'],
+                email=player_data['email'],
+                date_of_birth=player_data['date_of_birth'],
+                gender=player_data['gender'],
+                id_number=player_data.get('id_number', ''),
+                phone_number=player_data['phone_number'],
+                street_address=player_data['street_address'],
+                suburb=player_data['suburb'],
+                city=player_data['city'],
+                state=player_data['state'],
+                postal_code=player_data['postal_code'],
+                country=player_data['country'],
+                emergency_contact=player_data['emergency_contact'],
+                emergency_phone=player_data['emergency_phone'],
+                medical_notes=player_data['medical_notes'],
+                role='PLAYER',
+                status='INACTIVE',  # Will be activated when payment is confirmed
+                club=self.user_club
+            )
+            
+            # Create club registration
+            registration = PlayerClubRegistration.objects.create(
+                player=player,
+                club=self.user_club,
+                registration_date=timezone.now().date(),
+                status='INACTIVE',
+                position=player_data.get('position', ''),
+                jersey_number=player_data.get('jersey_number'),
+                notes=f"Payment Reference: {payment_reference}\n"
+                      f"Membership Type: {'Junior' if payment_data['membership_type'] == 'JR' else 'Senior'}"
+            )
+            
+            # Store IDs for success page
+            self.request.session['created_player_id'] = player.id
+            self.request.session['created_registration_id'] = registration.id
+            
+            # Clear registration data but keep payment reference for tracking
+            del self.request.session['player_data']
+            del self.request.session['payment_data']
+            
+            messages.success(self.request, f"Player {player.get_full_name()} registered successfully!")
+            return redirect('membership:registration_success')
+            
+        except Exception as e:
+            messages.error(self.request, f"Registration failed: {str(e)}")
+            return self.get(self.request)
+    
+    def process_card_payment(self):
+        """Handle card payment redirect"""
+        payment_reference = self.request.session['payment_reference']
+        payment_data = self.request.session['payment_data']
+        
+        # Store additional data for payment gateway
+        self.request.session['payment_gateway_data'] = {
+            'amount': payment_data['fee_amount'],
+            'reference': payment_reference,
+            'return_url': self.request.build_absolute_uri(reverse('membership:payment_return')),
+            'cancel_url': self.request.build_absolute_uri(reverse('membership:payment_cancel')),
+        }
+        
+        # Simulate redirect to payment gateway
+        messages.info(self.request, f"Redirecting to payment gateway for R{payment_data['fee_amount']}...")
+        
+        # For now, create the registration and redirect to success
+        return self.process_registration()
+
+
+class RegistrationSuccessView(ClubAdminRequiredMixin, TemplateView):
+    """Final success page showing registration details"""
+    template_name = 'registration/registration_success.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get created player and registration
+        player_id = self.request.session.get('created_player_id')
+        registration_id = self.request.session.get('created_registration_id')
+        payment_reference = self.request.session.get('payment_reference')
+        
+        if player_id and registration_id:
+            try:
+                player = Player.objects.get(id=player_id)
+                registration = PlayerClubRegistration.objects.get(id=registration_id)
+                
+                context.update({
+                    'player': player,
+                    'registration': registration,
+                    'payment_reference': payment_reference,
+                    'club': self.user_club,
+                })
+            except (Player.DoesNotExist, PlayerClubRegistration.DoesNotExist):
+                messages.error(self.request, "Registration details not found.")
+        
+        return context
+
+
+# AJAX Views for dynamic form updates
+def get_club_info(request):
+    """Return club information for form population"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+        
+    try:
+        admin_member = Member.objects.get(
+            user=request.user,
+            role='CLUB_ADMIN',
+            status='ACTIVE',
+            club__isnull=False
+        )
+        club = admin_member.club
+        
+        data = {
+            'club_name': club.name,
+            'address': club.address,
+            'phone': club.phone,
+            'email': club.email,
+        }
+        return JsonResponse(data)
+    except Member.DoesNotExist:
+        return JsonResponse({'error': 'Not a club administrator'}, status=403)

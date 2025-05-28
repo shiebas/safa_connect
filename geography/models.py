@@ -278,7 +278,7 @@ class LocalFootballAssociation(TimeStampedModel, ModelWithLogo):
     """Local Football Association (LFA) that manages clubs within a region"""
     name = models.CharField(max_length=100)
     acronym = models.CharField(max_length=10, blank=True)
-    region = models.ForeignKey(Region, on_delete=models.PROTECT, related_name='local_football_associations')
+    region = models.ForeignKey(Region, on_delete=models.PROTECT)
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=20, blank=True)
     website = models.URLField(blank=True)
@@ -646,15 +646,44 @@ class Membership(TimeStampedModel):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='memberships')
     # Using generic relations to allow membership in different types of organizations
     membership_type = models.CharField(max_length=50)  # e.g., 'club', 'association', 'federation'
-
+    address = models.CharField(max_length=255, blank=True)
+    postal_address = models.CharField(max_length=255, blank=True)
+    next_of_kin = models.CharField(max_length=100, blank=True)
     # Optional relationships - only one should be used based on membership_type
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='members', null=True, blank=True)
     association = models.ForeignKey(Association, on_delete=models.CASCADE, related_name='members', null=True, blank=True)
-    national_federation = models.ForeignKey(NationalFederation, on_delete=models.CASCADE, related_name='members', null=True, blank=True)
-
+    # Best Practice: Consider models.SET_NULL if memberships should not be deleted when a federation/region is deleted.
+    # related_name can be made more specific (e.g., 'memberships_in_national_federation') if 'members' is ambiguous
+    # for the NationalFederation model or causes clashes.
+    national_federation = models.ForeignKey(
+        NationalFederation,
+        on_delete=models.CASCADE,  # Consider models.SET_NULL or models.PROTECT based on desired data integrity.
+        related_name='memberships', # Changed from 'members' for potentially better clarity.
+        null=True,
+        blank=True,
+        verbose_name="National Federation"  # Added for better representation in forms/admin.
+    )
+    region = models.ForeignKey(  # PEP 8: Renamed from 'Region' to 'region'.
+        'Region',  # Using string literal for robustness (handles forward references/lazy loading).
+        on_delete=models.CASCADE,  # Consider models.SET_NULL or models.PROTECT.
+        related_name='memberships', # Changed from 'members' for potentially better clarity.
+        null=True,
+        blank=True,
+        verbose_name="Region"  # Added for better representation in forms/admin.
+    )
+    local_football_association = models.ForeignKey(
+        LocalFootballAssociation,
+        on_delete=models.CASCADE,
+        related_name='members',
+        null=True,
+        blank=True
+    )
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    # Add this field to your Membership model
+    payment_confirmed = models.BooleanField(default=False)
+    payment_date = models.DateTimeField(null=True, blank=True)  # Optional: track when payment was confirmed
 
     # For players
     player_category = models.CharField(max_length=2, choices=PLAYER_CATEGORIES, null=True, blank=True)
@@ -682,3 +711,49 @@ class Membership(TimeStampedModel):
             )
         ]
 
+def save(self, *args, **kwargs):
+    # Check if payment_confirmed changed from False to True
+    if self.payment_confirmed and self.pk:
+        # Get the original object to check if payment_confirmed changed
+        original = Membership.objects.get(pk=self.pk)
+        if not original.payment_confirmed:
+            # Payment just got confirmed
+            self._handle_payment_confirmation()
+    # For new memberships where payment is confirmed immediately
+    elif self.payment_confirmed and not self.pk:
+        self._handle_payment_confirmation()
+    super().save(*args, **kwargs)
+
+def _handle_payment_confirmation(self):
+    """Handle actions when payment is confirmed"""
+    from django.utils import timezone
+
+    # Activate the user and membership
+    self.user.is_active = True
+    self.is_active = True
+
+    # Generate SAFA ID only if user doesn't have one
+    if not self.user.safa_id:
+        self.user.generate_safa_id()
+
+    # Set payment date if not already set
+    if not self.payment_date:
+        self.payment_date = timezone.now()
+
+    # Save the user changes
+    self.user.save()
+
+@property
+def membership_qr_code(self):
+    """Generate QR code for membership card"""
+    return self.user.generate_qr_code()
+
+@property  
+def ready_for_card_printing(self):
+    """Check if membership is ready for card printing"""
+    return (
+        self.payment_confirmed and 
+        self.is_active and 
+        self.user.safa_id and
+        self.user.is_active
+    )

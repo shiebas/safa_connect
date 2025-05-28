@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Payment Confirmation" %} - {{ club.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{% trans "Confirm Registration" %}</h3>
+                    <p class="text-muted mb-0">{{ club.name }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">Step 3 of 3</div>
+                    </div>
+
+                    <h4>{% trans "Registration Summary" %}</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h5>{% trans "Player Information" %}</h5>
+                            <p><strong>{% trans "Name" %}:</strong> {{ player_data.first_name }} {{ player_data.last_name }}</p>
+                            <p><strong>{% trans "Email" %}:</strong> {{ player_data.email }}</p>
+                            <p><strong>{% trans "Phone" %}:</strong> {{ player_data.phone_number }}</p>
+                            <p><strong>{% trans "ID Number" %}:</strong> {{ player_data.id_number }}</p>
+                            <p><strong>{% trans "Position" %}:</strong> {{ player_data.position }}</p>
+                            {% if player_data.jersey_number %}
+                            <p><strong>{% trans "Jersey Number" %}:</strong> {{ player_data.jersey_number }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5>{% trans "Payment Information" %}</h5>
+                            <p><strong>{% trans "Membership Type" %}:</strong> {{ membership_type_display }}</p>
+                            <p><strong>{% trans "Amount" %}:</strong> R{{ payment_data.fee_amount }}</p>
+                            <p><strong>{% trans "Payment Method" %}:</strong> {{ payment_data.payment_method }}</p>
+                            <p><strong>{% trans "Reference" %}:</strong> {{ payment_reference }}</p>
+                        </div>
+                    </div>
+
+                    {% if payment_data.payment_method == 'EFT' %}
+                    <div class="alert alert-info mt-4">
+                        <h5>{% trans "Bank Account Details" %}</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered bg-white">
+                                <tbody>
+                                    <tr>
+                                        <th>{% trans "Bank" %}</th>
+                                        <td>FNB</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Branch" %}</th>
+                                        <td>Comm Account services cust  210554</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Account Type" %}</th>
+                                        <td>Current account</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Account Number" %}</th>
+                                        <td class="font-monospace">6309 8138 027</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Branch Code" %}</th>
+                                        <td class="font-monospace">210554</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Reference" %}</th>
+                                        <td class="font-monospace font-weight-bold">{{ payment_reference }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Amount" %}</th>
+                                        <td class="font-weight-bold">R{{ payment_data.fee_amount }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="alert alert-warning mt-3 mb-0">
+                            <i class="fas fa-info-circle"></i> {% trans "Please use the payment reference above when making your payment. Your registration will be activated once payment is confirmed." %}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            {% if payment_data.payment_method == 'CARD' %}
+                            <button type="submit" name="action" value="proceed_card_payment" class="btn btn-primary">
+                                {% trans "Proceed to Card Payment" %}
+                            </button>
+                            {% else %}
+                            <button type="submit" name="action" value="confirm_registration" class="btn btn-primary">
+                                {% trans "Confirm Registration" %}
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'membership:payment_selection' %}" class="btn btn-secondary">{% trans "Back" %}</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
