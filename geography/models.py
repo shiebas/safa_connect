@@ -309,35 +309,33 @@ class Association(TimeStampedModel, ModelWithLogo):
 class Club(TimeStampedModel, ModelWithLogo):
     """Local sports clubs"""
     name = models.CharField(_('Name'), max_length=100)
+    short_name = models.CharField(_('Short Name'), max_length=50, blank=True)
     code = models.CharField(_('Club Code'), max_length=10, unique=True)
     email = models.EmailField(_('Email'), blank=True)
     phone = models.CharField(_('Phone'), max_length=20, blank=True)
     address = models.TextField(_('Address'), blank=True)
-    province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='clubs', null=True)
-    region = models.ForeignKey(Region, on_delete=models.PROTECT, related_name='clubs', null=True, blank=True)
-    local_football_association = models.ForeignKey(LocalFootballAssociation, on_delete=models.PROTECT, related_name='clubs', null=True, blank=True)
-    founded_year = models.PositiveIntegerField(null=True, blank=True)
-    
+    founded_year = models.PositiveIntegerField(_('Founded Year'), null=True, blank=True)
+    region = models.ForeignKey(
+        'Region',
+        on_delete=models.PROTECT,
+        related_name='clubs'
+    )
+    local_football_association = models.ForeignKey(
+        'LocalFootballAssociation',
+        on_delete=models.PROTECT,
+        related_name='clubs'
+    )
+
     class Meta:
         ordering = ['name']
         verbose_name = _('Club')
         verbose_name_plural = _('Clubs')
 
-    def save(self, *args, **kwargs):
-        # If local_football_association is set but region is not, set region from LFA
-        if self.local_football_association and not self.region:
-            self.region = self.local_football_association.region
-        super().save(*args, **kwargs)
-
     def __str__(self):
-        if self.local_football_association:
-            return f"{self.name} ({self.local_football_association.name})"
-        elif self.region:
-            return f"{self.name} ({self.region.name})"
         return self.name
 
 # ===== USER MODELS =====
-    
-  
-  
+
+
+
 

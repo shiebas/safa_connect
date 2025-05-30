@@ -11,11 +11,11 @@ from django.db import transaction
 
 from .forms import PaymentSelectionForm, PlayerRegistrationForm
 from .models import (
-    Club,
     Member,
     Player,
     PlayerClubRegistration
 )
+from geography.models import Club
 
 
 class ClubAdminRequiredMixin(LoginRequiredMixin):

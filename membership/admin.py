@@ -2,31 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from geography.admin import ModelWithLogoAdmin
-from .models import Club, Member, Player, PlayerClubRegistration, Transfer
-
-@admin.register(Club)
-class ClubAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'code', 'email', 'display_logo', 'member_count']
-    list_filter = ['created']
-    search_fields = ['name', 'code', 'email']
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'code')
-        }),
-        (_('Contact Information'), {
-            'fields': ('email', 'phone', 'address')
-        }),
-        (_('Images'), {
-            'fields': ('logo',)
-        }),
-        (_('Additional Information'), {
-            'fields': ('notes',)
-        }),
-    )
-
-    def member_count(self, obj):
-        return obj.members.count()
-    member_count.short_description = _('Members')
+from .models import Member, Player, PlayerClubRegistration, Transfer
 
 @admin.register(Member)
 class MemberAdmin(ModelWithLogoAdmin):

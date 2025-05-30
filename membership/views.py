@@ -5,7 +5,8 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from .models import Member, Player, Club, Membership, Province, Region, LocalFootballAssociation
+from .models import Member, Player, Membership
+from geography.models import Club, Province, Region, LocalFootballAssociation  # Import Club from geography
 from .forms import MemberForm, PlayerForm, ClubForm
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
@@ -70,7 +71,7 @@ class PlayerUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
 
 # Club views
 class ClubListView(LoginRequiredMixin, ListView):
-    model = Club
+    model = Club  # Now uses Club from geography
     template_name = 'membership/club/club_list.html'
     context_object_name = 'clubs'
     paginate_by = 10
@@ -95,7 +96,7 @@ class ClubListView(LoginRequiredMixin, ListView):
         return context
 
 class ClubDetailView(LoginRequiredMixin, DetailView):
-    model = Club
+    model = Club  # Now uses Club from geography
     template_name = 'membership/club/club_detail.html'
     context_object_name = 'club'
 
@@ -107,7 +108,7 @@ class ClubDetailView(LoginRequiredMixin, DetailView):
         return super().get(request, *args, **kwargs)
 
 class ClubCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
-    model = Club
+    model = Club  # Now uses Club from geography
     form_class = ClubForm
     template_name = 'membership/club/club_form.html'
     success_url = reverse_lazy('membership:club_list')
@@ -117,7 +118,7 @@ class ClubCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
         return super().form_valid(form)
 
 class ClubUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = Club
+    model = Club  # Now uses Club from geography
     form_class = ClubForm
     template_name = 'membership/club/club_form.html'
     success_url = reverse_lazy('membership:club_list')
@@ -140,7 +141,7 @@ from django.utils.decorators import method_decorator
 @method_decorator(login_required, name='dispatch')
 class MembershipListView(ListView):
     model = Membership
-    template_name = 'membership_list.html'
+    template_name = 'membership/membership_list.html'
     context_object_name = 'memberships'
 
     def get_queryset(self):
@@ -155,22 +156,28 @@ class MembershipListView(ListView):
 @method_decorator(login_required, name='dispatch')
 class MembershipCreateView(CreateView):
     model = Membership
-    template_name = 'membership_form.html'
-    fields = '__all__'
-    success_url = reverse_lazy('membership-list')
+    template_name = 'membership/membership_form.html'
+    fields = ['member', 'club', 'start_date', 'end_date', 'status']
+    success_url = reverse_lazy('membership:membership-list')
+
+@method_decorator(login_required, name='dispatch')
+class MembershipDetailView(DetailView):
+    model = Membership
+    template_name = 'membership/membership_detail.html'
+    context_object_name = 'membership'
 
 @method_decorator(login_required, name='dispatch')
 class MembershipUpdateView(UpdateView):
     model = Membership
-    template_name = 'membership_form.html'
-    fields = '__all__'
-    success_url = reverse_lazy('membership-list')
+    template_name = 'membership/membership_form.html'
+    fields = ['member', 'club', 'start_date', 'end_date', 'status']
+    success_url = reverse_lazy('membership:membership-list')
 
 @method_decorator(login_required, name='dispatch')
 class MembershipDeleteView(DeleteView):
     model = Membership
-    template_name = 'membership_confirm_delete.html'
-    success_url = reverse_lazy('membership-list')
+    template_name = 'membership/membership_confirm_delete.html'
+    success_url = reverse_lazy('membership:membership-list')
 
 # API Views
 def regions_by_province(request, province_id):

@@ -16,7 +16,7 @@ from .views import (
     RegionListView, RegionCreateView, RegionDetailView, RegionUpdateView, RegionDeleteView, 
     ClubListView, ClubCreateView, ClubDetailView, ClubUpdateView, ClubDeleteView,
     LocalFootballAssociationListView, LocalFootballAssociationCreateView, LocalFootballAssociationDetailView,
-    LocalFootballAssociationUpdateView, LocalFootballAssociationDeleteView
+    LocalFootballAssociationUpdateView, LocalFootballAssociationDeleteView, regions_by_province
     
 
 )

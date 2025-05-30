@@ -1,0 +1,39 @@
+[
+{
+  "model": "accounts.customuser",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$H9yCYuKPPyKp6kyK3vwK65$gUrtCfdq9yFKaGed+fxE4v9HXzLwHTXG8pr7fkqVbpU=",
+    "last_login": null,
+    "is_superuser": true,
+    "first_name": "",
+    "last_name": "",
+    "is_staff": true,
+    "date_joined": "2025-05-30T07:04:39.942Z",
+    "logo": "",
+    "email": "shaunqjohannes@gmail.com",
+    "registration_type": null,
+    "role": "PLAYER",
+    "name": "",
+    "middle_name": "",
+    "surname": "",
+    "alias": "",
+    "date_of_birth": null,
+    "gender": "",
+    "id_number": "",
+    "id_number_other": null,
+    "passport_number": "",
+    "id_document_type": "ID",
+    "is_active": true,
+    "membership_card": false,
+    "payment_required": true,
+    "safa_id": null,
+    "fifa_id": null,
+    "profile_photo": "",
+    "document": "",
+    "registration_date": "2025-05-30",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]

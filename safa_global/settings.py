@@ -39,13 +39,15 @@ INSTALLED_APPS = [
      'model_utils',
      'crispy_forms',
     'crispy_bootstrap5',
-    'widget_tweaks',             
+    'widget_tweaks', 
+    'django_extensions',            
 
     'utils.apps.UtilsConfig',
     'geography.apps.GeographyConfig',
     'accounts.apps.AccountsConfig', # CustomUser model is here
     'membership.apps.MembershipConfig',
     'pdf_processor.apps.PdfProcessorConfig',  # Manages PDF generation and processing functionalities
+    
 ]
 
 MIDDLEWARE = [

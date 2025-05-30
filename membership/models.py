@@ -3,62 +3,31 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from model_utils.models import TimeStampedModel
-from geography.models import ModelWithLogo
 from django.conf import settings
 from django.utils.crypto import get_random_string
-from accounts.models import CustomUser  # Update this import
+from accounts.models import CustomUser  # This is correct - keep importing from accounts
 import os
-from geography.models import Province, Region , LocalFootballAssociation # Ensure these models exist
+from geography.models import (
+    ModelWithLogo, 
+    Province, 
+    Region, 
+    LocalFootballAssociation,
+    Club as GeographyClub  # Import Club from geography with an alias
+)
 
-# ...existing code...
 # Constants for default images
 DEFAULT_PROFILE_PICTURE = 'default_profile.png'
 DEFAULT_LOGO = 'default_logo.png'
 
-class Club(TimeStampedModel, ModelWithLogo):
-    name = models.CharField(_("Club Name"), max_length=100)
-    code = models.CharField(_("Club Code"), max_length=10, unique=True)
-    address = models.TextField(_("Address"), blank=True)
-    phone = models.CharField(_("Phone"), max_length=20, blank=True)
-    email = models.EmailField(_("Email"), blank=True)
-    notes = models.TextField(_("Notes"), blank=True)
-
-    # New fields for federation, province, and region
-    # federation = models.ForeignKey(
-    #     'geography.Federation',
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     blank=True,
-    #     related_name='membership_clubs',
-    #     verbose_name=_('Federation')
-    # )
-    province = models.ForeignKey(
-        'geography.Province',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='membership_clubs',
-        verbose_name=_('Province')
-    )
-    region = models.ForeignKey(
-        'geography.Region',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='membership_clubs',
-        verbose_name=_('Region')
-    )
-
-    class Meta:
-        verbose_name = _("Club")
-        verbose_name_plural = _("Clubs")
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
+# Use the Club from geography instead of duplicating it
+# This class should be removed since we're using Club from geography
+# class Club(TimeStampedModel, ModelWithLogo):
+#     ...
 
 class Member(models.Model):
-
+    # Add created field to replace TimeStampedModel
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
     
     MEMBERSHIP_STATUS = [
         ('ACTIVE', 'Active'),
@@ -117,8 +86,13 @@ class Member(models.Model):
     country = models.CharField(_("Country"), max_length=100, blank=True)
 
     # Membership Information
-    club = models.ForeignKey(Club, on_delete=models.PROTECT, 
-                           related_name='members', null=True, blank=True)
+    club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.PROTECT,
+        related_name='club_members',  # Changed from 'members'
+        null=True,
+        blank=True
+    )
     role = models.CharField(_("Role"), max_length=20, choices=ROLE_CHOICES, default='PLAYER')
     status = models.CharField(
         _("Membership Status"),
@@ -187,9 +161,7 @@ class Member(models.Model):
 
     @property
     def logo_url(self):
-        """Override ModelWithLogo's logo_url to provide default"""
-        if self.logo and hasattr(self.logo, 'url'):
-            return self.logo.url
+        """Return default logo URL"""
         return os.path.join(settings.STATIC_URL, DEFAULT_LOGO)
 
     def clean(self):
@@ -324,7 +296,7 @@ class PlayerClubRegistration(TimeStampedModel):
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, 
                              related_name='club_registrations')
-    club = models.ForeignKey(Club, on_delete=models.CASCADE,
+    club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
                            related_name='player_registrations')
     # Registration Details
     registration_date = models.DateField(_("Registration Date"), default=timezone.now)
@@ -386,9 +358,9 @@ class Transfer(TimeStampedModel):
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, 
                              related_name='transfers')
-    from_club = models.ForeignKey(Club, on_delete=models.CASCADE,
+    from_club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
                                 related_name='transfers_out')
-    to_club = models.ForeignKey(Club, on_delete=models.CASCADE,
+    to_club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
                               related_name='transfers_in')
     
     # Transfer Details
@@ -622,9 +594,11 @@ class TransferAppeal(TimeStampedModel):
             self.federation_review_date = timezone.now()
             self.federation_review_notes = notes
             self.save()
+
+# Use this Membership model and remove the duplicate from accounts/models.py
 class Membership(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE)
-    club = models.ForeignKey('Club', on_delete=models.CASCADE)
+    club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE)  # Use GeographyClub
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     status = models.CharField(

@@ -128,9 +128,6 @@ class ContinentFederationListView(ListView):
             'world_body', 'continent'
         ).order_by('sport_code', 'continent__name')
 
-
-
-
 @login_decorator
 class ContinentFederationDetailView(DetailView):
     model = ContinentFederation
@@ -575,6 +572,7 @@ class LocalFootballAssociationDeleteView(DeleteView):
     template_name = 'geography/localfootballassociation_confirm_delete.html'
     success_url = reverse_lazy('geography:localfootballassociation-list')
 
+
 def regions_by_province(request, province_id):
     """API endpoint to get regions for a given province"""
     province = get_object_or_404(Province, id=province_id)
@@ -583,10 +581,15 @@ def regions_by_province(request, province_id):
     return JsonResponse(data, safe=False)
 
 def lfas_by_region(request, region_id):
-    """API endpoint to get Local Football Associations for a given region"""
+    """
+    API endpoint to get Local Football Associations for a given region
+    Args:
+        request: HTTP request object
+        region_id: ID of the Region to filter LFAs
+    Returns:
+        JsonResponse with list of LFAs in the region
+    """
     region = get_object_or_404(Region, id=region_id)
     lfas = LocalFootballAssociation.objects.filter(region=region)
     data = [{'id': lfa.id, 'name': lfa.name} for lfa in lfas]
     return JsonResponse(data, safe=False)
-
-
