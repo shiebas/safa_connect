@@ -13,14 +13,16 @@ class ContinentFederationAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'acronym']
 
 class ContinentRegionAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'acronym', 'continent_federation', 'display_logo']
-    list_filter = ['continent_federation']
-    search_fields = ['name', 'acronym']
+    list_display = ['name', 'continent', 'description', 'logo']
+    list_filter = ['continent']
+    search_fields = ['name', 'code']
 
 class CountryAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'continent_region', 'display_logo']
+    # Fix: 'country' isn't a field - use 'continent_region' instead
     list_filter = ['continent_region']
     search_fields = ['name']
+
 
 class NationalFederationAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'acronym', 'country', 'display_logo']

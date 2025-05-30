@@ -1,42 +1,22 @@
-{% extends "base.html" %}
+shaun/safa_global/templates/geography/worldsportsbody_detail.html -->
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ object.name }}{% endblock %}
+{% block title %}{{ world_body.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ object.name }}</h1>
-    <div>
-        <a href="{% url 'geography:worldsportsbody-update' object.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:worldsportsbody-delete' object.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-secondary">Back to List</a>
-    </div>
-</div>
-
-<div class="card mb-4" style="max-width: 600px;">
-    <div class="row g-0">
-        <div class="col-md-4 d-flex align-items-center justify-content-center">
-            <img src="{{ object.logo_url }}" alt="{{ object.name }}" width="120" height="120" style="object-fit:contain;border-radius:8px;">
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ world_body.name }} {% if world_body.acronym %}({{ world_body.acronym }}){% endif %}</h2>
         </div>
-        <div class="col-md-8">
-            <div class="card-body">
-                <p><strong>Name:</strong> {{ object.name }}</p>
-                <p><strong>Sport Code:</strong> {{ object.sport_code }}</p>
-                {% if object.description %}
-                <p><strong>Description:</strong> {{ object.description }}</p>
-                {% endif %}
-                {% if object.website %}
-                <p><strong>Website:</strong> <a href="{{ object.website }}" target="_blank">{{ object.website }}</a></p>
-                {% endif %}
-                <p><strong>Continents:</strong>
-                    {% for continent in object.continents.all %}
-                        {{ continent.name }}{% if not forloop.last %}, {% endif %}
-                    {% empty %}
-                        <span class="text-muted">None</span>
-                    {% endfor %}
-                </p>
-            </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:worldsportsbody-update' world_body.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'geography:worldsportsbody-delete' world_body.pk %}" class="btn btn-danger">Delete</a>
         </div>
     </div>
+    
+    <!-- Rest of your detail template -->
 </div>
 {% endblock %}

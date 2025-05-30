@@ -6,6 +6,9 @@ from django.contrib.auth import login
 from django.contrib import messages
 from .forms import UserRegistrationForm
 from .models import Membership, CustomUser
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -103,3 +106,7 @@ def user_qr_code(request, user_id=None):
         })
 
     return view_func(request, user_id)
+
+@login_required
+def profile_view(request):
+    return render(request, 'accounts/profile.html')

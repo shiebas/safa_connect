@@ -5,7 +5,8 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from model_utils.models import TimeStampedModel
+from django_extensions.db.models import TimeStampedModel
+from utils.models import ModelWithLogo  # Import from your utils app instead
 
 # ===== CHOICE DEFINITIONS =====
 DOCUMENT_TYPES = (
@@ -84,40 +85,40 @@ class RegistrationType(models.Model):
 
 # ===== HIERARCHICAL SPORTS ORGANIZATION MODELS =====
 
-class ModelWithLogo(models.Model):
-    logo = models.ImageField(upload_to='logos/', null=True, blank=True)
-
-    @cached_property
-    def logo_url(self):
-        if self.logo and hasattr(self.logo, 'url'):
-            return self.logo.url
-        return '/static/default_logo.png'
-
-    class Meta:
-        abstract = True
-
-
 class WorldSportsBody(TimeStampedModel, ModelWithLogo):
     """Represents global governing bodies like FIFA, World Rugby, etc."""
-    name = models.CharField(max_length=100)
-    acronym = models.CharField(max_length=10, unique=True)
-    sport_code = models.CharField(max_length=20, choices=SPORT_CODES)
-    description = models.TextField(blank=True)
-    website = models.URLField(blank=True)
-    continents = models.ManyToManyField('Continent', related_name='world_bodies')  # <-- Add this line
-
-    def __str__(self):
-        return f"{self.acronym} - {self.get_sport_code_display()}"
-
+    name = models.CharField(_('Name'), max_length=100)
+    acronym = models.CharField(_('Acronym'), max_length=10, blank=True)
+    website = models.URLField(_('Website'), max_length=200, blank=True)
+    headquarters = models.CharField(_('Headquarters'), max_length=100, blank=True)
+    description = models.TextField(_('Description'), blank=True)
+    sport_code = models.CharField(
+        max_length=10,
+        choices=SPORT_CODES,
+        blank=True,
+        null=True,
+        help_text=_("Sport code for this world sports body")
+    )
+    
     class Meta:
-        verbose_name = "World Sports Body"
-        verbose_name_plural = "World Sports Bodies"
-        ordering = ['sport_code', 'name']
+        verbose_name = _('World Sports Body')
+        verbose_name_plural = _('World Sports Bodies')
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
 
-class Continent(TimeStampedModel):
+class Continent(TimeStampedModel, ModelWithLogo):
     """Represents the six continents as geographical entities"""
-    name = models.CharField(max_length=100)
-    code = models.CharField(max_length=2, choices=CONTINENT, unique=True)
+    name = models.CharField(_('Name'), max_length=100)
+    code = models.CharField(_('Code'), max_length=2, blank=True)
+    world_sports_body = models.ForeignKey(
+        WorldSportsBody,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='continents'
+    )
 
     def __str__(self):
         return f"{self.name} ({self.code})"
@@ -187,25 +188,24 @@ class ContinentFederation(TimeStampedModel, ModelWithLogo):
         ordering = ['continent', 'sport_code']
 
 class ContinentRegion(TimeStampedModel, ModelWithLogo):
-
-    name = models.CharField(max_length=100)
-    acronym = models.CharField(max_length=10, unique=True)
-    continent_federation = models.ForeignKey(
-        'ContinentFederation',
-        on_delete=models.PROTECT,
-        related_name='regions'
+    """Represents regions within a continent (e.g., Southern Africa within Africa)"""
+    name = models.CharField(_('Name'), max_length=100)
+    code = models.CharField(_('Code'), max_length=10, blank=True, null=True)
+    continent = models.ForeignKey(
+        Continent, 
+        on_delete=models.CASCADE,
+        related_name='regions',
+        null=True
     )
-    description = models.TextField(blank=True)
-    website = models.URLField(blank=True)
-    # logo is provided by ModelWithLogo
-
+    description = models.TextField(_('Description'), blank=True)
+    
     class Meta:
-        verbose_name = "Continent Region"
-        verbose_name_plural = "Continent Regions"
-        ordering = ['continent_federation', 'name']
-
+        verbose_name = _('Continent Region')
+        verbose_name_plural = _('Continent Regions')
+        ordering = ['continent', 'name']
+    
     def __str__(self):
-        return f"{self.acronym} - {self.continent_federation.name}"
+        return f"{self.name} ({self.continent.name})"
 
 class Country(TimeStampedModel, ModelWithLogo):
     """Core country model with FIFA codes"""

@@ -1,38 +1,37 @@
 from django.urls import path
 from . import views
-from .views import (
-    geography_admin, WorldSportsBodyListView, WorldSportsBodyDetailView,
-    WorldSportsBodyCreateView, WorldSportsBodyUpdateView, WorldSportsBodyDeleteView, 
-    ContinentListView, ContinentCreateView, ContinentDetailView, ContinentUpdateView, 
-    ContinentDeleteView, ContinentFederationListView, ContinentFederationDetailView,
-    ContinentFederationCreateView, ContinentFederationUpdateView, ContinentFederationDeleteView, 
+from geography.views import (
+    ContinentListView, ContinentCreateView, ContinentDetailView, ContinentUpdateView, ContinentDeleteView,
+    ContinentFederationListView, ContinentFederationCreateView, ContinentFederationDetailView,
+    ContinentFederationUpdateView, ContinentFederationDeleteView,
     ContinentRegionListView, ContinentRegionCreateView, ContinentRegionDetailView,
-    ContinentRegionUpdateView, ContinentRegionDeleteView, CountryListView, CountryCreateView, 
-    CountryDetailView, CountryUpdateView, CountryDeleteView, NationalFederationListView, 
-    NationalFederationCreateView, NationalFederationDetailView, NationalFederationUpdateView,
-    NationalFederationDeleteView, AssociationListView, AssociationCreateView, 
-    AssociationDetailView, AssociationUpdateView, AssociationDeleteView, ProvinceListView, 
-    ProvinceCreateView, ProvinceDetailView, ProvinceUpdateView, ProvinceDeleteView, 
-    RegionListView, RegionCreateView, RegionDetailView, RegionUpdateView, RegionDeleteView, 
-    ClubListView, ClubCreateView, ClubDetailView, ClubUpdateView, ClubDeleteView,
-    LocalFootballAssociationListView, LocalFootballAssociationCreateView, LocalFootballAssociationDetailView,
-    LocalFootballAssociationUpdateView, LocalFootballAssociationDeleteView, regions_by_province
-    
-
+    ContinentRegionUpdateView, ContinentRegionDeleteView,
+    CountryListView, CountryCreateView, CountryDetailView, CountryUpdateView, CountryDeleteView,
+    NationalFederationListView, NationalFederationCreateView, NationalFederationDetailView,
+    NationalFederationUpdateView, NationalFederationDeleteView,
+    AssociationListView, AssociationCreateView, AssociationDetailView,
+    AssociationUpdateView, AssociationDeleteView,
+    ProvinceListView, ProvinceCreateView, ProvinceDetailView,
+    ProvinceUpdateView, ProvinceDeleteView,
+    RegionListView, RegionCreateView, RegionDetailView,
+    RegionUpdateView, RegionDeleteView,
+    ClubListView, ClubCreateView, ClubDetailView,
+    ClubUpdateView, ClubDeleteView,
+    LocalFootballAssociationListView, LocalFootballAssociationCreateView,
+    LocalFootballAssociationDetailView, LocalFootballAssociationUpdateView,
+    LocalFootballAssociationDeleteView
 )
-
 app_name = 'geography'
 
 urlpatterns = [
-
-    path('admin/', geography_admin, name='geography_admin'),
+    path('admin/', views.geography_admin, name='geography_admin'),
     path('advanced/', views.advanced_home, name='advance_home'),
     # WorldSportsBody
-    path('worldsportsbodies/', WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
-    path('worldsportsbodies/add/', WorldSportsBodyCreateView.as_view(), name='worldsportsbody-create'),
-    path('worldsportsbodies/<int:pk>/', WorldSportsBodyDetailView.as_view(), name='worldsportsbody-detail'),
-    path('worldsportsbodies/<int:pk>/edit/', WorldSportsBodyUpdateView.as_view(), name='worldsportsbody-update'),
-    path('worldsportsbodies/<int:pk>/delete/', WorldSportsBodyDeleteView.as_view(), name='worldsportsbody-delete'),
+    path('worldsportsbodies/', views.WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
+    path('worldsportsbodies/add/', views.WorldSportsBodyCreateView.as_view(), name='worldsportsbody-create'),
+    path('worldsportsbodies/<int:pk>/', views.WorldSportsBodyDetailView.as_view(), name='worldsportsbody-detail'),
+    path('worldsportsbodies/<int:pk>/edit/', views.WorldSportsBodyUpdateView.as_view(), name='worldsportsbody-update'),
+    path('worldsportsbodies/<int:pk>/delete/', views.WorldSportsBodyDeleteView.as_view(), name='worldsportsbody-delete'),
 
     # Continent
     path('continents/', ContinentListView.as_view(), name='continent-list'),

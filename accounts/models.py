@@ -159,13 +159,14 @@ class CustomUser(AbstractUser, ModelWithLogo):
         self.country = None
         self.country = None
 
-    def __str__(self):
-        if self.name and self.surname:
-            return f"{self.name} {self.surname}"
-        return self.email
-
     def get_full_name(self):
-        return f"{self.name} {self.surname}"
+        """Return the first_name plus the last_name, with a space in between."""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.email
+    
+    def __str__(self):
+        return self.get_full_name()
 
     def clean(self):
         """Validate model fields"""

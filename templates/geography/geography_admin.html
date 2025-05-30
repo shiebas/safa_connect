@@ -6,7 +6,7 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1>Global Administration</h1>
+        <h1>Administration</h1>
         <div class="row mt-4">
             <div class="col-md-4 mb-3">
                 <div class="card">
@@ -135,8 +135,8 @@
                         <h5>Memberships</h5>
                     </div>
                     <div class="card-body">
-                        <a href="{% url 'geography:membership-list' %}" class="btn btn-primary">View All</a>
-                        <a href="{% url 'geography:membership-create' %}" class="btn btn-success">Add New</a>
+                        <a href="{% url 'membership:member_list' %}" class="btn btn-primary">View Members</a>
+                        <a href="{% url 'membership:membership-create' %}" class="btn btn-success">Add New</a>
                     </div>
                 </div>
             </div>

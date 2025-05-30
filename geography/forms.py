@@ -94,12 +94,49 @@ class ProfileForm(forms.ModelForm):
         }
 
 class WorldSportsBodyForm(forms.ModelForm):
+    continents = forms.ModelMultipleChoiceField(
+        queryset=Continent.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text=_('Select continents where this body operates')
+    )
+    
     class Meta:
         model = WorldSportsBody
-        fields = ['name', 'acronym', 'sport_code', 'description', 'website', 'logo', 'continents']
+        fields = ['name', 'acronym', 'logo', 'website', 'headquarters', 'description', 'sport_code']
         widgets = {
-            'continents': forms.CheckboxSelectMultiple,
+            'description': forms.Textarea(attrs={'rows': 4}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add Bootstrap classes
+        for field_name, field in self.fields.items():
+            if field_name != 'continents' and field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
+        
+        # If we're editing an existing instance, populate continents
+        if self.instance.pk:
+            self.fields['continents'].initial = self.instance.continents.all()
+    
+    def save(self, commit=True):
+        world_body = super().save(commit=commit)
+        
+        if commit:
+            # Update continent relationships
+            continents = self.cleaned_data.get('continents', [])
+            # Update only the continents that are in the form data
+            for continent in Continent.objects.filter(world_sports_body=world_body):
+                if continent not in continents:
+                    continent.world_sports_body = None
+                    continent.save()
+            
+            for continent in continents:
+                continent.world_sports_body = world_body
+                continent.save()
+                
+        return world_body
 def clean_logo(self):
         logo = self.cleaned_data.get('logo', False)
         if logo:
@@ -154,25 +191,17 @@ class ContinentFederationForm(forms.ModelForm):
 class ContinentRegionForm(forms.ModelForm):
     class Meta:
         model = ContinentRegion
-        fields = [
-            "name",
-            "acronym",
-            "continent_federation",
-            "description",
-            "website",
-            "logo",
-        ]
-
-    def clean(self):
-        cleaned_data = super().clean()
-        acronym = cleaned_data.get("acronym")
-        continent_federation = cleaned_data.get("continent_federation")
-        qs = ContinentRegion.objects.filter(acronym=acronym, continent_federation=continent_federation)
-        if self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
-            raise forms.ValidationError("This acronym is already used for this federation.")
-        return cleaned_data
+        fields = ['name', 'code', 'continent', 'description', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
 
 class CountryForm(forms.ModelForm):
     class Meta:
@@ -415,8 +444,6 @@ class ClubForm(forms.ModelForm):
 
         return cleaned_data
          
-         
 
         return cleaned_data
-         
-         
+

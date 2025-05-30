@@ -1,22 +1,49 @@
-{% extends "base.html" %}
-{% load static %}
+{% extends 'base.html' %}
 
 {% block title %}Delete {{ object.name }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-danger text-white">
-                <h3>Delete World Sports Body</h3>
-            </div>
-            <div class="card-body">
-                <p>Are you sure you want to delete <strong>{{ object.name }}</strong>?</p>
-                <form method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                    <a href="{% url 'geography:worldsportsbody-detail' object.pk %}" class="btn btn-secondary">Cancel</a>
-                </form>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Delete World Sports Body</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:worldsportsbody-detail' object.pk %}" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirm Deletion</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to delete <strong>{{ object.name }}</strong>?</p>
+                    
+                    <div class="alert alert-warning">
+                        <p><i class="fas fa-exclamation-triangle"></i> This action cannot be undone!</p>
+                        
+                        {% if object.continents.all %}
+                            <p>The following continents are associated with this sports body:</p>
+                            <ul>
+                                {% for continent in object.continents.all %}
+                                    <li>{{ continent.name }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p>Deleting this sports body will remove its association with these continents.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end mt-3">
+                            <a href="{% url 'geography:worldsportsbody-detail' object.pk %}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

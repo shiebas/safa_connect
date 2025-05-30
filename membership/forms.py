@@ -37,7 +37,7 @@ class MemberForm(AddressFormMixin, forms.ModelForm):
             # Membership Information
             'status', 'membership_number', 'club',
             # Images
-            'profile_picture',
+            'profile_picture',  
             # Emergency Contact
             'emergency_contact', 'emergency_phone', 'medical_notes'
         ]

@@ -1,24 +1,104 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ continentregion.name }}{% endblock %}
+{% block title %}{{ region.name }} - Continent Region{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ continentregion.name }}</h1>
-    <div>
-        <a href="{% url 'geography:continentregion-update' continentregion.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:continentregion-delete' continentregion.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:continentregion-list' %}" class="btn btn-secondary">Back to List</a>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ region.name }}</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:continentregion-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:continentregion-update' region.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'geography:continentregion-delete' region.pk %}" class="btn btn-danger">Delete</a>
+        </div>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <p><strong>Name:</strong> {{ continentregion.name }}</p>
-        {% if continentregion.description %}
-        <p><strong>Description:</strong> {{ continentregion.description }}</p>
-        {% endif %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Region Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {% if region.logo %}
+                                <img src="{{ region.logo.url }}" alt="{{ region.name }} Logo" 
+                                     class="img-fluid mb-3" style="max-height: 200px;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <span class="text-muted">No logo available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Code</th>
+                                        <td>{{ region.code|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Continent</th>
+                                        <td>
+                                            {% if region.continent %}
+                                                {{ region.continent.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Created</th>
+                                        <td>{{ region.created|date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Updated</th>
+                                        <td>{{ region.modified|date }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if region.description %}
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p>{{ region.description|linebreaks }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Countries in Region</h4>
+                </div>
+                <div class="card-body">
+                    {% if region.countries.all %}
+                        <ul class="list-group list-group-flush">
+                            {% for country in region.countries.all %}
+                                <li class="list-group-item d-flex align-items-center">
+                                    {% if country.logo %}
+                                        <img src="{{ country.logo.url }}" alt="{{ country.name }}" 
+                                             class="me-2" style="width: 24px; height: 24px;">
+                                    {% endif %}
+                                    {{ country.name }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No countries associated with this region.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

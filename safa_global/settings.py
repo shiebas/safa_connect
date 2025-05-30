@@ -18,7 +18,7 @@ SITE_ID = 1
 
 LOGIN_URL = '/accounts/login/'                    # Path to login page
 LOGIN_REDIRECT_URL = '/'                          # Where to go after login (home)
-LOGOUT_REDIRECT_URL = '/accounts/login/'          # Where to go after logout
+LOGOUT_REDIRECT_URL = '/'          # Where to go after logout
 
 
 # Application definition
@@ -42,10 +42,11 @@ INSTALLED_APPS = [
     'widget_tweaks', 
     'django_extensions',            
 
-    'utils.apps.UtilsConfig',
+    
     'geography.apps.GeographyConfig',
     'accounts.apps.AccountsConfig', # CustomUser model is here
     'membership.apps.MembershipConfig',
+    'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',  # Manages PDF generation and processing functionalities
     
 ]

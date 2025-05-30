@@ -1,89 +1,110 @@
-{% extends "base.html" %}
-{% load static %}
-{% load widget_tweaks %}
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
-{% block title %}{% if object %}Edit{% else %}Add{% endif %} World Sports Body{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:'Edit,Add' }} World Sports Body{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h1>{% if object %}Edit{% else %}Add{% endif %} World Sports Body</h1>
-        <form method="post" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-            <div class="card">
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ form.instance.pk|yesno:'Edit,Add' }} World Sports Body</h2>
+        </div>
+        <div class="col-auto">
+            <!-- Use hyphen in URL name -->
+            <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" enctype="multipart/form-data" class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Sports Body Details</h4>
+                </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
-                        {% render_field form.name class="form-control" %}
-                        {% if form.name.errors %}
-                            <div class="text-danger small">{{ form.name.errors }}</div>
-                        {% endif %}
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-7">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-5">
+                            {{ form.acronym|as_crispy_field }}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.acronym.id_for_label }}" class="form-label">Acronym</label>
-                        {% render_field form.acronym class="form-control" %}
-                        {% if form.acronym.errors %}
-                            <div class="text-danger small">{{ form.acronym.errors }}</div>
-                        {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.website|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.headquarters|as_crispy_field }}
+                        </div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.sport_code.id_for_label }}" class="form-label">Sport Code</label>
-                        {% render_field form.sport_code class="form-select" %}
-                        {% if form.sport_code.errors %}
-                            <div class="text-danger small">{{ form.sport_code.errors }}</div>
-                        {% endif %}
+                        {{ form.description|as_crispy_field }}
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-                        {% render_field form.description class="form-control" rows="4" %}
-                        {% if form.description.errors %}
-                            <div class="text-danger small">{{ form.description.errors }}</div>
-                        {% endif %}
+                    
+                    {% if form.sport_code %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.sport_code|as_crispy_field }}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.website.id_for_label }}" class="form-label">Website</label>
-                        {% render_field form.website class="form-control" %}
-                        {% if form.website.errors %}
-                            <div class="text-danger small">{{ form.website.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Logo</label><br>
-                        {% if object and object.logo %}
-                            <span>Currently: <a href="{{ object.logo.url }}">{{ object.logo.name }}</a></span>
-                            <br>
-                        {% endif %}
-                        {% render_field form.logo class="form-control" %}
-                        {% if form.logo.errors %}
-                            <div class="text-danger small">{{ form.logo.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <fieldset class="border p-3 rounded shadow-sm">
-                            <legend class="w-auto px-2 fw-bold text-primary">Continents Access</legend>
-                            <small class="text-muted">Select the continents that this world body operates in:</small>
-                            <div class="d-flex flex-wrap gap-2 mt-2">
-                                {% for subwidget in form.continents %}
-                                    <div class="form-check me-3">
-                                        {{ subwidget.tag }}
-                                        <label class="form-check-label fw-semibold">
-                                            <span class="badge bg-info text-dark">{{ subwidget.choice_label }}</span>
-                                        </label>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
+                                <input type="file" name="logo" class="form-control" id="{{ form.logo.id_for_label }}" accept="image/*">
+                                {% if form.instance.logo %}
+                                    <div class="mt-2">
+                                        <img src="{{ form.instance.logo.url }}" alt="{{ form.instance.name }} Logo" 
+                                             class="img-thumbnail" style="max-height: 100px;">
                                     </div>
-                                {% endfor %}
+                                {% endif %}
                             </div>
-                            {% if form.continents.errors %}
-                                <div class="text-danger mt-2 small">{{ form.continents.errors }}</div>
-                            {% endif %}
-                        </fieldset>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Continents</label>
+                                <div class="border p-3 rounded">
+                                    {{ form.continents }}
+                                </div>
+                                {% if form.continents.help_text %}
+                                    <small class="form-text text-muted">{{ form.continents.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-secondary">Cancel</a>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Help</h4>
+                </div>
+                <div class="card-body">
+                    <p>World Sports Bodies are international organizations that govern sports across multiple continents.</p>
+                    <p><strong>Examples:</strong> FIFA for football, World Rugby for rugby</p>
+                    <ul>
+                        <li>Use official names and acronyms</li>
+                        <li>Add a logo for better visibility</li>
+                        <li>Select all continents where this body operates</li>
+                        <li>Choose the appropriate sport code</li>
+                    </ul>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -1,49 +1,70 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
+
+{% block title %}Continent Regions{% endblock %}
+
 {% block content %}
-<h1>Continent Regions</h1>
-<table class="table table-hover align-middle">
-    <thead>
-        <tr>
-            <th>Logo</th>
-            <th>Name</th>
-            <th>Acronym</th>
-            <th>Continent Federation</th>
-            <th>Website</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for continentregion in continentregions %}
-        <tr>
-            <td>
-                {% if continentregion.logo %}
-                    <img src="{{ continentregion.logo.url }}" alt="{{ continentregion.name }} logo" style="height:40px;">
-                {% endif %}
-            </td>
-            <td>
-                <a href="{% url 'geography:continentregion-detail' continentregion.pk %}">
-                  {{ continentregion.name }}
-                </a>
-            </td>
-            <td>{{ continentregion.acronym }}</td>
-            <td>{{ continentregion.continent_federation.name }}</td>
-            <td>
-                {% if continentregion.website %}
-                    <a href="{{ continentregion.website }}" target="_blank">Website</a>
-                {% endif %}
-            </td>
-            <td>
-                <a href="{% url 'geography:continentregion-update' continentregion.pk %}" class="btn btn-warning btn-sm">Edit</a>
-                <a href="{% url 'geography:continentregion-delete' continentregion.pk %}" class="btn btn-danger btn-sm">Delete</a>
-            </td>
-        </tr>
-    {% empty %}
-        <tr>
-            <td colspan="6">No continent regions found.</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
-<a href="{% url 'geography:continentregion-create' %}" class="btn btn-primary">Add Region</a>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Continent Regions</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:continentregion-create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add New Region
+            </a>
+        </div>
+    </div>
+    
+    {% if regions %}
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Logo</th>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Continent</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for region in regions %}
+                            <tr>
+                                <td style="width: 60px;">
+                                    {% if region.logo %}
+                                        <img src="{{ region.logo.url }}" alt="{{ region.name }}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: contain;">
+                                    {% endif %}
+                                </td>
+                                <td>{{ region.name }}</td>
+                                <td>{{ region.code|default:"-" }}</td>
+                                <td>{{ region.continent.name }}</td>
+                                <td>{{ region.description|truncatechars:50|default:"-" }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'geography:continentregion-detail' region.pk %}" class="btn btn-outline-primary">
+                                            View
+                                        </a>
+                                        <a href="{% url 'geography:continentregion-update' region.pk %}" class="btn btn-outline-secondary">
+                                            Edit
+                                        </a>
+                                        <a href="{% url 'geography:continentregion-delete' region.pk %}" class="btn btn-outline-danger">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No Continent Regions added yet. <a href="{% url 'geography:continentregion-create' %}">Add one now</a>.</p>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}

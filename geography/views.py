@@ -2,21 +2,26 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
 from .models import (
     Country, Province, Region, WorldSportsBody, Continent,
     ContinentFederation, Club, Association, ContinentRegion, NationalFederation,
     LocalFootballAssociation
 )
 
+# Mixin to restrict access to staff users only
+class StaffRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_staff
+
 import datetime
 from geography.forms import WorldSportsBodyForm
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
 # geography/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
 from .forms import ContinentFederationForm, ContinentRegionForm, CountryForm, NationalFederationForm, AssociationForm, ProvinceForm, RegionForm, ClubForm, LocalFootballAssociationForm
 
 
@@ -37,12 +42,11 @@ def geography_admin(request):
 login_decorator = method_decorator(login_required, name='dispatch')
 
 # WorldSportsBody
-
+@login_decorator
 class WorldSportsBodyListView(LoginRequiredMixin, ListView):
     model = WorldSportsBody
+    context_object_name = 'world_bodies'
     template_name = 'geography/worldsportsbody_list.html'
-    context_object_name = 'object_list'  # Use 'object_list' in your template
-    paginate_by = 20
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -53,25 +57,37 @@ class WorldSportsBodyListView(LoginRequiredMixin, ListView):
 
 class WorldSportsBodyDetailView(LoginRequiredMixin, DetailView):
     model = WorldSportsBody
+    context_object_name = 'world_body'
     template_name = 'geography/worldsportsbody_detail.html'
-    context_object_name = 'object'
 
 class WorldSportsBodyCreateView(LoginRequiredMixin, CreateView):
     model = WorldSportsBody
     form_class = WorldSportsBodyForm
     template_name = 'geography/worldsportsbody_form.html'
-    success_url = reverse_lazy('geography:worldsportsbody-list')
+    success_url = reverse_lazy('geography:worldsportsbody-list')  # if using hyphens
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'World Sports Body created successfully.')
+        return super().form_valid(form)
 
 class WorldSportsBodyUpdateView(LoginRequiredMixin, UpdateView):
     model = WorldSportsBody
     form_class = WorldSportsBodyForm
     template_name = 'geography/worldsportsbody_form.html'
-    success_url = reverse_lazy('geography:worldsportsbody-list')
+    success_url = reverse_lazy('geography:worldsportsbody-list')  # if using hyphens
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'World Sports Body updated successfully.')
+        return super().form_valid(form)
 
 class WorldSportsBodyDeleteView(LoginRequiredMixin, DeleteView):
     model = WorldSportsBody
     template_name = 'geography/worldsportsbody_confirm_delete.html'
     success_url = reverse_lazy('geography:worldsportsbody-list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'World Sports Body deleted successfully.')
+        return super().delete(request, *args, **kwargs)
 
 # Continent
 @login_decorator
@@ -193,50 +209,50 @@ class ContinentFederationDeleteView(DeleteView):
 
 # ContinentRegion
 @login_decorator
-class ContinentRegionListView(ListView):
+class ContinentRegionListView(LoginRequiredMixin, ListView):
     model = ContinentRegion
+    context_object_name = 'regions'
     template_name = 'geography/continentregion_list.html'
-    context_object_name = 'continentregions'
-    paginate_by = 20
-
+    
     def get_queryset(self):
-        return ContinentRegion.objects.select_related(
-            'continent_federation'
-        ).order_by('continent_federation__name', 'name')
+        return ContinentRegion.objects.select_related('continent')
 
 @login_decorator
-class ContinentRegionDetailView(DetailView):
-    model = ContinentRegion
-    template_name = 'geography/continentfederation_detail.html'
-    context_object_name = 'continentregion'
-
-@login_decorator
-class ContinentRegionCreateView(CreateView):
+class ContinentRegionCreateView(LoginRequiredMixin, CreateView):
     model = ContinentRegion
     form_class = ContinentRegionForm
-    template_name = 'geography/continentfederation_form.html'
+    template_name = 'geography/continentregion_form.html'
     success_url = reverse_lazy('geography:continentregion-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'Continent Region created successfully!')
+        messages.success(self.request, 'Continent Region created successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class ContinentRegionUpdateView(UpdateView):
+class ContinentRegionUpdateView(LoginRequiredMixin, UpdateView):
     model = ContinentRegion
     form_class = ContinentRegionForm
-    template_name = 'geography/continentfederation_form.html'
+    template_name = 'geography/continentregion_form.html'
     success_url = reverse_lazy('geography:continentregion-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'Continent Region updated successfully!')
+        messages.success(self.request, 'Continent Region updated successfully.')
         return super().form_valid(form)
 
-@login_decorator
-class ContinentRegionDeleteView(DeleteView):
+class ContinentRegionDetailView(LoginRequiredMixin, DetailView):
     model = ContinentRegion
-    template_name = 'geography/continentfederation_confirm_delete.html'
+    context_object_name = 'region'
+    template_name = 'geography/continentregion_detail.html'
+
+@login_decorator
+class ContinentRegionDeleteView(LoginRequiredMixin, DeleteView):
+    model = ContinentRegion
+    template_name = 'geography/continentregion_confirm_delete.html'
     success_url = reverse_lazy('geography:continentregion-list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Continent Region deleted successfully.')
+        return super().delete(request, *args, **kwargs)
 
 # Country
 @login_decorator
@@ -570,8 +586,8 @@ class LocalFootballAssociationUpdateView(UpdateView):
 class LocalFootballAssociationDeleteView(DeleteView):
     model = LocalFootballAssociation
     template_name = 'geography/localfootballassociation_confirm_delete.html'
-    success_url = reverse_lazy('geography:localfootballassociation-list')
 
+    success_url = reverse_lazy('geography:localfootballassociation-list')
 
 def regions_by_province(request, province_id):
     """API endpoint to get regions for a given province"""
