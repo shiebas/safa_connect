@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib import messages
 from .forms import UserRegistrationForm
-from geography.models import Membership, CustomUser
+from .models import Membership, CustomUser
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'

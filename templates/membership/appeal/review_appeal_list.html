@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Review Appeals" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% trans "Appeals Pending Review" %}</h2>
+
+    {% if appeals %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans "Transfer" %}</th>
+                    <th>{% trans "Player" %}</th>
+                    <th>{% trans "From Club" %}</th>
+                    <th>{% trans "To Club" %}</th>
+                    <th>{% trans "Submitted By" %}</th>
+                    <th>{% trans "Submission Date" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appeal in appeals %}
+                <tr>
+                    <td>{{ appeal.transfer }}</td>
+                    <td>{{ appeal.transfer.player }}</td>
+                    <td>{{ appeal.transfer.from_club }}</td>
+                    <td>{{ appeal.transfer.to_club }}</td>
+                    <td>{{ appeal.submitted_by }}</td>
+                    <td>{{ appeal.appeal_submission_date|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{% url 'membership:appeal_detail' appeal.pk %}" 
+                               class="btn btn-sm btn-info">
+                                {% trans "View" %}
+                            </a>
+                            <a href="{% url 'membership:appeal_review' appeal.pk %}" 
+                               class="btn btn-sm btn-primary">
+                                {% trans "Review" %}
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        {% trans "No appeals require review at this time." %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -6,8 +6,11 @@ from model_utils.models import TimeStampedModel
 from geography.models import ModelWithLogo
 from django.conf import settings
 from django.utils.crypto import get_random_string
+from accounts.models import CustomUser  # Update this import
 import os
+from geography.models import Province, Region , LocalFootballAssociation # Ensure these models exist
 
+# ...existing code...
 # Constants for default images
 DEFAULT_PROFILE_PICTURE = 'default_profile.png'
 DEFAULT_LOGO = 'default_logo.png'
@@ -20,6 +23,32 @@ class Club(TimeStampedModel, ModelWithLogo):
     email = models.EmailField(_("Email"), blank=True)
     notes = models.TextField(_("Notes"), blank=True)
 
+    # New fields for federation, province, and region
+    # federation = models.ForeignKey(
+    #     'geography.Federation',
+    #     on_delete=models.SET_NULL,
+    #     null=True,
+    #     blank=True,
+    #     related_name='membership_clubs',
+    #     verbose_name=_('Federation')
+    # )
+    province = models.ForeignKey(
+        'geography.Province',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='membership_clubs',
+        verbose_name=_('Province')
+    )
+    region = models.ForeignKey(
+        'geography.Region',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='membership_clubs',
+        verbose_name=_('Region')
+    )
+
     class Meta:
         verbose_name = _("Club")
         verbose_name_plural = _("Clubs")
@@ -28,7 +57,9 @@ class Club(TimeStampedModel, ModelWithLogo):
     def __str__(self):
         return self.name
 
-class Member(TimeStampedModel, ModelWithLogo):
+class Member(models.Model):
+
+    
     MEMBERSHIP_STATUS = [
         ('ACTIVE', 'Active'),
         ('INACTIVE', 'Inactive'),
@@ -37,7 +68,12 @@ class Member(TimeStampedModel, ModelWithLogo):
     ]
 
     ROLE_CHOICES = [
-        ('ADMIN', 'Administrator'),
+        ('ADMIN_SYSTEM', 'System Administrator'),
+        ('ADMIN_COUNTRY', 'Country Administrator'),
+        ('ADMIN_FEDERATION', 'Federation Administrator'),
+        ('ADMIN_PROVINCE', 'Provincial Administrator'),
+        ('ADMIN_REGION', 'Regional Administrator'),
+        ('ADMIN_LOCAL_FED', 'Local Federation Administrator'),
         ('CLUB_ADMIN', 'Club Administrator'),
         ('STAFF', 'Staff Member'),
         ('PLAYER', 'Player'),
@@ -238,10 +274,20 @@ class Member(TimeStampedModel, ModelWithLogo):
             raise ValidationError(_("Invalid ID number: ") + str(e))
 
     def can_access_club(self, club):
-        """Check if member can access a specific club's data"""
-        if self.role == 'ADMIN':
-            return True  # Super admin can access all clubs
-        return self.club == club
+        """Check if member can access a specific club's data based on role and jurisdiction"""
+        if self.role in ['ADMIN_SYSTEM', 'ADMIN_COUNTRY']:
+            return True  # Full access
+        if self.role == 'ADMIN_FEDERATION' and self.club and club.federation == self.club.federation:
+            return True
+        if self.role == 'ADMIN_PROVINCE' and self.club and club.province == self.club.province:
+            return True
+        if self.role == 'ADMIN_REGION' and self.club and club.region == self.club.region:
+            return True
+        if self.role == 'ADMIN_LOCAL_FED' and self.club and club.federation == self.club.federation:
+            return True
+        if self.role == 'CLUB_ADMIN' and self.club == club:
+            return True
+        return False
 
 class Player(Member):
     """
@@ -365,6 +411,12 @@ class Transfer(TimeStampedModel):
         verbose_name = _("Player Transfer")
         verbose_name_plural = _("Player Transfers")
         ordering = ['-request_date']
+        permissions = [
+            ("can_initiate_transfer", "Can initiate player transfers"),
+            ("can_approve_transfer", "Can approve player transfers"),
+            ("can_reject_transfer", "Can reject player transfers"),
+            ("can_view_transfer", "Can view player transfers"),
+        ]
 
     def __str__(self):
         return f"{self.player.get_full_name()} - {self.from_club.name} to {self.to_club.name}"
@@ -570,3 +622,24 @@ class TransferAppeal(TimeStampedModel):
             self.federation_review_date = timezone.now()
             self.federation_review_notes = notes
             self.save()
+class Membership(models.Model):
+    member = models.ForeignKey('Member', on_delete=models.CASCADE)
+    club = models.ForeignKey('Club', on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('ACTIVE', _('Active')),
+            ('INACTIVE', _('Inactive')),
+            ('SUSPENDED', _('Suspended')),
+        ],
+        default='ACTIVE'
+    )
+
+    class Meta:
+        verbose_name = _('Membership')
+        verbose_name_plural = _('Memberships')
+
+    def __str__(self):
+        return f"{self.member} - {self.club}"

@@ -5,7 +5,7 @@
 <div class="container mt-4">
     <h2>Members List</h2>
     <div class="mb-3">
-        <a href="{% url 'membership:member-create' %}" class="btn btn-primary">Add New Member</a>
+        <a href="{% url 'membership:member_create' %}" class="btn btn-primary">Add New Member</a>
     </div>
     
     <div class="table-responsive">
@@ -41,7 +41,7 @@
                     <td>{{ member.get_status_display }}</td>
                     <td>{{ member.registration_date }}</td>
                     <td>
-                        <a href="{% url 'membership:member-update' member.pk %}" class="btn btn-sm btn-info">Edit</a>
+                        <a href="{% url 'membership:member_update' member.pk %}" class="btn btn-sm btn-info">Edit</a>
                     </td>
                 </tr>
                 {% empty %}

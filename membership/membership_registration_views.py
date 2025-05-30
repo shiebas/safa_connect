@@ -20,8 +20,8 @@ class ClubAdminRequiredMixin(LoginRequiredMixin):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         
-        # Check if user has CLUB role or is admin
-        if request.user.role not in ['CLUB', 'ADMIN', 'ADMIN_COUNTRY']:
+        # Check if user has CLUB_ADMIN role or is admin
+        if request.user.role not in ['CLUB_ADMIN', 'ADMIN', 'ADMIN_COUNTRY']:
             raise PermissionDenied("You must be a club administrator to register players.")
         
         # Get the user's club membership

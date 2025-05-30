@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .models import (
     Country, Province, Region, WorldSportsBody, Continent,
-    ContinentFederation, Club, Association, Membership, ContinentRegion, NationalFederation,
+    ContinentFederation, Club, Association, ContinentRegion, NationalFederation,
     LocalFootballAssociation
 )
 
@@ -575,47 +575,18 @@ class LocalFootballAssociationDeleteView(DeleteView):
     template_name = 'geography/localfootballassociation_confirm_delete.html'
     success_url = reverse_lazy('geography:localfootballassociation-list')
 
-
-# Membership
-@login_decorator
-class MembershipListView(ListView):
-    model = Membership
-    template_name = 'geography/membership_list.html'
-    context_object_name = 'memberships'
-
-@login_decorator
-class MembershipDetailView(DetailView):
-    model = Membership
-    template_name = 'geography/membership_detail.html'
-    context_object_name = 'membership'
-
-@login_decorator
-class MembershipCreateView(CreateView):
-    model = Membership
-    template_name = 'geography/membership_form.html'
-    fields = '__all__'
-    success_url = reverse_lazy('geography:membership-list')
-
-@login_decorator
-class MembershipUpdateView(UpdateView):
-    model = Membership
-    template_name = 'geography/membership_form.html'
-    fields = '__all__'
-    success_url = reverse_lazy('geography:membership-list')
-
-@login_decorator
-class MembershipDeleteView(DeleteView):
-    model = Membership
-    template_name = 'geography/membership_confirm_delete.html'
-    success_url = reverse_lazy('geography:membership-list')
-
-# API Views
 def regions_by_province(request, province_id):
     """API endpoint to get regions for a given province"""
-    province = get_object_or_404(Province, pk=province_id)
-    regions = Region.objects.filter(province=province).values('id', 'name')
-    return JsonResponse(list(regions), safe=False)
+    province = get_object_or_404(Province, id=province_id)
+    regions = Region.objects.filter(province=province)
+    data = [{'id': region.id, 'name': region.name} for region in regions]
+    return JsonResponse(data, safe=False)
 
 def lfas_by_region(request, region_id):
-    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name')
-    return JsonResponse(list(lfas), safe=False)
+    """API endpoint to get Local Football Associations for a given region"""
+    region = get_object_or_404(Region, id=region_id)
+    lfas = LocalFootballAssociation.objects.filter(region=region)
+    data = [{'id': lfa.id, 'name': lfa.name} for lfa in lfas]
+    return JsonResponse(data, safe=False)
+
+

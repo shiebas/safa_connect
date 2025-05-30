@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Clubs - SAFA Global{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Clubs</h1>
+        {% if user.is_staff %}
+        <a href="{% url 'membership:club_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Club
+        </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if club_list %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    {% if user.is_staff %}
+                    <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for club in club_list %}
+                <tr>
+                    <td>
+                        <a href="{% url 'membership:club_detail' club.pk %}">{{ club.name }}</a>
+                    </td>
+                    <td>{{ club.address }}</td>
+                    <td>
+                        {% if club.email %}
+                        <div>{{ club.email }}</div>
+                        {% endif %}
+                        {% if club.phone %}
+                        <div>{{ club.phone }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if club.status == 'ACTIVE' %}bg-success{% else %}bg-warning{% endif %}">
+                            {{ club.get_status_display }}
+                        </span>
+                    </td>
+                    {% if user.is_staff %}
+                    <td>
+                        <a href="{% url 'membership:club_update' club.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info">
+        No clubs found.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

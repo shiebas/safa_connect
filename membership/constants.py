@@ -8,8 +8,8 @@ SENIOR_FEE = Decimal('200.00')
 # Bank Account Details
 BANK_DETAILS = {
     'bank_name': 'FNB',
-    'branch_name': 'Comm Account services cust  210554',
+    'branch_name': 'Comm Account services cust',
     'account_type': 'Current account',
     'account_number': '6309 8138 027',
-    'branch_code': '210554',
+    'Branch_code': '210554',
 }

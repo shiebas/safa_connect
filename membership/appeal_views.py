@@ -41,6 +41,18 @@ class AppealListView(LoginRequiredMixin, ListView):
         )
 
 
+class ReviewAppealListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """List appeals that need to be reviewed"""
+    model = TransferAppeal
+    template_name = 'membership/appeal/review_appeal_list.html'
+    context_object_name = 'appeals'
+    permission_required = 'membership.can_review_appeals'
+
+    def get_queryset(self):
+        # Show only pending appeals that need review
+        return TransferAppeal.objects.filter(status='PENDING').order_by('-appeal_submission_date')
+
+
 class AppealCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     """Create a new appeal for a rejected transfer"""
     model = TransferAppeal
@@ -136,3 +148,27 @@ class AppealReviewView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             messages.error(request, str(e))
 
         return redirect(self.get_success_url())
+
+
+class FederationAppealListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """List appeals that require federation review"""
+    model = TransferAppeal
+    template_name = 'membership/appeal/federation_appeal_list.html'
+    context_object_name = 'appeals'
+    permission_required = 'membership.can_review_federation_appeals'
+
+    def get_queryset(self):
+        return TransferAppeal.objects.filter(status='ESCALATED').order_by('-appeal_submission_date')
+
+
+class FederationAppealHistoryView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """List appeals that have been reviewed at federation level"""
+    model = TransferAppeal
+    template_name = 'membership/appeal/federation_appeal_history.html'
+    context_object_name = 'appeals'
+    permission_required = 'membership.can_review_federation_appeals'
+
+    def get_queryset(self):
+        return TransferAppeal.objects.filter(
+            status__in=['FEDERATION_APPROVED', 'FEDERATION_REJECTED']
+        ).order_by('-federation_review_date')

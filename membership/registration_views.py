@@ -8,8 +8,14 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from .models import Member, Player, Club, PlayerClubRegistration
-from .forms import PlayerRegistrationForm, PaymentSelectionForm
+
+from .forms import PaymentSelectionForm, PlayerRegistrationForm
+from .models import (
+    Club,
+    Member,
+    Player,
+    PlayerClubRegistration
+)
 
 
 class ClubAdminRequiredMixin(LoginRequiredMixin):
@@ -20,18 +26,18 @@ class ClubAdminRequiredMixin(LoginRequiredMixin):
             return self.handle_no_permission()
         
         # Check if user has CLUB_ADMIN role or is admin
-        if request.user.role not in ['CLUB_ADMIN', 'ADMIN']:
+        if request.user.role not in ['CLUB_ADMIN', 'ADMIN', 'ADMIN_COUNTRY']:
             raise PermissionDenied("You must be a club administrator to register players.")
         
-        # Get the user's club
+        # Get the user's club membership
         try:
-            self.admin_member = Member.objects.get(
+            self.club_member = Member.objects.get(
                 user=request.user,
                 role='CLUB_ADMIN',
                 status='ACTIVE',
                 club__isnull=False
             )
-            self.user_club = self.admin_member.club
+            self.user_club = self.club_member.club
         except Member.DoesNotExist:
             raise PermissionDenied("You must be associated with a club to register players.")
         

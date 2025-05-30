@@ -41,10 +41,11 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'widget_tweaks',             
 
-    'geography.apps.GeographyConfig',  # Must be first as it contains the custom user model
+    'utils.apps.UtilsConfig',
+    'geography.apps.GeographyConfig',
+    'accounts.apps.AccountsConfig', # CustomUser model is here
     'membership.apps.MembershipConfig',
-    'accounts.apps.AccountsConfig',
-    'pdf_processor.apps.PdfProcessorConfig',
+    'pdf_processor.apps.PdfProcessorConfig',  # Manages PDF generation and processing functionalities
 ]
 
 MIDDLEWARE = [
@@ -149,7 +150,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'geography.CustomUser'
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Or 'email', as you prefer
 ACCOUNT_EMAIL_REQUIRED = True

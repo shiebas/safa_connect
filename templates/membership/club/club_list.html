@@ -3,13 +3,10 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Players List</h2>
+    <h2>Clubs List</h2>
     <div class="mb-3">
-        {% if user.is_staff %}
-            <a href="{% url 'membership:player_create' %}" class="btn btn-primary">Add New Player (Admin)</a>
-        {% endif %}
-        {% if user.member_profile.role == 'CLUB_ADMIN' %}
-            <a href="{% url 'membership:player_registration' %}" class="btn btn-success">Register New Player</a>
+        {% if can_create_club %}
+            <a href="{% url 'membership:club_create' %}" class="btn btn-primary">Add New Club</a>
         {% endif %}
     </div>
     
@@ -18,40 +15,39 @@
             <thead>
                 <tr>
                     <th>Logo</th>
-                    <th>Profile</th>
-                    <th>Membership Number</th>
                     <th>Name</th>
-                    <th>Position</th>
-                    <th>Team</th>
-                    <th>Status</th>
+                    <th>Code</th>
+                    <th>Contact</th>
+                    <th>Address</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for player in players %}
+                {% for club in clubs %}
                 <tr>
                     <td>
-                        {% if player.logo %}
-                        <img src="{{ player.logo_url }}" alt="Logo" class="img-thumbnail" style="max-width: 50px;">
+                        {% if club.logo %}
+                        <img src="{{ club.logo_url }}" alt="Club Logo" class="img-thumbnail" style="max-width: 50px;">
                         {% endif %}
                     </td>
                     <td>
-                        {% if player.profile_picture %}
-                        <img src="{{ player.profile_picture_url }}" alt="Profile Picture" class="img-thumbnail" style="max-width: 50px;">
-                        {% endif %}
+                        <a href="{% url 'membership:club_detail' club.pk %}">{{ club.name }}</a>
                     </td>
-                    <td>{{ player.membership_number }}</td>
-                    <td>{{ player.get_full_name }}</td>
-                    <td>{{ player.get_position_display }}</td>
-                    <td>{{ player.team }}</td>
-                    <td>{{ player.get_status_display }}</td>
+                    <td>{{ club.code }}</td>
                     <td>
-                        <a href="{% url 'membership:player_update' player.pk %}" class="btn btn-sm btn-info">Edit</a>
+                        {% if club.email %}<div>{{ club.email }}</div>{% endif %}
+                        {% if club.phone %}<div>{{ club.phone }}</div>{% endif %}
+                    </td>
+                    <td>{{ club.address }}</td>
+                    <td>
+                        {% if user.is_staff or user.member_profile.can_access_club(club) %}
+                        <a href="{% url 'membership:club_update' club.pk %}" class="btn btn-sm btn-info">Edit</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center">No players found.</td>
+                    <td colspan="6" class="text-center">No clubs found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -59,7 +55,7 @@
     </div>
 
     {% if is_paginated %}
-    <nav aria-label="Page navigation">
+    <nav aria-label="Page navigation" class="mt-4">
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
             <li class="page-item">

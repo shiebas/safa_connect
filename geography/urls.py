@@ -16,9 +16,8 @@ from .views import (
     RegionListView, RegionCreateView, RegionDetailView, RegionUpdateView, RegionDeleteView, 
     ClubListView, ClubCreateView, ClubDetailView, ClubUpdateView, ClubDeleteView,
     LocalFootballAssociationListView, LocalFootballAssociationCreateView, LocalFootballAssociationDetailView,
-    LocalFootballAssociationUpdateView, LocalFootballAssociationDeleteView,
-    MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, 
-    MembershipDeleteView
+    LocalFootballAssociationUpdateView, LocalFootballAssociationDeleteView
+    
 
 )
 
@@ -105,14 +104,7 @@ urlpatterns = [
     path('localfootballassociations/<int:pk>/edit/', LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),
     path('localfootballassociations/<int:pk>/delete/', LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
 
-    # Membership
-    path('memberships/', MembershipListView.as_view(), name='membership-list'),
-    path('memberships/add/', MembershipCreateView.as_view(), name='membership-create'),
-    path('memberships/<int:pk>/', MembershipDetailView.as_view(), name='membership-detail'),
-    path('memberships/<int:pk>/edit/', MembershipUpdateView.as_view(), name='membership-update'),
-    path('memberships/<int:pk>/delete/', MembershipDeleteView.as_view(), name='membership-delete'),
-
-    # API endpoints
+      # API endpoints
     path('api/regions-by-province/<int:province_id>/', views.regions_by_province, name='regions-by-province'),
     path('api/lfas-by-region/<int:region_id>/', views.lfas_by_region, name='lfas-by-region'),
 ]

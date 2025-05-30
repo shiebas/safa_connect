@@ -1,19 +1,10 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from utils.admin import ModelWithLogoAdmin
 from .models import (
-    RegistrationType, WorldSportsBody, Continent, ContinentFederation,
+    WorldSportsBody, Continent, ContinentFederation,
     ContinentRegion, Country, NationalFederation, Province, Region,
-    Association, Club, CustomUser, Membership, LocalFootballAssociation
+    Association, Club, LocalFootballAssociation
 )
-
-# Base admin class for models with logo
-class ModelWithLogoAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'display_logo']
-
-    def display_logo(self, obj):
-        return format_html('<img src="{}" width="50" height="50" />', obj.logo_url)
-
-    display_logo.short_description = 'Logo'
 
 # Admin classes for models that inherit from ModelWithLogo
 class ContinentFederationAdmin(ModelWithLogoAdmin):
@@ -57,7 +48,6 @@ class ClubAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'short_name']
 
 # Register models
-admin.site.register(RegistrationType)
 admin.site.register(WorldSportsBody)
 admin.site.register(Continent)
 admin.site.register(ContinentFederation, ContinentFederationAdmin)
@@ -69,5 +59,3 @@ admin.site.register(Region)
 admin.site.register(LocalFootballAssociation, LocalFootballAssociationAdmin)
 admin.site.register(Association, AssociationAdmin)
 admin.site.register(Club, ClubAdmin)
-admin.site.register(CustomUser)
-admin.site.register(Membership)

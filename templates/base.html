@@ -96,6 +96,53 @@
                         </ul>
                     </li>
 
+                    <!-- Membership Management -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="membershipDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Membership
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="membershipDropdown">
+                            {% if user.member_profile.role == 'CLUB_ADMIN' %}
+                                <li><a class="dropdown-item" href="{% url 'membership:player_registration' %}">Register New Player</a></li>
+                            {% endif %}
+                            {% if user.is_staff %}
+                                <li><a class="dropdown-item" href="{% url 'membership:player_create' %}">Add Player (Admin)</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'membership:player_list' %}">Players List</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'membership:club_list' %}">Clubs</a></li>
+                            {% if user.is_staff %}
+                                <li><a class="dropdown-item" href="{% url 'membership:member_list' %}">All Members</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <!-- Transfer Management -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="transferDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Transfers
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="transferDropdown">
+                            <!-- Transfer Requests -->
+                            <li><a class="dropdown-item" href="{% url 'membership:transfer_request' %}">Request Transfer</a></li>
+                            <li><a class="dropdown-item" href="{% url 'membership:transfer_list' %}">Transfer List</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <!-- Appeal Management -->
+                            <li><a class="dropdown-item" href="{% url 'membership:appeal_list' %}">My Appeals</a></li>
+                            {% if perms.membership.can_review_appeals %}
+                            <li><a class="dropdown-item" href="{% url 'membership:review_appeals' %}">Review Appeals</a></li>
+                            {% endif %}
+                            {% if perms.membership.can_review_federation_appeals %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Federation Appeals</h6></li>
+                            <li><a class="dropdown-item" href="{% url 'membership:federation_appeals' %}">Pending Federation Appeals</a></li>
+                            <li><a class="dropdown-item" href="{% url 'membership:federation_appeal_history' %}">Federation Appeal History</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
                     <!-- Clubs Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="clubsDropdown" role="button" 

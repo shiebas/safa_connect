@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.utils import timezone
-from geography.models import CustomUser, Club, Region, NationalFederation, Country, ROLES, DOCUMENT_TYPES
+from .models import CustomUser, ROLES, DOCUMENT_TYPES
+from geography.models import Club, Region, NationalFederation, Country
 
 class UserRegistrationForm(UserCreationForm):
     """
@@ -58,9 +58,11 @@ class UserRegistrationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'name', 'middle_name', 'surname', 'email', 'date_of_birth', 
-                 'gender', 'role', 'country', 'id_document_type', 'id_number', 'passport_number', 
-                 'document', 'password1', 'password2')
+        fields = [
+            'email', 'password1', 'password2', 'role',
+            'first_name', 'last_name', 'date_of_birth',
+            'id_number', 'gender'
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
