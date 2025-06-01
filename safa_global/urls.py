@@ -12,4 +12,6 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),  # Django-allauth URLs
     path('geography/', include('geography.urls')),
     path('membership/', include('membership.urls')),
+    path('competitions/', include(('competitions.urls', 'competitions'), namespace='competitions')),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

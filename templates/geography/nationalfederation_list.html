@@ -30,6 +30,7 @@
                             {% if federations.0.headquarters %}
                                 <th>Headquarters</th>
                             {% endif %}
+                            <th>SAFA ID</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -65,6 +66,7 @@
                                 {% if federations.0.headquarters %}
                                     <td>{{ federation.headquarters|default:"-" }}</td>
                                 {% endif %}
+                                <td><small class="text-muted">{{ federation.safa_id }}</small></td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
                                         <a href="{% url 'geography:nationalfederation-detail' federation.pk %}" class="btn btn-outline-primary">

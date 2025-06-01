@@ -55,6 +55,7 @@
                                                 <th>Name</th>
                                                 <th>Code</th>
                                                 <th>Local FAs</th>
+                                                <th>SAFA ID</th>
                                                 <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
@@ -77,6 +78,7 @@
                                                     <td class="text-center">
                                                         <span class="badge bg-secondary">{{ region.localfootballassociation_set.count }}</span>
                                                     </td>
+                                                    <td><small class="text-muted">{{ region.safa_id }}</small></td>
                                                     <td class="text-end">
                                                         <div class="btn-group btn-group-sm">
                                                             <a href="{% url 'geography:region-detail' region.pk %}" class="btn btn-outline-primary">

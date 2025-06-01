@@ -517,6 +517,21 @@ class Migration(migrations.Migration):
                         to="geography.region",
                     ),
                 ),
+                (
+                    "status",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("ACTIVE", "Active"),
+                            ("INACTIVE", "Inactive"),
+                            ("SUSPENDED", "Suspended"),
+                            ("DISBANDED", "Disbanded"),
+                        ],
+                        default= 'Active',
+                        max_length=20,
+                        verbose_name="Status",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "Club",

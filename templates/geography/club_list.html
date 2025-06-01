@@ -109,6 +109,7 @@
                                                                                                 <th>Code</th>
                                                                                                 <th>Founded</th>
                                                                                                 <th>Stadium</th>
+                                                                                                <th>SAFA ID</th>
                                                                                                 <th class="text-end">Actions</th>
                                                                                             </tr>
                                                                                         </thead>
@@ -135,6 +136,7 @@
                                                                                                         {% endif %}
                                                                                                     </td>
                                                                                                     <td>{{ club.stadium|default:"-" }}</td>
+                                                                                                    <td><small class="text-muted">{{ club.safa_id }}</small></td>
                                                                                                     <td class="text-end">
                                                                                                         <div class="btn-group btn-group-sm">
                                                                                                             <a href="{% url 'geography:club-detail' club.pk %}" class="btn btn-outline-primary">

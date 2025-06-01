@@ -6,7 +6,7 @@ from django.utils.crypto import get_random_string
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_extensions.db.models import TimeStampedModel
-from utils.models import ModelWithLogo  # Import from your utils app instead
+from utils.models import ModelWithLogo, SAFAIdentifiableMixin  # Import from your utils app instead
 
 # ===== CHOICE DEFINITIONS =====
 DOCUMENT_TYPES = (
@@ -228,8 +228,8 @@ class Country(TimeStampedModel, ModelWithLogo):
     def __str__(self):
         return self.name
 
-class NationalFederation(TimeStampedModel, ModelWithLogo):
-    """Represents a national sports governing body (e.g., SAFA)"""
+class NationalFederation(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
+    """Represents a national football federation (e.g., SAFA)"""
     name = models.CharField(_('Name'), max_length=100)
     acronym = models.CharField(_('Acronym'), max_length=10, blank=True)
     country = models.ForeignKey(
@@ -266,8 +266,8 @@ class Province(TimeStampedModel, ModelWithLogo):
     def __str__(self):
         return f"{self.name} ({self.country.name})"
 
-class Region(TimeStampedModel, ModelWithLogo):
-    """Represents a region within a province (e.g., Cape Town Metro within Western Cape)"""
+class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
+    """Represents a region within an association (e.g., Southern Region)"""
     name = models.CharField(_('Name'), max_length=100)
     code = models.CharField(_('Code'), max_length=10, blank=True)
     province = models.ForeignKey(
@@ -284,8 +284,8 @@ class Region(TimeStampedModel, ModelWithLogo):
     def __str__(self):
         return f"{self.name} ({self.province.name})"
 
-class Association(TimeStampedModel, ModelWithLogo):
-    """Represents a provincial/regional association (e.g., Western Cape Football Association)"""
+class Association(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
+    """Represents a regional football association (e.g., SAFA Cape Town)"""
     name = models.CharField(_('Name'), max_length=100)
     acronym = models.CharField(_('Acronym'), max_length=10, blank=True)
     national_federation = models.ForeignKey(
@@ -304,7 +304,20 @@ class Association(TimeStampedModel, ModelWithLogo):
     def __str__(self):
         return f"{self.name} ({self.national_federation.country.name})"
 
-class LocalFootballAssociation(TimeStampedModel, ModelWithLogo):
+class ClubStatus(models.TextChoices):
+    ACTIVE = 'ACTIVE', _('Active')
+    INACTIVE = 'INACTIVE', _('Inactive')
+    SUSPENDED = 'SUSPENDED', _('Suspended')
+    DISBANDED = 'DISBANDED', _('Disbanded')
+
+class ClubTier(models.TextChoices):
+    PREMIER = 'PREMIER', _('Premier')
+    FIRST_DIVISION = 'FIRST', _('First Division')
+    SECOND_DIVISION = 'SECOND', _('Second Division')
+    AMATEUR = 'AMATEUR', _('Amateur')
+    YOUTH = 'YOUTH', _('Youth/Development')
+
+class LocalFootballAssociation(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a local football association (e.g., Cape Town LFA)"""
     name = models.CharField(_('Name'), max_length=100)
     acronym = models.CharField(_('Acronym'), max_length=10, blank=True)
@@ -330,15 +343,26 @@ class LocalFootballAssociation(TimeStampedModel, ModelWithLogo):
     def __str__(self):
         return f"{self.name} ({self.region.name})"
 
-class Club(TimeStampedModel, ModelWithLogo):
+class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a football club"""
     name = models.CharField(_('Name'), max_length=100)
-    code = models.CharField(_('Code'), max_length=10, blank=True)
+    code = models.CharField(
+        _('Club Code'), 
+        max_length=10, 
+        blank=True,
+        help_text=_('Short code/abbreviation for the club (e.g., "MFC" for "Metropolis Football Club")')
+    )
     localfootballassociation = models.ForeignKey(
         LocalFootballAssociation,
         on_delete=models.CASCADE,
-        null=True,  # Allow NULL values
-        blank=True  # Make field optional in forms
+        verbose_name=_('Local Football Association')
+    )
+    status = models.CharField(
+        _('Status'),
+        max_length=20,
+        choices=ClubStatus.choices,
+        default=ClubStatus.ACTIVE,
+        blank=True,  # Allow blank temporarily for migration purposes
     )
     founding_date = models.DateField(_('Founding Date'), blank=True, null=True)
     website = models.URLField(_('Website'), max_length=200, blank=True)
@@ -350,11 +374,28 @@ class Club(TimeStampedModel, ModelWithLogo):
         verbose_name = _('Club')
         verbose_name_plural = _('Clubs')
         ordering = ['localfootballassociation', 'name']
+        indexes = [
+            models.Index(fields=['localfootballassociation', 'name']),
+            models.Index(fields=['safa_id']),
+            models.Index(fields=['code']),
+        ]
     
     def __str__(self):
         if self.localfootballassociation:
             return f"{self.name} ({self.localfootballassociation.name})"
         return self.name
+    
+    @property
+    def region(self):
+        return self.localfootballassociation.region if self.localfootballassociation else None
+        
+    @property
+    def province(self):
+        return self.region.province if self.region else None
+        
+    @property
+    def association(self):
+        return self.localfootballassociation.association if self.localfootballassociation else None
 
 # ===== USER MODELS =====
 

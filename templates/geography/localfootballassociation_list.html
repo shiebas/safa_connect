@@ -106,6 +106,7 @@
                                                                         <th>Name</th>
                                                                         <th>Acronym</th>
                                                                         <th>Association</th>
+                                                                        <th>SAFA ID</th>
                                                                         <th class="text-end">Actions</th>
                                                                     </tr>
                                                                 </thead>
@@ -131,6 +132,7 @@
                                                                                     -
                                                                                 {% endif %}
                                                                             </td>
+                                                                            <td><small class="text-muted">{{ lfa.safa_id }}</small></td>
                                                                             <td class="text-end">
                                                                                 <div class="btn-group btn-group-sm">
                                                                                     <a href="{% url 'geography:localfootballassociation-detail' lfa.pk %}" class="btn btn-outline-primary">

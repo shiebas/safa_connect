@@ -1,30 +1,35 @@
-from django.db.models import Prefetch  # Add this import at the top of the file
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+# Standard library imports
+import datetime
+
+# Third-party imports (Django)
 from django.contrib import messages
-from .models import (
-    Country, Province, Region, WorldSportsBody, Continent,
-    ContinentFederation, Club, Association, ContinentRegion, NationalFederation,
-    LocalFootballAssociation
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Prefetch, Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, ListView, UpdateView
 )
 
+# Local application imports
+from .forms import (
+    AssociationForm, ClubForm, ContinentFederationForm, ContinentRegionForm,
+    CountryForm, LocalFootballAssociationForm, NationalFederationForm,
+    ProvinceForm, RegionForm, WorldSportsBodyForm
+)
+from .models import (
+    Association, Club, Continent, ContinentFederation, ContinentRegion,
+    Country, LocalFootballAssociation, NationalFederation, Province, Region,
+    WorldSportsBody
+)
 
 # Mixin to restrict access to staff users only
 class StaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_staff
-
-import datetime
-from geography.forms import WorldSportsBodyForm
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
-
-# geography/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import ContinentFederationForm, ContinentRegionForm, CountryForm, NationalFederationForm, AssociationForm, ProvinceForm, RegionForm, ClubForm, LocalFootballAssociationForm
 
 
 # Advanced global home page
@@ -472,12 +477,47 @@ class RegionListView(LoginRequiredMixin, ListView):
     paginate_by = 10  # Set pagination to 10 items
     
     def get_queryset(self):
-        # Get all provinces with their regions, ordered by province name
+        # Get all provinces with their regions, LFAs, and clubs in a hierarchical structure
         provinces = Province.objects.prefetch_related(
-            Prefetch('region_set', queryset=Region.objects.all().select_related('province__country'))
-        ).order_by('name')
+            Prefetch('region_set', queryset=Region.objects.all()),
+            Prefetch(
+                'region_set__localfootballassociation_set', 
+                queryset=LocalFootballAssociation.objects.all().select_related('association')
+            ),
+            Prefetch(
+                'region_set__localfootballassociation_set__club_set',
+                queryset=Club.objects.all()
+            )
+        ).select_related('country').order_by('name')
         
         return provinces
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate club counts for each province and region
+        provinces_with_counts = []
+        for province in context['provinces_with_regions']:
+            region_data = []
+            province_club_count = 0
+            
+            for region in province.region_set.all():
+                region_club_count = sum(lfa.club_set.count() for lfa in region.localfootballassociation_set.all())
+                province_club_count += region_club_count
+                
+                region_data.append({
+                    'region': region,
+                    'club_count': region_club_count
+                })
+            
+            provinces_with_counts.append({
+                'province': province,
+                'regions': region_data,
+                'club_count': province_club_count
+            })
+        
+        context['provinces_with_counts'] = provinces_with_counts
+        return context
 
 @login_decorator
 class RegionCreateView(LoginRequiredMixin, CreateView):
@@ -524,51 +564,46 @@ class RegionDeleteView(LoginRequiredMixin, DeleteView):
 @login_decorator
 class ClubListView(ListView):
     model = Club
-    context_object_name = 'provinces_with_data'
     template_name = 'geography/club_list.html'
-    paginate_by = 10
-
-    def get_queryset(self):
-        # Get all provinces with their regions, LFAs, and clubs in a hierarchical structure
-        provinces = Province.objects.prefetch_related(
-            Prefetch('region_set', queryset=Region.objects.all()),
-            Prefetch(
-                'region_set__localfootballassociation_set', 
-                queryset=LocalFootballAssociation.objects.all().select_related('association')
-            ),
-            Prefetch(
-                'region_set__localfootballassociation_set__club_set',
-                queryset=Club.objects.all()
-            )
-        ).select_related('country').order_by('name')
-        
-        return provinces
+    context_object_name = 'clubs'
+    paginate_by = 15  # Pagination is crucial with thousands of clubs
     
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Apply filters from request.GET
+        province_id = self.request.GET.get('province')
+        region_id = self.request.GET.get('region')
+        lfa_id = self.request.GET.get('lfa')
+        search_term = self.request.GET.get('q')
+        
+        if province_id:
+            queryset = queryset.filter(localfootballassociation__region__province_id=province_id)
+        if region_id:
+            queryset = queryset.filter(localfootballassociation__region_id=region_id)
+        if lfa_id:
+            queryset = queryset.filter(localfootballassociation_id=lfa_id)
+        if search_term:
+            queryset = queryset.filter(
+                Q(name__icontains=search_term) | 
+                Q(safa_id__icontains=search_term) |
+                Q(code__icontains=search_term)
+            )
+            
+        return queryset
+        
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['provinces'] = Province.objects.all()
         
-        # Calculate club counts for each province and region
-        provinces_with_counts = []
-        for province in context['provinces_with_data']:
-            region_data = []
-            province_club_count = 0
+        province_id = self.request.GET.get('province')
+        if province_id:
+            context['regions'] = Region.objects.filter(province_id=province_id)
             
-            for region in province.region_set.all():
-                region_club_count = sum(lfa.club_set.count() for lfa in region.localfootballassociation_set.all())
-                province_club_count += region_club_count
+            region_id = self.request.GET.get('region')
+            if region_id:
+                context['lfas'] = LocalFootballAssociation.objects.filter(region_id=region_id)
                 
-                region_data.append({
-                    'region': region,
-                    'club_count': region_club_count
-                })
-            
-            provinces_with_counts.append({
-                'province': province,
-                'regions': region_data,
-                'club_count': province_club_count
-            })
-        
-        context['provinces_with_counts'] = provinces_with_counts
         return context
 
 @login_decorator
@@ -577,8 +612,12 @@ class ClubCreateView(LoginRequiredMixin, CreateView):
     form_class = ClubForm
     template_name = 'geography/club_form.html'
     success_url = reverse_lazy('geography:club-list')
-    
+
     def form_valid(self, form):
+        # Remove province and region fields as they're not part of the model
+        form.cleaned_data.pop('province', None)
+        form.cleaned_data.pop('region', None)
+        
         messages.success(self.request, 'Club created successfully.')
         return super().form_valid(form)
 
@@ -588,10 +627,11 @@ class ClubUpdateView(LoginRequiredMixin, UpdateView):
     form_class = ClubForm
     template_name = 'geography/club_form.html'
     success_url = reverse_lazy('geography:club-list')
-    
+
     def form_valid(self, form):
-        messages.success(self.request, 'Club updated successfully.')
-        return super().form_valid(form)
+        # Remove province and region fields as they're not part of the model
+        form.cleaned_data.pop('province', None)
+        form.cleaned_data.pop('region', None)
 
 class ClubDetailView(LoginRequiredMixin, DetailView):
     model = Club
@@ -690,17 +730,25 @@ class LocalFootballAssociationDeleteView(LoginRequiredMixin, DeleteView):
             return redirect('geography:localfootballassociation-list')
 
 def get_regions_by_province(request):
-    """Return regions for a given province as JSON for AJAX calls"""
+    """API view to get regions for a selected province"""
     province_id = request.GET.get('province_id')
-    if province_id:
-        regions = Region.objects.filter(province_id=province_id).values('id', 'name').order_by('name')
-        return JsonResponse(list(regions), safe=False)
-    return JsonResponse([], safe=False)
+    if not province_id:
+        return JsonResponse([], safe=False)
+    
+    regions = list(Region.objects.filter(
+        province_id=province_id
+    ).values('id', 'name'))
+    
+    return JsonResponse(regions, safe=False)
 
 def get_lfas_by_region(request):
-    """Return LFAs for a given region as JSON for AJAX calls"""
+    """API view to get LFAs for a selected region"""
     region_id = request.GET.get('region_id')
-    if region_id:
-        lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name').order_by('name')
-        return JsonResponse(list(lfas), safe=False)
-    return JsonResponse([], safe=False)
+    if not region_id:
+        return JsonResponse([], safe=False)
+    
+    lfas = list(LocalFootballAssociation.objects.filter(
+        region_id=region_id
+    ).values('id', 'name'))
+    
+    return JsonResponse(lfas, safe=False)

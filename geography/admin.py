@@ -25,9 +25,9 @@ class CountryAdmin(ModelWithLogoAdmin):
 
 
 class NationalFederationAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'acronym', 'country', 'display_logo']
+    list_display = ['name', 'acronym', 'country', 'safa_id', 'display_logo']  # Added safa_id
     list_filter = ['country']
-    search_fields = ['name', 'acronym']
+    search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
 
 class ProvinceAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'code', 'country', 'display_logo']
@@ -35,36 +35,44 @@ class ProvinceAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'code']
 
 class AssociationAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'acronym', 'national_federation', 'display_logo']
+    list_display = ['name', 'acronym', 'national_federation', 'safa_id', 'display_logo']  # Added safa_id
     list_filter = ['national_federation']
-    search_fields = ['name', 'acronym']
+    search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
 
-class LocalFootballAssociationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'acronym', 'region', 'association', 'get_province']
+class RegionAdmin(ModelWithLogoAdmin):  # Added RegionAdmin
+    list_display = ['name', 'province', 'safa_id', 'display_logo']  # Removed 'association'
+    list_filter = ['province']  # Removed 'association'
+    search_fields = ['name', 'safa_id', 'province__name']
+
+class LocalFootballAssociationAdmin(ModelWithLogoAdmin):  # Changed to ModelWithLogoAdmin
+    list_display = ['name', 'acronym', 'region', 'association', 'safa_id', 'get_province', 'display_logo']  # Added safa_id and display_logo
     list_filter = ['region__province', 'region', 'association']
-    search_fields = ['name', 'acronym', 'region__name']
+    search_fields = ['name', 'acronym', 'region__name', 'safa_id']  # Added safa_id
     
     def get_province(self, obj):
         return obj.region.province.name
     get_province.short_description = 'Province'
     get_province.admin_order_field = 'region__province__name'
 
-class ClubAdmin(admin.ModelAdmin):
+class ClubAdmin(ModelWithLogoAdmin):  # Changed to ModelWithLogoAdmin
     list_display = [
         'name',
         'code',
+        'safa_id',  # Added safa_id
         'get_region',
         'get_lfa',
         'stadium',
-        'founding_date'
+        'founding_date',
+        'display_logo'  # Added display_logo
     ]
     list_filter = [
-        'localfootballassociation__region',  # Filter by region through the relationship
-        'localfootballassociation'  # Filter by LFA
+        'localfootballassociation__region',
+        'localfootballassociation'
     ]
     search_fields = [
         'name',
         'code',
+        'safa_id',  # Added safa_id
         'localfootballassociation__name',
         'localfootballassociation__region__name'
     ]
@@ -88,7 +96,7 @@ admin.site.register(ContinentRegion, ContinentRegionAdmin)
 admin.site.register(Country, CountryAdmin)
 admin.site.register(NationalFederation, NationalFederationAdmin)
 admin.site.register(Province, ProvinceAdmin)
-admin.site.register(Region)
+admin.site.register(Region, RegionAdmin)  # Added RegionAdmin
 admin.site.register(LocalFootballAssociation, LocalFootballAssociationAdmin)
 admin.site.register(Association, AssociationAdmin)
 admin.site.register(Club, ClubAdmin)

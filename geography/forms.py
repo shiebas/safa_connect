@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError, FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
-
+from django.db.models import Q
 from accounts.models import CustomUser
 from .models import (
     Continent,
@@ -390,61 +390,67 @@ class LocalFootballAssociationForm(forms.ModelForm):
 
 class ClubForm(forms.ModelForm):
     province = forms.ModelChoiceField(
-        queryset=Province.objects.all().order_by('name'),
-        required=True,
-        label="Province",
-        widget=forms.Select(attrs={'class': 'form-control select2'})
+        queryset=Province.objects.all(),
+        required=False, 
+        help_text=_("Select province first"),
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
-    
     region = forms.ModelChoiceField(
         queryset=Region.objects.none(),
-        required=True,
-        label="Region",
-        widget=forms.Select(attrs={'class': 'form-control select2'})
+        required=False, 
+        help_text=_("Select region after selecting province"),
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     class Meta:
         model = Club
-        # Remove 'description' from the fields list
-        fields = ['name', 'code', 'founding_date', 'website', 'stadium', 'colors', 'logo']
+        fields = [
+            'name', 'code', 'status', 'province', 'region', 
+            'localfootballassociation', 'founding_date', 'website', 
+            'stadium', 'colors', 'description', 'logo'
+        ]
         widgets = {
-            # Remove the description widget
-            'founding_date': forms.DateInput(attrs={'type': 'date'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'code': forms.TextInput(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'localfootballassociation': forms.Select(attrs={'class': 'form-select'}),
+            'founding_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'website': forms.URLInput(attrs={'class': 'form-control'}),
+            'stadium': forms.TextInput(attrs={'class': 'form-control'}),
+            'colors': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add Bootstrap classes to form fields
-        for field_name, field in self.fields.items():
-            if field_name != 'logo':
-                field.widget.attrs.update({'class': 'form-control'})
         
-        # If we're editing an existing club
-        if self.instance.pk and self.instance.localfootballassociation:
-            # Get the province and region from the LFA
-            lfa = self.instance.localfootballassociation
-            region = lfa.region
-            province = region.province
-            
-            # Set initial values
-            self.fields['province'].initial = province.pk
-            
-            # Update region queryset and set initial value
-            self.fields['region'].queryset = Region.objects.filter(province=province).order_by('name')
-            self.fields['region'].initial = region.pk
-            
-            # Set initial LFA value
-            self.initial['localfootballassociation'] = lfa.pk
-    
-    def save(self, commit=True):
-        # Get the LFA from the hidden field  
-        lfa_id = self.data.get('localfootballassociation')
+        # Set up initial querysets
+        if kwargs.get('instance'):
+            club = kwargs['instance']
+            if club.localfootballassociation and club.localfootballassociation.region:
+                region = club.localfootballassociation.region
+                province = region.province
+                
+                self.fields['province'].initial = province
+                self.fields['region'].queryset = Region.objects.filter(province=province)
+                self.fields['region'].initial = region
+                self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region=region)
+        else:
+            self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.none()
         
-        instance = super().save(commit=False)
-        if lfa_id:
-            instance.localfootballassociation_id = lfa_id
+        # Get data from POST request if available
+        if args and args[0]:
+            if 'province' in args[0]:
+                try:
+                    province_id = int(args[0].get('province'))
+                    self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
+                except (ValueError, TypeError):
+                    pass
             
-        if commit:
-            instance.save()
-        return instance
+            if 'region' in args[0]:
+                try:
+                    region_id = int(args[0].get('region'))
+                    self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id)
+                except (ValueError, TypeError):
+                    pass
 

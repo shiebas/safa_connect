@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'membership.apps.MembershipConfig',
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',  # Manages PDF generation and processing functionalities
-    
+    'competitions',
 ]
 
 MIDDLEWARE = [

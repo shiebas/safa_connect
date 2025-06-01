@@ -27,6 +27,7 @@
                             <th>Acronym</th>
                             <th>National Federation</th>
                             <th>Country</th>
+                            <th>Safa ID</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -59,6 +60,8 @@
                                         -
                                     {% endif %}
                                 </td>
+                                <td><small class="text-muted"> {{ association.safa_id }}</small></td>
+
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
                                         <a href="{% url 'geography:association-detail' association.pk %}" class="btn btn-outline-primary">
