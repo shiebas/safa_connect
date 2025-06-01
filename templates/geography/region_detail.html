@@ -1,63 +1,153 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ region.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ region.name }}</h1>
-    <div>
-        <a href="{% url 'geography:region-update' region.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:region-delete' region.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:region-list' %}" class="btn btn-secondary">Back to List</a>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ region.name }} {% if region.code %}({{ region.code }}){% endif %}</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:region-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:region-update' region.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'geography:region-delete' region.pk %}" class="btn btn-danger">Delete</a>
+        </div>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-8">
-                <p><strong>Name:</strong> {{ region.name }}</p>
-                <p><strong>Code:</strong> {{ region.code }}</p>
-                <p><strong>Province:</strong> <a href="{% url 'geography:province-detail' region.province.pk %}">{{ region.province.name }}</a></p>
-                <p><strong>National Federation:</strong> <a href="{% url 'geography:nationalfederation-detail' region.national_federation.pk %}">{{ region.national_federation.name }}</a></p>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Region Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {% if region.logo %}
+                                <img src="{{ region.logo.url }}" alt="{{ region.name }} Logo" 
+                                     class="img-fluid mb-3" style="max-height: 200px;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <span class="text-muted">No logo available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Code</th>
+                                        <td>{{ region.code|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Province</th>
+                                        <td>
+                                            {% if region.province %}
+                                                {% if region.province.logo %}
+                                                    <img src="{{ region.province.logo.url }}" alt="{{ region.province.name }}" 
+                                                         style="width: 24px; height: 24px;" class="me-2">
+                                                {% endif %}
+                                                {{ region.province.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Country</th>
+                                        <td>
+                                            {% if region.province.country %}
+                                                {% if region.province.country.logo %}
+                                                    <img src="{{ region.province.country.logo.url }}" alt="{{ region.province.country.name }}" 
+                                                         style="width: 24px; height: 24px;" class="me-2">
+                                                {% endif %}
+                                                {{ region.province.country.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Local FAs</th>
+                                        <td>{{ region.localfootballassociation_set.count }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Created</th>
+                                        <td>{{ region.created|date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Updated</th>
+                                        <td>{{ region.modified|date }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if region.description %}
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p>{{ region.description|linebreaks }}</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="col-md-4 text-center">
-                {% if region.logo %}
-                <img src="{{ region.logo.url }}" alt="{{ region.name }} logo" class="img-fluid" style="max-height: 200px;">
-                {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Local Football Associations</h4>
+                </div>
+                <div class="card-body">
+                    {% if region.localfootballassociation_set.all %}
+                        <div class="list-group list-group-flush">
+                            {% for lfa in region.localfootballassociation_set.all %}
+                                <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                                    {% if lfa.logo %}
+                                        <img src="{{ lfa.logo.url }}" alt="{{ lfa.name }}" 
+                                             class="me-2" style="width: 24px; height: 24px;">
+                                    {% endif %}
+                                    {{ lfa.name }}
+                                    {% if lfa.acronym %}
+                                        <span class="badge bg-secondary ms-2">{{ lfa.acronym }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No local football associations associated with this region.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addLFAModal">
+                        <i class="fas fa-plus"></i> Add Local FA
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
-<div class="card mt-4">
-    <div class="card-header">
-        <h3>Local Football Associations</h3>
-    </div>
-    <div class="card-body">
-        {% if region.localfootballassociation_set.all %}
-        <ul class="list-group">
-            {% for lfa in region.localfootballassociation_set.all %}
-            <li class="list-group-item">
-                <a href="{% url 'geography:localfootballassociation-detail' lfa.pk %}">{{ lfa.name }}</a>
-                {% if lfa.clubs.all %}
-                <ul class="list-group mt-2">
-                    {% for club in lfa.clubs.all %}
-                    <li class="list-group-item">
-                        <a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="text-muted small">No clubs for this LFA.</div>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>No Local Football Associations found for this region.</p>
-        {% endif %}
+
+<!-- Modal for adding a Local FA -->
+<div class="modal fade" id="addLFAModal" tabindex="-1" aria-labelledby="addLFAModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLFAModalLabel">Add Local Football Association to {{ region.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please use the Local Football Association management section to add new LFAs.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-primary">Go to Local FAs</a>
+            </div>
+        </div>
     </div>
 </div>
-
 {% endblock %}

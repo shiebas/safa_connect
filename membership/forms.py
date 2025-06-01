@@ -2,10 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import Member, Membership, Player, Transfer, TransferAppeal
-from geography.models import (
-    Country, Province, Region, Club,
-    NationalFederation, Association, LocalFootballAssociation
-)
+from geography.models import Club, LocalFootballAssociation
 
 class AddressFormMixin:
     """Mixin to add address field grouping to forms"""
@@ -291,26 +288,24 @@ class ClubForm(forms.ModelForm):
     class Meta:
         model = Club
         fields = [
-            'name',
-            'short_name',
-            'code',
-            'email',
-            'phone',
-            'address',
-            'founded_year',
-            'region',  # Use region instead of province
-            'local_football_association',
+            'name', 
+            'code', 
+            'localfootballassociation',  # Instead of local_football_association
+            'founding_date',             # Instead of founded_year
+            'website',
+            'stadium',
+            'description',
+            'colors',
             'logo'
         ]
         widgets = {
-            'founded_year': forms.NumberInput(attrs={'min': 1800, 'max': 9999}),
-            'address': forms.Textarea(attrs={'rows': 3}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'founding_date': forms.DateInput(attrs={'type': 'date'}),
         }
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # If you need to filter regions or LFAs, do it here
-        if 'region' in self.fields:
-            self.fields['region'].queryset = Region.objects.all().select_related('province')
-        if 'local_football_association' in self.fields:
-            self.fields['local_football_association'].queryset = LocalFootballAssociation.objects.all().select_related('region')
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})

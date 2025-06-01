@@ -1,60 +1,154 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ localfootballassociation.name }}{% endblock %}
+{% block title %}{{ lfa.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ localfootballassociation.name }}</h1>
-    <div>
-        <a href="{% url 'geography:localfootballassociation-update' localfootballassociation.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:localfootballassociation-delete' localfootballassociation.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:localfootballassociation-list' %}" class="btn btn-secondary">Back to List</a>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-8">
-                <p><strong>Name:</strong> {{ localfootballassociation.name }}</p>
-                <p><strong>Acronym:</strong> {{ localfootballassociation.acronym }}</p>
-                <p><strong>Region:</strong> <a href="{% url 'geography:region-detail' localfootballassociation.region.pk %}">{{ localfootballassociation.region.name }}</a></p>
-                {% if localfootballassociation.contact_email %}
-                <p><strong>Contact Email:</strong> {{ localfootballassociation.contact_email }}</p>
-                {% endif %}
-                {% if localfootballassociation.contact_phone %}
-                <p><strong>Contact Phone:</strong> {{ localfootballassociation.contact_phone }}</p>
-                {% endif %}
-                {% if localfootballassociation.website %}
-                <p><strong>Website:</strong> <a href="{{ localfootballassociation.website }}" target="_blank">{{ localfootballassociation.website }}</a></p>
-                {% endif %}
-            </div>
-            <div class="col-md-4 text-center">
-                {% if localfootballassociation.logo %}
-                <img src="{{ localfootballassociation.logo.url }}" alt="{{ localfootballassociation.name }} logo" class="img-fluid" style="max-height: 200px;">
-                {% endif %}
-            </div>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ lfa.name }} {% if lfa.acronym %}({{ lfa.acronym }}){% endif %}</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:localfootballassociation-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:localfootballassociation-update' lfa.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'geography:localfootballassociation-delete' lfa.pk %}" class="btn btn-danger">Delete</a>
         </div>
     </div>
-</div>
-
-<div class="card mt-4">
-    <div class="card-header">
-        <h3>Clubs</h3>
-    </div>
-    <div class="card-body">
-        {% if localfootballassociation.clubs.all %}
-        <ul class="list-group">
-            {% for club in localfootballassociation.clubs.all %}
-            <li class="list-group-item">
-                <a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>No clubs found for this local football association.</p>
-        {% endif %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Local Football Association Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {% if lfa.logo %}
+                                <img src="{{ lfa.logo.url }}" alt="{{ lfa.name }} Logo" 
+                                     class="img-fluid mb-3" style="max-height: 200px;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <span class="text-muted">No logo available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Region</th>
+                                        <td>
+                                            {% if lfa.region %}
+                                                {% if lfa.region.logo %}
+                                                    <img src="{{ lfa.region.logo.url }}" alt="{{ lfa.region.name }}" 
+                                                         style="width: 24px; height: 24px;" class="me-2">
+                                                {% endif %}
+                                                {{ lfa.region.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Association</th>
+                                        <td>
+                                            {% if lfa.association %}
+                                                {% if lfa.association.logo %}
+                                                    <img src="{{ lfa.association.logo.url }}" alt="{{ lfa.association.name }}" 
+                                                         style="width: 24px; height: 24px;" class="me-2">
+                                                {% endif %}
+                                                {{ lfa.association.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% if lfa.headquarters %}
+                                        <tr>
+                                            <th scope="row">Headquarters</th>
+                                            <td>{{ lfa.headquarters }}</td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if lfa.website %}
+                                        <tr>
+                                            <th scope="row">Website</th>
+                                            <td><a href="{{ lfa.website }}" target="_blank">{{ lfa.website }}</a></td>
+                                        </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <th scope="row">Created</th>
+                                        <td>{{ lfa.created|date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Updated</th>
+                                        <td>{{ lfa.modified|date }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if lfa.description %}
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p>{{ lfa.description|linebreaks }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Location Info</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Province:</span>
+                            <strong>{{ lfa.region.province.name }}</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Country:</span>
+                            <strong>{{ lfa.region.province.country.name }}</strong>
+                        </div>
+                        {% if lfa.association and lfa.association.national_federation %}
+                            <div class="list-group-item d-flex justify-content-between">
+                                <span>National Federation:</span>
+                                <strong>{{ lfa.association.national_federation.name }}</strong>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Clubs</h4>
+                </div>
+                <div class="card-body">
+                    {% if lfa.club_set.all %}
+                        <div class="list-group list-group-flush">
+                            {% for club in lfa.club_set.all %}
+                                <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                                    {% if club.logo %}
+                                        <img src="{{ club.logo.url }}" alt="{{ club.name }}" 
+                                             class="me-2" style="width: 24px; height: 24px;">
+                                    {% endif %}
+                                    {{ club.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No clubs associated with this LFA yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

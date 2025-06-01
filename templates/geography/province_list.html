@@ -1,108 +1,87 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Provinces{% endblock %}
 
 {% block content %}
-<h1>Provinces</h1>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Logo</th>
-                <th>Name</th>
-                <th>Code</th>
-                <th>Country</th>
-                <th>Province Type</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for province in provinces %}
-            <tr>
-                <td>
-                    {% if province.logo %}
-                        <img src="{{ province.logo.url }}" alt="{{ province.name }} logo" style="height:40px;">
-                    {% endif %}
-                </td>
-                <td><a href="{% url 'geography:province-detail' province.pk %}">{{ province.name }}</a></td>
-                <td>{{ province.code }}</td>
-                <td>{{ province.country.name }}</td>
-                <td>{{ province.get_province_type_display }}</td>
-                <td>
-                    <a href="{% url 'geography:province-detail' province.pk %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'geography:province-update' province.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'geography:province-delete' province.pk %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6">No provinces found.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Provinces</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:province-create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add New Province
+            </a>
+        </div>
+    </div>
+    
+    {% if provinces %}
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Logo</th>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Country</th>
+                            <th>Regions</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for province in provinces %}
+                            <tr>
+                                <td style="width: 60px;">
+                                    {% if province.logo %}
+                                        <img src="{{ province.logo.url }}" alt="{{ province.name }}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: contain;">
+                                    {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px;">
+                                            <small class="text-muted">No logo</small>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ province.name }}</td>
+                                <td>{{ province.code|default:"-" }}</td>
+                                <td>
+                                    {% if province.country %}
+                                        {% if province.country.logo %}
+                                            <img src="{{ province.country.logo.url }}" alt="{{ province.country.name }}" 
+                                                 style="width: 20px; height: auto; margin-right: 5px;">
+                                        {% endif %}
+                                        {{ province.country.name }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{ province.region_set.count }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'geography:province-detail' province.pk %}" class="btn btn-outline-primary">
+                                            View
+                                        </a>
+                                        <a href="{% url 'geography:province-update' province.pk %}" class="btn btn-outline-secondary">
+                                            Edit
+                                        </a>
+                                        <a href="{% url 'geography:province-delete' province.pk %}" class="btn btn-outline-danger">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No provinces added yet. <a href="{% url 'geography:province-create' %}">Add one now</a>.</p>
+        </div>
+    {% endif %}
 </div>
-
-{% if is_paginated %}
-<nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        {% endif %}
-
-        {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-                <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
-<a href="{% url 'geography:province-create' %}" class="btn btn-primary">Add Province</a>
 {% endblock %}

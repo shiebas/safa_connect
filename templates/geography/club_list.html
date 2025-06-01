@@ -1,110 +1,333 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Clubs{% endblock %}
 
 {% block content %}
-<h1>Clubs</h1>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Logo</th>
-                <th>Name</th>
-                <th>Short Name</th>
-                <th>Region</th>
-                <th>Founded</th>
-                <th>Notes</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for club in clubs %}
-            <tr>
-                <td>
-                    {% if club.logo %}
-                        <img src="{{ club.logo.url }}" alt="{{ club.name }} logo" style="height:40px;">
-                    {% endif %}
-                </td>
-                <td><a href="{% url 'geography:club-detail' club.pk %}">{{ club.name }}</a></td>
-                <td>{{ club.short_name }}</td>
-                <td>{{ club.region.name }}</td>
-                <td>{{ club.founded_year|default:"-" }}</td>
-                <td></td>
-                <td>
-                    <a href="{% url 'geography:club-detail' club.pk %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'geography:club-update' club.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'geography:club-delete' club.pk %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6">No clubs found.</td></tr>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Clubs</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:club-create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add New Club
+            </a>
+        </div>
+    </div>
+    
+    {% if provinces_with_counts %}
+        <div class="accordion" id="provinceAccordion">
+            {% for province_data in provinces_with_counts %}
+                {% if province_data.club_count > 0 %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="province{{ province_data.province.id }}Header">
+                            <button class="accordion-button {% if forloop.first %}{% else %}collapsed{% endif %}" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#province{{ province_data.province.id }}Collapse" 
+                                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                                    aria-controls="province{{ province_data.province.id }}Collapse">
+                                <div class="d-flex align-items-center">
+                                    {% if province_data.province.logo %}
+                                        <img src="{{ province_data.province.logo.url }}" alt="{{ province_data.province.name }}" 
+                                             class="me-2" style="width: 24px; height: 24px;">
+                                    {% endif %}
+                                    <strong>{{ province_data.province.name }}</strong>
+                                    
+                                    {% if province_data.province.country %}
+                                        <span class="text-muted ms-2">({{ province_data.province.country.name }})</span>
+                                    {% endif %}
+                                    
+                                    <span class="badge bg-primary ms-2">{{ province_data.club_count }} Club{{ province_data.club_count|pluralize }}</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="province{{ province_data.province.id }}Collapse" 
+                             class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                             aria-labelledby="province{{ province_data.province.id }}Header" 
+                             data-bs-parent="#provinceAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="accordion" id="regionAccordion{{ province_data.province.id }}">
+                                    {% for region_data in province_data.regions %}
+                                        {% if region_data.club_count > 0 %}
+                                            <div class="accordion-item">
+                                                <h3 class="accordion-header" id="region{{ region_data.region.id }}Header">
+                                                    <button class="accordion-button collapsed bg-light" 
+                                                            type="button" 
+                                                            data-bs-toggle="collapse" 
+                                                            data-bs-target="#region{{ region_data.region.id }}Collapse" 
+                                                            aria-expanded="false" 
+                                                            aria-controls="region{{ region_data.region.id }}Collapse">
+                                                        <div class="d-flex align-items-center">
+                                                            {% if region_data.region.logo %}
+                                                                <img src="{{ region_data.region.logo.url }}" alt="{{ region_data.region.name }}" 
+                                                                     class="me-2" style="width: 20px; height: 20px;">
+                                                            {% endif %}
+                                                            <strong>{{ region_data.region.name }}</strong>
+                                                            <span class="badge bg-info ms-2">{{ region_data.club_count }} Club{{ region_data.club_count|pluralize }}</span>
+                                                        </div>
+                                                    </button>
+                                                </h3>
+                                                <div id="region{{ region_data.region.id }}Collapse" 
+                                                     class="accordion-collapse collapse" 
+                                                     aria-labelledby="region{{ region_data.region.id }}Header" 
+                                                     data-bs-parent="#regionAccordion{{ province_data.province.id }}">
+                                                    <div class="accordion-body p-0">
+                                                        <div class="accordion" id="lfaAccordion{{ region_data.region.id }}">
+                                                            {% for lfa in region_data.region.localfootballassociation_set.all %}
+                                                                {% if lfa.club_set.all %}
+                                                                    <div class="accordion-item">
+                                                                        <h4 class="accordion-header" id="lfa{{ lfa.id }}Header">
+                                                                            <button class="accordion-button collapsed bg-light" 
+                                                                                    type="button" 
+                                                                                    data-bs-toggle="collapse" 
+                                                                                    data-bs-target="#lfa{{ lfa.id }}Collapse" 
+                                                                                    aria-expanded="false" 
+                                                                                    aria-controls="lfa{{ lfa.id }}Collapse">
+                                                                                <div class="d-flex align-items-center">
+                                                                                    {% if lfa.logo %}
+                                                                                        <img src="{{ lfa.logo.url }}" alt="{{ lfa.name }}" 
+                                                                                             class="me-2" style="width: 20px; height: 20px;">
+                                                                                    {% endif %}
+                                                                                    <strong>{{ lfa.name }}</strong>
+                                                                                    <span class="badge bg-secondary ms-2">{{ lfa.club_set.count }} Club{{ lfa.club_set.count|pluralize }}</span>
+                                                                                </div>
+                                                                            </button>
+                                                                        </h4>
+                                                                        <div id="lfa{{ lfa.id }}Collapse" 
+                                                                             class="accordion-collapse collapse" 
+                                                                             aria-labelledby="lfa{{ lfa.id }}Header" 
+                                                                             data-bs-parent="#lfaAccordion{{ region_data.region.id }}">
+                                                                            <div class="accordion-body p-0">
+                                                                                <div class="table-responsive">
+                                                                                    <table class="table table-hover mb-0">
+                                                                                        <thead class="table-light">
+                                                                                            <tr>
+                                                                                                <th>Logo</th>
+                                                                                                <th>Name</th>
+                                                                                                <th>Code</th>
+                                                                                                <th>Founded</th>
+                                                                                                <th>Stadium</th>
+                                                                                                <th class="text-end">Actions</th>
+                                                                                            </tr>
+                                                                                        </thead>
+                                                                                        <tbody>
+                                                                                            {% for club in lfa.club_set.all %}
+                                                                                                <tr>
+                                                                                                    <td style="width: 60px;">
+                                                                                                        {% if club.logo %}
+                                                                                                            <img src="{{ club.logo.url }}" alt="{{ club.name }}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: contain;">
+                                                                                                        {% else %}
+                                                                                                            <div class="bg-light d-flex align-items-center justify-content-center"
+                                                                                                                 style="width: 40px; height: 40px;">
+                                                                                                                <small class="text-muted">No logo</small>
+                                                                                                            </div>
+                                                                                                        {% endif %}
+                                                                                                    </td>
+                                                                                                    <td>{{ club.name }}</td>
+                                                                                                    <td>{{ club.code|default:"-" }}</td>
+                                                                                                    <td>
+                                                                                                        {% if club.founding_date %}
+                                                                                                            {{ club.founding_date|date:"Y" }}
+                                                                                                        {% else %}
+                                                                                                            -
+                                                                                                        {% endif %}
+                                                                                                    </td>
+                                                                                                    <td>{{ club.stadium|default:"-" }}</td>
+                                                                                                    <td class="text-end">
+                                                                                                        <div class="btn-group btn-group-sm">
+                                                                                                            <a href="{% url 'geography:club-detail' club.pk %}" class="btn btn-outline-primary">
+                                                                                                                View
+                                                                                                            </a>
+                                                                                                            <a href="{% url 'geography:club-update' club.pk %}" class="btn btn-outline-secondary">
+                                                                                                                Edit
+                                                                                                            </a>
+                                                                                                            <a href="{% url 'geography:club-delete' club.pk %}" class="btn btn-outline-danger">
+                                                                                                                Delete
+                                                                                                            </a>
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            {% endfor %}
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">
+            <p>No clubs added yet.</p>
+            <div class="mt-3">
+                <a href="{% url 'geography:localfootballassociation-list' %}" class="btn btn-primary me-2">Manage Local FAs First</a>
+                <a href="{% url 'geography:club-create' %}" class="btn btn-success">Add Club</a>
+            </div>
+        </div>
+    {% endif %}
 </div>
+{% endblock %}
 
-{% if is_paginated %}
-<nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        {% endif %}
-
-        {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-                <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
-<a href="{% url 'geography:club-create' %}" class="btn btn-primary">Add Club</a>
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all accordion items
+        const accordionItems = document.querySelectorAll('.accordion-button');
+        
+        // Function to save the state of the accordion
+        function saveAccordionState() {
+            const openProvinces = [];
+            const openRegions = [];
+            const openLFAs = [];
+            
+            document.querySelectorAll('[id^="province"][id$="Collapse"].show').forEach(function(item) {
+                openProvinces.push(item.id);
+            });
+            
+            document.querySelectorAll('[id^="region"][id$="Collapse"].show').forEach(function(item) {
+                openRegions.push(item.id);
+            });
+            
+            document.querySelectorAll('[id^="lfa"][id$="Collapse"].show').forEach(function(item) {
+                openLFAs.push(item.id);
+            });
+            
+            localStorage.setItem('openProvinceClubAccordions', JSON.stringify(openProvinces));
+            localStorage.setItem('openRegionClubAccordions', JSON.stringify(openRegions));
+            localStorage.setItem('openLFAClubAccordions', JSON.stringify(openLFAs));
+        }
+        
+        // Function to restore the state of the accordion
+        function restoreAccordionState() {
+            const openProvinces = JSON.parse(localStorage.getItem('openProvinceClubAccordions') || '[]');
+            const openRegions = JSON.parse(localStorage.getItem('openRegionClubAccordions') || '[]');
+            const openLFAs = JSON.parse(localStorage.getItem('openLFAClubAccordions') || '[]');
+            
+            openProvinces.forEach(function(accordionId) {
+                const accordionEl = document.getElementById(accordionId);
+                if (accordionEl) {
+                    accordionEl.classList.add('show');
+                    const button = document.querySelector(`[data-bs-target="#${accordionId}"]`);
+                    if (button) {
+                        button.classList.remove('collapsed');
+                        button.setAttribute('aria-expanded', 'true');
+                    }
+                }
+            });
+            
+            openRegions.forEach(function(accordionId) {
+                const accordionEl = document.getElementById(accordionId);
+                if (accordionEl) {
+                    accordionEl.classList.add('show');
+                    const button = document.querySelector(`[data-bs-target="#${accordionId}"]`);
+                    if (button) {
+                        button.classList.remove('collapsed');
+                        button.setAttribute('aria-expanded', 'true');
+                    }
+                }
+            });
+            
+            openLFAs.forEach(function(accordionId) {
+                const accordionEl = document.getElementById(accordionId);
+                if (accordionEl) {
+                    accordionEl.classList.add('show');
+                    const button = document.querySelector(`[data-bs-target="#${accordionId}"]`);
+                    if (button) {
+                        button.classList.remove('collapsed');
+                        button.setAttribute('aria-expanded', 'true');
+                    }
+                }
+            });
+        }
+        
+        // Add event listeners to all accordion buttons
+        accordionItems.forEach(function(button) {
+            button.addEventListener('click', function() {
+                // Give the accordion time to toggle before saving state
+                setTimeout(saveAccordionState, 350);
+            });
+        });
+        
+        // Restore state when page loads
+        restoreAccordionState();
+    });
+</script>
 {% endblock %}

@@ -1,7 +1,7 @@
 # geography/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import CustomUser
@@ -206,14 +206,18 @@ class ContinentRegionForm(forms.ModelForm):
 class CountryForm(forms.ModelForm):
     class Meta:
         model = Country
-        fields = [
-            "name",
-            "fifa_code",
-            "association_acronym",
-            "continent_region",
-            "is_default",
-            "logo",
-        ]
+        # Make sure to only include fields that exist in the model
+        fields = ['name', 'code', 'continent_region', 'description', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
         cleaned_data = super().clean()
@@ -243,15 +247,17 @@ class CountryForm(forms.ModelForm):
 class NationalFederationForm(forms.ModelForm):
     class Meta:
         model = NationalFederation
-        fields = [
-            "name",
-            "acronym",
-            "country",
-            "world_body",
-            "description",
-            "website",
-            "logo",
-        ]
+        fields = ['name', 'acronym', 'country', 'website', 'headquarters', 'description', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
         cleaned_data = super().clean()
@@ -273,14 +279,30 @@ class NationalFederationForm(forms.ModelForm):
 class AssociationForm(forms.ModelForm):
     class Meta:
         model = Association
-        fields = [
-            "name",
-            "acronym",
-            "national_federation",
-            "association_type",
-            "description",
-            "logo",
-        ]
+        fields = ['name', 'acronym', 'national_federation', 'logo']
+        
+        # Try to include additional fields if they exist in the model
+        try:
+            # Check if these fields exist in the model
+            Association._meta.get_field('website')
+            Association._meta.get_field('headquarters')
+            Association._meta.get_field('description')
+            # Add them to the form if they exist
+            fields.extend(['website', 'headquarters', 'description'])
+        except FieldDoesNotExist:
+            pass
+        
+        # Define widgets for text fields
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
         cleaned_data = super().clean()
@@ -302,13 +324,17 @@ class AssociationForm(forms.ModelForm):
 class ProvinceForm(forms.ModelForm):
     class Meta:
         model = Province
-        fields = [
-            "name",
-            "code",
-            "country",
-            "province_type",
-            "logo",
-        ]
+        fields = ['name', 'code', 'country', 'description', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
         cleaned_data = super().clean()
@@ -330,44 +356,32 @@ class ProvinceForm(forms.ModelForm):
 class RegionForm(forms.ModelForm):
     class Meta:
         model = Region
-        fields = [
-            "name",
-            "code",
-            "province",
-            "national_federation",
-            "logo",
-        ]
-
-    def clean(self):
-        cleaned_data = super().clean()
-        code = cleaned_data.get("code")
-        province = cleaned_data.get("province")
-        national_federation = cleaned_data.get("national_federation")
-
-        # Check for unique constraint on code, province, and national_federation
-        if code and province and national_federation:
-            qs = Region.objects.filter(code=code, province=province, national_federation=national_federation)
-            if self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
-            if qs.exists():
-                raise forms.ValidationError(
-                    "A region with this code already exists for this province and national federation."
-                )
-
-        return cleaned_data
+        fields = ['name', 'code', 'province', 'description', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
 
 class LocalFootballAssociationForm(forms.ModelForm):
     class Meta:
         model = LocalFootballAssociation
-        fields = [
-            "name",
-            "acronym",
-            "region",
-            "contact_email",
-            "contact_phone",
-            "website",
-            "logo",
-        ]
+        fields = ['name', 'acronym', 'region', 'association', 'website', 'headquarters', 'description', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
         cleaned_data = super().clean()
@@ -376,74 +390,61 @@ class LocalFootballAssociationForm(forms.ModelForm):
 
 class ClubForm(forms.ModelForm):
     province = forms.ModelChoiceField(
-        queryset=Province.objects.all(),
-        required=False,
-        empty_label="Select province"
+        queryset=Province.objects.all().order_by('name'),
+        required=True,
+        label="Province",
+        widget=forms.Select(attrs={'class': 'form-control select2'})
     )
-
+    
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.none(),
+        required=True,
+        label="Region",
+        widget=forms.Select(attrs={'class': 'form-control select2'})
+    )
+    
     class Meta:
         model = Club
-        fields = [
-            "name",
-            "province",
-            "region",
-            "local_football_association",  # <-- add this line!
-            "founded_year",
-            
-            
-        ]
+        # Remove 'description' from the fields list
+        fields = ['name', 'code', 'founding_date', 'website', 'stadium', 'colors', 'logo']
+        widgets = {
+            # Remove the description widget
+            'founding_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Initially set region queryset to empty
-        self.fields['region'].queryset = Region.objects.none()
-
-        # If editing an existing club, initialize the province field
-        if 'instance' in kwargs and kwargs['instance'] and kwargs['instance'].region:
-            instance = kwargs['instance']
-            region = instance.region
+        # Add Bootstrap classes to form fields
+        for field_name, field in self.fields.items():
+            if field_name != 'logo':
+                field.widget.attrs.update({'class': 'form-control'})
+        
+        # If we're editing an existing club
+        if self.instance.pk and self.instance.localfootballassociation:
+            # Get the province and region from the LFA
+            lfa = self.instance.localfootballassociation
+            region = lfa.region
             province = region.province
-
-            # Set the province field
-            self.fields['province'].initial = province
-
-            # Update the region queryset based on the province
-            self.fields['region'].queryset = Region.objects.filter(province=province)
-
-        # If province is provided in POST data, filter regions
-        if 'data' in kwargs and kwargs['data'].get('province'):
-            try:
-                province_id = int(kwargs['data'].get('province'))
-                self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
-            except (ValueError, TypeError):
-                pass
-
-    def clean(self):
-        cleaned_data = super().clean()
-        short_name = cleaned_data.get("short_name")
-        region = cleaned_data.get("region")
-        province = cleaned_data.get("province")
-
-        # Ensure province is selected
-        if not province:
-            self.add_error("province", "Please select a province.")
-
-        # Ensure region is selected and belongs to the selected province
-        if region and province and region.province != province:
-            self.add_error("region", "The selected region does not belong to the selected province.")
-
-        # Check for unique constraint on short_name and region
-        if short_name and region:
-            qs = Club.objects.filter(short_name=short_name, region=region)
-            if self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
-            if qs.exists():
-                raise forms.ValidationError(
-                    "A club with this short name already exists for this region."
-                )
-
-        return cleaned_data
-         
-
-        return cleaned_data
+            
+            # Set initial values
+            self.fields['province'].initial = province.pk
+            
+            # Update region queryset and set initial value
+            self.fields['region'].queryset = Region.objects.filter(province=province).order_by('name')
+            self.fields['region'].initial = region.pk
+            
+            # Set initial LFA value
+            self.initial['localfootballassociation'] = lfa.pk
+    
+    def save(self, commit=True):
+        # Get the LFA from the hidden field  
+        lfa_id = self.data.get('localfootballassociation')
+        
+        instance = super().save(commit=False)
+        if lfa_id:
+            instance.localfootballassociation_id = lfa_id
+            
+        if commit:
+            instance.save()
+        return instance
 

@@ -1,45 +1,171 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ club.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ club.name }}</h1>
-    <div>
-        <a href="{% url 'geography:club-update' club.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:club-delete' club.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:club-list' %}" class="btn btn-secondary">Back to List</a>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ club.name }} {% if club.code %}({{ club.code }}){% endif %}</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:club-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:club-update' club.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'geography:club-delete' club.pk %}" class="btn btn-danger">Delete</a>
+        </div>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-8">
-                <p><strong>Name:</strong> {{ club.name }}</p>
-                <p><strong>Short Name:</strong> {{ club.short_name }}</p>
-                <p><strong>Region:</strong>
-                  {% if club.region %}
-                <a href="{% url 'geography:region-detail' club.region.pk %}">{{ club.region.name }}</a>
-                 {% else %}
-                    -
-                  {% endif %}
-                </p>
-                {% if club.founded_year %}
-                <p><strong>Founded Year:</strong> {{ club.founded_year }}</p>
-                {% endif %}
-                {% if club.home_ground %}
-                <p><strong>Home Ground:</strong> {{ club.home_ground }}</p>
-                {% endif %}
-                {% if club.club_colors %}
-                <p><strong>Club Colors:</strong> {{ club.club_colors }}</p>
-                {% endif %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Club Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {% if club.logo %}
+                                <img src="{{ club.logo.url }}" alt="{{ club.name }} Logo" 
+                                     class="img-fluid mb-3" style="max-height: 200px;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <span class="text-muted">No logo available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <table class="table">
+                                <tbody>
+                                    {% if club.founding_date %}
+                                    <tr>
+                                        <th scope="row">Founded</th>
+                                        <td>{{ club.founding_date|date:"F j, Y" }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if club.colors %}
+                                    <tr>
+                                        <th scope="row">Colors</th>
+                                        <td>{{ club.colors }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if club.stadium %}
+                                    <tr>
+                                        <th scope="row">Home Stadium</th>
+                                        <td>{{ club.stadium }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <th scope="row">Local FA</th>
+                                        <td>
+                                            {% if club.localfootballassociation %}
+                                                {% if club.localfootballassociation.logo %}
+                                                    <img src="{{ club.localfootballassociation.logo.url }}" 
+                                                         alt="{{ club.localfootballassociation.name }}" 
+                                                         style="width: 24px; height: 24px;" class="me-2">
+                                                {% endif %}
+                                                {{ club.localfootballassociation.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Region</th>
+                                        <td>{{ club.localfootballassociation.region.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Province</th>
+                                        <td>{{ club.localfootballassociation.region.province.name }}</td>
+                                    </tr>
+                                    {% if club.website %}
+                                    <tr>
+                                        <th scope="row">Website</th>
+                                        <td><a href="{{ club.website }}" target="_blank">{{ club.website }}</a></td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <th scope="row">Created</th>
+                                        <td>{{ club.created|date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Updated</th>
+                                        <td>{{ club.modified|date }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if club.description %}
+                        <div class="mb-4">
+                            <h5>About this Club</h5>
+                            <p>{{ club.description|linebreaks }}</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="col-md-4 text-center">
-                {% if club.logo %}
-                <img src="{{ club.logo.url }}" alt="{{ club.name }} logo" class="img-fluid" style="max-height: 200px;">
-                {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Teams</h4>
+                </div>
+                <div class="card-body">
+                    {% if club.team_set.all %}
+                        <div class="list-group list-group-flush">
+                            {% for team in club.team_set.all %}
+                                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <span>
+                                        {% if team.logo %}
+                                            <img src="{{ team.logo.url }}" alt="{{ team.name }}" 
+                                                class="me-2" style="width: 24px; height: 24px;">
+                                        {% endif %}
+                                        {{ team.name }}
+                                    </span>
+                                    <span class="badge bg-primary">{{ team.age_group }}</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No teams registered for this club yet.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-sm btn-outline-primary" type="button">
+                        <i class="fas fa-plus"></i> Add Team
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Club Officials</h4>
+                </div>
+                <div class="card-body">
+                    {% if club.officials.all %}
+                        <div class="list-group list-group-flush">
+                            {% for official in club.officials.all %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ official.user.get_full_name }}</h6>
+                                        <span class="badge bg-secondary">{{ official.role }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ official.email }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No officials registered for this club yet.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-sm btn-outline-primary" type="button">
+                        <i class="fas fa-plus"></i> Add Official
+                    </button>
+                </div>
             </div>
         </div>
     </div>

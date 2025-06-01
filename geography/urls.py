@@ -103,7 +103,14 @@ urlpatterns = [
     path('localfootballassociations/<int:pk>/edit/', LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),
     path('localfootballassociations/<int:pk>/delete/', LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
 
+    # Local Football Association URLs
+    path('lfas/', views.LocalFootballAssociationListView.as_view(), name='localfootballassociation-list'),
+    path('lfas/add/', views.LocalFootballAssociationCreateView.as_view(), name='localfootballassociation-create'),
+    path('lfas/<int:pk>/', views.LocalFootballAssociationDetailView.as_view(), name='localfootballassociation-detail'),
+    path('lfas/<int:pk>/edit/', views.LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),
+    path('lfas/<int:pk>/delete/', views.LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
+
       # API endpoints
-    path('api/regions-by-province/<int:province_id>/', views.regions_by_province, name='regions-by-province'),
-    path('api/lfas-by-region/<int:region_id>/', views.lfas_by_region, name='lfas-by-region'),
+    path('api/regions-by-province/', views.get_regions_by_province, name='regions-by-province'),
+    path('api/lfas-by-region/', views.get_lfas_by_region, name='lfas-by-region'),
 ]

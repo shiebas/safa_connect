@@ -39,15 +39,46 @@ class AssociationAdmin(ModelWithLogoAdmin):
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym']
 
-class LocalFootballAssociationAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'acronym', 'region', 'display_logo']
-    list_filter = ['region']
-    search_fields = ['name', 'acronym']
+class LocalFootballAssociationAdmin(admin.ModelAdmin):
+    list_display = ['name', 'acronym', 'region', 'association', 'get_province']
+    list_filter = ['region__province', 'region', 'association']
+    search_fields = ['name', 'acronym', 'region__name']
+    
+    def get_province(self, obj):
+        return obj.region.province.name
+    get_province.short_description = 'Province'
+    get_province.admin_order_field = 'region__province__name'
 
-class ClubAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'short_name', 'region', 'local_football_association', 'display_logo']
-    list_filter = ['region', 'local_football_association']
-    search_fields = ['name', 'short_name']
+class ClubAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'code',
+        'get_region',
+        'get_lfa',
+        'stadium',
+        'founding_date'
+    ]
+    list_filter = [
+        'localfootballassociation__region',  # Filter by region through the relationship
+        'localfootballassociation'  # Filter by LFA
+    ]
+    search_fields = [
+        'name',
+        'code',
+        'localfootballassociation__name',
+        'localfootballassociation__region__name'
+    ]
+    
+    # Define methods to get related fields for list_display
+    def get_region(self, obj):
+        return obj.localfootballassociation.region.name
+    get_region.short_description = 'Region'
+    get_region.admin_order_field = 'localfootballassociation__region__name'
+    
+    def get_lfa(self, obj):
+        return obj.localfootballassociation.name
+    get_lfa.short_description = 'Local Football Association'
+    get_lfa.admin_order_field = 'localfootballassociation__name'
 
 # Register models
 admin.site.register(WorldSportsBody)

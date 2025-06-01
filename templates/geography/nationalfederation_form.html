@@ -1,77 +1,90 @@
-{% extends "base.html" %}
-{% load static %}
-{% load widget_tweaks %}
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
-{% block title %}{% if object %}Edit{% else %}Add{% endif %} National Federation{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:'Edit,Add' }} National Federation{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h1>{% if object %}Edit{% else %}Add{% endif %} National Federation</h1>
-        <form method="post" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-            <div class="card">
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ form.instance.pk|yesno:'Edit,Add' }} National Federation</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:nationalfederation-list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" enctype="multipart/form-data" class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Federation Details</h4>
+                </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
-                        {% render_field form.name class="form-control" %}
-                        {% if form.name.errors %}
-                        <div class="text-danger small">{{ form.name.errors }}</div>
-                        {% endif %}
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.acronym|as_crispy_field }}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.acronym.id_for_label }}" class="form-label">Acronym</label>
-                        {% render_field form.acronym class="form-control" %}
-                        {% if form.acronym.errors %}
-                        <div class="text-danger small">{{ form.acronym.errors }}</div>
-                        {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.country|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.headquarters|as_crispy_field }}
+                        </div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
-                        {% render_field form.country class="form-select" %}
-                        {% if form.country.errors %}
-                        <div class="text-danger small">{{ form.country.errors }}</div>
-                        {% endif %}
+                        {{ form.website|as_crispy_field }}
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.world_body.id_for_label }}" class="form-label">World Sports Body</label>
-                        {% render_field form.world_body class="form-select" %}
-                        {% if form.world_body.errors %}
-                        <div class="text-danger small">{{ form.world_body.errors }}</div>
-                        {% endif %}
+                        {{ form.description|as_crispy_field }}
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-                        {% render_field form.description class="form-control" %}
-                        {% if form.description.errors %}
-                        <div class="text-danger small">{{ form.description.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.website.id_for_label }}" class="form-label">Website</label>
-                        {% render_field form.website class="form-control" %}
-                        {% if form.website.errors %}
-                        <div class="text-danger small">{{ form.website.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Logo</label><br>
-                        {% if object and object.logo %}
-                        <span>Currently: <a href="{{ object.logo.url }}">{{ object.logo.name }}</a></span>
-                        <br>
-                        {% endif %}
-                        {% render_field form.logo class="form-control" %}
-                        {% if form.logo.errors %}
-                        <div class="text-danger small">{{ form.logo.errors }}</div>
+                        <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
+                        <input type="file" name="logo" class="form-control" id="{{ form.logo.id_for_label }}" accept="image/*">
+                        {% if form.instance.logo %}
+                            <div class="mt-2">
+                                <img src="{{ form.instance.logo.url }}" alt="{{ form.instance.name }} Logo" 
+                                     class="img-thumbnail" style="max-height: 100px;">
+                            </div>
                         {% endif %}
                     </div>
                 </div>
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <a href="{% url 'geography:nationalfederation-list' %}" class="btn btn-secondary">Cancel</a>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Help</h4>
+                </div>
+                <div class="card-body">
+                    <p>National Federations are organizations that govern sports at the country level.</p>
+                    <p><strong>Examples:</strong> South African Football Association (SAFA), Nigeria Football Federation (NFF)</p>
+                    <ul>
+                        <li>Enter the official name and acronym</li>
+                        <li>Select the country this federation represents</li>
+                        <li>Add headquarters location and website</li>
+                        <li>Upload the federation's logo</li>
+                    </ul>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

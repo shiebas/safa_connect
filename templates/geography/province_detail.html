@@ -1,52 +1,139 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ province.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ province.name }}</h1>
-    <div>
-        <a href="{% url 'geography:province-update' province.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:province-delete' province.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:province-list' %}" class="btn btn-secondary">Back to List</a>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ province.name }} {% if province.code %}({{ province.code }}){% endif %}</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:province-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:province-update' province.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'geography:province-delete' province.pk %}" class="btn btn-danger">Delete</a>
+        </div>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-8">
-                <p><strong>Name:</strong> {{ province.name }}</p>
-                <p><strong>Code:</strong> {{ province.code }}</p>
-                <p><strong>Country:</strong> <a href="{% url 'geography:country-detail' province.country.pk %}">{{ province.country.name }}</a></p>
-                <p><strong>Province Type:</strong> {{ province.get_province_type_display }}</p>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Province Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {% if province.logo %}
+                                <img src="{{ province.logo.url }}" alt="{{ province.name }} Logo" 
+                                     class="img-fluid mb-3" style="max-height: 200px;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <span class="text-muted">No logo available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Code</th>
+                                        <td>{{ province.code|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Country</th>
+                                        <td>
+                                            {% if province.country %}
+                                                {% if province.country.logo %}
+                                                    <img src="{{ province.country.logo.url }}" alt="{{ province.country.name }}" 
+                                                         style="width: 24px; height: 24px;" class="me-2">
+                                                {% endif %}
+                                                {{ province.country.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Regions</th>
+                                        <td>{{ province.region_set.count }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Created</th>
+                                        <td>{{ province.created|date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Updated</th>
+                                        <td>{{ province.modified|date }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if province.description %}
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p>{{ province.description|linebreaks }}</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="col-md-4 text-center">
-                {% if province.logo %}
-                <img src="{{ province.logo.url }}" alt="{{ province.name }} logo" class="img-fluid" style="max-height: 200px;">
-                {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Regions</h4>
+                </div>
+                <div class="card-body">
+                    {% if province.region_set.all %}
+                        <div class="list-group list-group-flush">
+                            {% for region in province.region_set.all %}
+                                <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                                    {% if region.logo %}
+                                        <img src="{{ region.logo.url }}" alt="{{ region.name }}" 
+                                             class="me-2" style="width: 24px; height: 24px;">
+                                    {% endif %}
+                                    {{ region.name }}
+                                    {% if region.code %}
+                                        <span class="badge bg-secondary ms-2">{{ region.code }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No regions associated with this province.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addRegionModal">
+                        <i class="fas fa-plus"></i> Add Region
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card mt-4">
-    <div class="card-header">
-        <h3>Regions</h3>
-    </div>
-    <div class="card-body">
-        {% if province.regions.all %}
-        <ul class="list-group">
-            {% for region in province.regions.all %}
-            <li class="list-group-item">
-                <a href="{% url 'geography:region-detail' region.pk %}">{{ region.name }}</a>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>No regions found for this province.</p>
-        {% endif %}
+<!-- Modal for adding a region -->
+<div class="modal fade" id="addRegionModal" tabindex="-1" aria-labelledby="addRegionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRegionModalLabel">Add Region to {{ province.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please use the Region management section to add new regions.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-primary">Go to Regions</a>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

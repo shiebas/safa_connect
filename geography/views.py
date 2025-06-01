@@ -1,3 +1,4 @@
+from django.db.models import Prefetch  # Add this import at the top of the file
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -9,6 +10,7 @@ from .models import (
     ContinentFederation, Club, Association, ContinentRegion, NationalFederation,
     LocalFootballAssociation
 )
+
 
 # Mixin to restrict access to staff users only
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -211,8 +213,9 @@ class ContinentFederationDeleteView(DeleteView):
 @login_decorator
 class ContinentRegionListView(LoginRequiredMixin, ListView):
     model = ContinentRegion
-    context_object_name = 'regions'
+    context_object_name = 'continentregions'
     template_name = 'geography/continentregion_list.html'
+    paginate_by = 10  # Add pagination
     
     def get_queryset(self):
         return ContinentRegion.objects.select_related('continent')
@@ -256,356 +259,448 @@ class ContinentRegionDeleteView(LoginRequiredMixin, DeleteView):
 
 # Country
 @login_decorator
-class CountryListView(ListView):
+class CountryListView(LoginRequiredMixin, ListView):
     model = Country
-    template_name = 'geography/country_list.html'
     context_object_name = 'countries'
-    paginate_by = 20
-
+    template_name = 'geography/country_list.html'
+    paginate_by = 10  # Add pagination
+    
     def get_queryset(self):
-        return Country.objects.select_related(
-            'continent_region'
-        ).order_by('name')
+        return Country.objects.select_related('continent_region')
 
 @login_decorator
-class CountryDetailView(DetailView):
+class CountryDetailView(LoginRequiredMixin, DetailView):
     model = Country
-    template_name = 'geography/country_detail.html'
     context_object_name = 'country'
+    template_name = 'geography/country_detail.html'
 
 @login_decorator
-class CountryCreateView(CreateView):
+class CountryCreateView(LoginRequiredMixin, CreateView):
     model = Country
     form_class = CountryForm
     template_name = 'geography/country_form.html'
     success_url = reverse_lazy('geography:country-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'Country created successfully!')
+        messages.success(self.request, 'Country created successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class CountryUpdateView(UpdateView):
+class CountryUpdateView(LoginRequiredMixin, UpdateView):
     model = Country
     form_class = CountryForm
     template_name = 'geography/country_form.html'
     success_url = reverse_lazy('geography:country-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'Country updated successfully!')
+        messages.success(self.request, 'Country updated successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class CountryDeleteView(DeleteView):
+class CountryDeleteView(LoginRequiredMixin, DeleteView):
     model = Country
     template_name = 'geography/country_confirm_delete.html'
     success_url = reverse_lazy('geography:country-list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Country deleted successfully.')
+        return super().delete(request, *args, **kwargs)
 
 # NationalFederation
 @login_decorator
-class NationalFederationListView(ListView):
+class NationalFederationListView(LoginRequiredMixin, ListView):
     model = NationalFederation
+    context_object_name = 'federations'
     template_name = 'geography/nationalfederation_list.html'
-    context_object_name = 'nationalfederations'
-    paginate_by = 10
-
+    paginate_by = 10  # Add pagination
+    
     def get_queryset(self):
-        return NationalFederation.objects.select_related(
-            'country', 'world_body'
-        ).order_by('name')
+        return NationalFederation.objects.select_related('country')
 
 @login_decorator
-class NationalFederationDetailView(DetailView):
+class NationalFederationDetailView(LoginRequiredMixin, DetailView):
     model = NationalFederation
+    context_object_name = 'federation'
     template_name = 'geography/nationalfederation_detail.html'
-    context_object_name = 'nationalfederation'
 
 @login_decorator
-class NationalFederationCreateView(CreateView):
+class NationalFederationCreateView(LoginRequiredMixin, CreateView):
     model = NationalFederation
     form_class = NationalFederationForm
     template_name = 'geography/nationalfederation_form.html'
     success_url = reverse_lazy('geography:nationalfederation-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'National Federation created successfully!')
+        messages.success(self.request, 'National Federation created successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class NationalFederationUpdateView(UpdateView):
+class NationalFederationUpdateView(LoginRequiredMixin, UpdateView):
     model = NationalFederation
     form_class = NationalFederationForm
     template_name = 'geography/nationalfederation_form.html'
     success_url = reverse_lazy('geography:nationalfederation-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'National Federation updated successfully!')
+        messages.success(self.request, 'National Federation updated successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class NationalFederationDeleteView(DeleteView):
+class NationalFederationDeleteView(LoginRequiredMixin, DeleteView):
     model = NationalFederation
     template_name = 'geography/nationalfederation_confirm_delete.html'
     success_url = reverse_lazy('geography:nationalfederation-list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'National Federation deleted successfully.')
+        return super().delete(request, *args, **kwargs)
 
 # Association
 @login_decorator
-class AssociationListView(ListView):
+class AssociationListView(LoginRequiredMixin, ListView):
     model = Association
-    template_name = 'geography/association_list.html'
     context_object_name = 'associations'
-    paginate_by = 10
-
+    template_name = 'geography/association_list.html'
+    paginate_by = 10  # Add pagination
+    
     def get_queryset(self):
-        return Association.objects.select_related(
-            'national_federation'
-        ).order_by('name')
+        return Association.objects.select_related('national_federation')
 
 @login_decorator
-class AssociationDetailView(DetailView):
+class AssociationDetailView(LoginRequiredMixin, DetailView):
     model = Association
-    template_name = 'geography/association_detail.html'
     context_object_name = 'association'
+    template_name = 'geography/association_detail.html'
 
 @login_decorator
-class AssociationCreateView(CreateView):
+class AssociationCreateView(LoginRequiredMixin, CreateView):
     model = Association
     form_class = AssociationForm
     template_name = 'geography/association_form.html'
     success_url = reverse_lazy('geography:association-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'Association created successfully!')
+        messages.success(self.request, 'Association created successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class AssociationUpdateView(UpdateView):
+class AssociationUpdateView(LoginRequiredMixin, UpdateView):
     model = Association
     form_class = AssociationForm
     template_name = 'geography/association_form.html'
     success_url = reverse_lazy('geography:association-list')
-
+    
     def form_valid(self, form):
-        messages.success(self.request, 'Association updated successfully!')
+        messages.success(self.request, 'Association updated successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class AssociationDeleteView(DeleteView):
+class AssociationDeleteView(LoginRequiredMixin, DeleteView):
     model = Association
     template_name = 'geography/association_confirm_delete.html'
     success_url = reverse_lazy('geography:association-list')
+    context_object_name = 'object'
+    
+    def delete(self, request, *args, **kwargs):
+        try:
+            messages.success(request, 'Association deleted successfully.')
+            return super().delete(request, *args, **kwargs)
+        except Exception as e:
+            messages.error(request, f"Error deleting association: {str(e)}")
+            return redirect('geography:association-list')
 
 # Province
 @login_decorator
-class ProvinceListView(ListView):
+class ProvinceListView(LoginRequiredMixin, ListView):
     model = Province
-    template_name = 'geography/province_list.html'
     context_object_name = 'provinces'
-    paginate_by = 10
-
+    template_name = 'geography/province_list.html'
+    paginate_by = 10  # Add pagination
+    
     def get_queryset(self):
-        return Province.objects.select_related(
-            'country'
-        ).order_by('name')
+        return Province.objects.select_related('country')
 
 @login_decorator
-class ProvinceDetailView(DetailView):
+class ProvinceDetailView(LoginRequiredMixin, DetailView):
     model = Province
     template_name = 'geography/province_detail.html'
     context_object_name = 'province'
 
 @login_decorator
-class ProvinceCreateView(CreateView):
+class ProvinceCreateView(LoginRequiredMixin, CreateView):
     model = Province
     form_class = ProvinceForm
     template_name = 'geography/province_form.html'
     success_url = reverse_lazy('geography:province-list')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Province created successfully!')
+        messages.success(self.request, 'Province created successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class ProvinceUpdateView(UpdateView):
+class ProvinceUpdateView(LoginRequiredMixin, UpdateView):
     model = Province
     form_class = ProvinceForm
     template_name = 'geography/province_form.html'
     success_url = reverse_lazy('geography:province-list')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Province updated successfully!')
+        messages.success(self.request, 'Province updated successfully.')
         return super().form_valid(form)
 
 @login_decorator
-class ProvinceDeleteView(DeleteView):
+class ProvinceDeleteView(LoginRequiredMixin, DeleteView):
     model = Province
     template_name = 'geography/province_confirm_delete.html'
     success_url = reverse_lazy('geography:province-list')
+    context_object_name = 'object'
+    
+    def delete(self, request, *args, **kwargs):
+        try:
+            messages.success(request, 'Province deleted successfully.')
+            return super().delete(request, *args, **kwargs)
+        except Exception as e:
+            messages.error(request, f"Error deleting province: {str(e)}")
+            return redirect('geography:province-list')
 
 # Region
 @login_decorator
-class RegionListView(ListView):
+class RegionListView(LoginRequiredMixin, ListView):
     model = Region
+    context_object_name = 'provinces_with_regions'  # Changed to receive grouped data
     template_name = 'geography/region_list.html'
-    context_object_name = 'regions'
-    paginate_by = 10
-
+    paginate_by = 10  # Set pagination to 10 items
+    
     def get_queryset(self):
-        return Region.objects.select_related(
-            'province', 'national_federation'
+        # Get all provinces with their regions, ordered by province name
+        provinces = Province.objects.prefetch_related(
+            Prefetch('region_set', queryset=Region.objects.all().select_related('province__country'))
         ).order_by('name')
+        
+        return provinces
 
 @login_decorator
+class RegionCreateView(LoginRequiredMixin, CreateView):
+    model = Region
+    form_class = RegionForm
+    template_name = 'geography/region_form.html'
+    success_url = reverse_lazy('geography:region-list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Region created successfully.')
+        return super().form_valid(form)
+
+@login_decorator
+class RegionUpdateView(LoginRequiredMixin, UpdateView):
+    model = Region
+    form_class = RegionForm
+    template_name = 'geography/region_form.html'
+    success_url = reverse_lazy('geography:region-list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Region updated successfully.')
+        return super().form_valid(form)
+
 class RegionDetailView(LoginRequiredMixin, DetailView):
     model = Region
-    template_name = 'geography/region_detail.html'
     context_object_name = 'region'
+    template_name = 'geography/region_detail.html'
 
-    def get_queryset(self):
-        return Region.objects.select_related(
-            'province', 'national_federation'
-        ).prefetch_related('localfootballassociation_set', 'localfootballassociation_set__clubs')
-
-@login_decorator
-class RegionCreateView(CreateView):
-    model = Region
-    form_class = RegionForm
-    template_name = 'geography/region_form.html'
-    success_url = reverse_lazy('geography:region-list')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Region created successfully!')
-        return super().form_valid(form)
-
-@login_decorator
-class RegionUpdateView(UpdateView):
-    model = Region
-    form_class = RegionForm
-    template_name = 'geography/region_form.html'
-    success_url = reverse_lazy('geography:region-list')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Region updated successfully!')
-        return super().form_valid(form)
-
-@login_decorator
-class RegionDeleteView(DeleteView):
+class RegionDeleteView(LoginRequiredMixin, DeleteView):
     model = Region
     template_name = 'geography/region_confirm_delete.html'
     success_url = reverse_lazy('geography:region-list')
+    context_object_name = 'object'
+    
+    def delete(self, request, *args, **kwargs):
+        try:
+            messages.success(request, 'Region deleted successfully.')
+            return super().delete(request, *args, **kwargs)
+        except Exception as e:
+            messages.error(request, f"Error deleting region: {str(e)}")
+            return redirect('geography:region-list')
 
 # Club
 @login_decorator
 class ClubListView(ListView):
     model = Club
+    context_object_name = 'provinces_with_data'
     template_name = 'geography/club_list.html'
-    context_object_name = 'clubs'
     paginate_by = 10
 
     def get_queryset(self):
-        return Club.objects.select_related(
-            'region'
-        ).order_by('name')
+        # Get all provinces with their regions, LFAs, and clubs in a hierarchical structure
+        provinces = Province.objects.prefetch_related(
+            Prefetch('region_set', queryset=Region.objects.all()),
+            Prefetch(
+                'region_set__localfootballassociation_set', 
+                queryset=LocalFootballAssociation.objects.all().select_related('association')
+            ),
+            Prefetch(
+                'region_set__localfootballassociation_set__club_set',
+                queryset=Club.objects.all()
+            )
+        ).select_related('country').order_by('name')
+        
+        return provinces
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate club counts for each province and region
+        provinces_with_counts = []
+        for province in context['provinces_with_data']:
+            region_data = []
+            province_club_count = 0
+            
+            for region in province.region_set.all():
+                region_club_count = sum(lfa.club_set.count() for lfa in region.localfootballassociation_set.all())
+                province_club_count += region_club_count
+                
+                region_data.append({
+                    'region': region,
+                    'club_count': region_club_count
+                })
+            
+            provinces_with_counts.append({
+                'province': province,
+                'regions': region_data,
+                'club_count': province_club_count
+            })
+        
+        context['provinces_with_counts'] = provinces_with_counts
+        return context
 
 @login_decorator
-class ClubDetailView(DetailView):
+class ClubCreateView(LoginRequiredMixin, CreateView):
     model = Club
-    template_name = 'geography/club_detail.html'
+    form_class = ClubForm
+    template_name = 'geography/club_form.html'
+    success_url = reverse_lazy('geography:club-list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Club created successfully.')
+        return super().form_valid(form)
+
+@login_decorator
+class ClubUpdateView(LoginRequiredMixin, UpdateView):
+    model = Club
+    form_class = ClubForm
+    template_name = 'geography/club_form.html'
+    success_url = reverse_lazy('geography:club-list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Club updated successfully.')
+        return super().form_valid(form)
+
+class ClubDetailView(LoginRequiredMixin, DetailView):
+    model = Club
     context_object_name = 'club'
+    template_name = 'geography/club_detail.html'
 
-@login_decorator
-class ClubCreateView(CreateView):
-    model = Club
-    form_class = ClubForm
-    template_name = 'geography/club_form.html'
-    success_url = reverse_lazy('geography:club-list')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Club created successfully!')
-        return super().form_valid(form)
-
-@login_decorator
-class ClubUpdateView(UpdateView):
-    model = Club
-    form_class = ClubForm
-    template_name = 'geography/club_form.html'
-    success_url = reverse_lazy('geography:club-list')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Club updated successfully!')
-        return super().form_valid(form)
-
-@login_decorator
-class ClubDeleteView(DeleteView):
+class ClubDeleteView(LoginRequiredMixin, DeleteView):
     model = Club
     template_name = 'geography/club_confirm_delete.html'
     success_url = reverse_lazy('geography:club-list')
+    context_object_name = 'object'
+    
+    def delete(self, request, *args, **kwargs):
+        try:
+            messages.success(request, 'Club deleted successfully.')
+            return super().delete(request, *args, **kwargs)
+        except Exception as e:
+            messages.error(request, f"Error deleting club: {str(e)}")
+            return redirect('geography:club-list')
 
 # LocalFootballAssociation
 @login_decorator
-class LocalFootballAssociationListView(ListView):
+class LocalFootballAssociationListView(LoginRequiredMixin, ListView):
     model = LocalFootballAssociation
+    context_object_name = 'provinces_with_regions'
     template_name = 'geography/localfootballassociation_list.html'
-    context_object_name = 'localfootballassociations'
     paginate_by = 10
-
+    
     def get_queryset(self):
-        return LocalFootballAssociation.objects.select_related(
-            'region'
-        ).order_by('name')
+        # Get all provinces with their regions
+        provinces = Province.objects.prefetch_related(
+            Prefetch('region_set', queryset=Region.objects.all()),
+            Prefetch(
+                'region_set__localfootballassociation_set', 
+                queryset=LocalFootballAssociation.objects.all().select_related('association')
+            )
+        ).select_related('country').order_by('name')
+        
+        return provinces
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate the LFA count for each province
+        provinces_with_counts = []
+        for province in context['provinces_with_regions']:
+            lfa_count = sum(region.localfootballassociation_set.count() for region in province.region_set.all())
+            provinces_with_counts.append({
+                'province': province,
+                'lfa_count': lfa_count
+            })
+        
+        context['provinces_with_counts'] = provinces_with_counts
+        return context
 
 @login_decorator
-class LocalFootballAssociationDetailView(DetailView):
+class LocalFootballAssociationCreateView(LoginRequiredMixin, CreateView):
     model = LocalFootballAssociation
+    form_class = LocalFootballAssociationForm
+    template_name = 'geography/localfootballassociation_form.html'
+    success_url = reverse_lazy('geography:localfootballassociation-list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Local Football Association created successfully.')
+        return super().form_valid(form)
+
+@login_decorator
+class LocalFootballAssociationUpdateView(LoginRequiredMixin, UpdateView):
+    model = LocalFootballAssociation
+    form_class = LocalFootballAssociationForm
+    template_name = 'geography/localfootballassociation_form.html'
+    success_url = reverse_lazy('geography:localfootballassociation-list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Local Football Association updated successfully.')
+        return super().form_valid(form)
+
+class LocalFootballAssociationDetailView(LoginRequiredMixin, DetailView):
+    model = LocalFootballAssociation
+    context_object_name = 'lfa'
     template_name = 'geography/localfootballassociation_detail.html'
-    context_object_name = 'localfootballassociation'
 
 @login_decorator
-class LocalFootballAssociationCreateView(CreateView):
-    model = LocalFootballAssociation
-    form_class = LocalFootballAssociationForm
-    template_name = 'geography/localfootballassociation_form.html'
-    success_url = reverse_lazy('geography:localfootballassociation-list')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Local Football Association created successfully!')
-        return super().form_valid(form)
-
-@login_decorator
-class LocalFootballAssociationUpdateView(UpdateView):
-    model = LocalFootballAssociation
-    form_class = LocalFootballAssociationForm
-    template_name = 'geography/localfootballassociation_form.html'
-    success_url = reverse_lazy('geography:localfootballassociation-list')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Local Football Association updated successfully!')
-        return super().form_valid(form)
-
-@login_decorator
-class LocalFootballAssociationDeleteView(DeleteView):
+class LocalFootballAssociationDeleteView(LoginRequiredMixin, DeleteView):
     model = LocalFootballAssociation
     template_name = 'geography/localfootballassociation_confirm_delete.html'
-
     success_url = reverse_lazy('geography:localfootballassociation-list')
+    context_object_name = 'object'
+    
+    def delete(self, request, *args, **kwargs):
+        try:
+            messages.success(request, 'Local Football Association deleted successfully.')
+            return super().delete(request, *args, **kwargs)
+        except Exception as e:
+            messages.error(request, f"Error deleting LFA: {str(e)}")
+            return redirect('geography:localfootballassociation-list')
 
-def regions_by_province(request, province_id):
-    """API endpoint to get regions for a given province"""
-    province = get_object_or_404(Province, id=province_id)
-    regions = Region.objects.filter(province=province)
-    data = [{'id': region.id, 'name': region.name} for region in regions]
-    return JsonResponse(data, safe=False)
+def get_regions_by_province(request):
+    """Return regions for a given province as JSON for AJAX calls"""
+    province_id = request.GET.get('province_id')
+    if province_id:
+        regions = Region.objects.filter(province_id=province_id).values('id', 'name').order_by('name')
+        return JsonResponse(list(regions), safe=False)
+    return JsonResponse([], safe=False)
 
-def lfas_by_region(request, region_id):
-    """
-    API endpoint to get Local Football Associations for a given region
-    Args:
-        request: HTTP request object
-        region_id: ID of the Region to filter LFAs
-    Returns:
-        JsonResponse with list of LFAs in the region
-    """
-    region = get_object_or_404(Region, id=region_id)
-    lfas = LocalFootballAssociation.objects.filter(region=region)
-    data = [{'id': lfa.id, 'name': lfa.name} for lfa in lfas]
-    return JsonResponse(data, safe=False)
+def get_lfas_by_region(request):
+    """Return LFAs for a given region as JSON for AJAX calls"""
+    region_id = request.GET.get('region_id')
+    if region_id:
+        lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name').order_by('name')
+        return JsonResponse(list(lfas), safe=False)
+    return JsonResponse([], safe=False)

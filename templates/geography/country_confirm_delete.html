@@ -1,11 +1,62 @@
-{% extends "base.html" %}
-{% block title %}Delete Country{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete {{ country.name }}{% endblock %}
+
 {% block content %}
-<h2>Delete Country</h2>
-<p>Are you sure you want to delete "{{ country.name }}"?</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Yes, delete</button>
-    <a href="{% url 'country-list' %}">Cancel</a>
-</form>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Delete Country</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:country-detail' country.pk %}" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirm Deletion</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to delete <strong>{{ country.name }}</strong>?</p>
+                    
+                    <div class="alert alert-warning">
+                        <p><i class="fas fa-exclamation-triangle"></i> This action cannot be undone!</p>
+                        
+                        {% if country.province_set.all %}
+                            <p>This country has {{ country.province_set.count }} province(s):</p>
+                            <ul>
+                                {% for province in country.province_set.all %}
+                                    <li>{{ province.name }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p>Deleting this country will affect all related provinces and regions.</p>
+                        {% endif %}
+                        
+                        {% if country.nationalfederation_set.all %}
+                            <p>This country has {{ country.nationalfederation_set.count }} national federation(s):</p>
+                            <ul>
+                                {% for federation in country.nationalfederation_set.all %}
+                                    <li>{{ federation.name }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p>Deleting this country will affect all related national federations.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end mt-3">
+                            <a href="{% url 'geography:country-detail' country.pk %}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -208,130 +208,152 @@ class ContinentRegion(TimeStampedModel, ModelWithLogo):
         return f"{self.name} ({self.continent.name})"
 
 class Country(TimeStampedModel, ModelWithLogo):
-    """Core country model with FIFA codes"""
-    name = models.CharField(max_length=100, unique=True)
-    fifa_code = models.CharField(max_length=3, unique=True)  # ZAF, NAM, LSO
-    association_acronym = models.CharField(max_length=15, default='SAFA')
-    continent_region = models.ForeignKey(ContinentRegion, on_delete=models.PROTECT, related_name='countries', null=True, blank=True)
-    is_default = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs):
-        """Ensure only one default country exists"""
-        if self.is_default:
-            Country.objects.exclude(pk=self.pk).update(is_default=False)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.name} ({self.fifa_code})"
-
+    """Represents a country (e.g., South Africa)"""
+    name = models.CharField(_('Name'), max_length=100)
+    code = models.CharField(_('Country Code'), max_length=3, blank=True, null=True)
+    description = models.TextField(_('Description'), blank=True)
+    continent_region = models.ForeignKey(
+        ContinentRegion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='countries'
+    )
+    
     class Meta:
-        verbose_name = "Country"
-        verbose_name_plural = "Countries"
+        verbose_name = _('Country')
+        verbose_name_plural = _('Countries')
         ordering = ['name']
+    
+    def __str__(self):
+        return self.name
 
 class NationalFederation(TimeStampedModel, ModelWithLogo):
-    """National sports associations like SAFA, USA Soccer, etc."""
-    name = models.CharField(max_length=100)
-    acronym = models.CharField(max_length=10)
-    country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='federations')
-    world_body = models.ForeignKey(WorldSportsBody, on_delete=models.PROTECT, related_name='national_federations')
-    description = models.TextField(blank=True)
-    website = models.URLField(blank=True)
-
-
-    def __str__(self):
-        return f"{self.acronym} - {self.country.name}"
-
+    """Represents a national sports governing body (e.g., SAFA)"""
+    name = models.CharField(_('Name'), max_length=100)
+    acronym = models.CharField(_('Acronym'), max_length=10, blank=True)
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE
+    )
+    website = models.URLField(_('Website'), max_length=200, blank=True)
+    headquarters = models.CharField(_('Headquarters'), max_length=100, blank=True)
+    description = models.TextField(_('Description'), blank=True)
+    
     class Meta:
-        verbose_name = "National Federation"
-        verbose_name_plural = "National Federations"
-        unique_together = ['country', 'world_body']
+        verbose_name = _('National Federation')
+        verbose_name_plural = _('National Federations')
+        ordering = ['country', 'name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.country.name})"
 
 class Province(TimeStampedModel, ModelWithLogo):
-    """Provinces or states within a country"""
-    name = models.CharField(max_length=100)
-    code = models.CharField(max_length=5)
-    country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='provinces')
-    province_type = models.CharField(max_length=10, choices=ProvinceType.choices, default=ProvinceType.INLAND)
-
-    def __str__(self):
-        return f"{self.name}, {self.country.name}"
-
+    """Represents a province/state within a country (e.g., Western Cape)"""
+    name = models.CharField(_('Name'), max_length=100)
+    code = models.CharField(_('Code'), max_length=10, blank=True)
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE
+    )
+    description = models.TextField(_('Description'), blank=True)
+    
     class Meta:
-        unique_together = ['code', 'country']
+        verbose_name = _('Province')
+        verbose_name_plural = _('Provinces')
+        ordering = ['country', 'name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.country.name})"
 
 class Region(TimeStampedModel, ModelWithLogo):
-    """Regions within provinces/states"""
-    name = models.CharField(max_length=100)
-    code = models.CharField(max_length=10)
-    province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='regions')
-    national_federation = models.ForeignKey(NationalFederation, on_delete=models.PROTECT, related_name='regions')
-
-    def __str__(self):
-        return f"{self.name}, {self.province.name}"
-
+    """Represents a region within a province (e.g., Cape Town Metro within Western Cape)"""
+    name = models.CharField(_('Name'), max_length=100)
+    code = models.CharField(_('Code'), max_length=10, blank=True)
+    province = models.ForeignKey(
+        Province,
+        on_delete=models.CASCADE
+    )
+    description = models.TextField(_('Description'), blank=True)
+    
     class Meta:
-        unique_together = ['code', 'province', 'national_federation']
-
-class LocalFootballAssociation(TimeStampedModel, ModelWithLogo):
-    """Local Football Association (LFA) that manages clubs within a region"""
-    name = models.CharField(max_length=100)
-    acronym = models.CharField(max_length=10, blank=True)
-    region = models.ForeignKey(Region, on_delete=models.PROTECT)
-    contact_email = models.EmailField(blank=True)
-    contact_phone = models.CharField(max_length=20, blank=True)
-    website = models.URLField(blank=True)
-
+        verbose_name = _('Region')
+        verbose_name_plural = _('Regions')
+        ordering = ['province', 'name']
+    
     def __str__(self):
-        if self.acronym:
-            return f"{self.acronym} - {self.name} ({self.region.name})"
-        return f"{self.name} ({self.region.name})"
-
-    class Meta:
-        verbose_name = "Local Football Association"
-        verbose_name_plural = "Local Football Associations"
+        return f"{self.name} ({self.province.name})"
 
 class Association(TimeStampedModel, ModelWithLogo):
-    """Special interest associations like Referee Association, Schools Association, etc."""
-    name = models.CharField(max_length=100)
-    acronym = models.CharField(max_length=10)
-    national_federation = models.ForeignKey(NationalFederation, on_delete=models.PROTECT, related_name='associations')
-    association_type = models.CharField(max_length=50)  # e.g., "Referee", "Schools", "Coaches"
-    description = models.TextField(blank=True)
-
-
-    def __str__(self):
-        return f"{self.acronym} - {self.name}"
-
+    """Represents a provincial/regional association (e.g., Western Cape Football Association)"""
+    name = models.CharField(_('Name'), max_length=100)
+    acronym = models.CharField(_('Acronym'), max_length=10, blank=True)
+    national_federation = models.ForeignKey(
+        NationalFederation,
+        on_delete=models.CASCADE
+    )
+    website = models.URLField(_('Website'), max_length=200, blank=True)
+    headquarters = models.CharField(_('Headquarters'), max_length=100, blank=True)
+    description = models.TextField(_('Description'), blank=True)
+    
     class Meta:
-        unique_together = ['acronym', 'national_federation']
+        verbose_name = _('Association')
+        verbose_name_plural = _('Associations')
+        ordering = ['national_federation', 'name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.national_federation.country.name})"
+
+class LocalFootballAssociation(TimeStampedModel, ModelWithLogo):
+    """Represents a local football association (e.g., Cape Town LFA)"""
+    name = models.CharField(_('Name'), max_length=100)
+    acronym = models.CharField(_('Acronym'), max_length=10, blank=True)
+    region = models.ForeignKey(
+        Region,
+        on_delete=models.CASCADE
+    )
+    association = models.ForeignKey(
+        Association,
+        on_delete=models.CASCADE,
+        null=True,  # Allow NULL values
+        blank=True  # Make field optional in forms
+    )
+    website = models.URLField(_('Website'), max_length=200, blank=True)
+    headquarters = models.CharField(_('Headquarters'), max_length=100, blank=True)
+    description = models.TextField(_('Description'), blank=True)
+    
+    class Meta:
+        verbose_name = _('Local Football Association')
+        verbose_name_plural = _('Local Football Associations')
+        ordering = ['region', 'name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.region.name})"
 
 class Club(TimeStampedModel, ModelWithLogo):
-    """Local sports clubs"""
+    """Represents a football club"""
     name = models.CharField(_('Name'), max_length=100)
-    short_name = models.CharField(_('Short Name'), max_length=50, blank=True)
-    code = models.CharField(_('Club Code'), max_length=10, unique=True)
-    email = models.EmailField(_('Email'), blank=True)
-    phone = models.CharField(_('Phone'), max_length=20, blank=True)
-    address = models.TextField(_('Address'), blank=True)
-    founded_year = models.PositiveIntegerField(_('Founded Year'), null=True, blank=True)
-    region = models.ForeignKey(
-        'Region',
-        on_delete=models.PROTECT,
-        related_name='clubs'
+    code = models.CharField(_('Code'), max_length=10, blank=True)
+    localfootballassociation = models.ForeignKey(
+        LocalFootballAssociation,
+        on_delete=models.CASCADE,
+        null=True,  # Allow NULL values
+        blank=True  # Make field optional in forms
     )
-    local_football_association = models.ForeignKey(
-        'LocalFootballAssociation',
-        on_delete=models.PROTECT,
-        related_name='clubs'
-    )
-
+    founding_date = models.DateField(_('Founding Date'), blank=True, null=True)
+    website = models.URLField(_('Website'), max_length=200, blank=True)
+    stadium = models.CharField(_('Stadium'), max_length=100, blank=True)
+    description = models.TextField(_('Description'), blank=True)
+    colors = models.CharField(_('Club Colors'), max_length=100, blank=True)
+    
     class Meta:
-        ordering = ['name']
         verbose_name = _('Club')
         verbose_name_plural = _('Clubs')
-
+        ordering = ['localfootballassociation', 'name']
+    
     def __str__(self):
+        if self.localfootballassociation:
+            return f"{self.name} ({self.localfootballassociation.name})"
         return self.name
 
 # ===== USER MODELS =====

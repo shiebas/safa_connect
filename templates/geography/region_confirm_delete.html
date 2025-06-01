@@ -1,24 +1,66 @@
-{% extends "base.html" %}
-{% load static %}
+{% extends 'base.html' %}
 
-{% block title %}Delete {{ region.name }}{% endblock %}
+{% block title %}Delete {{ object.name }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-danger text-white">
-                <h3>Delete Region</h3>
-            </div>
-            <div class="card-body">
-                <p>Are you sure you want to delete <strong>{{ region.name }}</strong>?</p>
-                <form method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                    <a href="{% url 'geography:region-detail' region.pk %}" class="btn btn-secondary">Cancel</a>
-                </form>
-            </div>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Delete Region</h2>
+        </div>
+        <div class="col-auto">
+            {% if object.pk %}
+                <a href="{% url 'geography:region-detail' object.pk %}" class="btn btn-secondary">Back</a>
+            {% else %}
+                <a href="{% url 'geography:region-list' %}" class="btn btn-secondary">Back to List</a>
+            {% endif %}
         </div>
     </div>
+    
+    {% if object %}
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card border-danger shadow-sm">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0">Confirm Deletion</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">Are you sure you want to delete <strong>{{ object.name }}</strong>?</p>
+                        
+                        <div class="alert alert-warning">
+                            <p><i class="fas fa-exclamation-triangle"></i> This action cannot be undone!</p>
+                            
+                            {% if object.localfootballassociation_set.all %}
+                                <p>This region has {{ object.localfootballassociation_set.count }} local football association(s):</p>
+                                <ul>
+                                    {% for lfa in object.localfootballassociation_set.all %}
+                                        <li>{{ lfa.name }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <p>Deleting this region will affect all related local football associations.</p>
+                            {% endif %}
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-flex justify-content-end mt-3">
+                                {% if object.pk %}
+                                    <a href="{% url 'geography:region-detail' object.pk %}" class="btn btn-secondary me-2">Cancel</a>
+                                {% else %}
+                                    <a href="{% url 'geography:region-list' %}" class="btn btn-secondary me-2">Cancel</a>
+                                {% endif %}
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <p>The region you are trying to delete does not exist or has already been deleted.</p>
+            <a href="{% url 'geography:region-list' %}" class="btn btn-primary mt-3">Back to List</a>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

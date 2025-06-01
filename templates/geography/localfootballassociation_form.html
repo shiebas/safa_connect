@@ -1,84 +1,96 @@
-{% extends "base.html" %}
-{% load static %}
-{% load widget_tweaks %}
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
-{% block title %}{% if object %}Edit{% else %}Add{% endif %} Local Football Association{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:'Edit,Add' }} Local Football Association{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h1>{% if object %}Edit{% else %}Add{% endif %} Local Football Association</h1>
-        <form method="post" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-            <div class="card">
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ form.instance.pk|yesno:'Edit,Add' }} Local Football Association</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:localfootballassociation-list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" enctype="multipart/form-data" class="card shadow-sm">
+                <div class="card-header">
+                    <h4>LFA Details</h4>
+                </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
-                        {% render_field form.name class="form-control" %}
-                        {% if form.name.errors %}
-                        <div class="text-danger small">{{ form.name.errors }}</div>
-                        {% endif %}
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.acronym|as_crispy_field }}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.acronym.id_for_label }}" class="form-label">Acronym</label>
-                        {% render_field form.acronym class="form-control" %}
-                        {% if form.acronym.errors %}
-                        <div class="text-danger small">{{ form.acronym.errors }}</div>
-                        {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.region|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.association|as_crispy_field }}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.region.id_for_label }}" class="form-label">Region</label>
-                        {% render_field form.region class="form-select" %}
-                        {% if form.region.errors %}
-                        <div class="text-danger small">{{ form.region.errors }}</div>
-                        {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.website|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.headquarters|as_crispy_field }}
+                        </div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-                        {% render_field form.description class="form-control" %}
-                        {% if form.description.errors %}
-                        <div class="text-danger small">{{ form.description.errors }}</div>
-                        {% endif %}
+                        {{ form.description|as_crispy_field }}
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.contact_email.id_for_label }}" class="form-label">Contact Email</label>
-                        {% render_field form.contact_email class="form-control" %}
-                        {% if form.contact_email.errors %}
-                        <div class="text-danger small">{{ form.contact_email.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.contact_phone.id_for_label }}" class="form-label">Contact Phone</label>
-                        {% render_field form.contact_phone class="form-control" %}
-                        {% if form.contact_phone.errors %}
-                        <div class="text-danger small">{{ form.contact_phone.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.website.id_for_label }}" class="form-label">Website</label>
-                        {% render_field form.website class="form-control" %}
-                        {% if form.website.errors %}
-                        <div class="text-danger small">{{ form.website.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Logo</label><br>
-                        {% if object and object.logo %}
-                        <span>Currently: <a href="{{ object.logo.url }}">{{ object.logo.name }}</a></span>
-                        <br>
-                        {% endif %}
-                        {% render_field form.logo class="form-control" %}
-                        {% if form.logo.errors %}
-                        <div class="text-danger small">{{ form.logo.errors }}</div>
+                        <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
+                        <input type="file" name="logo" class="form-control" id="{{ form.logo.id_for_label }}" accept="image/*">
+                        {% if form.instance.logo %}
+                            <div class="mt-2">
+                                <img src="{{ form.instance.logo.url }}" alt="{{ form.instance.name }} Logo" 
+                                     class="img-thumbnail" style="max-height: 100px;">
+                            </div>
                         {% endif %}
                     </div>
                 </div>
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <a href="{% url 'geography:localfootballassociation-list' %}" class="btn btn-secondary">Cancel</a>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Help</h4>
+                </div>
+                <div class="card-body">
+                    <p>Local Football Associations (LFAs) operate at a regional level and manage local competitions.</p>
+                    <p><strong>Examples:</strong> Cape Town LFA, Durban Central LFA</p>
+                    <ul>
+                        <li>Enter the official name and acronym</li>
+                        <li>Select the region where this LFA operates</li>
+                        <li>Select the association this LFA belongs to</li>
+                        <li>Add headquarters location and website if available</li>
+                        <li>Upload the LFA's logo</li>
+                    </ul>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

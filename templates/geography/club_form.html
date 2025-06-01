@@ -1,162 +1,218 @@
-{% extends "base.html" %}
-{% load static %}
-{% load widget_tweaks %}
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
-{% block title %}{% if object %}Edit{% else %}Add{% endif %} Club{% endblock %}
+{% block extra_css %}
+<!-- Add Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<style>
+    .select2-container--bootstrap-5 .select2-selection {
+        height: auto;
+        min-height: 38px;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        padding: 0.375rem 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block title %}{{ form.instance.pk|yesno:'Edit,Add' }} Club{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h1>{% if object %}Edit{% else %}Add{% endif %} Club</h1>
-        <form method="post" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-            <div class="card">
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ form.instance.pk|yesno:'Edit,Add' }} Club</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:club-list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" enctype="multipart/form-data" class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Club Details</h4>
+                </div>
                 <div class="card-body">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.code|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <!-- Hierarchical geography selection -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Club Location</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Select the province, region, and local football association where this club is registered:</p>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    {{ form.province|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.region|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="id_localfootballassociation">Local Football Association</label>
+                                        <select name="localfootballassociation" id="id_localfootballassociation" class="form-control select2" required>
+                                            <option value="">---------</option>
+                                            {% if form.instance.localfootballassociation %}
+                                                <option value="{{ form.instance.localfootballassociation.id }}" selected>
+                                                    {{ form.instance.localfootballassociation.name }}
+                                                </option>
+                                            {% endif %}
+                                        </select>
+                                        <small class="form-text text-muted">Select the LFA for this club</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.founding_date|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.colors|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.website|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.stadium|as_crispy_field }}
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
-                        {% render_field form.name class="form-control" %}
-                        {% if form.name.errors %}
-                        <div class="text-danger small">{{ form.name.errors }}</div>
+                        <label for="{{ form.logo.id_for_label }}" class="form-label">Club Logo</label>
+                        <input type="file" name="logo" class="form-control" id="{{ form.logo.id_for_label }}" accept="image/*">
+                        {% if form.instance.logo %}
+                            <div class="mt-2">
+                                <img src="{{ form.instance.logo.url }}" alt="{{ form.instance.name }} Logo" 
+                                     class="img-thumbnail" style="max-height: 100px;">
+                            </div>
                         {% endif %}
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.short_name.id_for_label }}" class="form-label">Short Name</label>
-                        {% render_field form.short_name class="form-control" %}
-                        {% if form.short_name.errors %}
-                        <div class="text-danger small">{{ form.short_name.errors }}</div>
-                        {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Save</button>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.province.id_for_label }}" class="form-label">Province</label>
-                        {% render_field form.province class="form-select" id="id_province" %}
-                        {% if form.province.errors %}
-                        <div class="text-danger small">{{ form.province.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.region.id_for_label }}" class="form-label">Region</label>
-                        {% render_field form.region class="form-select" id="id_region" %}
-                        {% if form.region.errors %}
-                        <div class="text-danger small">{{ form.region.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.local_football_association.id_for_label }}" class="form-label">Local Football Association</label>
-                        {% render_field form.local_football_association class="form-select" id="id_local_football_association" %}
-                        {% if form.local_football_association.errors %}
-                        <div class="text-danger small">{{ form.local_football_association.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.founded_year.id_for_label }}" class="form-label">Founded Year</label>
-                        {% render_field form.founded_year class="form-control" %}
-                        {% if form.founded_year.errors %}
-                        <div class="text-danger small">{{ form.founded_year.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.home_ground.id_for_label }}" class="form-label">Home Ground</label>
-                        {% render_field form.home_ground class="form-control" %}
-                        {% if form.home_ground.errors %}
-                        <div class="text-danger small">{{ form.home_ground.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.club_colors.id_for_label }}" class="form-label">Club Colors</label>
-                        {% render_field form.club_colors class="form-control" %}
-                        {% if form.club_colors.errors %}
-                        <div class="text-danger small">{{ form.club_colors.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Logo</label><br>
-                        {% if object and object.logo %}
-                        <span>Currently: <a href="{{ object.logo.url }}">{{ object.logo.name }}</a></span>
-                        <br>
-                        {% endif %}
-                        {% render_field form.logo class="form-control" %}
-                        {% if form.logo.errors %}
-                        <div class="text-danger small">{{ form.logo.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
-                        {% render_field form.notes class="form-control" %}
-                        {% if form.notes.errors %}
-                        <div class="text-danger small">{{ form.notes.errors }}</div>
-                        {% endif %}
-                    </div></div>
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <a href="{% url 'geography:club-list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>Help</h4>
+                </div>
+                <div class="card-body">
+                    <p>Clubs are sports organizations that compete in leagues and tournaments.</p>
+                    <ul>
+                        <li>Enter the official name of the club</li>
+                        <li><strong>Select the club's location:</strong>
+                            <ol>
+                                <li>First select the <strong>Province</strong></li>
+                                <li>Then select the <strong>Region</strong> within that province</li>
+                                <li>Finally select the <strong>Local Football Association (LFA)</strong></li>
+                            </ol>
+                        </li>
+                        <li>Add the founding date if known</li>
+                        <li>Include the club's colors (e.g., "Red and White")</li>
+                        <li>Specify the home stadium if applicable</li>
+                        <li>Upload the club logo/badge/crest</li>
+                    </ul>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Add Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const provinceSelect = document.getElementById('id_province');
-        const regionSelect = document.getElementById('id_region');
-        const lfaSelect = document.getElementById('id_local_football_association');
-
-        // Update regions based on selected province
-        function updateRegions() {
-            const provinceId = provinceSelect.value;
-            regionSelect.innerHTML = '<option value="">Select Region</option>';
-            lfaSelect.innerHTML = '<option value="">Select Local Football Association</option>';
-            lfaSelect.disabled = true;
-
-            if (!provinceId) {
-                regionSelect.disabled = true;
-                return;
-            }
-            regionSelect.disabled = false;
-
-            fetch(`/geography/api/regions-by-province/${provinceId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(region => {
-                        const option = document.createElement('option');
-                        option.value = region.id;
-                        option.textContent = region.name;
-                        regionSelect.appendChild(option);
-                    });
+    $(document).ready(function() {
+        // Initialize Select2 for all dropdowns
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+        
+        // When province changes, update regions dropdown
+        $('#id_province').on('change', function() {
+            let provinceId = $(this).val();
+            if (provinceId) {
+                // Clear region and LFA dropdowns
+                $('#id_region').empty().append('<option value="">---------</option>');
+                $('#id_localfootballassociation').empty().append('<option value="">---------</option>');
+                
+                // Fetch regions for the selected province
+                $.ajax({
+                    url: '{% url "geography:regions-by-province" %}',
+                    data: {
+                        'province_id': provinceId
+                    },
+                    success: function(data) {
+                        // Add regions to dropdown
+                        $.each(data, function(index, region) {
+                            $('#id_region').append(
+                                $('<option></option>').attr('value', region.id).text(region.name)
+                            );
+                        });
+                        $('#id_region').trigger('change.select2');
+                    }
                 });
-        }
-
-        // Update LFAs based on selected region
-        function updateLFAs() {
-            const regionId = regionSelect.value;
-            lfaSelect.innerHTML = '<option value="">Select Local Football Association</option>';
-
-            if (!regionId) {
-                lfaSelect.disabled = true;
-                return;
             }
-            lfaSelect.disabled = false;
-
-            fetch(`/geography/api/lfas-by-region/${regionId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(lfa => {
-                        const option = document.createElement('option');
-                        option.value = lfa.id;
-                        option.textContent = lfa.name;
-                        lfaSelect.appendChild(option);
-                    });
+        });
+        
+        // When region changes, update LFAs dropdown
+        $('#id_region').on('change', function() {
+            let regionId = $(this).val();
+            if (regionId) {
+                // Clear LFA dropdown
+                $('#id_localfootballassociation').empty().append('<option value="">---------</option>');
+                
+                // Fetch LFAs for the selected region
+                $.ajax({
+                    url: '{% url "geography:lfas-by-region" %}',
+                    data: {
+                        'region_id': regionId
+                    },
+                    success: function(data) {
+                        // Add LFAs to dropdown
+                        $.each(data, function(index, lfa) {
+                            $('#id_localfootballassociation').append(
+                                $('<option></option>').attr('value', lfa.id).text(lfa.name)
+                            );
+                        });
+                        $('#id_localfootballassociation').trigger('change.select2');
+                    }
                 });
+            }
+        });
+        
+        // Trigger initial changes if values are pre-selected (for edit form)
+        if ($('#id_province').val()) {
+            $('#id_province').trigger('change');
         }
-
-        provinceSelect.addEventListener('change', updateRegions);
-        regionSelect.addEventListener('change', updateLFAs);
-
-        // Initial population
-        updateRegions();
     });
 </script>
 {% endblock %}

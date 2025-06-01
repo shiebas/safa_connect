@@ -1,27 +1,130 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ country.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ country.name }}</h1>
-    <div>
-        <a href="{% url 'geography:country-update' country.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:country-delete' country.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:country-list' %}" class="btn btn-secondary">Back to List</a>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ country.name }} {% if country.code %}({{ country.code }}){% endif %}</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:country-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:country-update' country.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'geography:country-delete' country.pk %}" class="btn btn-danger">Delete</a>
+        </div>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <p><strong>Name:</strong> {{ country.name }}</p>
-        {% if country.code %}
-        <p><strong>Code:</strong> {{ country.code }}</p>
-        {% endif %}
-        {% if country.description %}
-        <p><strong>Description:</strong> {{ country.description }}</p>
-        {% endif %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Country Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {% if country.logo %}
+                                <img src="{{ country.logo.url }}" alt="{{ country.name }} Flag" 
+                                     class="img-fluid mb-3" style="max-height: 200px;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <span class="text-muted">No flag available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Code</th>
+                                        <td>{{ country.code|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Region</th>
+                                        <td>
+                                            {% if country.continent_region %}
+                                                {{ country.continent_region.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Created</th>
+                                        <td>{{ country.created|date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Updated</th>
+                                        <td>{{ country.modified|date }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if country.description %}
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p>{{ country.description|linebreaks }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h4>Provinces</h4>
+                </div>
+                <div class="card-body">
+                    {% if country.province_set.all %}
+                        <ul class="list-group list-group-flush">
+                            {% for province in country.province_set.all %}
+                                <li class="list-group-item d-flex align-items-center">
+                                    {% if province.logo %}
+                                        <img src="{{ province.logo.url }}" alt="{{ province.name }}" 
+                                             class="me-2" style="width: 24px; height: 24px;">
+                                    {% endif %}
+                                    {{ province.name }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No provinces associated with this country.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4>National Federation</h4>
+                </div>
+                <div class="card-body">
+                    {% if country.nationalfederation_set.all %}
+                        <ul class="list-group list-group-flush">
+                            {% for federation in country.nationalfederation_set.all %}
+                                <li class="list-group-item d-flex align-items-center">
+                                    {% if federation.logo %}
+                                        <img src="{{ federation.logo.url }}" alt="{{ federation.name }}" 
+                                             class="me-2" style="width: 24px; height: 24px;">
+                                    {% endif %}
+                                    {{ federation.name }}
+                                    {% if federation.acronym %}
+                                        <span class="badge bg-secondary ms-2">{{ federation.acronym }}</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No national federation associated with this country.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
