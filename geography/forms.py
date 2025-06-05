@@ -424,29 +424,41 @@ class ClubForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['region'].queryset = Region.objects.none()
-        self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.none()
-
-        # Editing existing club
-        if self.instance.pk and self.instance.localfootballassociation:
-            lfa = self.instance.localfootballassociation
-            self.fields['province'].initial = lfa.region.province
-            self.fields['region'].queryset = Region.objects.filter(province=lfa.region.province)
-            self.fields['region'].initial = lfa.region
-            self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region=lfa.region)
+        if user and hasattr(user, 'lfa_profile'):
+            # LFA admin: restrict to their LFA
+            lfa = user.lfa_profile.lfa
+            self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(pk=lfa.pk)
             self.fields['localfootballassociation'].initial = lfa
+            self.fields['region'].queryset = Region.objects.filter(pk=lfa.region.pk)
+            self.fields['region'].initial = lfa.region
+            self.fields['province'].queryset = Province.objects.filter(pk=lfa.region.province.pk)
+            self.fields['province'].initial = lfa.region.province
+            # Optionally, make these fields readonly or hidden
+        else:
+            # Superuser: normal cascading logic
+            self.fields['region'].queryset = Region.objects.none()
+            self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.none()
 
-        # Bound form (POST)
-        elif 'data' in kwargs:
-            data = kwargs['data']
-            province_id = data.get('province')
-            region_id = data.get('region')
-            if province_id:
-                self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
-            if region_id:
-                self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id)
+            # Editing existing club
+            if self.instance.pk and self.instance.localfootballassociation:
+                lfa = self.instance.localfootballassociation
+                self.fields['province'].initial = lfa.region.province
+                self.fields['region'].queryset = Region.objects.filter(province=lfa.region.province)
+                self.fields['region'].initial = lfa.region
+                self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region=lfa.region)
+                self.fields['localfootballassociation'].initial = lfa
+
+            # Bound form (POST)
+            elif 'data' in kwargs:
+                data = kwargs['data']
+                province_id = data.get('province')
+                region_id = data.get('region')
+                if province_id:
+                    self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
+                if region_id:
+                    self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id)
 
     def clean(self):
         cleaned_data = super().clean()

@@ -76,7 +76,7 @@
                                                     <div class="accordion-body p-0">
                                                         <div class="accordion" id="lfaAccordion{{ region_data.region.id }}">
                                                             {% for lfa in region_data.region.localfootballassociation_set.all %}
-                                                                {% if lfa.club_set.all %}
+                                                                {% if lfa.clubs.count > 0 %}
                                                                     <div class="accordion-item">
                                                                         <h4 class="accordion-header" id="lfa{{ lfa.id }}Header">
                                                                             <button class="accordion-button collapsed bg-light" 
@@ -114,7 +114,7 @@
                                                                                             </tr>
                                                                                         </thead>
                                                                                         <tbody>
-                                                                                            {% for club in lfa.club_set.all %}
+                                                                                            {% for club in lfa.clubs.all %}
                                                                                                 <tr>
                                                                                                     <td style="width: 60px;">
                                                                                                         {% if club.logo %}
@@ -150,6 +150,10 @@
                                                                                                             </a>
                                                                                                         </div>
                                                                                                     </td>
+                                                                                                </tr>
+                                                                                            {% empty %}
+                                                                                                <tr>
+                                                                                                    <td colspan="7">No clubs found.</td>
                                                                                                 </tr>
                                                                                             {% endfor %}
                                                                                         </tbody>

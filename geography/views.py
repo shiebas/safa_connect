@@ -562,48 +562,37 @@ class RegionDeleteView(LoginRequiredMixin, DeleteView):
 
 # Club
 @login_decorator
-class ClubListView(ListView):
+class ClubListView(LoginRequiredMixin, ListView):
     model = Club
-    template_name = 'geography/club_list.html'
-    context_object_name = 'clubs'
-    paginate_by = 15  # Pagination is crucial with thousands of clubs
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Apply filters from request.GET
-        province_id = self.request.GET.get('province')
-        region_id = self.request.GET.get('region')
-        lfa_id = self.request.GET.get('lfa')
-        search_term = self.request.GET.get('q')
-        
-        if province_id:
-            queryset = queryset.filter(localfootballassociation__region__province_id=province_id)
-        if region_id:
-            queryset = queryset.filter(localfootballassociation__region_id=region_id)
-        if lfa_id:
-            queryset = queryset.filter(localfootballassociation_id=lfa_id)
-        if search_term:
-            queryset = queryset.filter(
-                Q(name__icontains=search_term) | 
-                Q(safa_id__icontains=search_term) |
-                Q(code__icontains=search_term)
-            )
-            
-        return queryset
-        
+    template_name = "geography/club_list.html"
+    context_object_name = "clubs"
+    paginate_by = 20
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['provinces'] = Province.objects.all()
-        
-        province_id = self.request.GET.get('province')
-        if province_id:
-            context['regions'] = Region.objects.filter(province_id=province_id)
-            
-            region_id = self.request.GET.get('region')
-            if region_id:
-                context['lfas'] = LocalFootballAssociation.objects.filter(region_id=region_id)
-                
+        provinces_with_counts = []
+        provinces = Province.objects.prefetch_related(
+            'region_set__localfootballassociation_set__clubs'
+        ).all()
+        for province in provinces:
+            region_data = []
+            province_club_count = 0
+            for region in province.region_set.all():
+                region_club_count = 0
+                for lfa in region.localfootballassociation_set.all():
+                    club_count = lfa.clubs.count()
+                    region_club_count += club_count
+                province_club_count += region_club_count
+                region_data.append({
+                    'region': region,
+                    'club_count': region_club_count
+                })
+            provinces_with_counts.append({
+                'province': province,
+                'regions': region_data,
+                'club_count': province_club_count
+            })
+        context['provinces_with_counts'] = provinces_with_counts
         return context
 
 @login_decorator

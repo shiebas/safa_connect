@@ -387,14 +387,14 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     stadium = models.CharField(_('Stadium'), max_length=100, blank=True)
     description = models.TextField(_('Description'), blank=True)
     colors = models.CharField(_('Club Colors'), max_length=100, blank=True)
-    
+    safa_id = models.CharField(max_length=5, unique=True, blank=True, help_text="Unique 5-character SAFA identifier")
     class Meta:
         verbose_name = _('Club')
         verbose_name_plural = _('Clubs')
         ordering = ['province', 'region', 'name']
     
     def __str__(self):
-        return f"{self.name} ({self.localfootballassociation.name})"
+        return self.name
     
     def save(self, *args, **kwargs):
         """Ensure province and region match LFA"""
