@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/custom_admin.css' %}">
+{% endblock %}
+
+{% block title %}{{ site_title|default:_('Django site admin') }}{% endblock %}

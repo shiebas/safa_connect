@@ -109,3 +109,19 @@ admin.site.register(Region, RegionAdmin)  # Added RegionAdmin
 admin.site.register(LocalFootballAssociation, LocalFootballAssociationAdmin)
 admin.site.register(Association, AssociationAdmin)
 admin.site.register(Club, ClubAdmin)
+
+admin.site.site_header = "Your Admin"
+admin.site.site_title = "Your Admin Portal"
+admin.site.index_title = "Welcome to Your Admin"
+
+class CustomAdminSite(admin.AdminSite):
+    class Media:
+        css = {
+            'all': ('admin/custom_admin.css',)
+        }
+
+# Or, for all ModelAdmins:
+for model, modeladmin in admin.site._registry.items():
+    modeladmin.Media = type('Media', (), {
+        'css': {'all': ('admin/custom_admin.css',)}
+    })

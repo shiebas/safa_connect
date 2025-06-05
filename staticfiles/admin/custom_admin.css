@@ -1,0 +1,4 @@
+.module, .dashboard-module, .grp-module, .grp-dashboard-module {
+    background: #fffbe6 !important; /* light yellow */
+    border-color: #ffe066 !important;
+}

@@ -37,56 +37,50 @@
                         </div>
                         <div class="col-md-6">
                             <table class="table">
-                                <tbody>
-                                    <tr>
-                                        <th scope="row">Region</th>
-                                        <td>
-                                            {% if lfa.region %}
-                                                {% if lfa.region.logo %}
-                                                    <img src="{{ lfa.region.logo.url }}" alt="{{ lfa.region.name }}" 
-                                                         style="width: 24px; height: 24px;" class="me-2">
-                                                {% endif %}
-                                                {{ lfa.region.name }}
-                                            {% else %}
-                                                -
+                                <tr>
+                                    <th scope="row">Name</th>
+                                    <td>{{ lfa.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Acronym</th>
+                                    <td>{{ lfa.acronym|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Association</th>
+                                    <td>
+                                        {% if lfa.association %}
+                                            {{ lfa.association.name }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">SAFA ID</th>
+                                    <td>{{ lfa.safa_id|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Region</th>
+                                    <td>
+                                        {% if lfa.region %}
+                                            {% if lfa.region.logo %}
+                                                <img src="{{ lfa.region.logo.url }}" alt="{{ lfa.region.name }}" 
+                                                     style="width: 24px; height: 24px;" class="me-2">
                                             {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Association</th>
-                                        <td>
-                                            {% if lfa.association %}
-                                                {% if lfa.association.logo %}
-                                                    <img src="{{ lfa.association.logo.url }}" alt="{{ lfa.association.name }}" 
-                                                         style="width: 24px; height: 24px;" class="me-2">
-                                                {% endif %}
-                                                {{ lfa.association.name }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% if lfa.headquarters %}
-                                        <tr>
-                                            <th scope="row">Headquarters</th>
-                                            <td>{{ lfa.headquarters }}</td>
-                                        </tr>
-                                    {% endif %}
-                                    {% if lfa.website %}
-                                        <tr>
-                                            <th scope="row">Website</th>
-                                            <td><a href="{{ lfa.website }}" target="_blank">{{ lfa.website }}</a></td>
-                                        </tr>
-                                    {% endif %}
-                                    <tr>
-                                        <th scope="row">Created</th>
-                                        <td>{{ lfa.created|date }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Last Updated</th>
-                                        <td>{{ lfa.modified|date }}</td>
-                                    </tr>
-                                </tbody>
+                                            {{ lfa.region.name }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Created</th>
+                                    <td>{{ lfa.created|date }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Last Updated</th>
+                                    <td>{{ lfa.modified|date }}</td>
+                                </tr>
                             </table>
                         </div>
                     </div>
@@ -156,8 +150,7 @@
                                             <td>{{ club.name }}</td>
                                             <td>{{ club.safa_id|default:"-" }}</td>
                                             <td>
-                                                {% try %}  <!-- Note: This requires Django's template tag for exception handling -->
-                                                    {% if club.status == 'ACTIVE' %}
+                                                  {% if club.status == 'ACTIVE' %}
                                                         <span class="badge bg-success">Active</span>
                                                     {% elif club.status == 'INACTIVE' %}
                                                         <span class="badge bg-secondary">Inactive</span>
@@ -166,11 +159,8 @@
                                                     {% elif club.status == 'DISSOLVED' %}
                                                         <span class="badge bg-danger">Dissolved</span>
                                                     {% else %}
-                                                        <span class="badge bg-secondary">{{ club.status }}</span>
+                                                        <span class="badge bg-secondary">{{ club.status|default:"Active" }}</span>
                                                     {% endif %}
-                                                {% except %}
-                                                    <span class="badge bg-secondary">Active</span>
-                                                {% endtry %}
                                             </td>
                                             <td class="text-end">
                                                 <a href="{% url 'geography:club-detail' club.id %}" class="btn btn-sm btn-outline-primary">

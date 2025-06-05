@@ -37,52 +37,62 @@
                         </div>
                         <div class="col-md-6">
                             <table class="table">
-                                <tbody>
-                                    <tr>
-                                        <th scope="row">Code</th>
-                                        <td>{{ region.code|default:"-" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Province</th>
-                                        <td>
-                                            {% if region.province %}
-                                                {% if region.province.logo %}
-                                                    <img src="{{ region.province.logo.url }}" alt="{{ region.province.name }}" 
-                                                         style="width: 24px; height: 24px;" class="me-2">
-                                                {% endif %}
-                                                {{ region.province.name }}
-                                            {% else %}
-                                                -
+                                <tr>
+                                    <th scope="row">Name</th>
+                                    <td>{{ region.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Acronym</th>
+                                    <td>{{ region.acronym|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">SAFA ID</th>
+                                    <td>{{ region.safa_id|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Code</th>
+                                    <td>{{ region.code|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Province</th>
+                                    <td>
+                                        {% if region.province %}
+                                            {% if region.province.logo %}
+                                                <img src="{{ region.province.logo.url }}" alt="{{ region.province.name }}" 
+                                                     style="width: 24px; height: 24px;" class="me-2">
                                             {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Country</th>
-                                        <td>
-                                            {% if region.province.country %}
-                                                {% if region.province.country.logo %}
-                                                    <img src="{{ region.province.country.logo.url }}" alt="{{ region.province.country.name }}" 
-                                                         style="width: 24px; height: 24px;" class="me-2">
-                                                {% endif %}
-                                                {{ region.province.country.name }}
-                                            {% else %}
-                                                -
+                                            {{ region.province.name }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Country</th>
+                                    <td>
+                                        {% if region.province.country %}
+                                            {% if region.province.country.logo %}
+                                                <img src="{{ region.province.country.logo.url }}" alt="{{ region.province.country.name }}" 
+                                                     style="width: 24px; height: 24px;" class="me-2">
                                             {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Local FAs</th>
-                                        <td>{{ region.localfootballassociation_set.count }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Created</th>
-                                        <td>{{ region.created|date }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Last Updated</th>
-                                        <td>{{ region.modified|date }}</td>
-                                    </tr>
-                                </tbody>
+                                            {{ region.province.country.name }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Local FAs</th>
+                                    <td>{{ region.localfootballassociation_set.count }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Created</th>
+                                    <td>{{ region.created|date }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Last Updated</th>
+                                    <td>{{ region.modified|date }}</td>
+                                </tr>
                             </table>
                         </div>
                     </div>
@@ -93,15 +103,6 @@
                             <p>{{ region.description|linebreaks }}</p>
                         </div>
                     {% endif %}
-                    
-                    <div class="row mb-3">
-                      <div class="col-md-3">
-                        <strong>SAFA ID:</strong>
-                      </div>
-                      <div class="col-md-9">
-                        {{ region.safa_id|default:"-" }}
-                      </div>
-                    </div>
                 </div>
             </div>
         </div>
