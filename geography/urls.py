@@ -26,6 +26,7 @@ app_name = 'geography'
 urlpatterns = [
     path('admin/', views.geography_admin, name='geography_admin'),
     path('advanced/', views.advanced_home, name='advance_home'),
+    
     # WorldSportsBody
     path('worldsportsbodies/', views.WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
     path('worldsportsbodies/add/', views.WorldSportsBodyCreateView.as_view(), name='worldsportsbody-create'),
@@ -111,6 +112,6 @@ urlpatterns = [
     path('lfas/<int:pk>/delete/', views.LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
 
       # API endpoints
-    path('api/regions-by-province/', views.get_regions_by_province, name='regions-by-province'),
-    path('api/lfas-by-region/', views.get_lfas_by_region, name='lfas-by-region'),
+    path('api/get_regions_by_province/', views.get_regions_by_province, name='get_regions_by_province'),
+    path('api/get_lfas_by_region/', views.get_lfas_by_region, name='get_lfas_by_region'),
 ]

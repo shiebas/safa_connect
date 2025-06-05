@@ -132,16 +132,62 @@
                 </div>
                 <div class="card-body">
                     {% if lfa.club_set.all %}
-                        <div class="list-group list-group-flush">
-                            {% for club in lfa.club_set.all %}
-                                <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-                                    {% if club.logo %}
-                                        <img src="{{ club.logo.url }}" alt="{{ club.name }}" 
-                                             class="me-2" style="width: 24px; height: 24px;">
-                                    {% endif %}
-                                    {{ club.name }}
-                                </a>
-                            {% endfor %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Logo</th>
+                                        <th>Name</th>
+                                        <th>SAFA ID</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for club in lfa.club_set.all %}
+                                        <tr>
+                                            <td>
+                                                {% if club.logo %}
+                                                    <img src="{{ club.logo.url }}" alt="{{ club.name }}" class="img-thumbnail" style="width: 30px; height: 30px; object-fit: contain;">
+                                                {% else %}
+                                                    <div class="bg-light" style="width: 30px; height: 30px;"></div>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ club.name }}</td>
+                                            <td>{{ club.safa_id|default:"-" }}</td>
+                                            <td>
+                                                {% try %}  <!-- Note: This requires Django's template tag for exception handling -->
+                                                    {% if club.status == 'ACTIVE' %}
+                                                        <span class="badge bg-success">Active</span>
+                                                    {% elif club.status == 'INACTIVE' %}
+                                                        <span class="badge bg-secondary">Inactive</span>
+                                                    {% elif club.status == 'SUSPENDED' %}
+                                                        <span class="badge bg-warning text-dark">Suspended</span>
+                                                    {% elif club.status == 'DISSOLVED' %}
+                                                        <span class="badge bg-danger">Dissolved</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{{ club.status }}</span>
+                                                    {% endif %}
+                                                {% except %}
+                                                    <span class="badge bg-secondary">Active</span>
+                                                {% endtry %}
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="{% url 'geography:club-detail' club.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{% url 'geography:club-update' club.id %}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No clubs found for this Local Football Association</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     {% else %}
                         <p class="text-muted">No clubs associated with this LFA yet.</p>

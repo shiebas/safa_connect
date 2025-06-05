@@ -67,4 +67,12 @@
         </div>
     {% endif %}
 </div>
+
+<ul>
+  {% for region in regions %}
+    <li>{{ region.name }} ({{ region.continent.name }})</li>
+  {% empty %}
+    <li>No continent regions found.</li>
+  {% endfor %}
+</ul>
 {% endblock %}

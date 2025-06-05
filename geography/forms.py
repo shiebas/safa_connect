@@ -356,7 +356,8 @@ class ProvinceForm(forms.ModelForm):
 class RegionForm(forms.ModelForm):
     class Meta:
         model = Region
-        fields = ['name', 'code', 'province', 'description', 'logo']
+        fields = ['name', 'code', 'province', 'description', 'logo'
+        ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }
@@ -390,13 +391,13 @@ class LocalFootballAssociationForm(forms.ModelForm):
 
 class ClubForm(forms.ModelForm):
     province = forms.ModelChoiceField(
-        queryset=Province.objects.all(),
+        queryset=Province.objects.all().order_by('name'),
         required=False, 
         help_text=_("Select province first"),
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     region = forms.ModelChoiceField(
-        queryset=Region.objects.none(),
+        queryset=Region.objects.none(),  # Initially empty
         required=False, 
         help_text=_("Select region after selecting province"),
         widget=forms.Select(attrs={'class': 'form-select'})
@@ -413,6 +414,8 @@ class ClubForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'code': forms.TextInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            'province': forms.Select(attrs={'class': 'form-select'}),
+            'region': forms.Select(attrs={'class': 'form-select'}),
             'localfootballassociation': forms.Select(attrs={'class': 'form-select'}),
             'founding_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'website': forms.URLInput(attrs={'class': 'form-control'}),
@@ -420,37 +423,44 @@ class ClubForm(forms.ModelForm):
             'colors': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['region'].queryset = Region.objects.none()
+        self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.none()
+
+        # Editing existing club
+        if self.instance.pk and self.instance.localfootballassociation:
+            lfa = self.instance.localfootballassociation
+            self.fields['province'].initial = lfa.region.province
+            self.fields['region'].queryset = Region.objects.filter(province=lfa.region.province)
+            self.fields['region'].initial = lfa.region
+            self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region=lfa.region)
+            self.fields['localfootballassociation'].initial = lfa
+
+        # Bound form (POST)
+        elif 'data' in kwargs:
+            data = kwargs['data']
+            province_id = data.get('province')
+            region_id = data.get('region')
+            if province_id:
+                self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
+            if region_id:
+                self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        province = cleaned_data.get('province')
+        region = cleaned_data.get('region')
+        lfa = cleaned_data.get('localfootballassociation')
+
+        # Validate region belongs to province
+        if province and region and region.province != province:
+            self.add_error('region', 'Selected region does not belong to the selected province')
         
-        # Set up initial querysets
-        if kwargs.get('instance'):
-            club = kwargs['instance']
-            if club.localfootballassociation and club.localfootballassociation.region:
-                region = club.localfootballassociation.region
-                province = region.province
-                
-                self.fields['province'].initial = province
-                self.fields['region'].queryset = Region.objects.filter(province=province)
-                self.fields['region'].initial = region
-                self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region=region)
-        else:
-            self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.none()
+        # Validate LFA belongs to region
+        if region and lfa and lfa.region != region:
+            self.add_error('localfootballassociation', 'Selected LFA does not belong to the selected region')
         
-        # Get data from POST request if available
-        if args and args[0]:
-            if 'province' in args[0]:
-                try:
-                    province_id = int(args[0].get('province'))
-                    self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
-                except (ValueError, TypeError):
-                    pass
-            
-            if 'region' in args[0]:
-                try:
-                    region_id = int(args[0].get('region'))
-                    self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id)
-                except (ValueError, TypeError):
-                    pass
+        return cleaned_data
 

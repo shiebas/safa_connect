@@ -1,7 +1,6 @@
+<!-- geography/templates/geography/club_form.html -->
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}{% if form.instance.id %}Edit{% else %}Add{% endif %} Club{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -12,7 +11,7 @@
                     <h4 class="mb-0">{% if form.instance.id %}Edit{% else %}Add{% endif %} Club</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" id="club-form">
                         {% csrf_token %}
                         
                         {% if form.errors %}
@@ -35,7 +34,6 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="{{ form.code.id_for_label }}">Club Code</label>
                                     {{ form.code }}
-                                    <small class="text-muted d-block">{{ form.code.help_text }}</small>
                                     {% if form.code.errors %}
                                     <div class="text-danger">{{ form.code.errors }}</div>
                                     {% endif %}
@@ -154,55 +152,82 @@
     </div>
 </div>
 
-<!-- JavaScript for cascading dropdowns -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const provinceSelect = document.getElementById('id_province');
     const regionSelect = document.getElementById('id_region');
     const lfaSelect = document.getElementById('id_localfootballassociation');
     
-    // When province changes, update regions
-    provinceSelect.addEventListener('change', function() {
+    // Function to fetch data
+    const fetchData = async (url) => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            console.error('Error:', error);
+            return [];
+        }
+    };
+    
+    // Province change handler
+    provinceSelect.addEventListener('change', async function() {
         const provinceId = this.value;
+        
+        // Reset downstream selects
+        regionSelect.innerHTML = '<option value="">---------</option>';
+        regionSelect.disabled = !provinceId;
+        
+        lfaSelect.innerHTML = '<option value="">---------</option>';
+        lfaSelect.disabled = true;
+        
         if (provinceId) {
-            // Clear downstream selects
-            regionSelect.innerHTML = '<option value="">---------</option>';
-            lfaSelect.innerHTML = '<option value="">---------</option>';
-            
-            // Fetch regions for the selected province
-            fetch(`/geography/api/get_regions_by_province/?province_id=${provinceId}`)
-                .then(response => response.json())
-                .then(regions => {
-                    regions.forEach(region => {
-                        const option = document.createElement('option');
-                        option.value = region.id;
-                        option.textContent = region.name;
-                        regionSelect.appendChild(option);
-                    });
+            const regions = await fetchData(`/geography/api/get_regions_by_province/?province_id=${provinceId}`);
+            if (regions.length) {
+                regions.forEach(region => {
+                    const option = new Option(region.name, region.id);
+                    regionSelect.add(option);
                 });
+                regionSelect.disabled = false;
+            }
         }
     });
     
-    // When region changes, update LFAs
-    regionSelect.addEventListener('change', function() {
+    // Region change handler
+    regionSelect.addEventListener('change', async function() {
         const regionId = this.value;
+        
+        // Reset LFA select
+        lfaSelect.innerHTML = '<option value="">---------</option>';
+        lfaSelect.disabled = !regionId;
+        
         if (regionId) {
-            // Clear LFA select
-            lfaSelect.innerHTML = '<option value="">---------</option>';
-            
-            // Fetch LFAs for the selected region
-            fetch(`/geography/api/get_lfas_by_region/?region_id=${regionId}`)
-                .then(response => response.json())
-                .then(lfas => {
-                    lfas.forEach(lfa => {
-                        const option = document.createElement('option');
-                        option.value = lfa.id;
-                        option.textContent = lfa.name;
-                        lfaSelect.appendChild(option);
-                    });
+            const lfas = await fetchData(`/geography/api/get_lfas_by_region/?region_id=${regionId}`);
+            if (lfas.length) {
+                lfas.forEach(lfa => {
+                    const option = new Option(lfa.name, lfa.id);
+                    lfaSelect.add(option);
                 });
+                lfaSelect.disabled = false;
+            }
         }
     });
-});
+    
+    // Initialize form for existing club
+    const hasInstanceValue = {{ form.instance.pk|yesno:"true,false"|lower }};
+
+    if (hasInstanceValue === true && provinceSelect.value) {
+        // Trigger province change to load regions
+        const event = new Event('change');
+        provinceSelect.dispatchEvent(event);
+        
+        // After regions load, set region and trigger LFA load
+        setTimeout(() => {
+            if (regionSelect.value) {
+                const regionEvent = new Event('change');
+                regionSelect.dispatchEvent(regionEvent);
+            }
+        }, 500);
+    }
 </script>
 {% endblock %}

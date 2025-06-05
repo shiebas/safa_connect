@@ -169,5 +169,25 @@
             </div>
         </div>
     </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Location Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-4"><strong>Province:</strong></div>
+                <div class="col-md-8">{{ club.province.name }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-4"><strong>Region:</strong></div>
+                <div class="col-md-8">{{ club.region.name }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-4"><strong>Local Football Association:</strong></div>
+                <div class="col-md-8">{{ club.localfootballassociation.name }}</div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

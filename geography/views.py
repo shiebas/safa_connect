@@ -475,7 +475,7 @@ class RegionListView(LoginRequiredMixin, ListView):
     context_object_name = 'provinces_with_regions'  # Changed to receive grouped data
     template_name = 'geography/region_list.html'
     paginate_by = 10  # Set pagination to 10 items
-    
+
     def get_queryset(self):
         # Get all provinces with their regions, LFAs, and clubs in a hierarchical structure
         provinces = Province.objects.prefetch_related(
@@ -485,37 +485,37 @@ class RegionListView(LoginRequiredMixin, ListView):
                 queryset=LocalFootballAssociation.objects.all().select_related('association')
             ),
             Prefetch(
-                'region_set__localfootballassociation_set__club_set',
+                'region_set__localfootballassociation_set__clubs',  # <-- changed from club_set to clubs
                 queryset=Club.objects.all()
             )
         ).select_related('country').order_by('name')
-        
+
         return provinces
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # Calculate club counts for each province and region
         provinces_with_counts = []
         for province in context['provinces_with_regions']:
             region_data = []
             province_club_count = 0
-            
+
             for region in province.region_set.all():
-                region_club_count = sum(lfa.club_set.count() for lfa in region.localfootballassociation_set.all())
+                region_club_count = sum(lfa.clubs.count() for lfa in region.localfootballassociation_set.all())  # <-- changed from club_set to clubs
                 province_club_count += region_club_count
-                
+
                 region_data.append({
                     'region': region,
                     'club_count': region_club_count
                 })
-            
+
             provinces_with_counts.append({
                 'province': province,
                 'regions': region_data,
                 'club_count': province_club_count
             })
-        
+
         context['provinces_with_counts'] = provinces_with_counts
         return context
 
@@ -614,14 +614,10 @@ class ClubCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('geography:club-list')
 
     def form_valid(self, form):
-        # Remove province and region fields as they're not part of the model
-        form.cleaned_data.pop('province', None)
-        form.cleaned_data.pop('region', None)
-        
+        response = super().form_valid(form)
         messages.success(self.request, 'Club created successfully.')
-        return super().form_valid(form)
+        return response
 
-@login_decorator
 class ClubUpdateView(LoginRequiredMixin, UpdateView):
     model = Club
     form_class = ClubForm
@@ -629,9 +625,9 @@ class ClubUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('geography:club-list')
 
     def form_valid(self, form):
-        # Remove province and region fields as they're not part of the model
-        form.cleaned_data.pop('province', None)
-        form.cleaned_data.pop('region', None)
+        response = super().form_valid(form)
+        messages.success(self.request, 'Club updated successfully.')
+        return response
 
 class ClubDetailView(LoginRequiredMixin, DetailView):
     model = Club

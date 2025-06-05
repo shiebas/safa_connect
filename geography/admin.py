@@ -54,37 +54,46 @@ class LocalFootballAssociationAdmin(ModelWithLogoAdmin):  # Changed to ModelWith
     get_province.short_description = 'Province'
     get_province.admin_order_field = 'region__province__name'
 
-class ClubAdmin(ModelWithLogoAdmin):  # Changed to ModelWithLogoAdmin
+class ClubAdmin(ModelWithLogoAdmin):
     list_display = [
         'name',
         'code',
-        'safa_id',  # Added safa_id
-        'get_region',
+        'safa_id',
+        'status',
         'get_lfa',
+        'get_region',
+        'get_province',
         'stadium',
         'founding_date',
-        'display_logo'  # Added display_logo
+        'display_logo'
     ]
     list_filter = [
+        'status',
+        'localfootballassociation__region__province',
         'localfootballassociation__region',
-        'localfootballassociation'
+        'localfootballassociation',
     ]
     search_fields = [
         'name',
         'code',
-        'safa_id',  # Added safa_id
+        'safa_id',
         'localfootballassociation__name',
-        'localfootballassociation__region__name'
+        'localfootballassociation__region__name',
+        'localfootballassociation__region__province__name',
     ]
     
-    # Define methods to get related fields for list_display
     def get_region(self, obj):
-        return obj.localfootballassociation.region.name
+        return obj.region.name if obj.region else '-'
     get_region.short_description = 'Region'
     get_region.admin_order_field = 'localfootballassociation__region__name'
     
+    def get_province(self, obj):
+        return obj.province.name if obj.province else '-'
+    get_province.short_description = 'Province'
+    get_province.admin_order_field = 'localfootballassociation__region__province__name'
+    
     def get_lfa(self, obj):
-        return obj.localfootballassociation.name
+        return obj.localfootballassociation.name if obj.localfootballassociation else '-'
     get_lfa.short_description = 'Local Football Association'
     get_lfa.admin_order_field = 'localfootballassociation__name'
 
