@@ -42,8 +42,8 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 ROLES = (
-    ('ADMIN_SYSTEM', _('System Admin')),
-    ('ADMIN_COUNTRY', _('Country Admin')),
+  #  ('ADMIN_SYSTEM', _('System Admin')),
+  #  ('ADMIN_COUNTRY', _('Country Admin')),
     ('ADMIN_FEDERATION', _('Federation Admin')),
     ('ADMIN_PROVINCE', _('Province Admin')),
     ('ADMIN_REGION', _('Region Admin')),

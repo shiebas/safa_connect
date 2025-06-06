@@ -1,615 +1,185 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block title %}Register - SAFA ADMINISTRATION{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8">
-            <div class="card" style="border: 2px solid var(--safa-black);">
-                <div class="card-header text-center">
-                    <h2 class="mb-0">Register with SAFA</h2>
-                    <p class="text-muted">Register players, administrators, and club officials</p>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    <form method="post" enctype="multipart/form-data" novalidate>
-                        {% csrf_token %}
-
-                        <noscript>
-                            <div class="alert alert-warning">
-                                <strong>JavaScript is disabled!</strong> Some features like automatic field validation and dynamic form behavior will not work. 
-                                Please make sure to fill out all required fields correctly.
-                            </div>
-                        </noscript>
-
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-
-                        <div class="row">
-                            <!-- Account Information -->
-                            <div class="col-12">
-                                <h4 class="mb-3">Account Information</h4>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                                {{ form.username }}
-                                {% if form.username.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.username.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.email.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                                {{ form.password1 }}
-                                {% if form.password1.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.password1.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">{{ form.password1.help_text }}</div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                                {{ form.password2 }}
-                                {% if form.password2.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.password2.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Personal Information -->
-                            <div class="col-12 mt-4">
-                                <h4 class="mb-3">Personal Information</h4>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.name.id_for_label }}" class="form-label">First Name</label>
-                                {{ form.name }}
-                                {% if form.name.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.name.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.middle_name.id_for_label }}" class="form-label">Middle Name (Optional)</label>
-                                {{ form.middle_name }}
-                                {% if form.middle_name.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.middle_name.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.surname.id_for_label }}" class="form-label">Surname</label>
-                                {{ form.surname }}
-                                {% if form.surname.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.surname.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
-                                {{ form.date_of_birth }}
-                                {% if form.date_of_birth.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.date_of_birth.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.gender.id_for_label }}" class="form-label">Gender</label>
-                                {{ form.gender }}
-                                {% if form.gender.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.gender.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.role.id_for_label }}" class="form-label">Role</label>
-                                {{ form.role }}
-                                {% if form.role.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.role.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">
-                                    CLUB_ADMIN: For club administrators<br>
-                                    PLAYER: For registered players
-                                </div>
-                            </div>
-
-                            <!-- Identification -->
-                            <div class="col-12 mt-4">
-                                <h4 class="mb-3">Identification</h4>
-                                <p class="text-muted small">Select your identification type and provide the required information</p>
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label class="form-label">Identification Type</label>
-                                <div class="d-flex gap-4">
-                                    {% for radio in form.id_document_type %}
-                                        <div class="form-check">
-                                            {{ radio.tag }}
-                                            <label class="form-check-label" for="{{ radio.id_for_label }}">
-                                                {{ radio.choice_label }}
-                                            </label>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                {% if form.id_document_type.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.id_document_type.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
-                                {{ form.country }}
-                                {% if form.country.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.country.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="federation-info text-info mt-1"></div>
-                            </div>
-
-                            <div id="id-number-container" class="col-md-6 mb-3">
-                                <label for="{{ form.id_number.id_for_label }}" class="form-label">ID Number</label>
-                                {{ form.id_number }}
-                                {% if form.id_number.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.id_number.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div id="passport-container" class="col-md-6 mb-3">
-                                <label for="{{ form.passport_number.id_for_label }}" class="form-label">Passport Number</label>
-                                {{ form.passport_number }}
-                                {% if form.passport_number.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.passport_number.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div id="document-container" class="col-md-6 mb-3">
-                                <label for="{{ form.document.id_for_label }}" class="form-label">Upload Document</label>
-                                {{ form.document }}
-                                {% if form.document.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.document.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Upload a copy of your passport or ID document</div>
-                            </div>
-
-                            <!-- Affiliation -->
-                            <div class="col-12 mt-4">
-                                <h4 class="mb-3">Affiliation</h4>
-                                <p class="text-muted small">Select the appropriate organization based on your role</p>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.club.id_for_label }}" class="form-label">Club</label>
-                                {{ form.club }}
-                                {% if form.club.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.club.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Required for club managers and players</div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.region.id_for_label }}" class="form-label">Region</label>
-                                {{ form.region }}
-                                {% if form.region.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.region.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Required for regional administrators</div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.national_federation.id_for_label }}" class="form-label">National Federation</label>
-                                {{ form.national_federation }}
-                                {% if form.national_federation.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.national_federation.errors %}
-                                            <small>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Required for national administrators</div>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn" style="background-color: var(--safa-black); color: var(--safa-yellow);">
-                                Register
-                            </button>
-                        </div>
-
-                        <div class="text-center mt-3">
-                            <p>Already have an account? <a href="{% url 'accounts:login' %}" style="color: var(--safa-black);">Login here</a></p>
-                        </div>
-                    </form>
-                </div>
-            </div>
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <div class="card" style="border: 2px solid var(--safa-black);">
+        <div class="card-header text-center">
+          <h2 class="mb-0">Register with SAFA</h2>
+          <p class="text-muted">Register players, administrators, and club officials</p>
         </div>
+        <div class="card-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data" novalidate
+            data-id-number-id="{{ form.id_number.id_for_label }}"
+            data-country-id="{{ form.country.id_for_label }}"
+            data-dob-id="{{ form.date_of_birth.id_for_label }}"
+            data-gender-id="{{ form.gender.id_for_label }}"
+            data-id-doc-type-id="{{ form.id_document_type.id_for_label }}">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+              </div>
+            {% endif %}
+
+            <!-- Account Info -->
+            <h5 class="mb-3 mt-2">Account Information</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="text-danger">
+                {% for error in form.email.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+            {% endif %}
+              </div>
+              <div class="col-md-6 mb-3"></div>
+              <div class="col-md-6 mb-3">
+            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+              <div class="text-danger">
+                {% for error in form.password1.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+            {% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+              <div class="text-danger">
+                {% for error in form.password2.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+            {% endif %}
+              </div>
+            </div>
+
+            <!-- Personal Info -->
+            <h5 class="mb-3 mt-4">Personal Information</h5>
+            <div class="row">
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label">First Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger">
+                {% for error in form.name.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+            {% endif %}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.middle_name.id_for_label }}" class="form-label">Middle Name</label>
+            {{ form.middle_name }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.surname.id_for_label }}" class="form-label">Surname</label>
+            {{ form.surname }}
+            {% if form.surname.errors %}
+              <div class="text-danger">
+                {% for error in form.surname.errors %}<small>{{ error }}</small>{% endfor %}
+              </div>
+            {% endif %}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.alias.id_for_label }}" class="form-label">Alias</label>
+            {{ form.alias }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+            {{ form.date_of_birth }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.gender.id_for_label }}" class="form-label">Gender</label>
+            {{ form.gender }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.role.id_for_label }}" class="form-label">Role</label>
+            {{ form.role }}
+              </div>
+            </div>
+
+            <!-- Identification -->
+            <h5 class="mb-3 mt-4">Identification</h5>
+            <div class="row">
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.id_document_type.id_for_label }}" class="form-label">ID Document Type</label>
+            {{ form.id_document_type }}
+              </div>
+              <div class="col-md-4 mb-3" id="id_number_box">
+            <label for="{{ form.id_number.id_for_label }}" class="form-label">ID Number</label>
+            {{ form.id_number }}
+              </div>
+              <div class="col-md-4 mb-3" id="passport_box">
+            <label for="{{ form.passport_number.id_for_label }}" class="form-label">Passport Number</label>
+            {{ form.passport_number }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.id_number_other.id_for_label }}" class="form-label">Other ID Number</label>
+            {{ form.id_number_other }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.document.id_for_label }}" class="form-label">Upload Document</label>
+            {{ form.document }}
+              </div>
+            </div>
+
+            <!-- Contact Info -->
+            <h5 class="mb-3 mt-4">Contact Information</h5>
+            <div class="row">
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+            {{ form.phone_number }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+            {{ form.address }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+            {{ form.city }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code</label>
+            {{ form.postal_code }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
+            {{ form.country }}
+              </div>
+              <div class="col-md-4 mb-3">
+            <label for="{{ form.profile_photo.id_for_label }}" class="form-label">Profile Photo</label>
+            {{ form.profile_photo }}
+              </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-dark">Register</button>
+            </div>
+            <div class="text-center mt-3">
+              <p>Already have an account? <a href="{% url 'accounts:login' %}" style="color: var(--safa-black);">Login here</a></p>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function() {
-    // Function to check if ID number is valid for South Africa
-    function validateSouthAfricanID(idNumber) {
-        // Remove spaces and hyphens
-        idNumber = idNumber.replace(/\s+/g, '').replace(/-/g, '');
-
-        // Check if ID number is 13 digits
-        if (!/^\d{13}$/.test(idNumber)) {
-            console.log("ID number is not 13 digits");
-            return false;
-        }
-
-        // Extract date components
-        var year = idNumber.substring(0, 2);
-        var month = idNumber.substring(2, 4);
-        var day = idNumber.substring(4, 6);
-
-        // Validate date
-        var currentYear = new Date().getFullYear() % 100;
-        var century = (parseInt(year) > currentYear) ? '19' : '20';
-        var fullYear = century + year;
-
-        // Create date object - JavaScript months are 0-indexed (0-11)
-        var date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-
-        // Check if date is valid
-        if (date.getFullYear() != parseInt(fullYear) || 
-            date.getMonth() != parseInt(month) - 1 || 
-            date.getDate() != parseInt(day)) {
-            console.log("Invalid date in ID number");
-            return false;
-        }
-
-        // Extract gender
-        var genderDigits = parseInt(idNumber.substring(6, 10));
-        var gender = genderDigits >= 5000 ? 'M' : 'F';
-
-        // Extract citizenship
-        var citizenship = parseInt(idNumber.charAt(10));
-        if (citizenship !== 0 && citizenship !== 1) {
-            console.log("Invalid citizenship digit");
-            return false;
-        }
-
-        // Validate checksum (Luhn algorithm)
-        var total = 0;
-        for (var i = 0; i < 12; i++) {
-            var digit = parseInt(idNumber.charAt(i));
-            if (i % 2 === 0) {
-                total += digit;
-            } else {
-                var doubled = digit * 2;
-                // For odd positions, double the digit and subtract 9 if result is >= 10
-                total += doubled < 10 ? doubled : (doubled - 9);
-            }
-        }
-
-        var checkDigit = (10 - (total % 10)) % 10;
-        if (checkDigit !== parseInt(idNumber.charAt(12))) {
-            console.log("Invalid checksum digit");
-            return false;
-        }
-
-        // For debugging
-        console.log("Valid ID number: " + idNumber);
-        console.log("Date of birth: " + date.toISOString().split('T')[0]);
-        console.log("Gender: " + gender);
-
-        return {
-            dateOfBirth: date,
-            gender: gender
-        };
-    }
-
-    // Function to handle document type selection
-    function handleDocumentTypeChange() {
-        var selectedDocType = $('input[name="id_document_type"]:checked').val();
-
-        // Show/hide fields based on document type
-        if (selectedDocType === 'ID') {
-            $('#id-number-container').show();
-            $('#passport-container').hide();
-            $('#document-container').hide();
-        } else if (selectedDocType === 'PP') {
-            $('#id-number-container').hide();
-            $('#passport-container').show();
-            $('#document-container').show();
-        } else {
-            // For other document types, show all fields
-            $('#id-number-container').show();
-            $('#passport-container').show();
-            $('#document-container').show();
-        }
-    }
-
-    // Function to handle ID number changes
-    function handleIDNumberChange() {
-        var idNumber = $('#{{ form.id_number.id_for_label }}').val();
-        var country = $('#{{ form.country.id_for_label }}').val();
-        var countryCode = '';
-        var selectedDocType = $('input[name="id_document_type"]:checked').val();
-
-        // Only proceed if ID document type is selected
-        if (selectedDocType !== 'ID') {
-            // Enable fields if not using ID
-            $('#{{ form.date_of_birth.id_for_label }}').prop('disabled', false);
-            $('#{{ form.gender.id_for_label }}').prop('disabled', false);
-            return;
-        }
-
-        // Get the selected country's FIFA code
-        if (country) {
-            // Extract the country code from the option text if available
-            var selectedOption = $('#{{ form.country.id_for_label }} option:selected');
-            var optionText = selectedOption.text();
-            var codeMatch = optionText.match(/\(([A-Z]{3})\)/);
-            if (codeMatch) {
-                countryCode = codeMatch[1];
-            }
-        }
-
-        // Normalize country code - handle both ZAF and RSA for South Africa
-        if (countryCode === 'RSA') {
-            countryCode = 'ZAF';
-        }
-
-        // Update federation info based on country
-        updateFederationInfo(countryCode);
-
-        // Enforce ID number length based on country
-        if (countryCode === 'ZAF') {
-            // South African IDs must be exactly 13 digits
-            $('#{{ form.id_number.id_for_label }}').attr('maxlength', '13');
-            // Trim to 13 digits if longer
-            if (idNumber.length > 13) {
-                idNumber = idNumber.substring(0, 13);
-                $('#{{ form.id_number.id_for_label }}').val(idNumber);
-            }
-        } else if (countryCode === 'NAM') {
-            // Namibian IDs are typically 11 digits
-            $('#{{ form.id_number.id_for_label }}').attr('maxlength', '11');
-        } else if (countryCode === 'LSO') {
-            // Lesotho IDs can vary, but we'll set a reasonable limit
-            $('#{{ form.id_number.id_for_label }}').attr('maxlength', '10');
-        } else {
-            // Default to 20 for other countries
-            $('#{{ form.id_number.id_for_label }}').attr('maxlength', '20');
-        }
-
-        // If South Africa is selected and ID number is provided
-        if (countryCode === 'ZAF' && idNumber) {
-            var validationResult = validateSouthAfricanID(idNumber);
-
-            if (validationResult) {
-                // Disable date of birth and gender fields
-                $('#{{ form.date_of_birth.id_for_label }}').prop('disabled', true);
-                $('#{{ form.gender.id_for_label }}').prop('disabled', true);
-
-                // Set the values from the ID number
-                var date = validationResult.dateOfBirth;
-                var yyyy = date.getFullYear();
-                var mm = String(date.getMonth() + 1).padStart(2, '0');
-                var dd = String(date.getDate()).padStart(2, '0');
-                var formattedDate = yyyy + '-' + mm + '-' + dd;
-                $('#{{ form.date_of_birth.id_for_label }}').val(formattedDate);
-                $('#{{ form.gender.id_for_label }}').val(validationResult.gender);
-            } else {
-                // Enable fields if ID is invalid
-                $('#{{ form.date_of_birth.id_for_label }}').prop('disabled', false);
-                $('#{{ form.gender.id_for_label }}').prop('disabled', false);
-            }
-        } else if (countryCode === 'NAM' && idNumber && idNumber.length === 11) {
-            // For Namibian IDs, we can extract date of birth but not gender
-            try {
-                var year = idNumber.substring(0, 2);
-                var month = idNumber.substring(2, 4);
-                var day = idNumber.substring(4, 6);
-
-                var currentYear = new Date().getFullYear() % 100;
-                var century = (parseInt(year) > currentYear) ? '19' : '20';
-                var fullYear = century + year;
-
-                var date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-                if (date.getFullYear() == parseInt(fullYear) && 
-                    date.getMonth() == parseInt(month) - 1 && 
-                    date.getDate() == parseInt(day)) {
-
-                    // Valid date, disable date of birth field
-                    $('#{{ form.date_of_birth.id_for_label }}').prop('disabled', true);
-
-                    // Set the date of birth
-                    var formattedDate = date.toISOString().split('T')[0];
-                    $('#{{ form.date_of_birth.id_for_label }}').val(formattedDate);
-
-                    // Gender cannot be determined from Namibian IDs
-                    $('#{{ form.gender.id_for_label }}').prop('disabled', false);
-                } else {
-                    // Invalid date
-                    $('#{{ form.date_of_birth.id_for_label }}').prop('disabled', false);
-                }
-            } catch (e) {
-                // Error parsing date
-                $('#{{ form.date_of_birth.id_for_label }}').prop('disabled', false);
-            }
-        } else {
-            // Enable fields for other countries or invalid ID numbers
-            $('#{{ form.date_of_birth.id_for_label }}').prop('disabled', false);
-            $('#{{ form.gender.id_for_label }}').prop('disabled', false);
-        }
-    }
-
-    // Function to update federation info based on country
-    function updateFederationInfo(countryCode) {
-        // Show federation info based on country
-        if (countryCode === 'ZAF') {
-            // Show South African federation info
-            $('.federation-info').text('South African Football Association (SAFA)');
-        } else if (countryCode === 'NAM') {
-            // Show Namibian federation info
-            $('.federation-info').text('Namibia Football Association (NFA)');
-        } else if (countryCode === 'LSO') {
-            // Show Lesotho federation info
-            $('.federation-info').text('Lesotho Football Association (LEFA)');
-        } else {
-            // Clear federation info for other countries
-            $('.federation-info').text('');
-        }
-    }
-
-    // Check username availability
-    var usernameCheckTimeout;
-    $('#{{ form.username.id_for_label }}').on('input', function() {
-        var username = $(this).val();
-
-        // Clear previous timeout
-        clearTimeout(usernameCheckTimeout);
-
-        // Remove previous messages
-        $(this).siblings('.username-status').remove();
-
-        // If username is empty, do nothing
-        if (!username) {
-            return;
-        }
-
-        // Set a timeout to avoid too many requests
-        usernameCheckTimeout = setTimeout(function() {
-            // Add a loading indicator
-            $('#{{ form.username.id_for_label }}').after('<div class="username-status text-info small">Checking availability...</div>');
-
-            // Make an AJAX request to check username availability
-            $.ajax({
-                url: '/accounts/check-username/',
-                data: {
-                    'username': username
-                },
-                dataType: 'json',
-                success: function(data) {
-                    // Remove loading indicator
-                    $('.username-status').remove();
-
-                    if (data.available) {
-                        $('#{{ form.username.id_for_label }}').after('<div class="username-status text-success small">Username is available</div>');
-                    } else {
-                        $('#{{ form.username.id_for_label }}').after('<div class="username-status text-danger small">Username is already taken</div>');
-                    }
-                },
-                error: function() {
-                    // Remove loading indicator
-                    $('.username-status').remove();
-                    $('#{{ form.username.id_for_label }}').after('<div class="username-status text-warning small">Could not check username availability</div>');
-                }
-            });
-        }, 500);
-    });
-
-    // Attach event handlers
-    $('#{{ form.id_number.id_for_label }}').on('input', handleIDNumberChange);
-    $('#{{ form.country.id_for_label }}').on('change', handleIDNumberChange);
-    $('input[name="id_document_type"]').on('change', function() {
-        handleDocumentTypeChange();
-        handleIDNumberChange();
-    });
-
-    // Initial checks
-    handleDocumentTypeChange();
-    handleIDNumberChange();
-
-    // Set default document type if none selected
-    if (!$('input[name="id_document_type"]:checked').val()) {
-        $('input[name="id_document_type"][value="ID"]').prop('checked', true);
-        handleDocumentTypeChange();
-    }
-});
-</script>
+<script src="{% static 'js/registration.js' %}"></script>
 {% endblock %}
