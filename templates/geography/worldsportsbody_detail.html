@@ -1,22 +1,68 @@
-shaun/safa_global/templates/geography/worldsportsbody_detail.html -->
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ world_body.name }}{% endblock %}
+{% block title %}{{ object.name }}{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="row mb-4">
         <div class="col">
-            <h2>{{ world_body.name }} {% if world_body.acronym %}({{ world_body.acronym }}){% endif %}</h2>
+            <h2>{{ object.name }}</h2>
         </div>
         <div class="col-auto">
-            <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-secondary">Back to List</a>
-            <a href="{% url 'geography:worldsportsbody-update' world_body.pk %}" class="btn btn-primary">Edit</a>
-            <a href="{% url 'geography:worldsportsbody-delete' world_body.pk %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'geography:worldsportsbody-update' object.pk %}" class="btn btn-secondary">
+                Edit
+            </a>
+            <a href="{% url 'geography:worldsportsbody-delete' object.pk %}" class="btn btn-danger">
+                Delete
+            </a>
         </div>
     </div>
-    
-    <!-- Rest of your detail template -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    {% if object.logo %}
+                        <img src="{{ object.logo.url }}" alt="{{ object.name }}" class="img-thumbnail mb-3" style="width: 100%; max-width: 200px; object-fit: contain;">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center mb-3" style="width: 100%; max-width: 200px; height: 200px;">
+                            <span class="text-muted">No logo</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <table class="table">
+                        <tr>
+                            <th>Name</th>
+                            <td>{{ object.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Acronym</th>
+                            <td>{{ object.acronym|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Headquarters</th>
+                            <td>{{ object.headquarters|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Website</th>
+                            <td>
+                                {% if object.website %}
+                                    <a href="{{ object.website }}" target="_blank">{{ object.website }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ object.description|linebreaksbr|default:"-" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="{% url 'geography:worldsportsbody-list' %}" class="btn btn-outline-secondary">Back to List</a>
 </div>
 {% endblock %}

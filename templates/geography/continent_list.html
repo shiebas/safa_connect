@@ -1,96 +1,76 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Continents{% endblock %}
 
 {% block content %}
-<h1>Continents</h1>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for continent in continents %}
-            <tr>
-                <td><a href="{% url 'geography:continent-detail' continent.pk %}">{{ continent.name }}</a></td>
-                <td>
-                    <a href="{% url 'geography:continent-detail' continent.pk %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'geography:continent-update' continent.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'geography:continent-delete' continent.pk %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="2">No continents found.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Continents</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:continent-create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add New Continent
+            </a>
+        </div>
+    </div>
+    {% if continents %}
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 60px;">Logo</th>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for continent in continents %}
+                            <tr>
+                                <td>
+                                    {% if continent.logo %}
+                                        <img src="{{ continent.logo.url }}" alt="{{ continent.name }}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: contain;">
+                                    {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px;">
+                                            <small class="text-muted">No logo</small>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ continent.name }}</td>
+                                <td>{{ continent.code|default:"-" }}</td>
+                                <td>{{ continent.description|truncatechars:50|default:"-" }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'geography:continent-detail' continent.pk %}" class="btn btn-outline-primary">
+                                            View
+                                        </a>
+                                        <a href="{% url 'geography:continent-update' continent.pk %}" class="btn btn-outline-secondary">
+                                            Edit
+                                        </a>
+                                        <a href="{% url 'geography:continent-delete' continent.pk %}" class="btn btn-outline-danger">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5">No continents found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No continents added yet. <a href="{% url 'geography:continent-create' %}">Add one now</a>.</p>
+        </div>
+    {% endif %}
 </div>
-
-{% if is_paginated %}
-<nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        {% endif %}
-
-        {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-                <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-        <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
-<a href="{% url 'geography:continent-create' %}" class="btn btn-primary">Add Continent</a>
 {% endblock %}

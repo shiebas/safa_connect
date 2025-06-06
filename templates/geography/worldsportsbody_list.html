@@ -10,73 +10,75 @@
             <h2>World Sports Bodies</h2>
         </div>
         <div class="col-auto">
-            <!-- Use hyphen in URL name -->
             <a href="{% url 'geography:worldsportsbody-create' %}" class="btn btn-success">
                 <i class="fas fa-plus"></i> Add New
             </a>
         </div>
     </div>
-    
     {% if world_bodies %}
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            {% for body in world_bodies %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-header d-flex align-items-center">
-                            <h5 class="card-title mb-0 flex-grow-1">{{ body.name }}</h5>
-                            {% if body.acronym %}
-                                <span class="badge bg-secondary">{{ body.acronym }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex mb-3">
-                                {% if body.logo %}
-                                    <img src="{{ body.logo.url }}" alt="{{ body.name }} Logo" 
-                                         class="img-thumbnail me-3" style="width: 80px; height: 80px; object-fit: contain;">
-                                {% else %}
-                                    <div class="bg-light d-flex align-items-center justify-content-center me-3"
-                                         style="width: 80px; height: 80px;">
-                                        <span class="text-muted">No logo</span>
-                                    </div>
-                                {% endif %}
-                                
-                                <div>
-                                    {% if body.headquarters %}
-                                        <p class="mb-1"><strong>HQ:</strong> {{ body.headquarters }}</p>
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 60px;">Logo</th>
+                            <th>Name</th>
+                            <th>Acronym</th>
+                            <th>Headquarters</th>
+                            <th>Website</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for body in world_bodies %}
+                            <tr>
+                                <td>
+                                    {% if body.logo %}
+                                        <img src="{{ body.logo.url }}" alt="{{ body.name }}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: contain;">
+                                    {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px;">
+                                            <small class="text-muted">No logo</small>
+                                        </div>
                                     {% endif %}
+                                </td>
+                                <td>{{ body.name }}</td>
+                                <td>{{ body.acronym|default:"-" }}</td>
+                                <td>{{ body.headquarters|default:"-" }}</td>
+                                <td>
                                     {% if body.website %}
-                                        <p class="mb-1">
-                                            <a href="{{ body.website }}" target="_blank">Visit Website</a>
-                                        </p>
+                                        <a href="{{ body.website }}" target="_blank">{{ body.website }}</a>
+                                    {% else %}
+                                        -
                                     {% endif %}
-                                </div>
-                            </div>
-                            
-                            {% if body.description %}
-                                <p class="card-text">{{ body.description|truncatewords:30 }}</p>
-                            {% endif %}
-                        </div>
-                        <div class="card-footer bg-white">
-                            <div class="btn-group w-100">
-                                <!-- Use hyphens in URL names -->
-                                <a href="{% url 'geography:worldsportsbody-detail' body.pk %}" class="btn btn-outline-primary btn-sm">
-                                    View
-                                </a>
-                                <a href="{% url 'geography:worldsportsbody-update' body.pk %}" class="btn btn-outline-secondary btn-sm">
-                                    Edit
-                                </a>
-                                <a href="{% url 'geography:worldsportsbody-delete' body.pk %}" class="btn btn-outline-danger btn-sm">
-                                    Delete
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+                                </td>
+                                <td>{{ body.description|truncatechars:50|default:"-" }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'geography:worldsportsbody-detail' body.pk %}" class="btn btn-outline-primary">
+                                            View
+                                        </a>
+                                        <a href="{% url 'geography:worldsportsbody-update' body.pk %}" class="btn btn-secondary">
+                                            Edit
+                                        </a>
+                                        <a href="{% url 'geography:worldsportsbody-delete' body.pk %}" class="btn btn-danger">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7">No World Sports Bodies found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     {% else %}
         <div class="alert alert-info">
-            <!-- Use hyphen in URL name -->
             <p>No World Sports Bodies added yet. <a href="{% url 'geography:worldsportsbody-create' %}">Add one now</a>.</p>
         </div>
     {% endif %}

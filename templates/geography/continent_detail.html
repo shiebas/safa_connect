@@ -1,24 +1,54 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ continent.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ continent.name }}</h1>
-    <div>
-        <a href="{% url 'geography:continent-update' continent.pk %}" class="btn btn-warning">Edit</a>
-        <a href="{% url 'geography:continent-delete' continent.pk %}" class="btn btn-danger">Delete</a>
-        <a href="{% url 'geography:continent-list' %}" class="btn btn-secondary">Back to List</a>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ continent.name }}</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'geography:continent-update' continent.pk %}" class="btn btn-secondary">
+                Edit
+            </a>
+            <a href="{% url 'geography:continent-delete' continent.pk %}" class="btn btn-danger">
+                Delete
+            </a>
+        </div>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <p><strong>Name:</strong> {{ continent.name }}</p>
-        {% if continent.description %}
-        <p><strong>Description:</strong> {{ continent.description }}</p>
-        {% endif %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    {% if continent.logo %}
+                        <img src="{{ continent.logo.url }}" alt="{{ continent.name }}" class="img-thumbnail mb-3" style="width: 100%; max-width: 200px; object-fit: contain;">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center mb-3" style="width: 100%; max-width: 200px; height: 200px;">
+                            <span class="text-muted">No logo</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <table class="table">
+                        <tr>
+                            <th>Name</th>
+                            <td>{{ continent.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Code</th>
+                            <td>{{ continent.code|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ continent.description|linebreaksbr|default:"-" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
+    <a href="{% url 'geography:continent-list' %}" class="btn btn-outline-secondary">Back to List</a>
 </div>
 {% endblock %}

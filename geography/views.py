@@ -64,7 +64,7 @@ class WorldSportsBodyListView(LoginRequiredMixin, ListView):
 
 class WorldSportsBodyDetailView(LoginRequiredMixin, DetailView):
     model = WorldSportsBody
-    context_object_name = 'world_body'
+    context_object_name = 'worldsportsbody'
     template_name = 'geography/worldsportsbody_detail.html'
 
 class WorldSportsBodyCreateView(LoginRequiredMixin, CreateView):
