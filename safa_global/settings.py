@@ -155,6 +155,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development, use console backend
+DEFAULT_FROM_EMAIL = 'shaunqjohannes@gmail.com'  # Change to your default email address
 ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Or 'email', as you prefer
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'           # Or 'mandatory'
