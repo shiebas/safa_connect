@@ -42,12 +42,11 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 ROLES = (
-  #  ('ADMIN_SYSTEM', _('System Admin')),
-  #  ('ADMIN_COUNTRY', _('Country Admin')),
     ('ADMIN_FEDERATION', _('Federation Admin')),
     ('ADMIN_PROVINCE', _('Province Admin')),
     ('ADMIN_REGION', _('Region Admin')),
     ('ADMIN_LOCAL_FED', _('Local Federation Admin')),
+    ('NATIONAL_ADMIN', _('National Administrator')),  # Add this line
     ('CLUB_ADMIN', _('Club Administrator')),
     ('PLAYER', _('Player')),
     ('REFEREE', _('Referee')),

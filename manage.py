@@ -3,6 +3,8 @@
 import os
 import sys
 
+# Removed unresolved and unused 'patches' import
+
 
 def main():
     """Run administrative tasks."""

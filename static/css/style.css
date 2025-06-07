@@ -101,6 +101,14 @@ body {
     background-color: var(--safa-yellow);
 }
 
+/* Readonly country styling */
+.readonly-country {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+    font-weight: bold;
+    border: 2px solid #343a40 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .card-title {

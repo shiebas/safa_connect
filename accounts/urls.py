@@ -2,7 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from .views import (
     WorkingLoginView, working_home, register, 
-    check_username, user_qr_code, profile_view
+    check_username, user_qr_code, profile_view, check_email_exists
 )
 
 app_name = 'accounts'
@@ -20,5 +20,6 @@ urlpatterns = [
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('ajax/check-email/', check_email_exists, name='check_email_exists'),
     # Add other paths as needed
 ]

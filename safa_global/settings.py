@@ -1,3 +1,40 @@
+import collections
+import sys
+
+# Fix for collections types removed in Python 3.10+ and 3.12
+if sys.version_info >= (3, 10):
+    # Collections types moved to collections.abc
+    if not hasattr(collections, 'Iterator'):
+        collections.Iterator = collections.abc.Iterator
+    if not hasattr(collections, 'Mapping'):
+        collections.Mapping = collections.abc.Mapping
+    if not hasattr(collections, 'MutableMapping'):
+        collections.MutableMapping = collections.abc.MutableMapping
+    if not hasattr(collections, 'Iterable'):
+        collections.Iterable = collections.abc.Iterable
+    if not hasattr(collections, 'Container'):
+        collections.Container = collections.abc.Container
+    if not hasattr(collections, 'Sequence'):
+        collections.Sequence = collections.abc.Sequence
+    if not hasattr(collections, 'MutableSequence'):
+        collections.MutableSequence = collections.abc.MutableSequence
+    if not hasattr(collections, 'Set'):
+        collections.Set = collections.abc.Set
+    if not hasattr(collections, 'MutableSet'):
+        collections.MutableSet = collections.abc.MutableSet
+
+# Fix for gettext codeset parameter in Python 3.12
+if sys.version_info >= (3, 12):
+    import gettext
+    _original_translation = gettext.translation
+    
+    def _patched_translation(*args, **kwargs):
+        if 'codeset' in kwargs:
+            del kwargs['codeset']
+        return _original_translation(*args, **kwargs)
+    
+    gettext.translation = _patched_translation
+
 import os
 
 from pathlib import Path
@@ -40,7 +77,8 @@ INSTALLED_APPS = [
      'crispy_forms',
     'crispy_bootstrap5',
     'widget_tweaks', 
-    'django_extensions',            
+    'django_extensions',
+ #   'forms_builder.forms',
 
     
     'geography.apps.GeographyConfig',

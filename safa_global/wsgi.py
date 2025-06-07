@@ -8,6 +8,11 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
+# Add the patch import at the top
+try:
+    import patches  # noqa
+except ImportError:
+    pass
 
 from django.core.wsgi import get_wsgi_application
 

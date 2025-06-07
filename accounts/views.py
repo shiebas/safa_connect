@@ -9,6 +9,7 @@ from .models import Membership, CustomUser
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -68,6 +69,11 @@ def check_username(request):
     exists = CustomUser.objects.filter(username=username).exists()
 
     return JsonResponse({'available': not exists})
+
+def check_email_exists(request):
+    email = request.GET.get('email', '').strip().lower()
+    exists = get_user_model().objects.filter(email=email).exists()
+    return JsonResponse({'exists': exists})
 
 def user_qr_code(request, user_id=None):
     """
