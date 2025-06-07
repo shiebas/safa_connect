@@ -56,21 +56,46 @@ $(document).ready(function() {
 
     function handleDocumentTypeChange() {
         const selectedDocType = idDocTypeField.val();
+        
+        // First hide/show appropriate sections
         if (selectedDocType === 'ID' || selectedDocType === 'BC') {
             idNumberBox.show();
             passportBox.hide();
             documentBox.show();
+            
+            // Always disable DOB and gender fields for ID/Birth Certificate
+            dobField.prop('disabled', true);
+            genderField.prop('disabled', true);
+            
         } else if (selectedDocType === 'PP') {
             idNumberBox.hide();
             passportBox.show();
             documentBox.show();
+            
+            // Enable fields for passport
+            dobField.prop('disabled', false);
+            genderField.prop('disabled', false);
+            
         } else {
+            // For other document types (DL, OT)
             idNumberBox.hide();
             passportBox.hide();
             documentBox.show();
+            
+            // Enable fields for other document types
+            dobField.prop('disabled', false);
+            genderField.prop('disabled', false);
         }
-        // Enable country field for passport, disable for others (handled in handleIDNumberChange for valid ID/BC)
+        
+        // Enable country field for passport, disable for others
         if (selectedDocType === 'PP') {
+            countryField.prop('disabled', false);
+        } else if (selectedDocType === 'ID' || selectedDocType === 'BC') {
+            // For SA IDs, lock to South Africa
+            setCountryToSouthAfrica();
+            countryField.prop('disabled', true);
+        } else {
+            // For other types, enable country selection
             countryField.prop('disabled', false);
         }
     }
@@ -102,9 +127,15 @@ $(document).ready(function() {
         errorDiv.hide().text('');
         extraFields.hide();
 
+        // Always disable DOB and gender fields for ID/BC document types
+        // regardless of ID number content
+        if (selectedDocType === 'ID' || selectedDocType === 'BC') {
+            dobField.prop('disabled', true);
+            genderField.prop('disabled', true);
+        }
+
+        // If not ID or Birth Certificate, skip validation
         if (selectedDocType !== 'ID' && selectedDocType !== 'BC') {
-            dobField.prop('disabled', false);
-            genderField.prop('disabled', false);
             return;
         }
 
@@ -114,7 +145,14 @@ $(document).ready(function() {
             idNumberField.val(idNumber);
         }
 
-        if (idNumber && idNumber.length === 13) {
+        // Clear fields if ID number is deleted
+        if (!idNumber || idNumber.length === 0) {
+            dobField.val('');
+            genderField.val('');
+            return;
+        }
+
+        if (idNumber.length === 13) {
             const validationResult = validateSouthAfricanID(idNumber);
             if (validationResult) {
                 const date = validationResult.dateOfBirth;
@@ -122,30 +160,36 @@ $(document).ready(function() {
                 const mm = String(date.getMonth() + 1).padStart(2, '0');
                 const dd = String(date.getDate()).padStart(2, '0');
                 const formattedDate = yyyy + '-' + mm + '-' + dd;
+                
+                // Set values but keep fields disabled
                 dobField.val(formattedDate);
-                dobField.prop('disabled', true);
                 genderField.val(validationResult.gender);
+                
+                // Always keep fields disabled for ID/BC
+                dobField.prop('disabled', true);
                 genderField.prop('disabled', true);
 
-                // Set and lock country to South Africa, show flag/code
+                // Set and lock country to South Africa
                 setCountryToSouthAfrica();
                 countryField.prop('disabled', true).addClass('readonly-country');
-                showSouthAfricaFlag(true);
-                extraFields.show();
+                
+                // Hide any existing error
+                errorDiv.hide();
             } else {
+                // Show error for invalid ID
                 errorDiv.text('Invalid South African ID/Birth Certificate number.').show();
+                
+                // Clear fields on invalid ID
+                dobField.val('');
+                genderField.val('');
             }
-        } else if (idNumber.length > 0 && idNumber.length < 13) {
-            errorDiv.text('Number must be exactly 13 digits.').show();
-            dobField.prop('disabled', false);
-            genderField.prop('disabled', false);
-            countryField.prop('disabled', false).removeClass('readonly-country');
-            showSouthAfricaFlag(false);
-        } else {
-            dobField.prop('disabled', false);
-            genderField.prop('disabled', false);
-            countryField.prop('disabled', false).removeClass('readonly-country');
-            showSouthAfricaFlag(false);
+        } else if (idNumber.length > 0) {
+            // Show error for incomplete ID
+            errorDiv.text('ID number must be exactly 13 digits.').show();
+            
+            // Clear fields when ID is incomplete
+            dobField.val('');
+            genderField.val('');
         }
     }
 
@@ -181,7 +225,7 @@ $(document).ready(function() {
     handleDocumentTypeChange();
     handleIDNumberChange();
 
-    // Show/hide province field based on role
+    // Show/hide province field based on role - only keep province handling
     $('#id_role').change(function() {
         if ($(this).val() === 'ADMIN_PROVINCE') {
             $('.province-field-wrapper').show();
@@ -190,50 +234,24 @@ $(document).ready(function() {
         }
     }).trigger('change'); // Trigger on page load
 
-    // Add this to your registration.js file:
-    $(document).ready(function() {
-        // Add this debugging code
-        console.log("Province field found:", $('.province-field-wrapper').length);
-        console.log("Role field value:", $('#id_role').val());
-        
-        // Make province field obvious on page load
-        $('.province-field-wrapper').addClass('bg-light');
-        
-        // Your existing role change handler
-        $('#id_role').change(function() {
-            console.log("Role changed to:", $(this).val());
-            if ($(this).val() === 'ADMIN_PROVINCE') {
-                console.log("Should show province field");
-                $('.province-field-wrapper').show().css('display', 'block !important');
-            } else {
-                console.log("Should hide province field");
-                $('.province-field-wrapper').hide();
-            }
-        }).trigger('change');
-    });
-
-    // Hide all admin fields initially
-    $('.admin-field-wrapper').hide();
+    // Remove nested document.ready that causes duplicate handlers
+    console.log("Province field found:", $('.province-field-wrapper').length);
+    console.log("Role field value:", $('#id_role').val());
     
-    // Show appropriate field based on role selection
+    // Make province field obvious on page load
+    $('.province-field-wrapper').addClass('bg-light');
+    
+    // Remove the redundant admin field handlers for fields that don't exist
+    // Keep only province handling
     $('#id_role').change(function() {
-        // Hide all admin fields first
-        $('.admin-field-wrapper').hide();
-        
-        // Show the specific field for the selected role
-        const role = $(this).val();
-        
-        if (role === 'ADMIN_PROVINCE') {
+        if ($(this).val() === 'ADMIN_PROVINCE') {
             $('.province-field-wrapper').show();
-        } else if (role === 'ADMIN_REGION') {
-            $('.region-field-wrapper').show();
-        } else if (role === 'ADMIN_LOCAL_FED') {
-            $('.lfa-field-wrapper').show();
-        } else if (role === 'CLUB_ADMIN') {
-            $('.club-field-wrapper').show();
+        } else {
+            $('.province-field-wrapper').hide();
         }
-    }).trigger('change');  // Trigger on page load
+    }).trigger('change');
 
+    // Form submission validation
     $('#registration-form').on('submit', function(e) {
         // Check for any visible errors
         if ($('.text-danger:visible').length > 0) {
@@ -258,5 +276,150 @@ $(document).ready(function() {
             e.preventDefault();
             alert('Please fill in all required fields: ' + missingFields.join(', '));
         }
+    });
+
+    // Password validation code
+    const passwordField = $('#id_password1');
+    const confirmPasswordField = $('#id_password2');
+    const validationDiv = $('#password-validation');
+    
+    // Hide Django's default help text
+    passwordField.siblings('.form-text').hide().addClass('password-help-text');
+    
+    // Fix password confirmation field styling
+    $('#div_id_password2').css('margin-top', '1rem');
+    
+    // Show validation on focus
+    passwordField.on('focus', function() {
+      validationDiv.show();
+    });
+    
+    // Hide validation when focus moves to another field 
+    // (only if we're not focusing on confirm password)
+    passwordField.on('blur', function() {
+      if (!confirmPasswordField.is(':focus')) {
+        validationDiv.hide();
+      }
+    });
+    
+    // Keep validation visible when focusing on confirm password
+    confirmPasswordField.on('focus', function() {
+      validationDiv.show();
+    });
+    
+    // Hide validation when leaving confirm password
+    // (only if we're not focusing on password field)
+    confirmPasswordField.on('blur', function() {
+      if (!passwordField.is(':focus')) {
+        validationDiv.hide();
+      }
+    });
+    
+    // Check password requirements in real-time
+    passwordField.on('keyup', function() {
+      validatePassword($(this).val());
+    });
+    
+    // Validate password again if pasted
+    passwordField.on('paste', function() {
+      setTimeout(function() {
+        validatePassword(passwordField.val());
+      }, 100);
+    });
+    
+    function validatePassword(password) {
+      // Check length
+      if (password.length >= 8) {
+        $('#length-validation').removeClass('invalid').addClass('valid');
+        $('#length-validation i').removeClass('fa-times-circle').addClass('fa-check-circle');
+      } else {
+        $('#length-validation').removeClass('valid').addClass('invalid');
+        $('#length-validation i').removeClass('fa-check-circle').addClass('fa-times-circle');
+      }
+      
+      // Check uppercase
+      if (/[A-Z]/.test(password)) {
+        $('#uppercase-validation').removeClass('invalid').addClass('valid');
+        $('#uppercase-validation i').removeClass('fa-times-circle').addClass('fa-check-circle');
+      } else {
+        $('#uppercase-validation').removeClass('valid').addClass('invalid');
+        $('#uppercase-validation i').removeClass('fa-check-circle').addClass('fa-times-circle');
+      }
+      
+      // Check lowercase
+      if (/[a-z]/.test(password)) {
+        $('#lowercase-validation').removeClass('invalid').addClass('valid');
+        $('#lowercase-validation i').removeClass('fa-times-circle').addClass('fa-check-circle');
+      } else {
+        $('#lowercase-validation').removeClass('valid').addClass('invalid');
+        $('#lowercase-validation i').removeClass('fa-check-circle').addClass('fa-times-circle');
+      }
+      
+      // Check numbers
+      if (/[0-9]/.test(password)) {
+        $('#number-validation').removeClass('invalid').addClass('valid');
+        $('#number-validation i').removeClass('fa-times-circle').addClass('fa-check-circle');
+      } else {
+        $('#number-validation').removeClass('valid').addClass('invalid');
+        $('#number-validation i').removeClass('fa-check-circle').addClass('fa-times-circle');
+      }
+      
+      // Check special character
+      if (/[^A-Za-z0-9]/.test(password)) {
+        $('#special-validation').removeClass('invalid').addClass('valid');
+        $('#special-validation i').removeClass('fa-times-circle').addClass('fa-check-circle');
+      } else {
+        $('#special-validation').removeClass('valid').addClass('invalid');
+        $('#special-validation i').removeClass('fa-check-circle').addClass('fa-times-circle');
+      }
+    }
+    
+    // Check password match
+    confirmPasswordField.on('keyup', function() {
+      const password = passwordField.val();
+      const confirmPassword = $(this).val();
+      
+      if (password && confirmPassword) {
+        if (password === confirmPassword) {
+          confirmPasswordField.removeClass('is-invalid').addClass('is-valid');
+          $('#password-match-error').hide();
+        } else {
+          confirmPasswordField.removeClass('is-valid').addClass('is-invalid');
+          if ($('#password-match-error').length === 0) {
+            confirmPasswordField.after('<div id="password-match-error" class="text-danger">Passwords do not match</div>');
+          } else {
+            $('#password-match-error').show();
+          }
+        }
+      } else {
+        confirmPasswordField.removeClass('is-valid is-invalid');
+        $('#password-match-error').hide();
+      }
+    });
+    
+    // Add additional initialization at the end of document ready
+    $(function() {
+        // Ensure DOB and gender fields are disabled by default
+        dobField.prop('disabled', true);
+        genderField.prop('disabled', true);
+        
+        // Add a prominent indicator to disabled fields
+        $('input:disabled, select:disabled').addClass('field-disabled');
+        
+        // Add CSS for disabled fields
+        $('<style>')
+            .prop('type', 'text/css')
+            .html(`
+                .field-disabled {
+                    background-color: #f8f9fa !important;
+                    cursor: not-allowed;
+                    opacity: 0.8;
+                }
+            `)
+            .appendTo('head');
+            
+        // Trigger handlers to set initial state
+        handleDocumentTypeChange();
+        handleIDNumberChange();
     });
 });

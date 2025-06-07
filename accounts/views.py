@@ -5,7 +5,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib import messages
 from .forms import UserRegistrationForm
-from .models import Membership, CustomUser
+from .models import CustomUser
+from membership.models import Membership  # Import Membership from the correct location
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
@@ -50,11 +51,10 @@ def register(request):
             # Create membership if club is selected
             if form.cleaned_data.get('club'):
                 Membership.objects.create(
-                    user=user,
-                    membership_type='club',
+                    member=user,  # Changed from user to member as per membership model
                     club=form.cleaned_data.get('club'),
                     start_date=user.date_joined.date(),
-                    is_active=False  # Inactive until approved
+                    status='INACTIVE'  # Use the status field instead of is_active
                 )
 
             # Display success message

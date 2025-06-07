@@ -411,187 +411,94 @@ class CustomUser(AbstractUser, ModelWithLogo):
             if not CustomUser.objects.filter(safa_id=code).exists():
                 self.safa_id = code
                 break
+                
     def fetch_fifa_id_from_api(self, api_key):
+        """Fetch FIFA ID from external API or generate placeholder"""
         # You would call the external API here
         # Example placeholder
         if not self.fifa_id:
             self.fifa_id = get_random_string(length=7, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
             self.save()
-
-    def generate_qr_code(self, size=200):
-        """
-        Generate a QR code for the user.
-        Returns the QR code as a base64 encoded string that can be embedded in HTML.
-        """
-        try:
-            import qrcode
-            import base64
-            from io import BytesIO
-
-            # Create QR code instance
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
-            )
-
-            # Data to encode in QR code
-            data = {
-                'id': str(self.id),
-                'username': self.username,
-                'name': f"{self.name} {self.surname}",
-                'role': self.role,
-                'safa_id': self.safa_id or '',
-                'fifa_id': self.fifa_id or '',
-            }
-
-            # Add data to QR code
-            qr.add_data(str(data))
-            qr.make(fit=True)
-
-            # Create an image from the QR code
-            img = qr.make_image(fill_color="black", back_color="white")
-
-            # Save the image to a BytesIO object
-            buffer = BytesIO()
-            img.save(buffer)
-
-            # Encode the image as base64
-            img_str = base64.b64encode(buffer.getvalue()).decode('utf-8')
-
-            return f"data:image/png;base64,{img_str}"
-        except ImportError:
-            # If qrcode is not installed, return None
-            return None
-
-class Membership(TimeStampedModel, ModelWithLogo):
-    """Represents a membership relationship between a user and an organization"""
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='memberships')
-    # Using generic relations to allow membership in different types of organizations
-    membership_type = models.CharField(max_length=50)  # e.g., 'club', 'association', 'federation'
-    address = models.CharField(max_length=255, blank=True)
-    postal_address = models.CharField(max_length=255, blank=True)
-    next_of_kin = models.CharField(max_length=100, blank=True)
-    # Optional relationships - only one should be used based on membership_type
-    club = models.ForeignKey(
-        'geography.Club',
-        on_delete=models.CASCADE,
-        related_name='club_memberships',  # Changed from 'members'
-        null=True,
-        blank=True
-    )
-    association = models.ForeignKey(
-        'geography.Association',
-        on_delete=models.CASCADE,
-        related_name='association_memberships',  # Changed from 'members'
-        null=True,
-        blank=True
-    )
-    # Best Practice: Consider models.SET_NULL if memberships should not be deleted when a federation/region is deleted.
-    # related_name can be made more specific (e.g., 'memberships_in_national_federation') if 'members' is ambiguous
-    # for the NationalFederation model or causes clashes.
-    national_federation = models.ForeignKey(
-        'geography.NationalFederation',
-        on_delete=models.CASCADE,  # Consider models.SET_NULL or models.PROTECT based on desired data integrity.
-        related_name='memberships', # Changed from 'members' for potentially better clarity.
-        null=True,
-        blank=True,
-        verbose_name="National Federation"  # Added for better representation in forms/admin.
-    )
-    region = models.ForeignKey(  # PEP 8: Renamed from 'Region' to 'region'.
-        'geography.Region',  # Using string literal for robustness (handles forward references/lazy loading).
-        on_delete=models.CASCADE,  # Consider models.SET_NULL or models.PROTECT.
-        related_name='memberships', # Changed from 'members' for potentially better clarity.
-        null=True,
-        blank=True,
-        verbose_name="Region"  # Added for better representation in forms/admin.
-    )
-    local_football_association = models.ForeignKey(
-        'geography.LocalFootballAssociation',
-        on_delete=models.CASCADE,
-        related_name='members',
-        null=True,
-        blank=True
-    )
-    start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-    # Add this field to your Membership model
-    payment_confirmed = models.BooleanField(default=False)
-    payment_date = models.DateTimeField(null=True, blank=True)  # Optional: track when payment was confirmed
-
-    # For players
-    player_category = models.CharField(max_length=3, choices=PLAYER_CATEGORIES, null=True, blank=True)
-    jersey_number = models.PositiveSmallIntegerField(null=True, blank=True)
-    position = models.CharField(max_length=50, blank=True)
-
-    def __str__(self):
-        org_name = ""
-        if self.club:
-            org_name = self.club.name
-        elif self.association:
-            org_name = self.association.name
-        elif self.national_federation:
-            org_name = self.national_federation.name
-
-        return f"{self.user} - {org_name}"
-
-    class Meta:
-        verbose_name = "Membership"
-        verbose_name_plural = "Memberships"
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'membership_type', 'club', 'association', 'national_federation'],
-                name='unique_membership_combination'  # Descriptive name for the constraint
-            )
-        ]
-    def save(self, *args, **kwargs):
-        # Check if payment_confirmed changed from False to True
-        if self.payment_confirmed and self.pk:
-            # Get the original object to check if payment_confirmed changed
-            original = Membership.objects.get(pk=self.pk)
-            if not original.payment_confirmed:
-                # Payment just got confirmed
-                self._handle_payment_confirmation()
-        # For new memberships where payment is confirmed immediately
-        elif self.payment_confirmed and not self.pk:
-            self._handle_payment_confirmation()
-        super().save(*args, **kwargs)
-
-    def _handle_payment_confirmation(self):
-        """Handle actions when payment is confirmed"""
-        from django.utils import timezone
-
-        # Activate the user and membership
-        self.user.is_active = True
-        self.is_active = True
-
-        # Generate SAFA ID only if user doesn't have one
-        if not self.user.safa_id:
-            self.user.generate_safa_id()
-
-        # Set payment date if not already set
-        if not self.payment_date:
-            self.payment_date = timezone.now()
-
-        # Save the user changes
-        self.user.save()
-
+            
     @property
-    def membership_qr_code(self):
-        """Generate QR code for membership card"""
-        return self.user.generate_qr_code()
+    def is_province_admin(self):
+        """Check if user is a province administrator"""
+        return self.role == 'ADMIN_PROVINCE' and self.province_id is not None
+        
+    @property
+    def is_region_admin(self):
+        """Check if user is a region administrator"""
+        return self.role == 'ADMIN_REGION' and self.region_id is not None
+        
+    @property
+    def is_local_fed_admin(self):
+        """Check if user is a local federation administrator"""
+        return self.role == 'ADMIN_LOCAL_FED' and self.local_federation_id is not None
+        
+    @property
+    def is_federation_admin(self):
+        """Check if user is a federation administrator"""
+        return self.role == 'ADMIN_FEDERATION'
+        
+    @property
+    def is_club_admin(self):
+        """Check if user is a club administrator"""
+        return self.role == 'CLUB_ADMIN' and self.club_id is not None
+        
+    def can_manage_province(self, province_id):
+        """Check if user can manage the specified province"""
+        return self.is_federation_admin or (self.is_province_admin and self.province_id == province_id)
+        
+    def can_manage_region(self, region_id):
+        """Check if user can manage the specified region"""
+        from django.db import models
+        
+        if self.is_federation_admin or self.is_province_admin:
+            return True
+            
+        return self.is_region_admin and self.region_id == region_id
+        
+    def can_manage_local_federation(self, local_fed_id):
+        """Check if user can manage the specified local federation"""
+        if self.is_federation_admin or self.is_province_admin or self.is_region_admin:
+            return True
+            
+        return self.is_local_fed_admin and self.local_federation_id == local_fed_id
+        
+    def can_manage_club(self, club_id):
+        """Check if user can manage the specified club"""
+        if self.is_federation_admin or self.is_province_admin or self.is_region_admin or self.is_local_fed_admin:
+            return True
+            
+        return self.is_club_admin and self.club_id == club_id
+        
+    def get_managed_provinces(self):
+        """Get QuerySet of provinces managed by this user"""
+        if self.is_federation_admin:
+            # Federation admin can manage all provinces
+            return models.Q(id__isnull=False)
+        elif self.is_province_admin:
+            # Province admin can only manage their province
+            return models.Q(id=self.province_id)
+        else:
+            # Other users can't manage provinces
+            return models.Q(id__isnull=True)
+            
+    def get_managed_regions(self):
+        """Get QuerySet of regions managed by this user"""
+        if self.is_federation_admin:
+            # Federation admin can manage all regions
+            return models.Q(id__isnull=False)
+        elif self.is_province_admin:
+            # Province admin can manage regions in their province
+            return models.Q(province_id=self.province_id)
+        elif self.is_region_admin:
+            # Region admin can only manage their region
+            return models.Q(id=self.region_id)
+        else:
+            # Other users can't manage regions
+            return models.Q(id__isnull=True)
 
-    @property  
-    def ready_for_card_printing(self):
-        """Check if membership is ready for card printing"""
-        return (
-            self.payment_confirmed and 
-            self.is_active and 
-            self.user.safa_id and
-            self.user.is_active
-        )
 
 
 

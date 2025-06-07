@@ -27,9 +27,88 @@
                 data-country-id="id_country" 
                 data-dob-id="id_date_of_birth"
                 data-gender-id="id_gender"
+                data-password-field-id="id_password1"
+                data-confirm-password-field-id="id_password2"
                 data-id-doc-type-id="id_id_document_type">
             {% csrf_token %}
-            {% crispy form %}
+            
+            <!-- Split the form into columns for better space usage -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  {{ form.email|as_crispy_field }}
+                </div>
+                <div class="mb-3">
+                  {{ form.name|as_crispy_field }}
+                </div>
+                <div class="mb-3">
+                  {{ form.surname|as_crispy_field }}
+                </div>
+                <div class="mb-3">
+                  {{ form.role|as_crispy_field }}
+                </div>
+                <div class="mb-3 province-field-wrapper" style="display:none;">
+                  {{ form.province|as_crispy_field }}
+                </div>
+                <div class="mb-3">
+                  {{ form.id_document_type|as_crispy_field }}
+                </div>
+                <div class="mb-3">
+                  {{ form.id_number|as_crispy_field }}
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3 position-relative">
+                  {{ form.password1|as_crispy_field }}
+                  
+                  <!-- Password validation indicators, positioned better -->
+                  <div id="password-validation" class="password-validation-container mb-2" style="display:none;">
+                    <p class="text-muted mb-1 small">Password must contain:</p>
+                    <ul class="list-unstyled small">
+                      <li id="length-validation" class="invalid"><i class="fas fa-times-circle"></i> At least 8 characters</li>
+                      <li id="uppercase-validation" class="invalid"><i class="fas fa-times-circle"></i> At least one uppercase letter</li>
+                      <li id="lowercase-validation" class="invalid"><i class="fas fa-times-circle"></i> At least one lowercase letter</li>
+                      <li id="number-validation" class="invalid"><i class="fas fa-times-circle"></i> At least one number</li>
+                      <li id="special-validation" class="invalid"><i class="fas fa-times-circle"></i> At least one special character</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  {{ form.password2|as_crispy_field }}
+                </div>
+                
+                <!-- Add disabled attribute for DOB and Gender fields -->
+                <div class="mb-3">
+                  <div id="div_id_date_of_birth" class="form-group">
+                    <label for="id_date_of_birth">Date of birth</label>
+                    <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth" disabled>
+                    <small class="form-text text-muted">Auto-populated from ID number or enter manually for passport</small>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <div id="div_id_gender" class="form-group">
+                    <label for="id_gender">Gender</label>
+                    <select name="gender" class="form-control" id="id_gender" disabled>
+                      <option value="">---------</option>
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                    </select>
+                    <small class="form-text text-muted">Auto-populated from ID number or select for passport</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Additional fields can be added outside the columns if needed -->
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-3">
+                  {{ form.id_document|as_crispy_field }}
+                </div>
+              </div>
+            </div>
             
             <div class="d-grid gap-2 mt-4">
               <button type="submit" class="btn btn-dark">Register</button>
@@ -41,29 +120,6 @@
     </div> <!-- col -->
   </div> <!-- row -->
 </div> <!-- container -->
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{% static 'js/registration.js' %}"></script>
-<script>
-  $(document).ready(function() {
-    // Show/hide province field based on selected role
-    $('#id_role').change(function() {
-        if ($(this).val() === 'ADMIN_PROVINCE') {
-            // Target the field's parent div with the proper ID or class
-            // This depends on how you configured your layout in forms.py
-            $('.province-field-wrapper').show();
-        } else {
-            $('.province-field-wrapper').hide();
-        }
-    });
-    
-    // Trigger change on page load
-    $('#id_role').trigger('change');
-  });
-</script>
-{% endblock %}
 
 <style>
   .admin-field-wrapper {
@@ -73,7 +129,50 @@
     border-left: 3px solid #343a40;
   }
   .province-field-wrapper { border-left-color: #007bff; }
-  .region-field-wrapper { border-left-color: #28a745; }
-  .lfa-field-wrapper { border-left-color: #ffc107; }
-  .club-field-wrapper { border-left-color: #dc3545; }
+  
+  /* Password validation styling */
+  .password-validation-container {
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 3px solid #6c757d;
+    font-size: 0.85rem;
+  }
+  .valid {
+    color: #28a745;
+  }
+  .valid i {
+    color: #28a745;
+  }
+  .invalid {
+    color: #6c757d;
+  }
+  .invalid i {
+    color: #6c757d;
+  }
+  #password-validation li {
+    transition: all 0.3s;
+  }
+  
+  /* Hide Django's default password help text */
+  .password-help-text {
+    display: none;
+  }
+  
+  /* Make the form more compact */
+  .form-group {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Add some spacing between field rows */
+  .row + .row {
+    margin-top: 1rem;
+  }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/registration.js' %}"></script>
+{% endblock %}
