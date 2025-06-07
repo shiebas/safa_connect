@@ -10,6 +10,11 @@ from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 from wagtail import urls as wagtail_urls  # Changed from wagtail.core
 
+# Update admin site title, header, and index title
+admin.site.site_header = "SAFA Administration"
+admin.site.site_title = "SAFA Admin Portal"
+admin.site.index_title = "Welcome to SAFA Administration Portal"
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

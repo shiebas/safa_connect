@@ -1,9 +1,50 @@
-{% extends "admin/base.html" %}
+{% extends "admin/base_site.html" %}
 {% load static %}
 
-{% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'admin/custom_admin.css' %}">
+{% block title %}{{ title }} | {{ site_title|default:_('SAFA Administration') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <img src="{% static 'img/safa_logo.png' %}" 
+             alt="SAFA Logo" 
+             height="40" 
+             style="margin-right: 10px; vertical-align: middle;">
+        {{ site_header|default:_('SAFA Administration') }}
+    </a>
+</h1>
 {% endblock %}
 
-{% block title %}{{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --primary: #0c4b33;
+        --secondary: #044a25;
+        --accent: #f5dd5d;
+        --primary-fg: #fff;
+        --header-bg: #0c4b33;
+        --header-color: #ffc;
+    }
+    
+    #header {
+        background: var(--header-bg);
+        color: var(--header-color);
+    }
+    
+    #branding h1, #branding h1 a:link, #branding h1 a:visited {
+        color: var(--header-color);
+    }
+    
+    a:link, a:visited {
+        color: var(--primary);
+    }
+    
+    .module h2, .module caption, .inline-group h2 {
+        background: var(--primary);
+        color: var(--primary-fg);
+    }
+</style>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
