@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',  # Manages PDF generation and processing functionalities
     'competitions',
+    'tools',
 
     # Wagtail CMS and forms
     'wagtail.contrib.forms',

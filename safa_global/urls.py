@@ -32,3 +32,9 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Add this to your main URLs file
+if 'tools' in settings.INSTALLED_APPS:
+    urlpatterns += [
+        path('admin/tools/', include('tools.urls', namespace='tools')),
+    ]

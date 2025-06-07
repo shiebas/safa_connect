@@ -1,0 +1,167 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    
+    <div class="module">
+        <p>This tool will generate SAFA IDs for entities that don't have them yet.</p>
+        
+        <form id="generate-form" method="post">
+            {% csrf_token %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Model</th>
+                        <th>Total Items</th>
+                        <th>Missing IDs</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stats %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="model_type[]" value="{{ item.model_type }}" 
+                                {% if item.missing > 0 %}checked{% endif %}>
+                        </td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.total }}</td>
+                        <td>{{ item.missing }}</td>
+                        <td>
+                            {% if item.missing == 0 %}
+                                <span style="color:green">Complete</span>
+                            {% else %}
+                                <span style="color:orange">Needs IDs</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="submit-row">
+                <input type="submit" value="Generate SAFA IDs" class="default">
+            </div>
+        </form>
+        
+        <div id="progress" style="display:none; margin-top: 20px;">
+            <h3>Generating SAFA IDs...</h3>
+            <div class="progress" style="height: 20px; background-color: #f0f0f0;">
+                <div id="progress-bar" class="progress-bar" 
+                     style="width: 0%; height: 20px; background-color: #79aec8;"></div>
+            </div>
+            <div id="progress-text">0%</div>
+        </div>
+        
+        <div id="results" style="display:none; margin-top: 20px;">
+            <h3>Results</h3>
+            <table id="results-table" class="table">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Generated</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            
+            <div class="submit-row">
+                <button id="done-button" class="default" style="display:none;">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('generate-form');
+    var progress = document.getElementById('progress');
+    var progressBar = document.getElementById('progress-bar');
+    var progressText = document.getElementById('progress-text');
+    var results = document.getElementById('results');
+    var resultsTable = document.getElementById('results-table').getElementsByTagName('tbody')[0];
+    var doneButton = document.getElementById('done-button');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show progress
+        form.style.display = 'none';
+        progress.style.display = 'block';
+        
+        // Get form data
+        var formData = new FormData(form);
+        
+        // Send AJAX request
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '');
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            showResults(response.results);
+                        } else {
+                            alert('Error: ' + (response.error || 'Unknown error'));
+                        }
+                    } catch (e) {
+                        alert('Error parsing response');
+                    }
+                } else {
+                    alert('Error: ' + xhr.status);
+                }
+            }
+        };
+        xhr.send(formData);
+        
+        // Show progress simulation
+        simulateProgress();
+    });
+    
+    function simulateProgress() {
+        var progress = 0;
+        var interval = setInterval(function() {
+            progress += 5;
+            if (progress >= 90) {
+                clearInterval(interval);
+            }
+            progressBar.style.width = progress + '%';
+            progressText.innerText = progress + '%';
+        }, 200);
+    }
+    
+    function showResults(results) {
+        progressBar.style.width = '100%';
+        progressText.innerText = '100% - Complete';
+        
+        progress.style.display = 'none';
+        results.style.display = 'block';
+        doneButton.style.display = 'block';
+        
+        for (var model in results) {
+            var row = resultsTable.insertRow();
+            
+            var cell1 = row.insertCell(0);
+            cell1.textContent = model;
+            
+            var cell2 = row.insertCell(1);
+            cell2.textContent = results[model].count;
+            
+            var cell3 = row.insertCell(2);
+            cell3.textContent = results[model].status === 'success' ? 'Success' : results[model].status;
+            cell3.style.color = results[model].status === 'success' ? 'green' : 'orange';
+        }
+        
+        doneButton.addEventListener('click', function() {
+            window.location.reload();
+        });
+    }
+});
+</script>
+{% endblock %}

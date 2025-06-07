@@ -6,4 +6,5 @@ app_name = 'tools'
 urlpatterns = [
     path('generate-all-safa-ids/', views.generate_all_safa_ids, name='generate_all_safa_ids'),
     path('safa-id-coverage/', views.safa_id_coverage, name='safa_id_coverage'),
+    path('generate-qr-codes/', views.generate_qr_codes, name='generate_qr_codes'),
 ]
