@@ -216,3 +216,10 @@ def generate_qr_codes(request):
             'error': str(e),
             'traceback': traceback.format_exc()
         })
+
+@staff_member_required
+def tools_index(request):
+    """Custom index page for SAFA tools"""
+    return render(request, 'admin/tools/tools_index.html', {
+        'title': 'SAFA Tools Administration',
+    })

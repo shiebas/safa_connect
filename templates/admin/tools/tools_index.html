@@ -1,0 +1,49 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; {% trans 'SAFA Tools' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>SAFA Tools</h1>
+    
+    <div class="module">
+        <table>
+            <caption>Available Tools</caption>
+            <tbody>
+                <tr>
+                    <th scope="row">
+                        <a href="/admin/tools/generate-all-safa-ids/">Generate Missing SAFA IDs</a>
+                    </th>
+                    <td>Generate SAFA IDs for users, members, and geographic entities</td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <a href="/admin/tools/safa-id-coverage/">SAFA ID Coverage Report</a>
+                    </th>
+                    <td>View a report of SAFA ID coverage across the system</td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <a href="{% url 'admin:accounts_customuser_changelist' %}?safa_id__isnull=True">Users Without SAFA IDs</a>
+                    </th>
+                    <td>View and edit users that don't have SAFA IDs</td>
+                </tr>
+                {% if user.is_superuser %}
+                <tr>
+                    <th scope="row">
+                        <a href="/admin/tools/generate-qr-codes/">Generate QR Codes</a>
+                    </th>
+                    <td>Generate QR codes for users, members, and clubs</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

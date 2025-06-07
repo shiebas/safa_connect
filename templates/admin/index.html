@@ -4,7 +4,7 @@
 {% block content %}
 {{ block.super }}
 
-<div class="module">
+<div id="safa-tools-module" class="module">
     <table>
         <caption>
             <h2>SAFA Tools</h2>
@@ -43,4 +43,16 @@
         </tbody>
     </table>
 </div>
+
+<script>
+// Remove any duplicate SAFA Tools sections that might be added by other extensions
+document.addEventListener('DOMContentLoaded', function() {
+    var modules = document.querySelectorAll('#safa-tools-module');
+    if (modules.length > 1) {
+        for (var i = 1; i < modules.length; i++) {
+            modules[i].remove();
+        }
+    }
+});
+</script>
 {% endblock %}
