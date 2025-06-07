@@ -61,6 +61,7 @@ LOGOUT_REDIRECT_URL = '/'          # Where to go after logout
 # Application definition
 
 INSTALLED_APPS = [
+    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -73,13 +74,12 @@ INSTALLED_APPS = [
     'allauth.socialaccount',           
     'corsheaders', 
  #   'debug_toolbar', 
-     'model_utils',
-     'crispy_forms',
+    'model_utils',
+    'crispy_forms',
     'crispy_bootstrap5',
     'widget_tweaks', 
     'django_extensions',
- #   'forms_builder.forms',
-
+ 
     
     'geography.apps.GeographyConfig',
     'accounts.apps.AccountsConfig', # CustomUser model is here
@@ -87,6 +87,22 @@ INSTALLED_APPS = [
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',  # Manages PDF generation and processing functionalities
     'competitions',
+
+    # Wagtail CMS and forms
+    'wagtail.contrib.forms',
+    'wagtail.contrib.redirects',
+    'wagtail.embeds',
+    'wagtail.sites',
+    'wagtail.users',
+    'wagtail.snippets',
+    'wagtail.documents',
+    'wagtail.images',
+    'wagtail.search',
+    'wagtail.admin',
+    'wagtail',  # Changed from wagtail.wagtailcore to wagtail.core
+    'modelcluster',
+    'taggit',
+
 ]
 
 MIDDLEWARE = [
@@ -101,6 +117,8 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 #    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    'accounts.middleware.AdminFormErrorMiddleware',
 ]
 
 ROOT_URLCONF = 'safa_global.urls'
@@ -195,9 +213,10 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development, use console backend
 DEFAULT_FROM_EMAIL = 'shaunqjohannes@gmail.com'  # Change to your default email address
-ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Or 'email', as you prefer
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'optional'           # Or 'mandatory'
+
+ACCOUNT_LOGIN_METHODS = {'email'}  # Or {'username', 'email'} if you want both options
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Asterisk means required
+
 ACCOUNT_RATE_LIMITS = {
     "login_failed": "5/m",  # 5 failed logins per minute
     # You can adjust the rate as needed, e.g. "10/h" for 10 per hour
@@ -208,3 +227,8 @@ ACCOUNT_RATE_LIMITS = {
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+WAGTAIL_SITE_NAME = "SAFA Global"
+
+# Wagtail base URL for forms
+WAGTAILADMIN_BASE_URL = 'http://localhost:8000'

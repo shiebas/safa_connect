@@ -5,6 +5,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
+# Updated Wagtail imports
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
+from wagtail import urls as wagtail_urls  # Changed from wagtail.core
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,6 +19,13 @@ urlpatterns = [
     path('geography/', include('geography.urls')),
     path('membership/', include('membership.urls')),
     path('competitions/', include(('competitions.urls', 'competitions'), namespace='competitions')),
+
+    # Wagtail admin and URLs
+    path('cms/', include(wagtailadmin_urls)),
+    path('documents/', include(wagtaildocs_urls)),
+    path('pages/', include(wagtail_urls)),
+
+    # Your other URLs
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),

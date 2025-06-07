@@ -1,14 +1,15 @@
 $(document).ready(function() {
-    const form = $('form[method="post"]');
+    const form = $('#registration-form');
     const idNumberField = $('#' + form.data('id-number-id'));
+    const countryField = $('#' + form.data('country-id'));
     const dobField = $('#' + form.data('dob-id'));
     const genderField = $('#' + form.data('gender-id'));
     const idDocTypeField = $('#' + form.data('id-doc-type-id'));
-    const countryField = $('#' + form.data('country-id'));
 
     const idNumberBox = $('#id_number_box');
     const passportBox = $('#passport_box');
     const documentBox = $('#document_box');
+    const documentField = $('#id_id_document');  // Changed from id_document
 
     function validateSouthAfricanID(idNumber) {
         idNumber = idNumber.replace(/\s+/g, '').replace(/-/g, '');
@@ -179,4 +180,83 @@ $(document).ready(function() {
 
     handleDocumentTypeChange();
     handleIDNumberChange();
+
+    // Show/hide province field based on role
+    $('#id_role').change(function() {
+        if ($(this).val() === 'ADMIN_PROVINCE') {
+            $('.province-field-wrapper').show();
+        } else {
+            $('.province-field-wrapper').hide();
+        }
+    }).trigger('change'); // Trigger on page load
+
+    // Add this to your registration.js file:
+    $(document).ready(function() {
+        // Add this debugging code
+        console.log("Province field found:", $('.province-field-wrapper').length);
+        console.log("Role field value:", $('#id_role').val());
+        
+        // Make province field obvious on page load
+        $('.province-field-wrapper').addClass('bg-light');
+        
+        // Your existing role change handler
+        $('#id_role').change(function() {
+            console.log("Role changed to:", $(this).val());
+            if ($(this).val() === 'ADMIN_PROVINCE') {
+                console.log("Should show province field");
+                $('.province-field-wrapper').show().css('display', 'block !important');
+            } else {
+                console.log("Should hide province field");
+                $('.province-field-wrapper').hide();
+            }
+        }).trigger('change');
+    });
+
+    // Hide all admin fields initially
+    $('.admin-field-wrapper').hide();
+    
+    // Show appropriate field based on role selection
+    $('#id_role').change(function() {
+        // Hide all admin fields first
+        $('.admin-field-wrapper').hide();
+        
+        // Show the specific field for the selected role
+        const role = $(this).val();
+        
+        if (role === 'ADMIN_PROVINCE') {
+            $('.province-field-wrapper').show();
+        } else if (role === 'ADMIN_REGION') {
+            $('.region-field-wrapper').show();
+        } else if (role === 'ADMIN_LOCAL_FED') {
+            $('.lfa-field-wrapper').show();
+        } else if (role === 'CLUB_ADMIN') {
+            $('.club-field-wrapper').show();
+        }
+    }).trigger('change');  // Trigger on page load
+
+    $('#registration-form').on('submit', function(e) {
+        // Check for any visible errors
+        if ($('.text-danger:visible').length > 0) {
+            e.preventDefault();
+            alert('Please fix the errors before submitting.');
+        }
+        
+        // Verify required fields
+        const requiredFields = ['email', 'password1', 'password2', 'name', 'surname', 'role'];
+        let missingFields = [];
+        
+        requiredFields.forEach(function(field) {
+            if ($('#id_' + field).val() === '') {
+                missingFields.push(field);
+                $('#id_' + field).addClass('is-invalid');
+            } else {
+                $('#id_' + field).removeClass('is-invalid');
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            e.preventDefault();
+            alert('Please fill in all required fields: ' + missingFields.join(', '));
+        }
+    });
 });

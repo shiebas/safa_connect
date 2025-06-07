@@ -10,6 +10,8 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.shortcuts import get_object_or_404
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -24,18 +26,25 @@ def register(request):
     View for handling user registration including players, administrators, etc.
     """
     if request.method == 'POST':
+        print("POST data:", request.POST)
+        print("FILES data:", request.FILES)
         form = UserRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            # Save the user
-            user = form.save(commit=False)
+            # This is probably calling the form's save method which checks 'province'
+            user = form.save()
+
             # Set user as inactive until approved by an admin
             user.is_active = False
 
             # Set document type and handle file upload
             user.id_document_type = form.cleaned_data.get('id_document_type')
-            if form.cleaned_data.get('document'):
-                user.document = form.cleaned_data.get('document')
+            if form.cleaned_data.get('id_document'):  # Change 'document' to 'id_document' 
+                user.id_document = form.cleaned_data.get('id_document')
 
+            # Set province if user is a Province Admin
+            if user.role == 'ADMIN_PROVINCE':
+                user.province = form.cleaned_data.get('province')
+                
             user.save()
 
             # Create membership if club is selected
@@ -51,6 +60,17 @@ def register(request):
             # Display success message
             messages.success(request, 'Registration successful! Your account is pending approval.')
             return redirect('accounts:login')
+        else:
+            # Debug form errors
+            print("Form errors:", form.errors)
+            print("Province field value:", request.POST.get('province'))
+
+            # Check if province field has a queryset before trying to access it
+            if hasattr(form.fields['province'], 'queryset'):
+                print("Province field choices:", [(p.id, str(p)) for p in form.fields['province'].queryset])
+            else:
+                print("Province field doesn't have a queryset - it's type:", type(form.fields['province']))
+            # Make sure these errors are displayed in template
     else:
         form = UserRegistrationForm()
 
@@ -81,8 +101,7 @@ def user_qr_code(request, user_id=None):
     If user_id is provided, displays the QR code for that user.
     Otherwise, displays the QR code for the current user.
     """
-    from django.contrib.auth.decorators import login_required
-    from django.shortcuts import get_object_or_404
+    
 
     @login_required
     def view_func(request, user_id=None):
@@ -116,3 +135,17 @@ def user_qr_code(request, user_id=None):
 @login_required
 def profile_view(request):
     return render(request, 'accounts/profile.html')
+
+# Add this temporarily to your views.py
+def model_debug_view(request):
+    from django.http import HttpResponse
+    from django.apps import apps
+    
+    models_info = []
+    for app_config in apps.get_app_configs():
+        for model in app_config.get_models():
+            models_info.append(f"{app_config.name}.{model.__name__}")
+    
+    return HttpResponse("<br>".join(models_info))
+
+
