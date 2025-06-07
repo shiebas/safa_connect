@@ -14,6 +14,12 @@ from geography.models import (
     LocalFootballAssociation,
     Club as GeographyClub  # Import Club from geography with an alias
 )
+from django.apps import apps
+import sys
+
+# Add path to utils if needed
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from utils.qr_code_utils import generate_qr_code, get_member_qr_data
 
 # Constants for default images
 DEFAULT_PROFILE_PICTURE = 'default_profile.png'
@@ -192,6 +198,25 @@ class Member(models.Model):
                 self.safa_id = code
                 break
 
+    def generate_qr_code(self, size=200):
+        """Generate QR code for member identification"""
+        qr_data = get_member_qr_data(self)
+        return generate_qr_code(qr_data, size)
+    
+    @property
+    def qr_code(self):
+        """Return QR code for member identification"""
+        return self.generate_qr_code()
+        
+    @property
+    def membership_card_ready(self):
+        """Check if member is ready for membership card generation"""
+        return (
+            self.safa_id and
+            self.status == 'ACTIVE' and 
+            self.profile_picture
+        )
+
     def _validate_id_number(self):
         """Validate South African ID number format and content"""
         id_number = self.id_number.strip()
@@ -277,6 +302,11 @@ class Player(Member):
 
     def __str__(self):
         return f"{self.get_full_name()} - {self.membership_number or 'No Membership Number'}"
+
+    def save(self, *args, **kwargs):
+        # Force role to be PLAYER before saving
+        self.role = 'PLAYER'
+        super().save(*args, **kwargs)
 
 class PlayerClubRegistration(TimeStampedModel):
     """Represents a player's registration with a specific club"""
@@ -617,3 +647,63 @@ class Membership(models.Model):
 
     def __str__(self):
         return f"{self.member} - {self.club}"
+
+# Add SAFA ID to clubs in the GeographyClub model (if not already there)
+# This should be done in geography/models.py, but we'll add a proxy model here for now
+class ClubWithSafaID(GeographyClub):
+    """
+    Add SAFA ID functionality to clubs from geography app.
+    
+    This is a proxy model that extends the Club model from geography app
+    to add SAFA ID and QR code functionality without modifying the original model's DB table.
+    """
+    class Meta:
+        proxy = True
+        app_label = 'membership'
+        verbose_name = _("Club with SAFA ID")
+        verbose_name_plural = _("Clubs with SAFA ID")
+    
+    def generate_safa_id(self):
+        """Generate a unique 5-character uppercase alphanumeric code for club"""
+        if not self.safa_id:
+            while True:
+                code = get_random_string(length=5, 
+                                      allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+                if not GeographyClub.objects.filter(safa_id=code).exists():
+                    self.safa_id = code
+                    break
+            self.save(update_fields=['safa_id'])
+        return self.safa_id
+    
+    def generate_qr_code(self, size=200):
+        """Generate QR code for club identification"""
+        from utils.qr_code_utils import generate_qr_code, get_club_qr_data
+        qr_data = get_club_qr_data(self)
+        return generate_qr_code(qr_data, size)
+    
+    @property
+    def qr_code(self):
+        """Return QR code for club identification"""
+        return self.generate_qr_code()
+    
+    # The class methods are no longer needed as instance methods now handle this
+    # but we'll keep them for backward compatibility
+    @classmethod
+    def generate_safa_id_for_club(cls, club):
+        """Generate a SAFA ID for any club instance"""
+        if isinstance(club, GeographyClub):
+            # Convert to proxy model if needed
+            if not isinstance(club, cls):
+                club = cls.objects.get(pk=club.pk)
+            return club.generate_safa_id()
+        return None
+
+    @classmethod
+    def generate_qr_code_for_club(cls, club, size=200):
+        """Generate QR code for any club instance"""
+        if isinstance(club, GeographyClub):
+            # Convert to proxy model if needed
+            if not isinstance(club, cls):
+                club = cls.objects.get(pk=club.pk)
+            return club.generate_qr_code(size)
+        return None

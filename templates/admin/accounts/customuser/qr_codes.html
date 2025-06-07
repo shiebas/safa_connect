@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <h1>QR Codes for Selected Users</h1>
+    <p>Below are the generated QR codes. You can print this page or save the individual QR codes.</p>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        {% for item in users %}
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; width: 250px; text-align: center;">
+            <h3>{{ item.user.get_full_name }}</h3>
+            <p>SAFA ID: {{ item.user.safa_id }}</p>
+            {% if item.qr_code %}
+                <img src="{{ item.qr_code }}" alt="QR Code" style="width: 180px; height: 180px;">
+                <p>
+                    <a href="{{ item.qr_code }}" download="qr_{{ item.user.safa_id }}.png" 
+                       style="background: #79aec8; padding: 8px 12px; color: white; text-decoration: none; border-radius: 4px;">
+                        Download QR
+                    </a>
+                </p>
+            {% else %}
+                <p>QR code generation failed</p>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p>No users selected with valid SAFA IDs.</p>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 20px; text-align: center;">
+        <button onclick="window.print();" style="background: #417690; border: none; padding: 10px 15px; color: white; cursor: pointer; font-size: 16px;">
+            Print All QR Codes
+        </button>
+    </div>
+</div>
+{% endblock %}

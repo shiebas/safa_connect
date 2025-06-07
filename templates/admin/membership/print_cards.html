@@ -1,0 +1,160 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<style>
+    .membership-card {
+        width: 3.375in;
+        height: 2.125in;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        margin: 10px;
+        padding: 15px;
+        position: relative;
+        display: inline-block;
+        background: #fff;
+        page-break-inside: avoid;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .membership-card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .membership-card-header .logo {
+        width: 50px;
+        height: 50px;
+        background: #f0f0f0;
+        border-radius: 5px;
+        margin-right: 10px;
+    }
+    
+    .membership-card-header .title {
+        flex-grow: 1;
+    }
+    
+    .membership-card-header .title h2 {
+        margin: 0;
+        font-size: 16px;
+    }
+    
+    .membership-card-header .title p {
+        margin: 0;
+        font-size: 10px;
+        color: #666;
+    }
+    
+    .membership-card-content {
+        display: flex;
+    }
+    
+    .membership-card-content .info {
+        flex-grow: 1;
+    }
+    
+    .membership-card-content .info p {
+        margin: 3px 0;
+        font-size: 12px;
+    }
+    
+    .membership-card-content .qr {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .membership-card-footer {
+        font-size: 10px;
+        color: #666;
+        position: absolute;
+        bottom: 10px;
+        left: 15px;
+        right: 15px;
+        text-align: center;
+    }
+    
+    @media print {
+        .admin-header, #header, .breadcrumbs, .actions, .submit-row, a.skip-to-content-link {
+            display: none;
+        }
+        
+        .membership-card {
+            box-shadow: none;
+            margin: 0.125in;
+            break-inside: avoid;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    }
+    
+    .print-options {
+        margin: 20px 0;
+        padding: 15px;
+        background: #f8f8f8;
+        border-radius: 5px;
+    }
+    
+    .print-button {
+        background: #417690;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Print Membership Cards</h1>
+
+<div class="print-options">
+    <p>You are about to print {{ members.count }} membership cards. Make sure your printer is ready.</p>
+    <button onclick="window.print();" class="print-button">Print Membership Cards</button>
+</div>
+
+<div class="membership-cards-container">
+    {% for member in members %}
+    <div class="membership-card">
+        <div class="membership-card-header">
+            <div class="logo">
+                {% if member.club %}
+                <img src="{{ member.club.logo_url }}" alt="Club Logo" style="max-width: 50px; max-height: 50px;">
+                {% else %}
+                <img src="{% static 'img/safa_logo.png' %}" alt="SAFA Logo" style="max-width: 50px; max-height: 50px;">
+                {% endif %}
+            </div>
+            <div class="title">
+                <h2>{{ member.role }}</h2>
+                <p>South African Football Association</p>
+            </div>
+        </div>
+        
+        <div class="membership-card-content">
+            <div class="info">
+                <p><strong>Name:</strong> {{ member.first_name }} {{ member.last_name }}</p>
+                <p><strong>SAFA ID:</strong> {{ member.safa_id }}</p>
+                <p><strong>Status:</strong> {{ member.get_status_display }}</p>
+                {% if member.club %}
+                <p><strong>Club:</strong> {{ member.club.name }}</p>
+                {% endif %}
+                <p><strong>Expires:</strong> {{ member.expiry_date|default:"Not set" }}</p>
+            </div>
+            <div class="qr">
+                <img src="{{ member.qr_code }}" alt="QR Code" style="width: 100px; height: 100px;">
+            </div>
+        </div>
+        
+        <div class="membership-card-footer">
+            Member since: {{ member.registration_date|date:"F Y" }} | Card No. {{ member.safa_id }}
+        </div>
+    </div>
+    {% empty %}
+    <p>No members with SAFA IDs found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

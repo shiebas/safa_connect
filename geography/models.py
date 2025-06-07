@@ -7,6 +7,7 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_extensions.db.models import TimeStampedModel
 from utils.models import ModelWithLogo, SAFAIdentifiableMixin  # Import from your utils app instead
+from utils.qr_code_utils import generate_qr_code, get_club_qr_data
 
 # ===== CHOICE DEFINITIONS =====
 DOCUMENT_TYPES = (
@@ -387,7 +388,14 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     stadium = models.CharField(_('Stadium'), max_length=100, blank=True)
     description = models.TextField(_('Description'), blank=True)
     colors = models.CharField(_('Club Colors'), max_length=100, blank=True)
-    safa_id = models.CharField(max_length=5, unique=True, blank=True, help_text="Unique 5-character SAFA identifier")
+    safa_id = models.CharField(
+        _("SAFA ID"),
+        max_length=5,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text=_("5-digit unique SAFA identification number")
+    )
     class Meta:
         verbose_name = _('Club')
         verbose_name_plural = _('Clubs')
@@ -401,7 +409,29 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         if self.localfootballassociation_id:
             self.region = self.localfootballassociation.region
             self.province = self.localfootballassociation.region.province
+        # Generate SAFA ID if not set
+        if not self.safa_id:
+            self.generate_safa_id()
         super().save(*args, **kwargs)
+    
+    def generate_safa_id(self):
+        """Generate a unique 5-character uppercase alphanumeric code"""
+        while True:
+            code = get_random_string(length=5, 
+                                   allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if not Club.objects.filter(safa_id=code).exists():
+                self.safa_id = code
+                break
+                
+    def generate_qr_code(self, size=200):
+        """Generate QR code for club identification"""
+        qr_data = get_club_qr_data(self)
+        return generate_qr_code(qr_data, size)
+    
+    @property
+    def qr_code(self):
+        """Return QR code for club identification"""
+        return self.generate_qr_code()
 
 
 

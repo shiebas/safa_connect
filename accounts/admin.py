@@ -140,7 +140,7 @@ class CustomUserAdmin(UserAdmin):
     )
     
     # Actions available in the admin
-    actions = ['activate_users', 'deactivate_users', 'generate_safa_ids', 'fetch_fifa_ids']
+    actions = ['activate_users', 'deactivate_users', 'generate_safa_ids', 'fetch_fifa_ids', 'generate_qr_codes']
     
     def activate_users(self, request, queryset):
         """Activate selected users"""
@@ -162,14 +162,40 @@ class CustomUserAdmin(UserAdmin):
         self.message_user(request, _(f"Generated SAFA IDs for {count} users."))
     generate_safa_ids.short_description = _("Generate SAFA IDs for selected users")
     
-    def fetch_fifa_ids(self, request, queryset):
-        """Fetch FIFA IDs for selected users"""
-        count = 0
-        for user in queryset.filter(fifa_id__isnull=True):
-            user.fetch_fifa_id_from_api(api_key="dummy-key")  # Replace with actual API key
-            count += 1
-        self.message_user(request, _(f"Generated FIFA IDs for {count} users."))
-    fetch_fifa_ids.short_description = _("Generate/Fetch FIFA IDs for selected users")
+    def generate_qr_codes(self, request, queryset):
+        """Generate QR codes for users and display them"""
+        from django.http import HttpResponse
+        from django.template import loader
+        
+        # Get users with SAFA IDs
+        users_with_ids = queryset.exclude(safa_id__isnull=True)
+        users_without_ids = queryset.filter(safa_id__isnull=True)
+        
+        # Generate SAFA IDs for those without them
+        for user in users_without_ids:
+            user.generate_safa_id()
+            user.save()
+            
+        # Generate QR codes for all users
+        users = []
+        for user in queryset:
+            try:
+                qr_code = user.generate_qr_code()
+                users.append({
+                    'user': user,
+                    'qr_code': qr_code
+                })
+            except Exception as e:
+                self.message_user(request, f"Error generating QR code for {user}: {str(e)}", level='ERROR')
+                
+        # Render template with all QR codes
+        template = loader.get_template('admin/accounts/customuser/qr_codes.html')
+        context = {
+            'title': 'QR Codes',
+            'users': users,
+        }
+        return HttpResponse(template.render(context, request))
+    generate_qr_codes.short_description = _("Generate & View QR codes")
 
 class RegistrationTypeAdmin(admin.ModelAdmin):
     """Admin configuration for the RegistrationType model."""

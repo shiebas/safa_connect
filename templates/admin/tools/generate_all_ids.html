@@ -1,0 +1,172 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Generate All SAFA IDs{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Generate Missing SAFA IDs</h1>
+    
+    <div class="module">
+        <h2>Missing SAFA IDs</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Total Records</th>
+                    <th>Missing IDs</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model, data in missing_ids.items %}
+                <tr class="model-row" data-model="{{ model }}">
+                    <td>{{ model }}</td>
+                    <td>{{ data.total }}</td>
+                    <td class="missing-count">{{ data.missing }}</td>
+                    <td class="status">{% if data.missing == 0 %}Complete{% else %}Pending{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="submit-row" style="margin-top: 20px;">
+            <form id="generate-form" method="post">
+                {% csrf_token %}
+                <input type="submit" value="Generate All Missing SAFA IDs" 
+                       class="default" {% if total_missing == 0 %}disabled{% endif %}>
+            </form>
+        </div>
+        
+        <div id="progress" style="display:none; margin-top: 20px;">
+            <h3>Generating SAFA IDs...</h3>
+            <div style="width:100%; background-color:#f0f0f0; height:20px; border-radius:5px;">
+                <div id="progress-bar" style="width:0%; background-color:#417690; height:20px; border-radius:5px;"></div>
+            </div>
+            <p id="progress-text">0%</p>
+        </div>
+        
+        <div id="results" style="display:none; margin-top: 20px;">
+            <h3>Results</h3>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>IDs Generated</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            
+            <div class="submit-row">
+                <button type="button" id="done-button" style="display:none;">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('generate-form');
+    const progress = document.getElementById('progress');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const results = document.getElementById('results');
+    const resultsTable = document.getElementById('results-table').querySelector('tbody');
+    const doneButton = document.getElementById('done-button');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show progress
+        form.style.display = 'none';
+        progress.style.display = 'block';
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Send request
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update progress to 100%
+                progressBar.style.width = '100%';
+                progressText.textContent = '100% - Complete';
+                
+                // Show results
+                progress.style.display = 'none';
+                results.style.display = 'block';
+                doneButton.style.display = 'inline-block';
+                
+                // Update results table
+                const stats = data.stats;
+                for (const [model, info] of Object.entries(stats)) {
+                    const row = document.createElement('tr');
+                    
+                    const modelCell = document.createElement('td');
+                    modelCell.textContent = model;
+                    row.appendChild(modelCell);
+                    
+                    const countCell = document.createElement('td');
+                    countCell.textContent = info.count || 0;
+                    row.appendChild(countCell);
+                    
+                    const statusCell = document.createElement('td');
+                    if (info.status === 'success') {
+                        statusCell.textContent = 'Success';
+                        statusCell.style.color = 'green';
+                    } else if (info.status === 'complete') {
+                        statusCell.textContent = 'Already Complete';
+                        statusCell.style.color = 'blue';
+                    } else {
+                        statusCell.textContent = info.reason || 'Skipped';
+                        statusCell.style.color = 'orange';
+                    }
+                    row.appendChild(statusCell);
+                    
+                    resultsTable.appendChild(row);
+                    
+                    // Update status in the original table
+                    const originalRow = document.querySelector(`.model-row[data-model="${model}"]`);
+                    if (originalRow) {
+                        originalRow.querySelector('.missing-count').textContent = '0';
+                        originalRow.querySelector('.status').textContent = 'Complete';
+                    }
+                }
+                
+                // Done button action
+                doneButton.addEventListener('click', function() {
+                    window.location.href = '/admin/';
+                });
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while generating SAFA IDs');
+        });
+        
+        // Simulate progress updates (since we can't get real-time updates easily)
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 5;
+            if (progress >= 95) {
+                clearInterval(interval);
+            }
+            progressBar.style.width = progress + '%';
+            progressText.textContent = progress + '%';
+        }, 500);
+    });
+});
+</script>
+{% endblock %}

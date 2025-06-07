@@ -1,0 +1,9 @@
+{% include "django/forms/widgets/text.html" %}
+{% if not widget.attrs.readonly %}
+<button type="button" class="generate-safa-id" 
+        data-target="{{ widget.attrs.id }}" 
+        data-url="{{ widget.generate_url }}"
+        style="margin-left: 10px; padding: 5px 10px; background: #79aec8; color: white; border: none; cursor: pointer;">
+    Generate SAFA ID
+</button>
+{% endif %}

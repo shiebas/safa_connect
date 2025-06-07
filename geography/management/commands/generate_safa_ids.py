@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from geography.models import NationalFederation, Association, Region, LocalFootballAssociation, Club
+from accounts.models import CustomUser  # Add User model import
 from django.db import transaction
 from django.db.models import Q
 import random
@@ -7,10 +8,10 @@ import string
 import time
 
 class Command(BaseCommand):
-    help = 'Generate SAFA IDs for all geography entities'
+    help = 'Generate SAFA IDs for all geography entities and users'
 
     def add_arguments(self, parser):
-        parser.add_argument('--model', choices=['nf', 'assoc', 'region', 'lfa', 'club', 'all'], 
+        parser.add_argument('--model', choices=['nf', 'assoc', 'region', 'lfa', 'club', 'user', 'all'], 
                           default='all', help='Model to generate IDs for')
         parser.add_argument('--force', action='store_true', help='Force regenerate all IDs')
         parser.add_argument('--dry-run', action='store_true', help='Show what would be done without making changes')
@@ -29,6 +30,7 @@ class Command(BaseCommand):
             'region': Region,
             'lfa': LocalFootballAssociation,
             'club': Club,
+            'user': CustomUser,  # Add User model 
         }
         
         # Process selected models
@@ -60,15 +62,32 @@ class Command(BaseCommand):
                 self.stdout.write(f"Processing {count} {model_name} objects...")
                 
                 for obj in objects:
-                    safa_id = self.generate_unique_safa_id(used_ids)
+                    # Use different approach for CustomUser vs other models
+                    if model == CustomUser:
+                        # Use the built-in method for users
+                        if not dry_run:
+                            obj.generate_safa_id()
+                            obj.save()
+                            total_updated += 1
+                            safa_id = obj.safa_id
+                        else:
+                            safa_id = self.generate_unique_safa_id(used_ids)
+                    else:
+                        # Use the generic approach for geography models
+                        safa_id = self.generate_unique_safa_id(used_ids)
+                        if not dry_run:
+                            obj.safa_id = safa_id
+                            obj.save(update_fields=['safa_id'])
+                            total_updated += 1
+                    
+                    # Add to used IDs set to ensure uniqueness
                     used_ids.add(safa_id)
                     
-                    self.stdout.write(f"  {obj}: {safa_id}")
-                    
-                    if not dry_run:
-                        obj.safa_id = safa_id
-                        obj.save(update_fields=['safa_id'])
-                        total_updated += 1
+                    # Display output
+                    obj_name = str(obj)
+                    if len(obj_name) > 50:
+                        obj_name = obj_name[:47] + "..."
+                    self.stdout.write(f"  {obj_name}: {safa_id}")
                 
                 self.stdout.write(self.style.SUCCESS(f"Processed {count} {model_name} objects"))
                 # Small pause between models to avoid DB contention

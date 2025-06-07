@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 from .views import (
     WorkingLoginView, working_home, register, 
     check_username, user_qr_code, profile_view, check_email_exists,
-    model_debug_view
+    model_debug_view, generate_safa_id_ajax
 )
 
 app_name = 'accounts'
@@ -23,5 +23,6 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('ajax/check-email/', check_email_exists, name='check_email_exists'),
     path('debug/models/', model_debug_view, name='model_debug'),
+    path('ajax/generate-safa-id/', generate_safa_id_ajax, name='generate_safa_id_ajax'),
     # Add other paths as needed
 ]

@@ -13,6 +13,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.shortcuts import get_object_or_404
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.crypto import get_random_string
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -147,5 +149,25 @@ def model_debug_view(request):
             models_info.append(f"{app_config.name}.{model.__name__}")
     
     return HttpResponse("<br>".join(models_info))
+
+@staff_member_required
+def generate_safa_id_ajax(request):
+    """Generate a unique SAFA ID and return as JSON"""
+    try:
+        # Generate a unique SAFA ID
+        while True:
+            safa_id = get_random_string(length=5, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if not CustomUser.objects.filter(safa_id=safa_id).exists():
+                break
+                
+        return JsonResponse({
+            'success': True,
+            'safa_id': safa_id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 

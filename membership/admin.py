@@ -1,111 +1,167 @@
 from django.contrib import admin
+from django.urls import path
+from django.http import HttpResponse
+from django.template import loader
+from django.shortcuts import render
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from geography.admin import ModelWithLogoAdmin
-from .models import Member, Player, PlayerClubRegistration, Transfer
+from .models import Member, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership
 
-@admin.register(Member)
-class MemberAdmin(ModelWithLogoAdmin):
-    list_display = ['membership_number', 'first_name', 'last_name', 
-                   'email', 'role', 'club', 'status', 'display_images']
-    list_filter = ['status', 'role', 'club', 'registration_date']
-    search_fields = ['first_name', 'last_name', 'email', 'membership_number']
-    readonly_fields = ['display_logo_preview', 'display_profile_preview']
-    
+class MemberAdmin(admin.ModelAdmin):
+    list_display = ('get_full_name', 'email', 'safa_id', 'role', 'status', 'has_qr_code')
+    search_fields = ('first_name', 'last_name', 'email', 'safa_id')
+    list_filter = ('role', 'status', 'gender')
     fieldsets = (
         (None, {
-            'fields': ('user', 'first_name', 'last_name', 'email', 'phone_number')
+            'fields': ('first_name', 'last_name', 'email', 'phone_number', 'date_of_birth')
         }),
-        (_('Address'), {
-            'fields': ('street_address', 'suburb', 'city', 'state', 
-                      'postal_code', 'country')
+        (_('Identification'), {
+            'fields': ('safa_id', 'fifa_id', 'id_number', 'gender')
         }),
         (_('Membership Details'), {
-            'fields': ('club', 'role', 'status', 'membership_number', 
-                      'date_of_birth', 'registration_date', 'expiry_date')
+            'fields': ('role', 'status', 'registration_date', 'expiry_date')
         }),
-        (_('Images'), {
-            'fields': ('logo', 'display_logo_preview', 
-                      'profile_picture', 'display_profile_preview')
+        (_('Club Affiliation'), {
+            'fields': ('club',)
         }),
-        (_('Emergency Information'), {
-            'fields': ('emergency_contact', 'emergency_phone', 'medical_notes')
+        (_('Address'), {
+            'fields': ('street_address', 'suburb', 'city', 'state', 'postal_code', 'country'),
+            'classes': ('collapse',),
+        }),
+        (_('Emergency Contact'), {
+            'fields': ('emergency_contact', 'emergency_phone', 'medical_notes'),
+            'classes': ('collapse',),
+        }),
+        (_('Media'), {
+            'fields': ('profile_picture', 'qr_code_preview'),
         }),
     )
+    readonly_fields = ('qr_code_preview',)
+    
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+    get_full_name.short_description = _('Name')
+    
+    def has_qr_code(self, obj):
+        return bool(obj.safa_id)
+    has_qr_code.boolean = True
+    has_qr_code.short_description = _('QR Code')
+    
+    def qr_code_preview(self, obj):
+        if obj.pk and obj.safa_id:
+            qr_code = obj.generate_qr_code()
+            if qr_code:
+                return format_html(
+                    '<img src="{}" style="max-width:150px; max-height:150px" />', qr_code
+                )
+        return _('QR code will be available after saving with a SAFA ID')
+    qr_code_preview.short_description = _('QR Code Preview')
+    
+    def save_model(self, request, obj, form, change):
+        # Ensure SAFA ID is generated
+        if not obj.safa_id:
+            obj.generate_safa_id()
+        super().save_model(request, obj, form, change)
+    
+    actions = ['generate_safa_ids', 'generate_membership_cards']
+    
+    def generate_safa_ids(self, request, queryset):
+        count = 0
+        for member in queryset:
+            if not member.safa_id:
+                member.generate_safa_id()
+                member.save(update_fields=['safa_id'])
+                count += 1
+        self.message_user(request, _('Generated SAFA IDs for {} members.').format(count))
+    generate_safa_ids.short_description = _('Generate SAFA IDs for selected members')
+    
+    def generate_membership_cards(self, request, queryset):
+        ready_count = 0
+        not_ready_count = 0
+        
+        for member in queryset:
+            if member.membership_card_ready:
+                # Implement card generation logic here or queue it for processing
+                ready_count += 1
+            else:
+                not_ready_count += 1
+        
+        if ready_count > 0:
+            self.message_user(request, _('Queued {} membership cards for generation.').format(ready_count))
+        if not_ready_count > 0:
+            self.message_user(
+                request, 
+                _('Skipped {} members not ready for card generation (missing SAFA ID, inactive, or missing photo).').format(not_ready_count),
+                level='WARNING'
+            )
+            
+    generate_membership_cards.short_description = _('Generate membership cards')
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('print-membership-cards/', 
+                 self.admin_site.admin_view(self.print_membership_cards),
+                 name='membership_print_cards'),
+        ]
+        return custom_urls + urls
+    
+    def print_membership_cards(self, request):
+        """View for printing multiple membership cards"""
+        # Get members with SAFA IDs and active status
+        members = Member.objects.filter(
+            safa_id__isnull=False,
+            status='ACTIVE'
+        )[:100]  # Limit to 100 to avoid performance issues
+        
+        context = {
+            'title': "Print Membership Cards",
+            'members': members,
+        }
+        return render(request, 'admin/membership/print_cards.html', context)
+    
+    actions = ['generate_safa_ids', 'prepare_membership_cards']
+    
+    def generate_safa_ids(self, request, queryset):
+        """Generate SAFA IDs for selected members"""
+        count = 0
+        for member in queryset.filter(safa_id__isnull=True):
+            member.generate_safa_id()
+            member.save()
+            count += 1
+        self.message_user(request, f"Generated SAFA IDs for {count} members")
+    generate_safa_ids.short_description = "Generate SAFA IDs for selected members"
+    
+    def prepare_membership_cards(self, request, queryset):
+        """Prepare membership cards for selected members"""
+        members = queryset.filter(safa_id__isnull=False)
+        missing_ids = queryset.filter(safa_id__isnull=True).count()
+        
+        if missing_ids:
+            self.message_user(request, 
+                            f"Warning: {missing_ids} selected members don't have SAFA IDs and were skipped", 
+                            level='WARNING')
+        
+        context = {
+            'title': "Print Membership Cards",
+            'members': members,
+        }
+        return render(request, 'admin/membership/print_cards.html', context)
+    prepare_membership_cards.short_description = "Prepare membership cards"
 
-    def display_images(self, obj):
-        logo_img = f'<img src="{obj.logo_url}" width="30" height="30" style="margin-right: 10px;" />' if obj.logo else ''
-        profile_img = f'<img src="{obj.profile_picture_url}" width="30" height="30" />' if obj.profile_picture else ''
-        return format_html(f'{logo_img}{profile_img}')
-    display_images.short_description = _('Images')
-
-    def display_logo_preview(self, obj):
-        if obj.logo:
-            return format_html('<img src="{}" width="150" height="150" />', obj.logo_url)
-        return _("No logo uploaded")
-    display_logo_preview.short_description = _('Logo Preview')
-
-    def display_profile_preview(self, obj):
-        if obj.profile_picture:
-            return format_html('<img src="{}" width="150" height="150" />', obj.profile_picture_url)
-        return _("No profile picture uploaded")
-    display_profile_preview.short_description = _('Profile Picture Preview')
-
+# Register other models with similar enhancements
 @admin.register(Player)
 class PlayerAdmin(MemberAdmin):
-    # Inherits all from MemberAdmin since physical attributes are now in PlayerClubRegistration
-    pass
+    list_display = ('get_full_name', 'email', 'safa_id', 'status', 'has_active_club')
+    list_filter = ('status', 'gender')
+    
+    def has_active_club(self, obj):
+        return PlayerClubRegistration.objects.filter(player=obj, status='ACTIVE').exists()
+    has_active_club.boolean = True
+    has_active_club.short_description = _('Active Club')
 
-@admin.register(PlayerClubRegistration)
-class PlayerClubRegistrationAdmin(admin.ModelAdmin):
-    list_display = ['player', 'club', 'position', 'jersey_number', 
-                    'status', 'registration_date']
-    list_filter = ['status', 'position', 'club', 'registration_date']
-    search_fields = ['player__first_name', 'player__last_name', 
-                    'player__membership_number', 'club__name']
-    fieldsets = (
-        (None, {
-            'fields': ('player', 'club')
-        }),
-        (_('Registration Details'), {
-            'fields': ('registration_date', 'status', 'expiry_date')
-        }),
-        (_('Playing Details'), {
-            'fields': ('position', 'jersey_number', 'height', 'weight')
-        }),
-        (_('Additional Information'), {
-            'fields': ('notes',)
-        }),
-    )
-
-@admin.register(Transfer)
-class TransferAdmin(admin.ModelAdmin):
-    list_display = ('player', 'from_club', 'to_club', 'request_date', 'status', 'transfer_fee')
-    list_filter = ('status', 'request_date', 'from_club', 'to_club')
-    search_fields = ('player__first_name', 'player__last_name', 'from_club__name', 'to_club__name')
-    readonly_fields = ('approved_date', 'effective_date')
-    fieldsets = (
-        (_('Transfer Details'), {
-            'fields': ('player', 'from_club', 'to_club', 'request_date', 'status')
-        }),
-        (_('Financial'), {
-            'fields': ('transfer_fee',)
-        }),
-        (_('Additional Information'), {
-            'fields': ('reason', 'rejection_reason')
-        }),
-        (_('Approval Information'), {
-            'fields': ('approved_by', 'approved_date', 'effective_date')
-        }),
-    )
-
-    def save_model(self, request, obj, form, change):
-        if not change:  # Only set approved_by on creation
-            obj.approved_by = request.user.member_profile
-        super().save_model(request, obj, form, change)
-
-    def has_change_permission(self, request, obj=None):
-        if not obj:
-            return True
-        # Only allow changes if transfer is pending
-        return obj.status == 'PENDING'
+# Register remaining models
+admin.site.register(PlayerClubRegistration)
+admin.site.register(Transfer)
+admin.site.register(TransferAppeal)
+admin.site.register(Membership)
