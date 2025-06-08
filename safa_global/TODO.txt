@@ -1,0 +1,123 @@
+# TODO List for Registration Form Improvements
+
+Let's create a comprehensive TODO list for the registration form improvements and fixes. This will serve as our reference point for future enhancements.
+
+## High Priority Items
+
+1. **Fix JavaScript Form Field Visibility**
+   - Fix document type field toggles (ID/Passport/Other)
+   - Ensure proper handling of DOB and gender fields
+   - Debug why field visibility isn't working as expected
+
+2. **Registration Form Cleanup**
+   - Remove Player/Coaches/Referee roles for now
+   - Focus only on administrator roles (Province, Region, LFA, Club)
+   - Simplify the form to essential fields only
+
+3. **Add Required POPI Act Consent**
+   - Add boolean field `popi_act_consent` to user model
+   - Make it mandatory for registration
+   - Add checkbox and legal text to registration form
+
+## Medium Priority Items
+
+4. **Role-Specific Landing Pages**
+   - Create dedicated landing pages for each admin type
+   - Redirect users based on role after login
+   - Add proper navigation for each role
+
+5. **Improve Form Validation**
+   - Ensure all admin fields are properly required based on role
+   - Improve error messaging
+   - Add validation for geographical hierarchy (Province → Region → LFA)
+
+6. **Add POPI Consent for Player Registration**
+   - Add `popi_consent_obtain` field for future player registration feature
+   - Create parent/guardian consent flow for minors
+
+## Lower Priority Items
+
+7. **UI/UX Improvements**
+   - Add better progress indicators for multi-step forms
+   - Improve mobile responsiveness
+   - Add form completion percentage
+
+8. **Documentation**
+   - Document the registration process
+   - Create help text for users
+   - Add tooltips for important fields
+
+9. **Future Role Expansions**
+   - Prepare for re-adding Player/Coach/Referee roles
+   - Design permission structure for these roles
+
+## Step-by-Step Implementation Plan
+
+1. **JavaScript Fix (Immediate)**
+   - Debug document type selection not showing/hiding fields
+   - Fix element ID references in JavaScript
+   - Test each step with console.log to identify issues
+   - Remove duplicate event handlers
+
+2. **Registration Form Simplification (Next)**
+   - Remove non-admin roles from the form
+   - Focus on essential fields only
+   - Test form submission end-to-end
+
+3. **Admin Role Improvements (After Registration Works)**
+   - Implement geography selections (Province → Region → LFA → Club)
+   - Ensure validation for required fields based on admin role
+   - Create basic landing pages for each admin role type
+
+4. **POPI Act Compliance (Legal Requirement)**
+   - Add consent fields to model and form
+   - Implement checkbox with terms
+   - Ensure submission blocked without consent
+
+We'll tackle each step one at a time, ensuring each works before moving to the next.
+
+## Progress Tracking
+
+### In Progress
+- Registration form simplification (started on May 2023)
+  - [x] Remove non-admin roles from the model
+  - [x] Add POPI Act consent field to model
+  - [x] Create and run migrations for model changes
+  - [x] Update forms.py to reflect model changes
+  - [x] Add POPI consent checkbox to registration form
+  - [ ] Test form submission end-to-end
+
+### Completed
+- Initial TODO list creation
+- Model cleanup - removed Player/Coach/Referee roles
+- Added POPI Act consent field to CustomUser model
+- Database migrations completed
+- Updated forms.py with POPI consent and new role choices
+- Login functionality working perfectly
+- JavaScript field visibility fix (98% complete - BC and ID working)
+- Added nationality and birth_country fields to model
+- Enhanced SAFA ID generation security (ID/BC only)
+
+### In Progress
+- Final model improvements
+  - [x] Add nationality field (auto-set to ZAF for ID/BC)
+  - [x] Add birth_country field 
+  - [x] Enhanced SAFA ID security restrictions
+  - [ ] Create migration for new fields
+  - [ ] Update forms to include nationality/birth country
+
+### New Security Features Added
+**SAFA ID Generation Enhanced Security**
+- SAFA ID generation now returns True/False for success tracking
+- Logging added for blocked generation attempts
+- Only ID and BC document types can generate SAFA IDs
+
+**Nationality & Birth Country Tracking**
+- Auto-sets nationality to ZAF for SA ID/BC holders
+- Tracks birth country separately from nationality
+- Essential for player eligibility rules (born abroad, SA citizen)
+
+### Next Up
+- Create migration for nationality and birth_country fields
+- Update registration form to include these fields
+- Test complete registration flow with new fields

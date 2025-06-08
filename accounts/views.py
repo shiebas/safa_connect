@@ -44,9 +44,13 @@ def register(request):
             if form.cleaned_data.get('id_document'):  # Change 'document' to 'id_document' 
                 user.id_document = form.cleaned_data.get('id_document')
 
-            # Set province if user is a Province Admin
+            # Handle administrative relationships based on role
             if user.role == 'ADMIN_PROVINCE':
                 user.province = form.cleaned_data.get('province')
+            elif user.role == 'ADMIN_REGION':
+                user.region = form.cleaned_data.get('region')
+            elif user.role == 'ADMIN_LOCAL_FED':
+                user.local_federation = form.cleaned_data.get('local_federation')
                 
             user.save()
 

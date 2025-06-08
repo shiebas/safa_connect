@@ -4,30 +4,20 @@ from django.contrib.auth.forms import UserCreationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Fieldset, Div, HTML, ButtonHolder, Submit
 from django.db.models.query import EmptyQuerySet as DjangoEmptyQuerySet
+from django.utils.translation import gettext_lazy as _
 
-# Import models based on your project structure
+# Import models with proper error handling
 from .models import CustomUser
 
-# Always import Province since we know it exists
-from geography.models import Province
-
-# Try to import other models safely
+# Fixed geography imports - use try/except to handle possible missing models
 try:
-    from geography.models import Region
+    from geography.models import Province, Region, Club
+    from geography.models import LocalFootballAssociation as LocalFederation  # Correct model name
 except ImportError:
+    # Define dummy models or placeholders for form fields
+    Province = None
     Region = None
-
-try:
-    from geography.models import LocalFederation  # Try first in geography app
-except ImportError:
-    try:
-        from membership.models import LocalFederation  # Try next in membership app
-    except ImportError:
-        LocalFederation = None
-
-try:
-    from membership.models import Club
-except ImportError:
+    LocalFederation = None
     Club = None
 
 class UserRegistrationForm(UserCreationForm):
@@ -55,11 +45,52 @@ class UserRegistrationForm(UserCreationForm):
     country = forms.CharField(required=False, label="Country")
     profile_photo = forms.ImageField(required=False, label="Profile Photo")
     id_document = forms.FileField(required=False, label="Upload Document")
-    province = forms.ModelChoiceField(
-        queryset=Province.objects.all(),
+    
+    # Add POPI Act consent field
+    popi_act_consent = forms.BooleanField(
+        required=True,
+        label="I agree to the POPI Act terms and conditions",
+        help_text="You must agree to the Protection of Personal Information Act terms to register."
+    )
+
+    # Fix the LocalFederation field to handle missing model
+    if LocalFederation is not None:
+        local_federation = forms.ModelChoiceField(
+            queryset=LocalFederation.objects.all(),
+            required=False,
+            label=_("Local Football Association"),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+    else:
+        local_federation = forms.ChoiceField(
+            choices=[],
+            required=False,
+            label=_("Local Football Association"),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+
+    # Also fix other geography-related model fields
+    if Province is not None:
+        province = forms.ModelChoiceField(
+            queryset=Province.objects.all(),
+            required=False,
+            label=_("Province"),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+    else:
+        province = forms.ChoiceField(
+            choices=[],
+            required=False,
+            label=_("Province"),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+        
+    # Similarly for other fields that use models
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.all(),
         required=False,
-        label='Province',
-        widget=forms.Select(attrs={'class': 'form-control'}),
+        label=_("Region"),
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     class Meta:
@@ -68,8 +99,8 @@ class UserRegistrationForm(UserCreationForm):
             'email', 'name', 'middle_name', 'surname', 'alias', 'date_of_birth', 'gender', 'role',
             'id_number', 'id_number_other', 'passport_number', 'id_document_type',
             'phone_number', 'address', 'city', 'postal_code', 'country', 'profile_photo', 
-            'id_document',  # Changed from 'document' to match model
-            'password1', 'password2', 'province'
+            'id_document', 'password1', 'password2', 'province', 'region', 'local_federation',
+            'popi_act_consent'  # Add the new field
         )
 
     def __init__(self, *args, **kwargs):
@@ -100,6 +131,10 @@ class UserRegistrationForm(UserCreationForm):
                 ),
                 Div(
                     Div(Field('role', css_id='id_role'), css_class='col-md-6'),
+                    Div(
+                        HTML('<div id="registration_error" class="alert alert-danger" style="display:none;"></div>'),
+                        css_class='col-md-6'
+                    ),
                     css_class='row mb-3'
                 ),
             ),
@@ -108,6 +143,8 @@ class UserRegistrationForm(UserCreationForm):
                 'Identification',
                 Div(
                     Div(Field('id_document_type', css_id='id_id_document_type'), css_class='col-md-4'),
+                    
+                    # ID Number field and related fields
                     Div(
                         Field('id_number', css_id='id_id_number'),
                         HTML('<div id="id_number_error" class="text-danger" style="display:none;"></div>'),
@@ -118,8 +155,75 @@ class UserRegistrationForm(UserCreationForm):
                         css_class='col-md-4',
                         css_id='id_number_box'
                     ),
-                    Div(Field('passport_number', css_id='id_passport_number'), css_class='col-md-4', css_id='passport_box'),
-                    Div(Field('id_document', css_id='id_document'), css_class='col-md-4', css_id='document_box'),
+                    
+                    # Other ID field (initially hidden)
+                    Div(
+                        Field('id_number_other', css_id='id_id_number_other'),
+                        css_class='col-md-4',
+                        css_id='id_number_other_box',
+                        style='display:none;'
+                    ),
+                    
+                    # Passport field (initially hidden)
+                    Div(
+                        Field('passport_number', css_id='id_passport_number'),
+                        css_class='col-md-4',
+                        css_id='passport_box',
+                        style='display:none;'  # Start hidden by default
+                    ),
+                    
+                    # Document upload field
+                    Div(
+                        Field('id_document', css_id='id_id_document'),
+                        css_class='col-md-4',
+                        css_id='document_box'
+                    ),
+                    
+                    # Add JavaScript to control field visibility
+                    HTML('''
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const idTypeSelect = document.getElementById('id_id_document_type');
+                            const idNumberBox = document.getElementById('id_number_box');
+                            const idNumberOtherBox = document.getElementById('id_number_other_box');
+                            const passportBox = document.getElementById('passport_box');
+                            
+                            function updateFields() {
+                                const selectedValue = idTypeSelect.value;
+                                
+                                // Hide all fields first
+                                idNumberBox.style.display = 'none';
+                                idNumberOtherBox.style.display = 'none';
+                                passportBox.style.display = 'none';
+                                
+                                // Show the appropriate field based on selection
+                                if (selectedValue === 'ID') {
+                                    idNumberBox.style.display = 'block';
+                                } else if (selectedValue === 'PASSPORT') {
+                                    passportBox.style.display = 'block';
+                                } else if (selectedValue === 'OTHER') {
+                                    idNumberOtherBox.style.display = 'block';
+                                }
+                            }
+                            
+                            // Set initial state
+                            updateFields();
+                            
+                            // Add change listener
+                            idTypeSelect.addEventListener('change', updateFields);
+                            
+                            // Show registration error if present
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const error = urlParams.get('error');
+                            if (error) {
+                                const errorDiv = document.getElementById('registration_error');
+                                errorDiv.textContent = decodeURIComponent(error);
+                                errorDiv.style.display = 'block';
+                            }
+                        });
+                    </script>
+                    '''),
+                    
                     css_class='row mb-3'
                 ),
             ),
@@ -179,6 +283,16 @@ class UserRegistrationForm(UserCreationForm):
                 ),
             ),
             
+            # Add POPI Act consent field before the register button
+            Fieldset(
+                'Legal Compliance',
+                Div(
+                    Field('popi_act_consent', css_class='form-check-input'),
+                    HTML('<div class="mt-2"><small class="text-muted">By checking this box, you consent to the collection, processing, and storage of your personal information in accordance with the Protection of Personal Information Act (POPI Act). <a href="#" data-bs-toggle="modal" data-bs-target="#popiModal">Read full terms</a></small></div>'),
+                    css_class='form-check'
+                ),
+            ),
+            
             # Register button
             Div(
                 ButtonHolder(
@@ -186,6 +300,33 @@ class UserRegistrationForm(UserCreationForm):
                 ),
                 css_class='d-grid gap-2 mt-4'
             ),
+            
+            # Add POPI Modal
+            HTML('''
+            <div class="modal fade" id="popiModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">POPI Act Terms and Conditions</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Your personal information will be processed in accordance with the Protection of Personal Information Act (POPI Act) of South Africa.</p>
+                            <p>We collect and process your information for the following purposes:</p>
+                            <ul>
+                                <li>User registration and account management</li>
+                                <li>Communication regarding football administration</li>
+                                <li>Compliance with sports federation requirements</li>
+                            </ul>
+                            <p>Your information will be kept secure and will not be shared with third parties without your consent, except as required by law.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            '''),
             
             HTML('<div class="text-center mt-3"><p>Already have an account? <a href="{% url \'accounts:login\' %}" style="color: var(--safa-black);">Login here</a></p></div>'),
         )
@@ -212,6 +353,10 @@ class UserRegistrationForm(UserCreationForm):
         # Validate club is provided for Club Admins
         if role == 'CLUB_ADMIN' and not cleaned_data.get('club'):
             self.add_error('club', 'Club is required for Club Admins')
+        
+        # Validate POPI Act consent
+        if not cleaned_data.get('popi_act_consent'):
+            self.add_error('popi_act_consent', 'You must agree to the POPI Act terms to register.')
         
         return cleaned_data
 

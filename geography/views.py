@@ -737,3 +737,13 @@ def get_lfas_by_region(request):
     ).values('id', 'name'))
     
     return JsonResponse(lfas, safe=False)
+
+def regions_by_province(request, province_id):
+    """Return regions filtered by province as JSON"""
+    regions = Region.objects.filter(province_id=province_id).values('id', 'name')
+    return JsonResponse(list(regions), safe=False)
+
+def lfas_by_region(request, region_id):
+    """Return Local Football Associations filtered by region as JSON"""
+    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name')
+    return JsonResponse(list(lfas), safe=False)

@@ -46,16 +46,10 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 ROLES = (
-    ('ADMIN_FEDERATION', _('Federation Admin')),
     ('ADMIN_PROVINCE', _('Province Admin')),
     ('ADMIN_REGION', _('Region Admin')),
     ('ADMIN_LOCAL_FED', _('Local Federation Admin')),
-    ('NATIONAL_ADMIN', _('National Administrator')),
     ('CLUB_ADMIN', _('Club Administrator')),
-    ('PLAYER', _('Player')),
-    ('REFEREE', _('Referee')),
-    ('COACH', _('Coach')),
-    ('EXECUTIVE', _('Exco Member')),
 )
 
 DOCUMENT_TYPES = (
@@ -110,13 +104,31 @@ class CustomUser(AbstractUser, ModelWithLogo):
     )
 
     # Core Fields
-    role = models.CharField(max_length=20, choices=ROLES, default='PLAYER')
+    role = models.CharField(max_length=20, choices=ROLES, default='ADMIN_PROVINCE')
     name = models.CharField(max_length=50, blank=True)
     middle_name = models.CharField(max_length=100, blank=True)
     surname = models.CharField(max_length=100, blank=True)
     alias = models.CharField(max_length=100, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
+
+    # Nationality and Birth Country
+    nationality = models.CharField(
+        max_length=3, 
+        default='ZAF', 
+        help_text=_("3-letter country code for citizenship/nationality")
+    )
+    birth_country = models.CharField(
+        max_length=3, 
+        default='ZAF', 
+        help_text=_("3-letter country code for country of birth")
+    )
+
+    # POPI Act Compliance
+    popi_act_consent = models.BooleanField(
+        default=False,
+        help_text=_("User must consent to POPI Act terms for registration")
+    )
 
     # Add country field to store country code
     country_code = models.CharField(max_length=3, default='ZAF', blank=True)
@@ -237,7 +249,15 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 raise
 
     def save(self, *args, **kwargs):
-        """Override save method to validate ID number if it has changed"""
+        """Override save method to validate ID number and set nationality"""
+        # Set nationality based on document type
+        if self.id_document_type in ['ID', 'BC'] and not self.nationality:
+            self.nationality = 'ZAF'  # South African citizenship for SA documents
+            
+        # Set birth country to ZAF if not specified and using SA documents
+        if self.id_document_type in ['ID', 'BC'] and not self.birth_country:
+            self.birth_country = 'ZAF'
+            
         # Only validate ID number if it has changed
         if self.id_number and (not self.pk or self._meta.model.objects.get(pk=self.pk).id_number != self.id_number):
             try:
@@ -250,6 +270,22 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 logger.warning(f"ID number validation failed for user {self.email}: {str(e)}")
 
         super().save(*args, **kwargs)
+
+    def generate_safa_id(self):
+        """Generate a unique 5-character uppercase alphanumeric code - ONLY for SA citizens with verified documents"""
+        # SECURITY: Only generate SAFA ID for verified South African documents
+        if self.id_document_type not in ['ID', 'BC']:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"SAFA ID generation blocked for user {self.email} - document type: {self.id_document_type}")
+            return False
+            
+        while True:
+            code = get_random_string(length=5, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if not CustomUser.objects.filter(safa_id=code).exists():
+                self.safa_id = code
+                break
+        return True
 
     @staticmethod
     def extract_id_info(id_number, country_code='ZAF'):
@@ -404,14 +440,6 @@ class CustomUser(AbstractUser, ModelWithLogo):
             logger = logging.getLogger(__name__)
             logger.error(f"Error validating ID number for {self.email}: {str(e)}")
 
-    def generate_safa_id(self):
-        """Generate a unique 5-character uppercase alphanumeric code"""
-        while True:
-            code = get_random_string(length=5, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            if not CustomUser.objects.filter(safa_id=code).exists():
-                self.safa_id = code
-                break
-                
     def fetch_fifa_id_from_api(self, api_key):
         """Fetch FIFA ID from external API or generate placeholder"""
         # You would call the external API here
