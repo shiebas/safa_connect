@@ -47,9 +47,10 @@ INSTALLED_APPS = [
     'membership.apps.MembershipConfig',  # This was missing
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',
-    'competitions',
+    # 'competitions',  # Remove this - conflicts with league_management
     'tools',
-    'membership_cards',  # Keep only this one
+    'membership_cards',  # Keep this - it's working fine
+    'league_management',  # Add this for the new competition system
 ]
 
 MIDDLEWARE = [

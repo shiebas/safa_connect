@@ -404,6 +404,14 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         null=True,
         help_text=_("5-digit unique SAFA identification number")
     )
+    fifa_id = models.CharField(max_length=7, unique=True, blank=True, null=True, 
+                              help_text="7-digit FIFA alphanumeric code (A-Z, 0-9)")
+    # Add payment tracking
+    payment_confirmed = models.BooleanField(default=False, 
+                                          help_text="Payment confirmed for SAFA registration")
+    payment_date = models.DateTimeField(null=True, blank=True)
+    registration_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
     class Meta:
         verbose_name = _('Club')
         verbose_name_plural = _('Clubs')
@@ -417,20 +425,39 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         if self.localfootballassociation_id:
             self.region = self.localfootballassociation.region
             self.province = self.localfootballassociation.region.province
-        # Generate SAFA ID if not set
-        if not self.safa_id:
-            self.generate_safa_id()
+        # Only generate SAFA ID if payment confirmed and no existing ID
+        if self.payment_confirmed and not self.safa_id:
+            lfa_code = self.local_football_association.name[:3].upper().replace(' ', '')
+            count = Club.objects.filter(
+                local_football_association=self.local_football_association,
+                safa_id__isnull=False
+            ).count() + 1
+            self.safa_id = f"CLUB-{lfa_code}-{count:04d}"
+        
+        # Generate FIFA ID if not set (7-digit alphanumeric)
+        if not self.fifa_id:
+            import string
+            import random
+            chars = string.ascii_uppercase + string.digits
+            while True:
+                fifa_id = ''.join(random.choices(chars, k=7))
+                if not Club.objects.filter(fifa_id=fifa_id).exists():
+                    self.fifa_id = fifa_id
+                    break
         super().save(*args, **kwargs)
     
-    def generate_safa_id(self):
-        """Generate a unique 5-character uppercase alphanumeric code"""
-        while True:
-            code = get_random_string(length=5, 
-                                   allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            if not Club.objects.filter(safa_id=code).exists():
-                self.safa_id = code
-                break
-                
+    def confirm_payment(self, amount=None):
+        """Confirm payment and generate SAFA ID if needed"""
+        from django.utils import timezone
+        
+        self.payment_confirmed = True
+        self.payment_date = timezone.now()
+        if amount:
+            self.registration_fee = amount
+        
+        self.save()  # This will trigger SAFA ID generation
+        return self.safa_id
+    
     def generate_qr_code(self, size=200):
         """Generate QR code for club identification"""
         qr_data = get_club_qr_data(self)
