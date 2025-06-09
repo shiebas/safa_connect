@@ -11,8 +11,10 @@
         </div>
         <div class="col-auto">
             <a href="{% url 'geography:region-list' %}" class="btn btn-secondary">Back to List</a>
-            <a href="{% url 'geography:region-update' region.pk %}" class="btn btn-primary">Edit</a>
-            <a href="{% url 'geography:region-delete' region.pk %}" class="btn btn-danger">Delete</a>
+            <!-- Remove edit and delete buttons for read-only regions -->
+            <span class="badge bg-info">Read-Only - Established Structure</span>
+            <!-- <a href="{% url 'geography:region-update' region.pk %}" class="btn btn-primary">Edit</a> -->
+            <!-- <a href="{% url 'geography:region-delete' region.pk %}" class="btn btn-danger">Delete</a> -->
         </div>
     </div>
     
@@ -133,9 +135,12 @@
                     {% endif %}
                 </div>
                 <div class="card-footer">
-                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addLFAModal">
-                        <i class="fas fa-plus"></i> Add Local FA
-                    </button>
+                    <!-- Remove add LFA button -->
+                    <span class="text-muted">
+                        <i class="fas fa-info-circle"></i> 
+                        Local FAs are part of the established SAFA structure
+                    </span>
+                    <!-- <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addLFAModal"> -->
                 </div>
             </div>
         </div>

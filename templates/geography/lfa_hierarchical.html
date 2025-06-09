@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                    <div class="card-tools">
+                        <span class="badge badge-info">{{ total_lfas }} LFAs</span>
+                        <a href="{% url 'geography:lfas' %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-list"></i> List View
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Search and Filter -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Search LFAs..." value="{{ search_query }}">
+                            </div>
+                            <div class="col-md-4">
+                                <select name="province" class="form-control">
+                                    <option value="">All Provinces</option>
+                                    {% for province in provinces %}
+                                    <option value="{{ province.id }}" {% if province.id|stringformat:"s" == province_filter %}selected{% endif %}>
+                                        {{ province.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Filter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Hierarchical Display -->
+                    {% for province_data in provinces_data %}
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ province_data.province.name }}
+                                <span class="badge badge-light text-dark ml-2">{{ province_data.lfa_count }} LFAs</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for region_data in province_data.regions %}
+                            <div class="mb-3">
+                                <h6 class="text-info">
+                                    <i class="fas fa-layer-group"></i>
+                                    {{ region_data.region.name }}
+                                    <span class="badge badge-info ml-1">{{ region_data.lfa_count }}</span>
+                                </h6>
+                                <div class="row">
+                                    {% for lfa in region_data.lfas %}
+                                    <div class="col-md-6 col-lg-4 mb-2">
+                                        <div class="card card-outline card-success">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <strong>{{ lfa.name }}</strong>
+                                                        {% if lfa.acronym %}
+                                                        <br><small class="text-muted">{{ lfa.acronym }}</small>
+                                                        {% endif %}
+                                                        {% if lfa.safa_id %}
+                                                        <br><code class="small">{{ lfa.safa_id }}</code>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="btn-group-vertical">
+                                                        <a href="{% url 'geography:lfa-detail' lfa.pk %}" class="btn btn-xs btn-info">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <a href="{% url 'geography:lfa_clubs' lfa.id %}" class="btn btn-xs btn-success">
+                                                            <i class="fas fa-futbol"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-search"></i>
+                        No LFAs found matching your criteria.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

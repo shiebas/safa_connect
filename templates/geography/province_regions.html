@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ province.name }} - Regions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-map-marker-alt me-2 text-safa"></i>
+                    Regions in {{ province.name }}
+                </h1>
+                <a href="{% url 'geography:provinces' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Provinces
+                </a>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Province Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Province:</strong> {{ province.name }}</p>
+                            <p><strong>Code:</strong> {{ province.code }}</p>
+                            {% if province.safa_id %}
+                                <p><strong>SAFA ID:</strong> {{ province.safa_id }}</p>
+                            {% endif %}
+                            <p><strong>Country:</strong> {{ province.country.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Regions:</strong> {{ regions.count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if regions %}
+                <div class="row">
+                    {% for region in regions %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-map me-2 text-safa"></i>
+                                    {{ region.name }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if region.safa_id %}
+                                    <p class="text-muted mb-2">
+                                        <strong>SAFA ID:</strong> {{ region.safa_id }}
+                                    </p>
+                                {% endif %}
+                                <p class="text-muted mb-2">
+                                    <strong>LFAs:</strong> {{ region.localfootballassociation_set.count }}
+                                </p>
+                                <a href="{% url 'geography:region_lfas' region.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View LFAs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No regions found for {{ province.name }}.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

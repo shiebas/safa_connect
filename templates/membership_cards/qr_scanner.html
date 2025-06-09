@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}QR Code Scanner - SAFA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .scanner-container {
+        max-width: 500px;
+        margin: 20px auto;
+        text-align: center;
+    }
+    
+    .scanner-box {
+        background: #f8f9fa;
+        border: 2px dashed #FFD700;
+        border-radius: 15px;
+        padding: 40px 20px;
+        margin: 20px 0;
+    }
+    
+    .result-box {
+        background: #ffffff;
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        display: none;
+    }
+    
+    .error-box {
+        background: #ffffff;
+        border: 2px solid #dc3545;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        display: none;
+    }
+    
+    .qr-input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        margin: 10px 0;
+    }
+    
+    .btn-scan {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #000;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: bold;
+        margin: 10px;
+    }
+    
+    .btn-scan:hover {
+        background: linear-gradient(135deg, #FFA500, #FF8C00);
+        color: #000;
+    }
+    
+    .member-card {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        border-radius: 15px;
+        padding: 20px;
+        color: #000;
+        text-align: left;
+    }
+    
+    .verification-status {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    
+    .valid {
+        color: #28a745;
+    }
+    
+    .invalid {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="scanner-container">
+        <h2><i class="fas fa-qrcode me-2"></i>QR Code Scanner</h2>
+        <p class="text-muted">Scan or enter a SAFA membership card QR code to verify</p>
+        
+        <!-- Manual Input Method -->
+        <div class="scanner-box">
+            <form id="qrForm" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="qrInput" class="form-label">
+                        <i class="fas fa-keyboard me-2"></i>Enter QR Code Data
+                    </label>
+                    <textarea 
+                        id="qrInput" 
+                        name="qr_data" 
+                        class="qr-input" 
+                        rows="4" 
+                        placeholder="Paste the QR code data here..."
+                        required
+                    ></textarea>
+                </div>
+                <button type="submit" class="btn btn-scan">
+                    <i class="fas fa-search me-2"></i>Verify QR Code
+                </button>
+            </form>
+        </div>
+        
+        <!-- Camera Scanner (Future Enhancement) -->
+        <div class="scanner-box" style="background: #f0f0f0; opacity: 0.7;">
+            <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Camera Scanner</h5>
+            <p class="text-muted">Coming Soon - Scan QR codes with your camera</p>
+            <button class="btn btn-secondary" disabled>
+                <i class="fas fa-camera me-2"></i>Use Camera
+            </button>
+        </div>
+        
+        <!-- Results Display -->
+        <div id="resultBox" class="result-box">
+            <div id="verificationResult"></div>
+        </div>
+        
+        <div id="errorBox" class="error-box">
+            <div id="errorMessage"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('qrForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const resultBox = document.getElementById('resultBox');
+    const errorBox = document.getElementById('errorBox');
+    
+    // Hide previous results
+    resultBox.style.display = 'none';
+    errorBox.style.display = 'none';
+    
+    // Show loading
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+    submitBtn.disabled = true;
+    
+    fetch('{% url "membership_cards:verify_qr" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.valid) {
+            // Show valid result
+            document.getElementById('verificationResult').innerHTML = `
+                <div class="verification-status valid">
+                    <i class="fas fa-check-circle me-2"></i>Valid SAFA Member
+                </div>
+                <div class="member-card">
+                    <h4>${data.name}</h4>
+                    <p><strong>SAFA ID:</strong> ${data.safa_id}</p>
+                    <p><strong>Card Number:</strong> ${data.card_number}</p>
+                    <p><strong>Status:</strong> ${data.status}</p>
+                    <p><strong>Expires:</strong> ${new Date(data.expires).toLocaleDateString()}</p>
+                </div>
+            `;
+            resultBox.style.display = 'block';
+        } else {
+            // Show invalid result with debug info
+            let debugInfo = '';
+            if (data.debug_info) {
+                debugInfo = `<small class="text-muted">Debug: ${data.debug_info}</small>`;
+            }
+            
+            document.getElementById('errorMessage').innerHTML = `
+                <div class="verification-status invalid">
+                    <i class="fas fa-times-circle me-2"></i>Invalid or Expired Card
+                </div>
+                <p>${data.reason || data.error || 'QR code is not valid or has expired.'}</p>
+                ${debugInfo}
+            `;
+            errorBox.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        // Show error
+        document.getElementById('errorMessage').innerHTML = `
+            <div class="verification-status invalid">
+                <i class="fas fa-exclamation-triangle me-2"></i>Verification Error
+            </div>
+            <p>Unable to verify QR code. Please check the data and try again.</p>
+            <small class="text-muted">Error: ${error.message}</small>
+        `;
+        errorBox.style.display = 'block';
+    })
+    .finally(() => {
+        // Restore button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// Clear results when input changes
+document.getElementById('qrInput').addEventListener('input', function() {
+    document.getElementById('resultBox').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'none';
+});
+</script>
+{% endblock %}

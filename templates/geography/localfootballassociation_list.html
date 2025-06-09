@@ -9,11 +9,7 @@
         <div class="col">
             <h2>Local Football Associations</h2>
         </div>
-        <div class="col-auto">
-            <a href="{% url 'geography:localfootballassociation-create' %}" class="btn btn-success">
-                <i class="fas fa-plus"></i> Add New LFA
-            </a>
-        </div>
+    
     </div>
     
     <!-- Debug Info Section -->
@@ -138,12 +134,14 @@
                                                                                     <a href="{% url 'geography:localfootballassociation-detail' lfa.pk %}" class="btn btn-outline-primary">
                                                                                         View
                                                                                     </a>
-                                                                                    <a href="{% url 'geography:localfootballassociation-update' lfa.pk %}" class="btn btn-outline-secondary">
+                                                                                    <!-- Remove edit and delete buttons for read-only LFAs -->
+                                                                                    <span class="badge bg-secondary">Read-Only</span>
+                                                                                    <!-- <a href="{% url 'geography:localfootballassociation-update' lfa.pk %}" class="btn btn-outline-secondary">
                                                                                         Edit
                                                                                     </a>
                                                                                     <a href="{% url 'geography:localfootballassociation-delete' lfa.pk %}" class="btn btn-outline-danger">
                                                                                         Delete
-                                                                                    </a>
+                                                                                    </a> -->
                                                                                 </div>
                                                                             </td>
                                                                         </tr>
@@ -154,7 +152,12 @@
                                                     {% else %}
                                                         <div class="p-3">
                                                             <p class="text-muted">No Local Football Associations in this region yet.</p>
-                                                            <a href="{% url 'geography:localfootballassociation-create' %}" class="btn btn-sm btn-outline-primary">Add LFA to {{ region.name }}</a>
+                                                            <!-- Remove add LFA button -->
+                                                            <span class="text-muted">
+                                                                <i class="fas fa-info-circle"></i>
+                                                                LFAs are part of the established SAFA structure
+                                                            </span>
+                                                            <!-- <a href="{% url 'geography:localfootballassociation-create' %}" class="btn btn-sm btn-outline-primary">Add LFA to {{ region.name }}</a> -->
                                                         </div>
                                                     {% endif %}
                                                 </div>
@@ -236,8 +239,10 @@
         <div class="alert alert-info">
             <p>No Local Football Associations added yet.</p>
             <div class="mt-3">
-                <a href="{% url 'geography:region-list' %}" class="btn btn-primary me-2">Manage Regions First</a>
-                <a href="{% url 'geography:localfootballassociation-create' %}" class="btn btn-success">Add Local FA</a>
+                <a href="{% url 'geography:region-list' %}" class="btn btn-primary me-2">View Regions</a>
+                <!-- Remove add LFA button -->
+                <span class="text-muted">LFAs are part of the established SAFA structure</span>
+                <!-- <a href="{% url 'geography:localfootballassociation-create' %}" class="btn btn-success">Add Local FA</a> -->
             </div>
         </div>
     {% endif %}

@@ -1,0 +1,146 @@
+[
+    {
+        "model": "geography.association",
+        "pk": 1,
+        "fields": {
+            "acronym": "SADFA",
+            "created": "2025-05-30T21:35:25.829Z",
+            "description": "Manage all the referees appointments",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_SQTlCvb.svg.png",
+            "modified": "2025-05-31T00:10:27.772Z",
+            "name": "South African Deaf Football Association",
+            "national_federation_id": 2,
+            "safa_id": "4ZHFL",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association", 
+        "pk": 3,
+        "fields": {
+            "acronym": "IFASA",
+            "created": "2025-05-30T21:51:49.946Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-05-31T00:09:51.667Z",
+            "name": "Industrial Football Association of South Africa",
+            "national_federation_id": 2,
+            "safa_id": "CVK1I",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association",
+        "pk": 4,
+        "fields": {
+            "acronym": "SAFCA",
+            "created": "2025-05-31T00:10:57.459Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-05-31T00:10:57.459Z",
+            "name": "South African Football Coaches Association",
+            "national_federation_id": 2,
+            "safa_id": "OV29D",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association",
+        "pk": 5,
+        "fields": {
+            "acronym": "SANDFFA",
+            "created": "2025-05-31T00:11:49.381Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-05-31T00:11:49.381Z",
+            "name": "South African National Defence Force Football Association",
+            "national_federation_id": 2,
+            "safa_id": "EUHSY",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association",
+        "pk": 6,
+        "fields": {
+            "acronym": "USSA",
+            "created": "2025-05-31T00:12:20.655Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-05-31T00:12:20.655Z",
+            "name": "University Sport South Africa – Football",
+            "national_federation_id": 2,
+            "safa_id": "37UAD",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association",
+        "pk": 7,
+        "fields": {
+            "acronym": "SAIIFA",
+            "created": "2025-05-31T00:12:50.325Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-05-31T00:12:50.325Z",
+            "name": "South African Intellectually Impaired Football Association",
+            "national_federation_id": 2,
+            "safa_id": "4Z08I",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association",
+        "pk": 8,
+        "fields": {
+            "acronym": "SAMLFA",
+            "created": "2025-05-31T00:13:22.530Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-06-07T19:05:50.634Z",
+            "name": "South African Masters and Legends Football Association",
+            "national_federation_id": 2,
+            "safa_id": "A773J",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association",
+        "pk": 9,
+        "fields": {
+            "acronym": "SAIFA",
+            "created": "2025-05-31T00:13:51.220Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-05-31T00:13:51.220Z",
+            "name": "South African Indoor Football Association",
+            "national_federation_id": 2,
+            "safa_id": "3UWP9",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.association",
+        "pk": 10,
+        "fields": {
+            "acronym": "SAPSFA",
+            "created": "2025-05-31T00:14:22.496Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "",
+            "modified": "2025-05-31T00:14:22.496Z",
+            "name": "South African Police Services Football Association",
+            "national_federation_id": 2,
+            "safa_id": "TZD5U",
+            "website": ""
+        }
+    }
+]

@@ -6,70 +6,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SAFA Global{% endblock %}</title>
     
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{% static 'favicon.png' %}" type="image/x-icon">
+    <!-- SAFA Favicon from file -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/default_logo.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
+    <!-- Custom SAFA Styling -->
     <style>
         :root {
-            --safa-green: #007F3D;
-            --safa-yellow: #FDB913;
-            --safa-black: #000000;
-            --safa-white: #FFFFFF;
-            --safa-gray: #F5F5F5;
-            --safa-dark: #333333;
+            --safa-green: #006633;
+            --safa-gold: #FFD700;
+            --safa-dark: #004422;
         }
         
-        .navbar-dark.bg-primary {
-            background-color: var(--safa-green) !important;
+        .navbar-safa {
+            background: linear-gradient(135deg, var(--safa-green), var(--safa-dark));
         }
         
-        .btn-primary {
+        .btn-safa {
             background-color: var(--safa-green);
             border-color: var(--safa-green);
+            color: white;
         }
         
-        .btn-primary:hover {
-            background-color: #006633;
-            border-color: #006633;
+        .btn-safa:hover {
+            background-color: var(--safa-dark);
+            border-color: var(--safa-dark);
         }
         
-        .navbar-brand {
-            color: var(--safa-yellow) !important;
-            font-weight: bold;
+        .text-safa {
+            color: var(--safa-green);
         }
         
-        .nav-link {
-            color: var(--safa-white) !important;
-        }
-        
-        .footer {
-            background-color: var(--safa-gray) !important;
-        }
-        
-        .card-header {
-            background-color: var(--safa-green);
-            color: var(--safa-white);
-        }
-        
-        .text-muted {
-            color: var(--safa-dark) !important;
-        }
-        
-        /* Improve form readability */
-        .form-label {
-            font-weight: 500;
-            color: var(--safa-dark);
-        }
-        
-        .form-control:focus {
-            border-color: var(--safa-green);
-            box-shadow: 0 0 0 0.25rem rgba(0, 127, 61, 0.25);
+        .footer-safa {
+            background-color: var(--safa-dark);
+            color: white;
         }
     </style>
     
@@ -77,50 +53,101 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-safa">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">SAFA Global</a>
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-futbol me-2"></i>
+                <strong>SAFA Global</strong>
+            </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'geography:geography_admin' %}">Geography</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'membership:member_list' %}">Members</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'home' %}">
+                                <i class="fas fa-home me-1"></i>Home
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin/">
+                                    <i class="fas fa-cog me-1"></i>Administration
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="geographyDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-globe me-1"></i>Geography
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'geography:provinces' %}">
+                                        <i class="fas fa-map me-2"></i>Provinces
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'geography:regions' %}">
+                                        <i class="fas fa-map-marker me-2"></i>Regions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'geography:lfas' %}">
+                                        <i class="fas fa-building me-2"></i>Local Football Associations
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'geography:clubs' %}">
+                                        <i class="fas fa-users me-2"></i>Clubs
+                                    </a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
                     {% endif %}
                 </ul>
+                
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
-                           data-bs-toggle="dropdown">
-                            {% if user.get_full_name %}
-                                {{ user.get_full_name }}
-                            {% else %}
-                                {{ user.email|default:"User" }}
-                            {% endif %}
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a>
-                            <div class="dropdown-divider"></div>
-                            <form method="post" action="{% url 'accounts:logout' %}" class="dropdown-item p-0">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link text-decoration-none px-3 py-2 w-100 text-start">Logout</button>
-                            </form>
-                        </div>
-                    </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>{{ user.get_full_name|default:user.email }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                    <i class="fas fa-user me-2"></i>Profile
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Member Portal Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="memberDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-id-card me-1"></i> Member Portal
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'membership_cards:my_card' %}">
+                                    <i class="fas fa-id-card me-2"></i>My Digital Card
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'membership_cards:verify_qr' %}">
+                                    <i class="fas fa-qrcode me-2"></i>Scan QR Code
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                            </ul>
+                        </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:register' %}">Register</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:login' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; margin-right: 8px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:register' %}" style="background-color: rgba(255,215,0,0.9); border-radius: 6px; color: #004422 !important; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
@@ -129,34 +156,49 @@
 
     <!-- Messages -->
     {% if messages %}
-    <div class="container mt-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
     {% endif %}
 
     <!-- Main Content -->
-    <main class="container mt-4">
+    <main class="flex-grow-1">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="footer mt-auto py-3 bg-light">
-        <div class="container text-center">
-            <span class="text-muted">© 2025 SAFA Global. All rights reserved.</span>
+    <footer class="footer-safa mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-futbol me-2"></i>SAFA Global</h5>
+                    <p class="mb-0">South African Football Association Registration System</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <small>&copy; 2025 SAFA. All rights reserved.</small>
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- jQuery (if needed) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Debug: Province-Region Relationships{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            {% if duplicates %}
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle"></i> Duplicates Found!</h5>
+                <p>{{ duplicates|length }} duplicate region(s) detected. <a href="{% url 'geography:fix_duplicate_regions' %}" class="btn btn-sm btn-warning">Fix Duplicates</a></p>
+            </div>
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                    <div class="card-tools">
+                        <span class="badge badge-info">Total Regions: {{ total_regions }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% for data in debug_data %}
+                    <div class="mb-4 p-3 border rounded {% if data.region_count == 0 %}border-warning{% elif data.duplicates %}border-danger{% endif %}">
+                        <h4 class="text-primary">
+                            {{ data.province.name }} 
+                            <small class="text-muted">(Province ID: {{ data.province.id }}, SAFA ID: {{ data.province.safa_id|default:"None" }})</small>
+                            <span class="badge badge-secondary ml-2">{{ data.region_count }} regions</span>
+                            {% if data.duplicates %}
+                            <span class="badge badge-danger ml-1">{{ data.duplicates|length }} duplicates</span>
+                            {% endif %}
+                        </h4>
+                        
+                        {% if data.duplicates %}
+                        <div class="alert alert-danger">
+                            <strong>Duplicates in this province:</strong>
+                            <ul class="mb-0">
+                                {% for dup in data.duplicates %}
+                                <li>{{ dup.name }} - IDs: {{ dup.original.id }} ({{ dup.original.created }}) and {{ dup.duplicate.id }} ({{ dup.duplicate.created }})</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        {% if data.regions %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Region Name</th>
+                                            <th>Region ID</th>
+                                            <th>SAFA ID</th>
+                                            <th>Created Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for region in data.regions %}
+                                        <tr>
+                                            <td><strong>{{ region.name }}</strong></td>
+                                            <td>{{ region.id }}</td>
+                                            <td>{{ region.safa_id|default:"<span class='text-muted'>None</span>" }}</td>
+                                            <td>{{ region.created|default:"N/A" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                No regions found for this province.
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Summary section -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h5>Summary</h5>
+                        <p>Total Regions: {{ total_regions }} | All Regions in DB: {{ all_regions_count }}</p>
+                        {% if duplicates %}
+                        <div class="alert alert-warning">
+                            <strong>{{ duplicates|length }} duplicate(s) found:</strong>
+                            <ul class="mb-0">
+                                {% for dup in duplicates %}
+                                <li>{{ dup.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

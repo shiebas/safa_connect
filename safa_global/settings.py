@@ -1,42 +1,4 @@
-import collections
-import sys
-
-# Fix for collections types removed in Python 3.10+ and 3.12
-if sys.version_info >= (3, 10):
-    # Collections types moved to collections.abc
-    if not hasattr(collections, 'Iterator'):
-        collections.Iterator = collections.abc.Iterator
-    if not hasattr(collections, 'Mapping'):
-        collections.Mapping = collections.abc.Mapping
-    if not hasattr(collections, 'MutableMapping'):
-        collections.MutableMapping = collections.abc.MutableMapping
-    if not hasattr(collections, 'Iterable'):
-        collections.Iterable = collections.abc.Iterable
-    if not hasattr(collections, 'Container'):
-        collections.Container = collections.abc.Container
-    if not hasattr(collections, 'Sequence'):
-        collections.Sequence = collections.abc.Sequence
-    if not hasattr(collections, 'MutableSequence'):
-        collections.MutableSequence = collections.abc.MutableSequence
-    if not hasattr(collections, 'Set'):
-        collections.Set = collections.abc.Set
-    if not hasattr(collections, 'MutableSet'):
-        collections.MutableSet = collections.abc.MutableSet
-
-# Fix for gettext codeset parameter in Python 3.12
-if sys.version_info >= (3, 12):
-    import gettext
-    _original_translation = gettext.translation
-    
-    def _patched_translation(*args, **kwargs):
-        if 'codeset' in kwargs:
-            del kwargs['codeset']
-        return _original_translation(*args, **kwargs)
-    
-    gettext.translation = _patched_translation
-
 import os
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -55,7 +17,7 @@ SITE_ID = 1
 
 LOGIN_URL = '/accounts/login/'                    # Path to login page
 LOGIN_REDIRECT_URL = '/'                          # Where to go after login (home)
-LOGOUT_REDIRECT_URL = '/'          # Where to go after logout
+LOGOUT_REDIRECT_URL = '/'                         # Where to go after logout
 
 
 # Application definition
@@ -68,42 +30,26 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',      
-    'allauth',                   
+    'django.contrib.sites',  # Required for allauth
+    
+    # Third party apps
+    'allauth',
     'allauth.account',
-    'allauth.socialaccount',           
-    'corsheaders', 
- #   'debug_toolbar', 
-    'model_utils',
+    'allauth.socialaccount',
+    'corsheaders',
     'crispy_forms',
     'crispy_bootstrap5',
-    'widget_tweaks', 
-    'django_extensions',
- 
+    'widget_tweaks',
     
+    # Local apps - add back the missing ones
     'geography.apps.GeographyConfig',
-    'accounts.apps.AccountsConfig', # CustomUser model is here
-    'membership.apps.MembershipConfig',
+    'accounts.apps.AccountsConfig',
+    'membership.apps.MembershipConfig',  # This was missing
     'utils.apps.UtilsConfig',
-    'pdf_processor.apps.PdfProcessorConfig',  # Manages PDF generation and processing functionalities
+    'pdf_processor.apps.PdfProcessorConfig',
     'competitions',
     'tools',
-
-    # Wagtail CMS and forms
-    'wagtail.contrib.forms',
-    'wagtail.contrib.redirects',
-    'wagtail.embeds',
-    'wagtail.sites',
-    'wagtail.users',
-    'wagtail.snippets',
-    'wagtail.documents',
-    'wagtail.images',
-    'wagtail.search',
-    'wagtail.admin',
-    'wagtail',  # Changed from wagtail.wagtailcore to wagtail.core
-    'modelcluster',
-    'taggit',
-
+    'membership_cards',  # Keep only this one
 ]
 
 MIDDLEWARE = [
@@ -118,7 +64,6 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 #    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
-    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
     'accounts.middleware.AdminFormErrorMiddleware',
 ]
 
@@ -228,8 +173,3 @@ ACCOUNT_RATE_LIMITS = {
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
-
-WAGTAIL_SITE_NAME = "SAFA Global"
-
-# Wagtail base URL for forms
-WAGTAILADMIN_BASE_URL = 'http://localhost:8000'

@@ -45,10 +45,34 @@
                   {{ form.surname|as_crispy_field }}
                 </div>
                 <div class="mb-3">
+                  {{ form.nationality|as_crispy_field }}
+                </div>
+                <div class="mb-3">
                   {{ form.role|as_crispy_field }}
                 </div>
                 <div class="mb-3 province-field-wrapper" style="display:none;">
                   {{ form.province|as_crispy_field }}
+                </div>
+                <div class="mb-3 region-field-wrapper" style="display:none;">
+                  <label for="id_region">Region</label>
+                  <select name="region" class="form-control" id="id_region">
+                    <option value="">---------</option>
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                </div>
+                <div class="mb-3 lfa-field-wrapper" style="display:none;">
+                  <label for="id_local_federation">Local Federation</label>
+                  <select name="local_federation" class="form-control" id="id_local_federation">
+                    <option value="">---------</option>
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
+                </div>
+                <div class="mb-3 club-field-wrapper" style="display:none;">
+                  <label for="id_club">Club</label>
+                  <select name="club" class="form-control" id="id_club">
+                    <option value="">---------</option>
+                    <!-- Options will be populated by JavaScript -->
+                  </select>
                 </div>
                 <div class="mb-3">
                   {{ form.id_document_type|as_crispy_field }}
@@ -107,11 +131,25 @@
                 <div class="mb-3">
                   {{ form.id_document|as_crispy_field }}
                 </div>
+                
+                <!-- POPI Act Consent Section -->
+                <div class="mb-3" id="div_id_popi_act_consent">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="id_popi_act_consent" name="popi_act_consent" disabled required>
+                    <label class="form-check-label" for="id_popi_act_consent">
+                      <strong>I agree to the POPI Act terms and conditions</strong>
+                    </label>
+                    <div class="form-text text-muted">
+                      You must agree to the Protection of Personal Information Act terms to register. 
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#popiModal">Read full terms</a>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
             <div class="d-grid gap-2 mt-4">
-              <button type="submit" class="btn btn-dark">Register</button>
+              <button type="submit" class="btn btn-secondary" id="submit-btn" disabled>Register</button>
             </div>
           </form>
 
@@ -119,6 +157,32 @@
       </div> <!-- card -->
     </div> <!-- col -->
   </div> <!-- row -->
+  
+  <!-- POPI Act Modal -->
+  <div class="modal fade" id="popiModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">POPI Act Terms and Conditions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Your personal information will be processed in accordance with the Protection of Personal Information Act (POPI Act) of South Africa.</p>
+          <p>We collect and process your information for the following purposes:</p>
+          <ul>
+            <li>User registration and account management</li>
+            <li>Communication regarding football administration</li>
+            <li>Compliance with sports federation requirements</li>
+            <li>SAFA ID generation for verified South African citizens</li>
+          </ul>
+          <p>Your information will be kept secure and will not be shared with third parties without your consent, except as required by law.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div> <!-- container -->
 
 <style>
@@ -156,6 +220,17 @@
   
   /* Hide Django's default password help text */
   .password-help-text {
+    display: none !important;
+  }
+  
+  /* Hide any crispy forms help text for password fields */
+  #div_id_password1 .form-text,
+  #div_id_password2 .form-text {
+    display: none !important;
+  }
+  
+  /* Ensure our custom validation is hidden by default */
+  #password-validation {
     display: none;
   }
   
@@ -168,12 +243,21 @@
   .row + .row {
     margin-top: 1rem;
   }
+  
+  /* POPI consent styling */
+  #div_id_popi_act_consent.text-muted {
+    opacity: 0.6;
+  }
+  
+  #div_id_popi_act_consent.text-muted label {
+    color: #6c757d;
+  }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-<script src="{% static 'js/registration.js' %}"></script>
+<!-- <script src="{% static 'js/registration.js' %}"></script> -->  <!-- TEMPORARILY DISABLED -->
 <script src="{% static 'js/registration-debug.js' %}"></script>
 {% endblock %}

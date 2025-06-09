@@ -1,0 +1,1816 @@
+[
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 1,
+        "fields": {
+            "acronym": "MAT",
+            "association_id": null,
+            "created": "2025-05-30T22:41:44.797Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "MATATIELE LFA",
+            "region": 1,
+            "safa_id": "KCUUF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 2,
+        "fields": {
+            "acronym": "MBI",
+            "association_id": null,
+            "created": "2025-05-30T22:43:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T22:43:10.616Z",
+            "name": "MBIZANA LFA",
+            "region": 1,
+            "safa_id": "NV2I5",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 3,
+        "fields": {
+            "acronym": "NTA",
+            "association_id": null,
+            "created": "2025-05-30T22:44:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T22:44:02.739Z",
+            "name": "NTABANKULU LFA",
+            "region": 1,
+            "safa_id": "O7MOU",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 4,
+        "fields": {
+            "acronym": "UMZ",
+            "association_id": null,
+            "created": "2025-05-30T22:45:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T22:45:27.860Z",
+            "name": "UMZIMVUBU LFA",
+            "region": 1,
+            "safa_id": "MC7RP",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 5,
+        "fields": {
+            "acronym": "KSD",
+            "association_id": null,
+            "created": "2025-05-30T22:46:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T22:46:15.860Z",
+            "name": "KING SABATA DALINDYEBO LFA",
+            "region": 1,
+            "safa_id": "MC7RQ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 6,
+        "fields": {
+            "acronym": "CPT",
+            "association_id": null,
+            "created": "2025-05-30T22:47:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "CAPE TOWN LFA",
+            "region": 2,
+            "safa_id": "KCUUG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 7,
+        "fields": {
+            "acronym": "PEN",
+            "association_id": null,
+            "created": "2025-05-30T22:48:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T22:48:10.616Z",
+            "name": "PENINSULA LFA",
+            "region": 2,
+            "safa_id": "NV2I6",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 8,
+        "fields": {
+            "acronym": "GRA",
+            "association_id": null,
+            "created": "2025-05-30T22:49:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T22:49:02.739Z",
+            "name": "GRASSY PARK LFA",
+            "region": 2,
+            "safa_id": "O7MOW",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 9,
+        "fields": {
+            "acronym": "KAY",
+            "association_id": null,
+            "created": "2025-05-30T22:50:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T22:50:27.860Z",
+            "name": "KAYELITSHA LFA",
+            "region": 2,
+            "safa_id": "MC7RR",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 10,
+        "fields": {
+            "acronym": "LUN",
+            "association_id": null,
+            "created": "2025-05-30T22:51:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T22:51:15.860Z",
+            "name": "LUNGELO LFA",
+            "region": 2,
+            "safa_id": "MC7RS",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 11,
+        "fields": {
+            "acronym": "SEN",
+            "association_id": null,
+            "created": "2025-05-30T22:52:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "SENEKAL LFA",
+            "region": 3,
+            "safa_id": "KCUUH",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 12,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T22:53:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T22:53:10.616Z",
+            "name": "BLOEMFONTEIN LFA",
+            "region": 3,
+            "safa_id": "NV2I7",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 13,
+        "fields": {
+            "acronym": "THA",
+            "association_id": null,
+            "created": "2025-05-30T22:54:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T22:54:02.739Z",
+            "name": "THABA NCHU LFA",
+            "region": 3,
+            "safa_id": "O7MOX",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 14,
+        "fields": {
+            "acronym": "BOT",
+            "association_id": null,
+            "created": "2025-05-30T22:55:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T22:55:27.860Z",
+            "name": "BOTSHABELO LFA",
+            "region": 3,
+            "safa_id": "MC7RT",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 15,
+        "fields": {
+            "acronym": "KRO",
+            "association_id": null,
+            "created": "2025-05-30T22:56:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T22:56:15.860Z",
+            "name": "KROONSTAD LFA",
+            "region": 3,
+            "safa_id": "MC7RU",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 16,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T22:57:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "VREDE LFA",
+            "region": 4,
+            "safa_id": "KCUUI",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 17,
+        "fields": {
+            "acronym": "WEL",
+            "association_id": null,
+            "created": "2025-05-30T22:58:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T22:58:10.616Z",
+            "name": "WELKOM LFA",
+            "region": 4,
+            "safa_id": "NV2I8",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 18,
+        "fields": {
+            "acronym": "HARR",
+            "association_id": null,
+            "created": "2025-05-30T22:59:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T22:59:02.739Z",
+            "name": "HARRISMITH LFA",
+            "region": 4,
+            "safa_id": "O7MOY",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 19,
+        "fields": {
+            "acronym": "PHU",
+            "association_id": null,
+            "created": "2025-05-30T23:00:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:00:27.860Z",
+            "name": "PHUTHADITJHABA LFA",
+            "region": 4,
+            "safa_id": "MC7RV",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 20,
+        "fields": {
+            "acronym": "QWA",
+            "association_id": null,
+            "created": "2025-05-30T23:01:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:01:15.860Z",
+            "name": "QWAQWA LFA",
+            "region": 4,
+            "safa_id": "MC7RW",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 21,
+        "fields": {
+            "acronym": "ZAS",
+            "association_id": null,
+            "created": "2025-05-30T23:02:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "ZASTRON LFA",
+            "region": 5,
+            "safa_id": "KCUUJ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 22,
+        "fields": {
+            "acronym": "JON",
+            "association_id": null,
+            "created": "2025-05-30T23:03:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:03:10.616Z",
+            "name": "JONAS MTSHWENE LFA",
+            "region": 5,
+            "safa_id": "NV2I9",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 23,
+        "fields": {
+            "acronym": "TSE",
+            "association_id": null,
+            "created": "2025-05-30T23:04:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:04:02.739Z",
+            "name": "TSEKI LFA",
+            "region": 5,
+            "safa_id": "O7MOZ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 24,
+        "fields": {
+            "acronym": "MAL",
+            "association_id": null,
+            "created": "2025-05-30T23:05:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:05:27.860Z",
+            "name": "MALUTI LFA",
+            "region": 5,
+            "safa_id": "MC7RX",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 25,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:06:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:06:15.860Z",
+            "name": "BLOEM LFA",
+            "region": 5,
+            "safa_id": "MC7RY",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 26,
+        "fields": {
+            "acronym": "FRE",
+            "association_id": null,
+            "created": "2025-05-30T23:07:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "FREE STATE LFA",
+            "region": 6,
+            "safa_id": "KCUUK",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 27,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:08:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:08:10.616Z",
+            "name": "BLOEMFONTEIN CELTIC LFA",
+            "region": 6,
+            "safa_id": "NV2IA",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 28,
+        "fields": {
+            "acronym": "PHI",
+            "association_id": null,
+            "created": "2025-05-30T23:09:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:09:02.739Z",
+            "name": "PHILIPPOLIS LFA",
+            "region": 6,
+            "safa_id": "O7MPA",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 29,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T23:10:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:10:27.860Z",
+            "name": "VREDE LFA",
+            "region": 6,
+            "safa_id": "MC7RZ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 30,
+        "fields": {
+            "acronym": "WEL",
+            "association_id": null,
+            "created": "2025-05-30T23:11:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:11:15.860Z",
+            "name": "WELKOM LFA",
+            "region": 6,
+            "safa_id": "MC7SA",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 31,
+        "fields": {
+            "acronym": "HARR",
+            "association_id": null,
+            "created": "2025-05-30T23:12:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "HARRISMITH LFA",
+            "region": 7,
+            "safa_id": "KCUUL",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 32,
+        "fields": {
+            "acronym": "PHU",
+            "association_id": null,
+            "created": "2025-05-30T23:13:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:13:10.616Z",
+            "name": "PHUTHADITJHABA LFA",
+            "region": 7,
+            "safa_id": "NV2IB",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 33,
+        "fields": {
+            "acronym": "QWA",
+            "association_id": null,
+            "created": "2025-05-30T23:14:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:14:02.739Z",
+            "name": "QWAQWA LFA",
+            "region": 7,
+            "safa_id": "O7MPB",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 34,
+        "fields": {
+            "acronym": "ZAS",
+            "association_id": null,
+            "created": "2025-05-30T23:15:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:15:27.860Z",
+            "name": "ZASTRON LFA",
+            "region": 7,
+            "safa_id": "MC7SB",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 35,
+        "fields": {
+            "acronym": "JON",
+            "association_id": null,
+            "created": "2025-05-30T23:16:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:16:15.860Z",
+            "name": "JONAS MTSHWENE LFA",
+            "region": 7,
+            "safa_id": "MC7SC",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 36,
+        "fields": {
+            "acronym": "TSE",
+            "association_id": null,
+            "created": "2025-05-30T23:17:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "TSEKI LFA",
+            "region": 7,
+            "safa_id": "KCUUM",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 37,
+        "fields": {
+            "acronym": "MAL",
+            "association_id": null,
+            "created": "2025-05-30T23:18:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:18:27.860Z",
+            "name": "MALUTI LFA",
+            "region": 7,
+            "safa_id": "MC7SD",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 38,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:19:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:19:15.860Z",
+            "name": "BLOEM LFA",
+            "region": 7,
+            "safa_id": "MC7SE",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 39,
+        "fields": {
+            "acronym": "FRE",
+            "association_id": null,
+            "created": "2025-05-30T23:20:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "FREE STATE LFA",
+            "region": 8,
+            "safa_id": "KCUUN",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 40,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:21:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:21:10.616Z",
+            "name": "BLOEMFONTEIN CELTIC LFA",
+            "region": 8,
+            "safa_id": "NV2IC",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 41,
+        "fields": {
+            "acronym": "PHI",
+            "association_id": null,
+            "created": "2025-05-30T23:22:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:22:02.739Z",
+            "name": "PHILIPPOLIS LFA",
+            "region": 8,
+            "safa_id": "O7MPC",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 42,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T23:23:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:23:27.860Z",
+            "name": "VREDE LFA",
+            "region": 8,
+            "safa_id": "MC7SF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 43,
+        "fields": {
+            "acronym": "WEL",
+            "association_id": null,
+            "created": "2025-05-30T23:24:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:24:15.860Z",
+            "name": "WELKOM LFA",
+            "region": 8,
+            "safa_id": "MC7SG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 44,
+        "fields": {
+            "acronym": "HARR",
+            "association_id": null,
+            "created": "2025-05-30T23:25:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "HARRISMITH LFA",
+            "region": 9,
+            "safa_id": "KCUUO",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 45,
+        "fields": {
+            "acronym": "PHU",
+            "association_id": null,
+            "created": "2025-05-30T23:26:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:26:10.616Z",
+            "name": "PHUTHADITJHABA LFA",
+            "region": 9,
+            "safa_id": "NV2ID",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 46,
+        "fields": {
+            "acronym": "QWA",
+            "association_id": null,
+            "created": "2025-05-30T23:27:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:27:02.739Z",
+            "name": "QWAQWA LFA",
+            "region": 9,
+            "safa_id": "O7MPD",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 47,
+        "fields": {
+            "acronym": "ZAS",
+            "association_id": null,
+            "created": "2025-05-30T23:28:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:28:27.860Z",
+            "name": "ZASTRON LFA",
+            "region": 9,
+            "safa_id": "MC7SH",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 48,
+        "fields": {
+            "acronym": "JON",
+            "association_id": null,
+            "created": "2025-05-30T23:29:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:29:15.860Z",
+            "name": "JONAS MTSHWENE LFA",
+            "region": 9,
+            "safa_id": "MC7SI",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 49,
+        "fields": {
+            "acronym": "TSE",
+            "association_id": null,
+            "created": "2025-05-30T23:30:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "TSEKI LFA",
+            "region": 9,
+            "safa_id": "KCUUP",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 50,
+        "fields": {
+            "acronym": "MAL",
+            "association_id": null,
+            "created": "2025-05-30T23:31:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:31:27.860Z",
+            "name": "MALUTI LFA",
+            "region": 9,
+            "safa_id": "MC7SJ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 51,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:32:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:32:15.860Z",
+            "name": "BLOEM LFA",
+            "region": 9,
+            "safa_id": "MC7SK",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 52,
+        "fields": {
+            "acronym": "FRE",
+            "association_id": null,
+            "created": "2025-05-30T23:33:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "FREE STATE LFA",
+            "region": 10,
+            "safa_id": "KCUUQ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 53,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:34:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:34:10.616Z",
+            "name": "BLOEMFONTEIN CELTIC LFA",
+            "region": 10,
+            "safa_id": "NV2IE",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 54,
+        "fields": {
+            "acronym": "PHI",
+            "association_id": null,
+            "created": "2025-05-30T23:35:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:35:02.739Z",
+            "name": "PHILIPPOLIS LFA",
+            "region": 10,
+            "safa_id": "O7MPE",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 55,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T23:36:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:36:27.860Z",
+            "name": "VREDE LFA",
+            "region": 10,
+            "safa_id": "MC7SL",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 56,
+        "fields": {
+            "acronym": "WEL",
+            "association_id": null,
+            "created": "2025-05-30T23:37:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:37:15.860Z",
+            "name": "WELKOM LFA",
+            "region": 10,
+            "safa_id": "MC7SM",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 57,
+        "fields": {
+            "acronym": "HARR",
+            "association_id": null,
+            "created": "2025-05-30T23:38:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "HARRISMITH LFA",
+            "region": 11,
+            "safa_id": "KCUUR",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 58,
+        "fields": {
+            "acronym": "PHU",
+            "association_id": null,
+            "created": "2025-05-30T23:39:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:39:10.616Z",
+            "name": "PHUTHADITJHABA LFA",
+            "region": 11,
+            "safa_id": "NV2IF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 59,
+        "fields": {
+            "acronym": "QWA",
+            "association_id": null,
+            "created": "2025-05-30T23:40:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:40:02.739Z",
+            "name": "QWAQWA LFA",
+            "region": 11,
+            "safa_id": "O7MPF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 60,
+        "fields": {
+            "acronym": "ZAS",
+            "association_id": null,
+            "created": "2025-05-30T23:41:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:41:27.860Z",
+            "name": "ZASTRON LFA",
+            "region": 11,
+            "safa_id": "MC7SN",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 61,
+        "fields": {
+            "acronym": "JON",
+            "association_id": null,
+            "created": "2025-05-30T23:42:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:42:15.860Z",
+            "name": "JONAS MTSHWENE LFA",
+            "region": 11,
+            "safa_id": "MC7SO",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 62,
+        "fields": {
+            "acronym": "TSE",
+            "association_id": null,
+            "created": "2025-05-30T23:43:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "TSEKI LFA",
+            "region": 11,
+            "safa_id": "KCUUS",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 63,
+        "fields": {
+            "acronym": "MAL",
+            "association_id": null,
+            "created": "2025-05-30T23:44:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:44:27.860Z",
+            "name": "MALUTI LFA",
+            "region": 11,
+            "safa_id": "MC7SP",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 64,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:45:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:45:15.860Z",
+            "name": "BLOEM LFA",
+            "region": 11,
+            "safa_id": "MC7SQ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 65,
+        "fields": {
+            "acronym": "FRE",
+            "association_id": null,
+            "created": "2025-05-30T23:46:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "FREE STATE LFA",
+            "region": 12,
+            "safa_id": "KCUUT",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 66,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:47:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:47:10.616Z",
+            "name": "BLOEMFONTEIN CELTIC LFA",
+            "region": 12,
+            "safa_id": "NV2IG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 67,
+        "fields": {
+            "acronym": "PHI",
+            "association_id": null,
+            "created": "2025-05-30T23:48:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:48:02.739Z",
+            "name": "PHILIPPOLIS LFA",
+            "region": 12,
+            "safa_id": "O7MPF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 68,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T23:49:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:49:27.860Z",
+            "name": "VREDE LFA",
+            "region": 12,
+            "safa_id": "MC7SR",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 69,
+        "fields": {
+            "acronym": "WEL",
+            "association_id": null,
+            "created": "2025-05-30T23:50:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:50:15.860Z",
+            "name": "WELKOM LFA",
+            "region": 12,
+            "safa_id": "MC7SS",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 70,
+        "fields": {
+            "acronym": "HARR",
+            "association_id": null,
+            "created": "2025-05-30T23:51:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "HARRISMITH LFA",
+            "region": 13,
+            "safa_id": "KCUUU",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 71,
+        "fields": {
+            "acronym": "PHU",
+            "association_id": null,
+            "created": "2025-05-30T23:52:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:52:10.616Z",
+            "name": "PHUTHADITJHABA LFA",
+            "region": 13,
+            "safa_id": "NV2IH",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 72,
+        "fields": {
+            "acronym": "QWA",
+            "association_id": null,
+            "created": "2025-05-30T23:53:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:53:02.739Z",
+            "name": "QWAQWA LFA",
+            "region": 13,
+            "safa_id": "O7MPG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 73,
+        "fields": {
+            "acronym": "ZAS",
+            "association_id": null,
+            "created": "2025-05-30T23:54:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:54:27.860Z",
+            "name": "ZASTRON LFA",
+            "region": 13,
+            "safa_id": "MC7ST",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 74,
+        "fields": {
+            "acronym": "JON",
+            "association_id": null,
+            "created": "2025-05-30T23:55:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:55:15.860Z",
+            "name": "JONAS MTSHWENE LFA",
+            "region": 13,
+            "safa_id": "MC7SU",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 75,
+        "fields": {
+            "acronym": "TSE",
+            "association_id": null,
+            "created": "2025-05-30T23:56:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "TSEKI LFA",
+            "region": 13,
+            "safa_id": "KCUUV",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 76,
+        "fields": {
+            "acronym": "MAL",
+            "association_id": null,
+            "created": "2025-05-30T23:57:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:57:27.860Z",
+            "name": "MALUTI LFA",
+            "region": 13,
+            "safa_id": "MC7SV",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 77,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:58:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:58:15.860Z",
+            "name": "BLOEM LFA",
+            "region": 13,
+            "safa_id": "MC7SW",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 78,
+        "fields": {
+            "acronym": "FRE",
+            "association_id": null,
+            "created": "2025-05-30T23:59:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "FREE STATE LFA",
+            "region": 14,
+            "safa_id": "KCUUW",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 79,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:00:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:00:10.616Z",
+            "name": "BLOEMFONTEIN CELTIC LFA",
+            "region": 14,
+            "safa_id": "NV2IG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 80,
+        "fields": {
+            "acronym": "PHI",
+            "association_id": null,
+            "created": "2025-05-30T23:01:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:01:02.739Z",
+            "name": "PHILIPPOLIS LFA",
+            "region": 14,
+            "safa_id": "O7MPF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 81,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T23:02:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:02:27.860Z",
+            "name": "VREDE LFA",
+            "region": 14,
+            "safa_id": "MC7SX",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 82,
+        "fields": {
+            "acronym": "WEL",
+            "association_id": null,
+            "created": "2025-05-30T23:03:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:03:15.860Z",
+            "name": "WELKOM LFA",
+            "region": 14,
+            "safa_id": "MC7SY",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 83,
+        "fields": {
+            "acronym": "HARR",
+            "association_id": null,
+            "created": "2025-05-30T23:04:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "HARRISMITH LFA",
+            "region": 15,
+            "safa_id": "KCUUX",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 84,
+        "fields": {
+            "acronym": "PHU",
+            "association_id": null,
+            "created": "2025-05-30T23:05:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:05:10.616Z",
+            "name": "PHUTHADITJHABA LFA",
+            "region": 15,
+            "safa_id": "NV2IG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 85,
+        "fields": {
+            "acronym": "QWA",
+            "association_id": null,
+            "created": "2025-05-30T23:06:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:06:02.739Z",
+            "name": "QWAQWA LFA",
+            "region": 15,
+            "safa_id": "O7MPG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 86,
+        "fields": {
+            "acronym": "ZAS",
+            "association_id": null,
+            "created": "2025-05-30T23:07:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:07:27.860Z",
+            "name": "ZASTRON LFA",
+            "region": 15,
+            "safa_id": "MC7SZ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 87,
+        "fields": {
+            "acronym": "JON",
+            "association_id": null,
+            "created": "2025-05-30T23:08:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:08:15.860Z",
+            "name": "JONAS MTSHWENE LFA",
+            "region": 15,
+            "safa_id": "MC7T0",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 88,
+        "fields": {
+            "acronym": "TSE",
+            "association_id": null,
+            "created": "2025-05-30T23:09:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "TSEKI LFA",
+            "region": 15,
+            "safa_id": "KCUUY",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 89,
+        "fields": {
+            "acronym": "MAL",
+            "association_id": null,
+            "created": "2025-05-30T23:10:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:10:27.860Z",
+            "name": "MALUTI LFA",
+            "region": 15,
+            "safa_id": "MC7T1",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 90,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:11:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:11:15.860Z",
+            "name": "BLOEM LFA",
+            "region": 15,
+            "safa_id": "MC7T2",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 91,
+        "fields": {
+            "acronym": "FRE",
+            "association_id": null,
+            "created": "2025-05-30T23:12:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "FREE STATE LFA",
+            "region": 16,
+            "safa_id": "KCUUZ",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 92,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:13:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:13:10.616Z",
+            "name": "BLOEMFONTEIN CELTIC LFA",
+            "region": 16,
+            "safa_id": "NV2IG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 93,
+        "fields": {
+            "acronym": "PHI",
+            "association_id": null,
+            "created": "2025-05-30T23:14:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:14:02.739Z",
+            "name": "PHILIPPOLIS LFA",
+            "region": 16,
+            "safa_id": "O7MPF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 94,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T23:15:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:15:27.860Z",
+            "name": "VREDE LFA",
+            "region": 16,
+            "safa_id": "MC7T3",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 95,
+        "fields": {
+            "acronym": "WEL",
+            "association_id": null,
+            "created": "2025-05-30T23:16:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:16:15.860Z",
+            "name": "WELKOM LFA",
+            "region": 16,
+            "safa_id": "MC7T4",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 96,
+        "fields": {
+            "acronym": "HARR",
+            "association_id": null,
+            "created": "2025-05-30T23:17:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "HARRISMITH LFA",
+            "region": 17,
+            "safa_id": "KCUVA",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 97,
+        "fields": {
+            "acronym": "PHU",
+            "association_id": null,
+            "created": "2025-05-30T23:18:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:18:10.616Z",
+            "name": "PHUTHADITJHABA LFA",
+            "region": 17,
+            "safa_id": "NV2IG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 98,
+        "fields": {
+            "acronym": "QWA",
+            "association_id": null,
+            "created": "2025-05-30T23:19:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:19:02.739Z",
+            "name": "QWAQWA LFA",
+            "region": 17,
+            "safa_id": "O7MPG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 99,
+        "fields": {
+            "acronym": "ZAS",
+            "association_id": null,
+            "created": "2025-05-30T23:20:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:20:27.860Z",
+            "name": "ZASTRON LFA",
+            "region": 17,
+            "safa_id": "MC7T5",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 100,
+        "fields": {
+            "acronym": "JON",
+            "association_id": null,
+            "created": "2025-05-30T23:21:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:21:15.860Z",
+            "name": "JONAS MTSHWENE LFA",
+            "region": 17,
+            "safa_id": "MC7T6",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 101,
+        "fields": {
+            "acronym": "TSE",
+            "association_id": null,
+            "created": "2025-05-30T23:22:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "TSEKI LFA",
+            "region": 17,
+            "safa_id": "KCUWB",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 102,
+        "fields": {
+            "acronym": "MAL",
+            "association_id": null,
+            "created": "2025-05-30T23:23:27.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_QZB13KY.svg.png",
+            "modified": "2025-05-30T23:23:27.860Z",
+            "name": "MALUTI LFA",
+            "region": 17,
+            "safa_id": "MC7T7",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 103,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:24:15.860Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:24:15.860Z",
+            "name": "BLOEM LFA",
+            "region": 17,
+            "safa_id": "MC7T8",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 104,
+        "fields": {
+            "acronym": "FRE",
+            "association_id": null,
+            "created": "2025-05-30T23:25:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_mGrrpQ1.svg.png",
+            "modified": "2025-06-02T07:30:15.324Z",
+            "name": "FREE STATE LFA",
+            "region": 18,
+            "safa_id": "KCUWC",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 105,
+        "fields": {
+            "acronym": "BLO",
+            "association_id": null,
+            "created": "2025-05-30T23:26:10.616Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_yL6r9NM.svg.png",
+            "modified": "2025-05-30T23:26:10.616Z",
+            "name": "BLOEMFONTEIN CELTIC LFA",
+            "region": 18,
+            "safa_id": "NV2IG",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 106,
+        "fields": {
+            "acronym": "PHI",
+            "association_id": null,
+            "created": "2025-05-30T23:27:02.739Z",
+            "description": "",
+            "headquarters": "",
+            "logo": "logos/SAFA_logo_46GJMkK.svg.png",
+            "modified": "2025-05-30T23:27:02.739Z",
+            "name": "PHILIPPOLIS LFA",
+            "region": 18,
+            "safa_id": "O7MPF",
+            "website": ""
+        }
+    },
+    {
+        "model": "geography.localfootballassociation",
+        "pk": 107,
+        "fields": {
+            "acronym": "VRE",
+            "association_id": null,
+            "created": "2025-05-30T23:28:27.860Z",
+            "description": "",
+            "headquarters": "",
+                "logo": "logos/SAFA_logo_QZB13KY.svg.png"
+                }
+            }
+        ]

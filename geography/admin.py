@@ -5,6 +5,8 @@ from .models import (
     ContinentRegion, Country, NationalFederation, Province, Region,
     Association, Club, LocalFootballAssociation
 )
+from django.utils.crypto import get_random_string
+from django.contrib import messages
 
 # Admin classes for models that inherit from ModelWithLogo
 class ContinentFederationAdmin(ModelWithLogoAdmin):
@@ -19,7 +21,6 @@ class ContinentRegionAdmin(ModelWithLogoAdmin):
 
 class CountryAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'continent_region', 'display_logo']
-    # Fix: 'country' isn't a field - use 'continent_region' instead
     list_filter = ['continent_region']
     search_fields = ['name']
 
@@ -28,29 +29,88 @@ class NationalFederationAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'acronym', 'country', 'safa_id', 'display_logo']  # Added safa_id
     list_filter = ['country']
     search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
+    readonly_fields = ('name', 'acronym', 'country', 'safa_id')  # Make read-only
+    
+    def has_add_permission(self, request):
+        return False  # Disable adding new national federations
+    
+    def has_delete_permission(self, request, obj=None):
+        return False  # Disable deleting national federations
 
 class ProvinceAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'code', 'country', 'display_logo']
+    list_display = ['name', 'code', 'country', 'safa_id', 'get_region_count', 'display_logo']
     list_filter = ['country']
-    search_fields = ['name', 'code']
+    search_fields = ['name', 'code', 'safa_id']
+    readonly_fields = ('name', 'code', 'country')
+    actions = ['generate_safa_ids']
+    
+    def has_add_permission(self, request):
+        return False  # Disable adding new provinces
+    
+    def has_delete_permission(self, request, obj=None):
+        return False  # Disable deleting provinces
+    
+    def has_change_permission(self, request, obj=None):
+        return False  # Completely disable editing
+    
+    def generate_safa_ids(self, request, queryset):
+        """Generate unique SAFA IDs for selected provinces"""
+        used_ids = set()
+        updated_count = 0
+        
+        for province in queryset:
+            if not province.safa_id:  # Only generate if empty
+                while True:
+                    # Generate 2-digit random number to make total length 6 (PROV + 2 digits)
+                    # Or generate 1-digit to make total length 5 (PROV + 1 digit)
+                    safa_id = f"PROV{get_random_string(length=1, allowed_chars='0123456789')}"
+                    if safa_id not in used_ids:
+                        used_ids.add(safa_id)
+                        province.safa_id = safa_id
+                        province.save(update_fields=['safa_id'])
+                        updated_count += 1
+                        break
+        
+        messages.success(request, f'Generated SAFA IDs for {updated_count} provinces.')
+    
+    generate_safa_ids.short_description = "Generate SAFA IDs for selected provinces"
+    
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]  # Make all fields readonly
+    
+    def get_region_count(self, obj):
+        return obj.region_set.count()  # Changed from regions to region_set
+    get_region_count.short_description = 'Number of Regions'
 
 class AssociationAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'acronym', 'national_federation', 'safa_id', 'display_logo']  # Added safa_id
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
+    readonly_fields = ('name', 'acronym', 'national_federation', 'safa_id')  # Make read-only
+    
+    def has_add_permission(self, request):
+        return False  # Disable adding new associations
+    
+    def has_delete_permission(self, request, obj=None):
+        return False  # Disable deleting associations
 
-class RegionAdmin(ModelWithLogoAdmin):  # Added RegionAdmin
-    list_display = ['name', 'province', 'safa_id', 'display_logo']  # Removed 'association'
-    list_filter = ['province']  # Removed 'association'
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'safa_id', 'province', 'created']
+    list_filter = ['province', 'created']
     search_fields = ['name', 'safa_id', 'province__name']
+    list_per_page = 50  # Show 50 regions per page instead of default 25
+    ordering = ['province__name', 'name']
 
-class LocalFootballAssociationAdmin(ModelWithLogoAdmin):  # Changed to ModelWithLogoAdmin
-    list_display = ['name', 'acronym', 'region', 'association', 'safa_id', 'get_province', 'display_logo']  # Added safa_id and display_logo
-    list_filter = ['region__province', 'region', 'association']
-    search_fields = ['name', 'acronym', 'region__name', 'safa_id']  # Added safa_id
+class LocalFootballAssociationAdmin(admin.ModelAdmin):
+    list_display = ['name', 'acronym', 'safa_id', 'region', 'get_province', 'created']
+    list_filter = ['region__province', 'region', 'created']
+    search_fields = ['name', 'acronym', 'safa_id', 'region__name', 'region__province__name']
+    list_per_page = 50  # Show 50 LFAs per page instead of default 25
+    ordering = ['region__province__name', 'region__name', 'name']
     
     def get_province(self, obj):
-        return obj.region.province.name
+        return obj.region.province.name if obj.region and obj.region.province else '-'
     get_province.short_description = 'Province'
     get_province.admin_order_field = 'region__province__name'
 
@@ -105,14 +165,15 @@ admin.site.register(ContinentRegion, ContinentRegionAdmin)
 admin.site.register(Country, CountryAdmin)
 admin.site.register(NationalFederation, NationalFederationAdmin)
 admin.site.register(Province, ProvinceAdmin)
-admin.site.register(Region, RegionAdmin)  # Added RegionAdmin
 admin.site.register(LocalFootballAssociation, LocalFootballAssociationAdmin)
 admin.site.register(Association, AssociationAdmin)
 admin.site.register(Club, ClubAdmin)
+# Note: Region is registered using @admin.register decorator above, so no need to register it here
 
-admin.site.site_header = "Your Admin"
-admin.site.site_title = "Your Admin Portal"
-admin.site.index_title = "Welcome to Your Admin"
+# Custom admin site configuration
+admin.site.site_header = "SAFA Administration"
+admin.site.site_title = "SAFA Admin Portal"
+admin.site.index_title = "Welcome to SAFA Administration Portal"
 
 class CustomAdminSite(admin.AdminSite):
     class Media:
@@ -120,7 +181,6 @@ class CustomAdminSite(admin.AdminSite):
             'all': ('admin/custom_admin.css',)
         }
 
-# Or, for all ModelAdmins:
 for model, modeladmin in admin.site._registry.items():
     modeladmin.Media = type('Media', (), {
         'css': {'all': ('admin/custom_admin.css',)}

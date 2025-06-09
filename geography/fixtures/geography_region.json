@@ -1,0 +1,730 @@
+[
+    {
+        "model": "geography.region",
+        "pk": 1,
+        "fields": {
+            "code": "EC01",
+            "created": "2025-05-30T22:19:53.464Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_hxD9vtf.svg.png",
+            "modified": "2025-05-30T22:38:01.240Z",
+            "name": "SAFA Alfred Nzo",
+            "province": 1,
+            "safa_id": "GV21G"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 2,
+        "fields": {
+            "code": "EC02",
+            "created": "2025-05-30T22:20:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_0A6uBgN.svg.png",
+            "modified": "2025-05-30T22:20:55.563Z",
+            "name": "SAFA Amathole",
+            "province": 1,
+            "safa_id": "PLVQ6"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 3,
+        "fields": {
+            "code": "EC03",
+            "created": "2025-05-30T22:21:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_3.svg.png",
+            "modified": "2025-05-30T22:21:55.563Z",
+            "name": "SAFA Buffalo City",
+            "province": 1,
+            "safa_id": "BCM10"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 4,
+        "fields": {
+            "code": "EC04",
+            "created": "2025-05-30T22:22:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_4.svg.png",
+            "modified": "2025-05-30T22:22:55.563Z",
+            "name": "SAFA Nelson Mandela Bay",
+            "province": 1,
+            "safa_id": "NMBM10"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 5,
+        "fields": {
+            "code": "FS01",
+            "created": "2025-05-30T22:23:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_5.svg.png",
+            "modified": "2025-05-30T22:23:55.563Z",
+            "name": "SAFA Fezile Dabi",
+            "province": 2,
+            "safa_id": "FS01A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 6,
+        "fields": {
+            "code": "FS02",
+            "created": "2025-05-30T22:24:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_6.svg.png",
+            "modified": "2025-05-30T22:24:55.563Z",
+            "name": "SAFA Xhariep",
+            "province": 2,
+            "safa_id": "FS02A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 7,
+        "fields": {
+            "code": "FS03",
+            "created": "2025-05-30T22:25:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_7.svg.png",
+            "modified": "2025-05-30T22:25:55.563Z",
+            "name": "SAFA Lejweleputswa",
+            "province": 2,
+            "safa_id": "FS03A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 8,
+        "fields": {
+            "code": "FS04",
+            "created": "2025-05-30T22:26:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_8.svg.png",
+            "modified": "2025-05-30T22:26:55.563Z",
+            "name": "SAFA Thabo Mofutsanyana",
+            "province": 2,
+            "safa_id": "FS04A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 9,
+        "fields": {
+            "code": "GT01",
+            "created": "2025-05-30T22:27:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_9.svg.png",
+            "modified": "2025-05-30T22:27:55.563Z",
+            "name": "SAFA Gert Sibande",
+            "province": 3,
+            "safa_id": "GS01A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 10,
+        "fields": {
+            "code": "GT02",
+            "created": "2025-05-30T22:28:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_10.svg.png",
+            "modified": "2025-05-30T22:28:55.563Z",
+            "name": "SAFA Nkangala",
+            "province": 3,
+            "safa_id": "GS02A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 11,
+        "fields": {
+            "code": "GT03",
+            "created": "2025-05-30T22:29:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_11.svg.png",
+            "modified": "2025-05-30T22:29:55.563Z",
+            "name": "SAFA Ehlanzeni",
+            "province": 3,
+            "safa_id": "GS03A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 12,
+        "fields": {
+            "code": "LP01",
+            "created": "2025-05-30T22:30:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_12.svg.png",
+            "modified": "2025-05-30T22:30:55.563Z",
+            "name": "SAFA Waterberg",
+            "province": 4,
+            "safa_id": "LP01A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 13,
+        "fields": {
+            "code": "LP02",
+            "created": "2025-05-30T22:31:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_13.svg.png",
+            "modified": "2025-05-30T22:31:55.563Z",
+            "name": "SAFA Capricorn",
+            "province": 4,
+            "safa_id": "LP02A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 14,
+        "fields": {
+            "code": "LP03",
+            "created": "2025-05-30T22:32:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_14.svg.png",
+            "modified": "2025-05-30T22:32:55.563Z",
+            "name": "SAFA Sekhukhune",
+            "province": 4,
+            "safa_id": "LP03A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 15,
+        "fields": {
+            "code": "LP04",
+            "created": "2025-05-30T22:33:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_15.svg.png",
+            "modified": "2025-05-30T22:33:55.563Z",
+            "name": "SAFA Vhembe",
+            "province": 4,
+            "safa_id": "LP04A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 16,
+        "fields": {
+            "code": "LP05",
+            "created": "2025-05-30T22:34:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_16.svg.png",
+            "modified": "2025-05-30T22:34:55.563Z",
+            "name": "SAFA Mopani",
+            "province": 4,
+            "safa_id": "LP05A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 17,
+        "fields": {
+            "code": "MP01",
+            "created": "2025-05-30T22:35:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_17.svg.png",
+            "modified": "2025-05-30T22:35:55.563Z",
+            "name": "SAFA Giyani",
+            "province": 5,
+            "safa_id": "MP01A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 18,
+        "fields": {
+            "code": "MP02",
+            "created": "2025-05-30T22:36:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_18.svg.png",
+            "modified": "2025-05-30T22:36:55.563Z",
+            "name": "SAFA Letaba",
+            "province": 5,
+            "safa_id": "MP02A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 19,
+        "fields": {
+            "code": "MP03",
+            "created": "2025-05-30T22:37:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_19.svg.png",
+            "modified": "2025-05-30T22:37:55.563Z",
+            "name": "SAFA Olifants",
+            "province": 5,
+            "safa_id": "MP03A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 20,
+        "fields": {
+            "code": "MP04",
+            "created": "2025-05-30T22:38:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_20.svg.png",
+            "modified": "2025-05-30T22:38:55.563Z",
+            "name": "SAFA Steelpoort",
+            "province": 5,
+            "safa_id": "MP04A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 21,
+        "fields": {
+            "code": "MP05",
+            "created": "2025-05-30T22:39:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_21.svg.png",
+            "modified": "2025-05-30T22:39:55.563Z",
+            "name": "SAFA Tzaneen",
+            "province": 5,
+            "safa_id": "MP05A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 22,
+        "fields": {
+            "code": "NW01",
+            "created": "2025-05-30T22:40:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_22.svg.png",
+            "modified": "2025-05-30T22:40:55.563Z",
+            "name": "SAFA Bojanala",
+            "province": 6,
+            "safa_id": "NW01A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 23,
+        "fields": {
+            "code": "NW02",
+            "created": "2025-05-30T22:41:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_23.svg.png",
+            "modified": "2025-05-30T22:41:55.563Z",
+            "name": "SAFA Dr Kenneth Kaunda",
+            "province": 6,
+            "safa_id": "NW02A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 24,
+        "fields": {
+            "code": "NW03",
+            "created": "2025-05-30T22:42:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_24.svg.png",
+            "modified": "2025-05-30T22:42:55.563Z",
+            "name": "SAFA Ngaka Modiri Molema",
+            "province": 6,
+            "safa_id": "NW03A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 25,
+        "fields": {
+            "code": "NW04",
+            "created": "2025-05-30T22:43:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_25.svg.png",
+            "modified": "2025-05-30T22:43:55.563Z",
+            "name": "SAFA Waterberg",
+            "province": 6,
+            "safa_id": "NW04A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 26,
+        "fields": {
+            "code": "NW05",
+            "created": "2025-05-30T22:44:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_26.svg.png",
+            "modified": "2025-05-30T22:44:55.563Z",
+            "name": "SAFA Capricorn",
+            "province": 6,
+            "safa_id": "NW05A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 27,
+        "fields": {
+            "code": "NW06",
+            "created": "2025-05-30T22:45:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_27.svg.png",
+            "modified": "2025-05-30T22:45:55.563Z",
+            "name": "SAFA Sekhukhune",
+            "province": 6,
+            "safa_id": "NW06A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 28,
+        "fields": {
+            "code": "NW07",
+            "created": "2025-05-30T22:46:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_28.svg.png",
+            "modified": "2025-05-30T22:46:55.563Z",
+            "name": "SAFA Vhembe",
+            "province": 6,
+            "safa_id": "NW07A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 29,
+        "fields": {
+            "code": "NW08",
+            "created": "2025-05-30T22:47:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_29.svg.png",
+            "modified": "2025-05-30T22:47:55.563Z",
+            "name": "SAFA Mopani",
+            "province": 6,
+            "safa_id": "NW08A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 30,
+        "fields": {
+            "code": "KZN01",
+            "created": "2025-05-30T22:48:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_30.svg.png",
+            "modified": "2025-05-30T22:48:55.563Z",
+            "name": "SAFA uThukela",
+            "province": 7,
+            "safa_id": "KZN01A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 31,
+        "fields": {
+            "code": "KZN02",
+            "created": "2025-05-30T22:49:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_31.svg.png",
+            "modified": "2025-05-30T22:49:55.563Z",
+            "name": "SAFA uMzinyathi",
+            "province": 7,
+            "safa_id": "KZN02A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 32,
+        "fields": {
+            "code": "KZN03",
+            "created": "2025-05-30T22:50:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_32.svg.png",
+            "modified": "2025-05-30T22:50:55.563Z",
+            "name": "SAFA Amajuba",
+            "province": 7,
+            "safa_id": "KZN03A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 33,
+        "fields": {
+            "code": "KZN04",
+            "created": "2025-05-30T22:51:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_33.svg.png",
+            "modified": "2025-05-30T22:51:55.563Z",
+            "name": "SAFA Zululand",
+            "province": 7,
+            "safa_id": "KZN04A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 34,
+        "fields": {
+            "code": "KZN05",
+            "created": "2025-05-30T22:52:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_34.svg.png",
+            "modified": "2025-05-30T22:52:55.563Z",
+            "name": "SAFA Umkhanyakude",
+            "province": 7,
+            "safa_id": "KZN05A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 35,
+        "fields": {
+            "code": "KZN06",
+            "created": "2025-05-30T22:53:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_35.svg.png",
+            "modified": "2025-05-30T22:53:55.563Z",
+            "name": "SAFA King Cetshwayo",
+            "province": 7,
+            "safa_id": "KZN06A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 36,
+        "fields": {
+            "code": "KZN07",
+            "created": "2025-05-30T22:54:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_36.svg.png",
+            "modified": "2025-05-30T22:54:55.563Z",
+            "name": "SAFA Harry Gwala",
+            "province": 7,
+            "safa_id": "KZN07A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 37,
+        "fields": {
+            "code": "LP06",
+            "created": "2025-05-30T22:55:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_37.svg.png",
+            "modified": "2025-05-30T22:55:55.563Z",
+            "name": "SAFA Ehlanzeni",
+            "province": 4,
+            "safa_id": "LP06A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 38,
+        "fields": {
+            "code": "MP06",
+            "created": "2025-05-30T22:56:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_38.svg.png",
+            "modified": "2025-05-30T22:56:55.563Z",
+            "name": "SAFA Nkangala",
+            "province": 5,
+            "safa_id": "MP06A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 39,
+        "fields": {
+            "code": "NW09",
+            "created": "2025-05-30T22:57:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_39.svg.png",
+            "modified": "2025-05-30T22:57:55.563Z",
+            "name": "SAFA Bojanala",
+            "province": 6,
+            "safa_id": "NW09A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 40,
+        "fields": {
+            "code": "NW10",
+            "created": "2025-05-30T22:58:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_40.svg.png",
+            "modified": "2025-05-30T22:58:55.563Z",
+            "name": "SAFA Dr Kenneth Kaunda",
+            "province": 6,
+            "safa_id": "NW10A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 41,
+        "fields": {
+            "code": "NW11",
+            "created": "2025-05-30T22:59:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_41.svg.png",
+            "modified": "2025-05-30T22:59:55.563Z",
+            "name": "SAFA Ngaka Modiri Molema",
+            "province": 6,
+            "safa_id": "NW11A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 42,
+        "fields": {
+            "code": "NW12",
+            "created": "2025-05-30T23:00:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_42.svg.png",
+            "modified": "2025-05-30T23:00:55.563Z",
+            "name": "SAFA Waterberg",
+            "province": 6,
+            "safa_id": "NW12A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 43,
+        "fields": {
+            "code": "NW13",
+            "created": "2025-05-30T23:01:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_43.svg.png",
+            "modified": "2025-05-30T23:01:55.563Z",
+            "name": "SAFA Capricorn",
+            "province": 6,
+            "safa_id": "NW13A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 44,
+        "fields": {
+            "code": "NW14",
+            "created": "2025-05-30T23:02:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_44.svg.png",
+            "modified": "2025-05-30T23:02:55.563Z",
+            "name": "SAFA Sekhukhune",
+            "province": 6,
+            "safa_id": "NW14A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 45,
+        "fields": {
+            "code": "NW15",
+            "created": "2025-05-30T23:03:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_45.svg.png",
+            "modified": "2025-05-30T23:03:55.563Z",
+            "name": "SAFA Vhembe",
+            "province": 6,
+            "safa_id": "NW15A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 46,
+        "fields": {
+            "code": "NW16",
+            "created": "2025-05-30T23:04:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_46.svg.png",
+            "modified": "2025-05-30T23:04:55.563Z",
+            "name": "SAFA Mopani",
+            "province": 6,
+            "safa_id": "NW16A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 47,
+        "fields": {
+            "code": "KZN08",
+            "created": "2025-05-30T23:05:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_47.svg.png",
+            "modified": "2025-05-30T23:05:55.563Z",
+            "name": "SAFA uThukela",
+            "province": 7,
+            "safa_id": "KZN08A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 48,
+        "fields": {
+            "code": "KZN09",
+            "created": "2025-05-30T23:06:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_48.svg.png",
+            "modified": "2025-05-30T23:06:55.563Z",
+            "name": "SAFA uMzinyathi",
+            "province": 7,
+            "safa_id": "KZN09A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 49,
+        "fields": {
+            "code": "KZN10",
+            "created": "2025-05-30T23:07:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_49.svg.png",
+            "modified": "2025-05-30T23:07:55.563Z",
+            "name": "SAFA Amajuba",
+            "province": 7,
+            "safa_id": "KZN10A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 50,
+        "fields": {
+            "code": "KZN11",
+            "created": "2025-05-30T23:08:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_50.svg.png",
+            "modified": "2025-05-30T23:08:55.563Z",
+            "name": "SAFA Zululand",
+            "province": 7,
+            "safa_id": "KZN11A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 51,
+        "fields": {
+            "code": "KZN12",
+            "created": "2025-05-30T23:09:55.563Z",
+            "description": "",
+            "logo": "logos/SAFA_logo_51.svg.png",
+            "modified": "2025-05-30T23:09:55.563Z",
+            "name": "SAFA Umkhanyakude",
+            "province": 7,
+            "safa_id": "KZN12A"
+        }
+    },
+    {
+        "model": "geography.region",
+        "pk": 52,
+        "fields": {
+            "code": "WC06",
+            "created": "2025-05-31T00:07:52.374Z",
+            "description": "",
+            "logo": "",
+            "modified": "2025-05-31T00:07:52.374Z",
+            "name": "SAFA West Coast",
+            "province": 9,
+            "safa_id": "JOT5L"
+        }
+    }
+]

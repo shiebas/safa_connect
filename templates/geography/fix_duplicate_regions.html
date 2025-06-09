@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Fix Duplicate Regions{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Fix Duplicate Regions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Warning</h5>
+                        <p>This action will:</p>
+                        <ul>
+                            <li>Keep the <strong>oldest</strong> region for each duplicate name</li>
+                            <li>Move any LFAs from duplicate regions to the original region</li>
+                            <li>Delete the duplicate regions permanently</li>
+                        </ul>
+                        <p><strong>This action cannot be undone!</strong></p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="text-center">
+                            <a href="{% url 'geography:debug_province_regions' %}" class="btn btn-secondary mr-3">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Fix Duplicates
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

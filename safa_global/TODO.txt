@@ -1,123 +1,99 @@
-# TODO List for Registration Form Improvements
+# SAFA Global System - Updated TODO List
 
-Let's create a comprehensive TODO list for the registration form improvements and fixes. This will serve as our reference point for future enhancements.
+## ✅ COMPLETED PHASES
 
-## High Priority Items
+### PHASE 1: Foundation System ✅ 100% COMPLETE
+- ✅ User registration and authentication
+- ✅ Geography structure (Provinces, Regions, LFAs) 
+- ✅ Admin interface and user management
+- ✅ Membership status workflow
 
-1. **Fix JavaScript Form Field Visibility**
-   - Fix document type field toggles (ID/Passport/Other)
-   - Ensure proper handling of DOB and gender fields
-   - Debug why field visibility isn't working as expected
+### PHASE 2: Digital Card System ✅ 100% COMPLETE  
+- ✅ Digital card models and generation
+- ✅ QR code generation with SAFA branding
+- ✅ Card display templates (mobile responsive)
+- ✅ QR scanner and verification system
+- ✅ Admin card management tools
 
-2. **Registration Form Cleanup**
-   - Remove Player/Coaches/Referee roles for now
-   - Focus only on administrator roles (Province, Region, LFA, Club)
-   - Simplify the form to essential fields only
+### PHASE 3: Physical Card System ✅ 95% COMPLETE
+- ✅ Physical card models and templates
+- ✅ Print-ready PDF generation
+- ✅ Admin printing workflow
+- ⚠️ Missing: Template upload interface (optional)
 
-3. **Add Required POPI Act Consent**
-   - Add boolean field `popi_act_consent` to user model
-   - Make it mandatory for registration
-   - Add checkbox and legal text to registration form
+## 🚧 CURRENT PHASE: Mobile App Foundation
 
-## Medium Priority Items
+### PHASE 4: React Native Mobile App 🔧 IN PROGRESS
+- ✅ App architecture planned
+- ✅ Core screens designed (Card, Scanner, Profile)
+- ✅ API service structure defined
+- ⏳ **NEXT**: Setup React Native project
+- ⏳ Login and authentication screens
+- ⏳ Offline storage implementation
+- ⏳ Push notifications setup
+- ⏳ Biometric authentication
+- ⏳ App store deployment
 
-4. **Role-Specific Landing Pages**
-   - Create dedicated landing pages for each admin type
-   - Redirect users based on role after login
-   - Add proper navigation for each role
+## 📋 REMAINING TASKS
 
-5. **Improve Form Validation**
-   - Ensure all admin fields are properly required based on role
-   - Improve error messaging
-   - Add validation for geographical hierarchy (Province → Region → LFA)
+### HIGH PRIORITY (Next 2-3 sessions)
+1. **React Native Project Setup** 🔥 IMMEDIATE
+   - Install React Native CLI
+   - Create SafaCardApp project
+   - Configure dependencies
+   - Setup development environment
 
-6. **Add POPI Consent for Player Registration**
-   - Add `popi_consent_obtain` field for future player registration feature
-   - Create parent/guardian consent flow for minors
+2. **Complete Geography Fixtures** 🔥 IMMEDIATE  
+   - Finish all 52 SAFA regions mapping
+   - Add sample LFAs for testing
+   - Create management command for loading
 
-## Lower Priority Items
+3. **Mobile App Core Features**
+   - Authentication flow
+   - Card display with offline support
+   - QR scanning functionality
 
-7. **UI/UX Improvements**
-   - Add better progress indicators for multi-step forms
-   - Improve mobile responsiveness
-   - Add form completion percentage
+### MEDIUM PRIORITY (Future sessions)
+4. **Competition Management System** 📅 PLANNED
+   - Tournament/league models
+   - Fixture scheduling
+   - Results tracking
+   - Player registration for competitions
 
-8. **Documentation**
-   - Document the registration process
-   - Create help text for users
-   - Add tooltips for important fields
+5. **Advanced Features**
+   - Payment integration
+   - Reporting dashboard
+   - Email notifications
+   - API documentation
 
-9. **Future Role Expansions**
-   - Prepare for re-adding Player/Coach/Referee roles
-   - Design permission structure for these roles
+### LOW PRIORITY (Optional)
+6. **Production Deployment**
+   - Server configuration
+   - SSL certificates
+   - Performance optimization
+   - Backup systems
 
-## Step-by-Step Implementation Plan
+## 📱 MOBILE APP DIRECTORY STRUCTURE
 
-1. **JavaScript Fix (Immediate)**
-   - Debug document type selection not showing/hiding fields
-   - Fix element ID references in JavaScript
-   - Test each step with console.log to identify issues
-   - Remove duplicate event handlers
+**Recommended Structure:**
+```
+SafaCardApp/
+├── android/                  # Android native code
+├── ios/                      # iOS native code
+├── src/
+│   ├── api/                  # API service calls
+│   ├── assets/               # Images, fonts, and other assets
+│   ├── components/           # Reusable components (buttons, inputs, etc.)
+│   ├── navigation/           # Navigation stack and routes
+│   ├── screens/              # Core screens (Home, Profile, etc.)
+│   ├── store/                # Redux or context API store
+│   ├── styles/               # Global styles and themes
+│   └── utils/                # Utility functions and helpers
+├── App.js                    # Entry point of the app
+└── package.json              # Project metadata and dependencies
+```
 
-2. **Registration Form Simplification (Next)**
-   - Remove non-admin roles from the form
-   - Focus on essential fields only
-   - Test form submission end-to-end
-
-3. **Admin Role Improvements (After Registration Works)**
-   - Implement geography selections (Province → Region → LFA → Club)
-   - Ensure validation for required fields based on admin role
-   - Create basic landing pages for each admin role type
-
-4. **POPI Act Compliance (Legal Requirement)**
-   - Add consent fields to model and form
-   - Implement checkbox with terms
-   - Ensure submission blocked without consent
-
-We'll tackle each step one at a time, ensuring each works before moving to the next.
-
-## Progress Tracking
-
-### In Progress
-- Registration form simplification (started on May 2023)
-  - [x] Remove non-admin roles from the model
-  - [x] Add POPI Act consent field to model
-  - [x] Create and run migrations for model changes
-  - [x] Update forms.py to reflect model changes
-  - [x] Add POPI consent checkbox to registration form
-  - [ ] Test form submission end-to-end
-
-### Completed
-- Initial TODO list creation
-- Model cleanup - removed Player/Coach/Referee roles
-- Added POPI Act consent field to CustomUser model
-- Database migrations completed
-- Updated forms.py with POPI consent and new role choices
-- Login functionality working perfectly
-- JavaScript field visibility fix (98% complete - BC and ID working)
-- Added nationality and birth_country fields to model
-- Enhanced SAFA ID generation security (ID/BC only)
-
-### In Progress
-- Final model improvements
-  - [x] Add nationality field (auto-set to ZAF for ID/BC)
-  - [x] Add birth_country field 
-  - [x] Enhanced SAFA ID security restrictions
-  - [ ] Create migration for new fields
-  - [ ] Update forms to include nationality/birth country
-
-### New Security Features Added
-**SAFA ID Generation Enhanced Security**
-- SAFA ID generation now returns True/False for success tracking
-- Logging added for blocked generation attempts
-- Only ID and BC document types can generate SAFA IDs
-
-**Nationality & Birth Country Tracking**
-- Auto-sets nationality to ZAF for SA ID/BC holders
-- Tracks birth country separately from nationality
-- Essential for player eligibility rules (born abroad, SA citizen)
-
-### Next Up
-- Create migration for nationality and birth_country fields
-- Update registration form to include these fields
-- Test complete registration flow with new fields
+**Notes**:
+- Follow best practices for React Native development.
+- Keep directory structure organized and modular.
+- Document any custom configurations or scripts.

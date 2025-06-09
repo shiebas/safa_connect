@@ -5,7 +5,8 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Prefetch, Q
+from django.core.paginator import Paginator
+from django.db.models import Count, Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -747,3 +748,471 @@ def lfas_by_region(request, region_id):
     """Return Local Football Associations filtered by region as JSON"""
     lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name')
     return JsonResponse(list(lfas), safe=False)
+
+@login_required
+def province_detail(request, pk):
+    """Province detail with regions"""
+    province = get_object_or_404(Province, pk=pk)
+    regions = Region.objects.filter(province=province).order_by('name')  # Fixed relationship
+    
+    context = {
+        'province': province,
+        'regions': regions,
+        'regions_count': regions.count(),
+    }
+    return render(request, 'geography/province_detail.html', context)
+
+@login_required
+def region_detail(request, pk):
+    """Region detail with LFAs"""
+    region = get_object_or_404(Region.objects.select_related('province'), pk=pk)
+    lfas = LocalFootballAssociation.objects.filter(region=region).order_by('name')  # Fixed relationship
+    
+    context = {
+        'region': region,
+        'lfas': lfas,
+        'lfas_count': lfas.count(),
+    }
+    return render(request, 'geography/region_detail.html', context)
+
+@login_required
+def lfa_detail(request, pk):
+    """LFA detail with clubs"""
+    lfa = get_object_or_404(
+        LocalFootballAssociation.objects.select_related('region__province'), 
+        pk=pk
+    )
+    clubs = Club.objects.filter(localfootballassociation=lfa).order_by('name')  # Fixed relationship
+    
+    context = {
+        'lfa': lfa,
+        'clubs': clubs,
+        'clubs_count': clubs.count(),
+    }
+    return render(request, 'geography/lfa_detail.html', context)
+
+# Geography section home page with statistics
+@login_required
+def geography_home(request):
+    context = {
+        'total_provinces': Province.objects.count(),
+        'total_regions': Region.objects.count(),
+        'total_lfas': LocalFootballAssociation.objects.count(),
+        'total_clubs': Club.objects.count(),
+        'recent_regions': Region.objects.select_related('province').order_by('-created')[:5],
+        'recent_lfas': LocalFootballAssociation.objects.select_related('region__province').order_by('-created')[:5],
+    }
+    return render(request, 'geography/geography_home.html', context)
+
+@login_required
+def province_list_view(request):
+    """List all provinces with regions count and pagination"""
+    search_query = request.GET.get('search', '')
+    
+    # Use the correct relationship name from the error message
+    provinces = Province.objects.annotate(
+        regions_count=Count('region')  # This should work based on the model structure
+    ).order_by('name')
+    
+    if search_query:
+        provinces = provinces.filter(
+            Q(name__icontains=search_query) |
+            Q(safa_id__icontains=search_query)
+        )
+    
+    paginator = Paginator(provinces, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'provinces': page_obj.object_list,  # Add this for template compatibility
+        'total_count': provinces.count(),
+        'search_query': search_query,
+        'title': 'Provinces',
+    }
+    # Use the existing template that works with class-based views
+    return render(request, 'geography/province_list.html', context)
+
+@login_required
+def region_list_view(request):
+    """List all regions with better organization and pagination"""
+    search_query = request.GET.get('search', '')
+    province_filter = request.GET.get('province', '')
+    
+    regions = Region.objects.select_related('province').order_by('province__name', 'name')
+    
+    if search_query:
+        regions = regions.filter(
+            Q(name__icontains=search_query) |
+            Q(province__name__icontains=search_query) |
+            Q(safa_id__icontains=search_query)
+        )
+    
+    if province_filter:
+        regions = regions.filter(province_id=province_filter)
+    
+    paginator = Paginator(regions, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    provinces = Province.objects.all().order_by('name')
+    
+    context = {
+        'page_obj': page_obj,
+        'regions': page_obj.object_list,
+        'total_count': regions.count(),
+        'search_query': search_query,
+        'province_filter': province_filter,
+        'provinces': provinces,
+        'title': 'Regions',
+    }
+    return render(request, 'geography/region_list_clean.html', context)
+
+@login_required
+def lfa_list_view(request):
+    """List all LFAs with better organization and pagination"""
+    search_query = request.GET.get('search', '')
+    region_filter = request.GET.get('region', '')
+    province_filter = request.GET.get('province', '')
+    
+    # Get LFAs with proper relationships
+    lfas = LocalFootballAssociation.objects.select_related(
+        'region__province', 'association'
+    ).order_by('region__province__name', 'region__name', 'name')
+    
+    if search_query:
+        lfas = lfas.filter(
+            Q(name__icontains=search_query) |
+            Q(acronym__icontains=search_query) |
+            Q(region__name__icontains=search_query) |
+            Q(region__province__name__icontains=search_query) |
+            Q(safa_id__icontains=search_query)
+        )
+    
+    if province_filter:
+        lfas = lfas.filter(region__province_id=province_filter)
+    
+    if region_filter:
+        lfas = lfas.filter(region_id=region_filter)
+    
+    paginator = Paginator(lfas, 25)  # Reduced for better display
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    provinces = Province.objects.all().order_by('name')
+    regions = Region.objects.all().order_by('province__name', 'name')
+    if province_filter:
+        regions = regions.filter(province_id=province_filter)
+    
+    context = {
+        'page_obj': page_obj,
+        'lfas': page_obj.object_list,
+        'total_count': lfas.count(),
+        'search_query': search_query,
+        'province_filter': province_filter,
+        'region_filter': region_filter,
+        'provinces': provinces,
+        'regions': regions,
+        'title': 'Local Football Associations',
+    }
+    return render(request, 'geography/lfa_list_clean.html', context)
+
+# Better organized hierarchical view for LFAs
+@login_required
+def lfa_hierarchical_view(request):
+    """Display LFAs in a hierarchical province > region > LFA structure"""
+    search_query = request.GET.get('search', '')
+    province_filter = request.GET.get('province', '')
+    
+    # Get provinces with their regions and LFAs
+    provinces_query = Province.objects.prefetch_related(
+        Prefetch(
+            'region_set',
+            queryset=Region.objects.prefetch_related(
+                Prefetch(
+                    'localfootballassociation_set',
+                    queryset=LocalFootballAssociation.objects.select_related('association')
+                )
+            )
+        )
+    ).order_by('name')
+    
+    if province_filter:
+        provinces_query = provinces_query.filter(id=province_filter)
+    
+    # Build hierarchical data
+    provinces_data = []
+    total_lfas = 0
+    
+    for province in provinces_query:
+        regions_data = []
+        province_lfa_count = 0
+        
+        for region in province.region_set.all():
+            lfas = region.localfootballassociation_set.all()
+            
+            # Apply search filter to LFAs
+            if search_query:
+                lfas = lfas.filter(
+                    Q(name__icontains=search_query) |
+                    Q(acronym__icontains=search_query) |
+                    Q(safa_id__icontains=search_query)
+                )
+            
+            if lfas.exists():
+                regions_data.append({
+                    'region': region,
+                    'lfas': lfas,
+                    'lfa_count': lfas.count()
+                })
+                province_lfa_count += lfas.count()
+        
+        if regions_data:  # Only include provinces that have LFAs (after filtering)
+            provinces_data.append({
+                'province': province,
+                'regions': regions_data,
+                'lfa_count': province_lfa_count
+            })
+            total_lfas += province_lfa_count
+    
+    provinces = Province.objects.all().order_by('name')
+    
+    context = {
+        'provinces_data': provinces_data,
+        'total_lfas': total_lfas,
+        'search_query': search_query,
+        'province_filter': province_filter,
+        'provinces': provinces,
+        'title': 'Local Football Associations - Hierarchical View'
+    }
+    return render(request, 'geography/lfa_hierarchical.html', context)
+
+# Fix the duplicate regions function
+@login_required
+def fix_duplicate_regions(request):
+    """Fix duplicate regions by removing the newer ones"""
+    if request.method == 'POST':
+        duplicates_fixed = 0
+        
+        # Get all provinces
+        provinces = Province.objects.all()
+        
+        for province in provinces:
+            # Get regions grouped by name
+            regions = Region.objects.filter(province=province).order_by('name', 'created')
+            
+            region_groups = {}
+            for region in regions:
+                if region.name not in region_groups:
+                    region_groups[region.name] = []
+                region_groups[region.name].append(region)
+            
+            # For each group with duplicates, keep the first (oldest) and delete the rest
+            for name, region_list in region_groups.items():
+                if len(region_list) > 1:
+                    # Keep the first (oldest) region
+                    regions_to_delete = region_list[1:]
+                    
+                    for duplicate_region in regions_to_delete:
+                        # Move any LFAs from duplicate to the original region
+                        original_region = region_list[0]
+                        lfas = LocalFootballAssociation.objects.filter(region=duplicate_region)
+                        lfas.update(region=original_region)
+                        
+                        # Delete the duplicate
+                        duplicate_region.delete()
+                        duplicates_fixed += 1
+        
+        messages.success(request, f'Fixed {duplicates_fixed} duplicate regions.')
+        return redirect('geography:debug_province_regions')
+    
+    # Show confirmation page
+    return render(request, 'geography/fix_duplicate_regions.html')
+
+# Add back the hierarchical navigation functions that templates expect
+@login_required
+def province_regions(request, province_id):
+    """Display regions within a specific province"""
+    province = get_object_or_404(Province, id=province_id)
+    regions = Region.objects.filter(province=province).order_by('name')
+    context = {
+        'province': province,
+        'regions': regions,
+        'regions_count': regions.count(),  # Add count for template
+    }
+    return render(request, 'geography/province_regions.html', context)
+
+@login_required
+def region_lfas(request, region_id):
+    """Display LFAs within a specific region"""
+    region = get_object_or_404(Region, id=region_id)
+    lfas = LocalFootballAssociation.objects.filter(region=region).order_by('name')
+    context = {
+        'region': region,
+        'lfas': lfas,
+        'lfas_count': lfas.count(),  # Add count for template
+    }
+    return render(request, 'geography/region_lfas.html', context)
+
+@login_required
+def lfa_clubs(request, lfa_id):
+    """Display clubs within a specific LFA"""
+    lfa = get_object_or_404(LocalFootballAssociation, id=lfa_id)
+    clubs = Club.objects.filter(localfootballassociation=lfa).order_by('name')
+    context = {
+        'lfa': lfa,
+        'clubs': clubs,
+        'clubs_count': clubs.count(),  # Add count for template
+    }
+    return render(request, 'geography/lfa_clubs.html', context)
+
+# Add a debug view to check the data relationships
+@login_required
+def debug_province_regions(request):
+    """Debug view to check province-region relationships"""
+    provinces = Province.objects.all().order_by('name')
+    debug_data = []
+    total_regions = 0
+    duplicates = []
+    
+    for province in provinces:
+        regions = Region.objects.filter(province=province).order_by('created', 'name')
+        region_list = list(regions.values('id', 'name', 'safa_id', 'created'))
+        total_regions += regions.count()
+        
+        # Check for duplicates within this province
+        region_names = {}
+        province_duplicates = []
+        for region in region_list:
+            name = region['name']
+            if name in region_names:
+                # Found duplicate
+                duplicate_info = {
+                    'name': name,
+                    'original': region_names[name],
+                    'duplicate': region
+                }
+                province_duplicates.append(duplicate_info)
+                duplicates.append(duplicate_info)
+            else:
+                region_names[name] = region
+        
+        debug_data.append({
+            'province': province,
+            'regions': region_list,
+            'region_count': regions.count(),
+            'duplicates': province_duplicates
+        })
+    
+    all_regions = Region.objects.all().count()
+    
+    context = {
+        'debug_data': debug_data,
+        'title': 'Debug: Province-Region Relationships',
+        'total_regions': total_regions,
+        'all_regions_count': all_regions,
+        'duplicates': duplicates,
+    }
+    return render(request, 'geography/debug_province_regions.html', context)
+
+@login_required
+def fix_duplicate_regions(request):
+    """Fix duplicate regions by removing the newer ones"""
+    if request.method == 'POST':
+        duplicates_fixed = 0
+        
+        # Get all provinces
+        provinces = Province.objects.all()
+        
+        for province in provinces:
+            # Get regions grouped by name
+            regions = Region.objects.filter(province=province).order_by('name', 'created')
+            
+            region_groups = {}
+            for region in regions:
+                if region.name not in region_groups:
+                    region_groups[region.name] = []
+                region_groups[region.name].append(region)
+            
+            # For each group with duplicates, keep the first (oldest) and delete the rest
+            for name, region_list in region_groups.items():
+                if len(region_list) > 1:
+                    # Keep the first (oldest) region
+                    regions_to_delete = region_list[1:]
+                    
+                    for duplicate_region in regions_to_delete:
+                        # Move any LFAs from duplicate to the original region
+                        original_region = region_list[0]
+                        lfas = LocalFootballAssociation.objects.filter(region=duplicate_region)
+                        lfas.update(region=original_region)
+                        
+                        # Delete the duplicate
+                        duplicate_region.delete()
+                        duplicates_fixed += 1
+        
+        messages.success(request, f'Fixed {duplicates_fixed} duplicate regions.')
+        return redirect('geography:debug_province_regions')
+    
+    # Show confirmation page
+    return render(request, 'geography/fix_duplicate_regions.html')
+
+@login_required 
+def club_list_view(request):
+    """List all clubs with clean organization and pagination"""
+    search_query = request.GET.get('search', '')
+    lfa_filter = request.GET.get('lfa', '')
+    region_filter = request.GET.get('region', '')
+    province_filter = request.GET.get('province', '')
+    
+    clubs = Club.objects.select_related(
+        'localfootballassociation__region__province'
+    ).order_by('localfootballassociation__region__province__name', 'localfootballassociation__region__name', 'localfootballassociation__name', 'name')
+    
+    if search_query:
+        clubs = clubs.filter(
+            Q(name__icontains=search_query) |
+            Q(localfootballassociation__name__icontains=search_query) |
+            Q(localfootballassociation__region__name__icontains=search_query) |
+            Q(localfootballassociation__region__province__name__icontains=search_query) |
+            Q(safa_id__icontains=search_query)
+        )
+    
+    if province_filter:
+        clubs = clubs.filter(localfootballassociation__region__province_id=province_filter)
+    
+    if region_filter:
+        clubs = clubs.filter(localfootballassociation__region_id=region_filter)
+        
+    if lfa_filter:
+        clubs = clubs.filter(localfootballassociation_id=lfa_filter)
+    
+    paginator = Paginator(clubs, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    provinces = Province.objects.all().order_by('name')
+    regions = Region.objects.all().order_by('province__name', 'name')
+    lfas = LocalFootballAssociation.objects.all().order_by('region__province__name', 'region__name', 'name')
+    
+    if province_filter:
+        regions = regions.filter(province_id=province_filter)
+        lfas = lfas.filter(region__province_id=province_filter)
+    
+    if region_filter:
+        lfas = lfas.filter(region_id=region_filter)
+    
+    context = {
+        'page_obj': page_obj,
+        'clubs': page_obj.object_list,
+        'total_count': clubs.count(),
+        'search_query': search_query,
+        'province_filter': province_filter,
+        'region_filter': region_filter,
+        'lfa_filter': lfa_filter,
+        'provinces': provinces,
+        'regions': regions,
+        'lfas': lfas,
+        'title': 'Football Clubs',
+    }
+    return render(request, 'geography/club_list_clean.html', context)

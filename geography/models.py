@@ -258,6 +258,14 @@ class Province(TimeStampedModel, ModelWithLogo):
         on_delete=models.CASCADE
     )
     description = models.TextField(_('Description'), blank=True)
+    # Add safa_id field manually without mixin to avoid conflicts
+    safa_id = models.CharField(
+        _("SAFA ID"),
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text=_("Unique SAFA identification")
+    )
     
     class Meta:
         verbose_name = _('Province')

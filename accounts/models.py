@@ -114,9 +114,9 @@ class CustomUser(AbstractUser, ModelWithLogo):
 
     # Nationality and Birth Country
     nationality = models.CharField(
-        max_length=3, 
-        default='ZAF', 
-        help_text=_("3-letter country code for citizenship/nationality")
+        max_length=50,
+        default='South African',
+        help_text=_("User's nationality")
     )
     birth_country = models.CharField(
         max_length=3, 
@@ -133,10 +133,12 @@ class CustomUser(AbstractUser, ModelWithLogo):
     # Add country field to store country code
     country_code = models.CharField(max_length=3, default='ZAF', blank=True)
 
-    # Identification
+    # Identification - FIXED to handle empty values
     id_number = models.CharField(
         max_length=20, 
         blank=True,
+        null=True,  # ADD THIS - allow NULL values
+        unique=True,  # This will work correctly with NULL values
         help_text=_("13-digit South African ID number")
     )
     id_number_other = models.CharField(max_length=25, blank=True, null=True)  # No unique constraint
@@ -165,47 +167,61 @@ class CustomUser(AbstractUser, ModelWithLogo):
     # Registration
     registration_date = models.DateField(default=timezone.now)
 
-    # Comment out these problematic fields temporarily
-    """
-    # Admin-specific fields - use string references to avoid circular imports
-    province = models.ForeignKey(
-        'geography.Province',
-        on_delete=models.SET_NULL,
+    # Membership and Card Management Fields
+    membership_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('PENDING', 'Pending Payment'),
+            ('PAID', 'Payment Received'),
+            ('ACTIVE', 'Active Member'),
+            ('EXPIRED', 'Membership Expired'),
+            ('SUSPENDED', 'Membership Suspended')
+        ],
+        default='PENDING',
+        help_text='Current membership status'
+    )
+    membership_paid_date = models.DateTimeField(
         null=True, 
         blank=True,
-        related_name='province_admins'
+        help_text='Date when membership payment was received'
     )
-    
-    region = models.ForeignKey(
-        'geography.Region',
-        on_delete=models.SET_NULL,
-        null=True,
+    membership_activated_date = models.DateTimeField(
+        null=True, 
         blank=True,
-        related_name='region_admins'
+        help_text='Date when membership was activated by admin'
     )
-    
-    local_federation = models.ForeignKey(
-        'geography.LocalFootballAssociation',
-        on_delete=models.SET_NULL,
-        null=True,
+    membership_expires_date = models.DateField(
+        null=True, 
         blank=True,
-        related_name='lfa_admins'
+        help_text='Date when membership expires (annual renewal)'
     )
-    
-    club = models.ForeignKey(
-        'membership.Club',
-        on_delete=models.SET_NULL,
-        null=True,
+    membership_fee_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
         blank=True,
-        related_name='club_admins'
+        help_text='Amount paid for membership'
     )
-    """
     
-    # Instead use plain integer fields for now
-    province_id = models.IntegerField(null=True, blank=True)
-    region_id = models.IntegerField(null=True, blank=True)
-    local_federation_id = models.IntegerField(null=True, blank=True)
-    club_id = models.IntegerField(null=True, blank=True)
+    # Card Delivery Preferences
+    card_delivery_preference = models.CharField(
+        max_length=20,
+        choices=[
+            ('DIGITAL_ONLY', 'Digital Card Only'),
+            ('PHYSICAL_ONLY', 'Physical Card Only'),
+            ('BOTH', 'Both Digital and Physical')
+        ],
+        default='DIGITAL_ONLY',
+        help_text='Preferred card delivery method'
+    )
+    physical_card_requested = models.BooleanField(
+        default=False,
+        help_text='Whether user has requested a physical card'
+    )
+    physical_card_delivery_address = models.TextField(
+        blank=True,
+        help_text='Delivery address for physical card (if requested)'
+    )
 
     # Specify the custom manager
     objects = CustomUserManager()
@@ -217,11 +233,15 @@ class CustomUser(AbstractUser, ModelWithLogo):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
-        
-    # FIXED: Removed problematic __init__ method
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.country = None  # This was causing issues
+        constraints = [
+            # Ensure ID number is unique when not blank
+            models.UniqueConstraint(
+                fields=['id_number'],
+                condition=models.Q(id_number__isnull=False) & ~models.Q(id_number=''),
+                name='unique_id_number_when_not_blank'
+            ),
+        ]
+ 
 
     def get_full_name(self):
         """Return the first_name plus the last_name, with a space in between."""
@@ -451,17 +471,17 @@ class CustomUser(AbstractUser, ModelWithLogo):
     @property
     def is_province_admin(self):
         """Check if user is a province administrator"""
-        return self.role == 'ADMIN_PROVINCE' and self.province_id is not None
+        return self.role == 'ADMIN_PROVINCE'
         
     @property
     def is_region_admin(self):
         """Check if user is a region administrator"""
-        return self.role == 'ADMIN_REGION' and self.region_id is not None
+        return self.role == 'ADMIN_REGION'
         
     @property
     def is_local_fed_admin(self):
         """Check if user is a local federation administrator"""
-        return self.role == 'ADMIN_LOCAL_FED' and self.local_federation_id is not None
+        return self.role == 'ADMIN_LOCAL_FED'
         
     @property
     def is_federation_admin(self):
@@ -471,61 +491,39 @@ class CustomUser(AbstractUser, ModelWithLogo):
     @property
     def is_club_admin(self):
         """Check if user is a club administrator"""
-        return self.role == 'CLUB_ADMIN' and self.club_id is not None
+        return self.role == 'CLUB_ADMIN'
         
     def can_manage_province(self, province_id):
         """Check if user can manage the specified province"""
-        return self.is_federation_admin or (self.is_province_admin and self.province_id == province_id)
+        return self.is_federation_admin or self.is_province_admin
         
     def can_manage_region(self, region_id):
         """Check if user can manage the specified region"""
-        from django.db import models
-        
-        if self.is_federation_admin or self.is_province_admin:
-            return True
-            
-        return self.is_region_admin and self.region_id == region_id
+        return self.is_federation_admin or self.is_province_admin or self.is_region_admin
         
     def can_manage_local_federation(self, local_fed_id):
         """Check if user can manage the specified local federation"""
-        if self.is_federation_admin or self.is_province_admin or self.is_region_admin:
-            return True
-            
-        return self.is_local_fed_admin and self.local_federation_id == local_fed_id
+        return self.is_federation_admin or self.is_province_admin or self.is_region_admin or self.is_local_fed_admin
         
     def can_manage_club(self, club_id):
         """Check if user can manage the specified club"""
-        if self.is_federation_admin or self.is_province_admin or self.is_region_admin or self.is_local_fed_admin:
-            return True
-            
-        return self.is_club_admin and self.club_id == club_id
+        return self.is_federation_admin or self.is_province_admin or self.is_region_admin or self.is_local_fed_admin or self.is_club_admin
         
     def get_managed_provinces(self):
         """Get QuerySet of provinces managed by this user"""
-        if self.is_federation_admin:
-            # Federation admin can manage all provinces
-            return models.Q(id__isnull=False)
-        elif self.is_province_admin:
-            # Province admin can only manage their province
-            return models.Q(id=self.province_id)
+        from django.db import models
+        if self.is_federation_admin or self.is_province_admin:
+            return models.Q(id__isnull=False)  # Can manage all provinces
         else:
-            # Other users can't manage provinces
-            return models.Q(id__isnull=True)
+            return models.Q(id__isnull=True)  # Cannot manage any provinces
             
     def get_managed_regions(self):
         """Get QuerySet of regions managed by this user"""
-        if self.is_federation_admin:
-            # Federation admin can manage all regions
-            return models.Q(id__isnull=False)
-        elif self.is_province_admin:
-            # Province admin can manage regions in their province
-            return models.Q(province_id=self.province_id)
-        elif self.is_region_admin:
-            # Region admin can only manage their region
-            return models.Q(id=self.region_id)
+        from django.db import models
+        if self.is_federation_admin or self.is_province_admin or self.is_region_admin:
+            return models.Q(id__isnull=False)  # Can manage regions based on role
         else:
-            # Other users can't manage regions
-            return models.Q(id__isnull=True)
+            return models.Q(id__isnull=True)  # Cannot manage any regions
 
 
 

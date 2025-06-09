@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ lfa.name }} - Clubs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-users me-2 text-safa"></i>
+                    Clubs in {{ lfa.name }}
+                </h1>
+                <a href="{% url 'geography:region_lfas' lfa.region.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to {{ lfa.region.name }}
+                </a>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Local Football Association Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>LFA:</strong> {{ lfa.name }}</p>
+                            {% if lfa.acronym %}
+                                <p><strong>Acronym:</strong> {{ lfa.acronym }}</p>
+                            {% endif %}
+                            {% if lfa.safa_id %}
+                                <p><strong>SAFA ID:</strong> {{ lfa.safa_id }}</p>
+                            {% endif %}
+                            <p><strong>Region:</strong> {{ lfa.region.name }}</p>
+                            <p><strong>Province:</strong> {{ lfa.region.province.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Clubs:</strong> {{ clubs.count }}</p>
+                            {% if lfa.association %}
+                                <p><strong>Association:</strong> {{ lfa.association.name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if clubs %}
+                <div class="row">
+                    {% for club in clubs %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-futbol me-2 text-safa"></i>
+                                    {{ club.name }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if club.code %}
+                                    <p class="text-muted mb-2">
+                                        <strong>Code:</strong> {{ club.code }}
+                                    </p>
+                                {% endif %}
+                                {% if club.safa_id %}
+                                    <p class="text-muted mb-2">
+                                        <strong>SAFA ID:</strong> {{ club.safa_id }}
+                                    </p>
+                                {% endif %}
+                                <p class="text-muted mb-2">
+                                    <strong>Status:</strong> 
+                                    <span class="badge 
+                                        {% if club.status == 'ACTIVE' %}bg-success
+                                        {% elif club.status == 'INACTIVE' %}bg-secondary
+                                        {% elif club.status == 'SUSPENDED' %}bg-warning
+                                        {% elif club.status == 'DISSOLVED' %}bg-danger
+                                        {% else %}bg-info{% endif %}">
+                                        {{ club.get_status_display }}
+                                    </span>
+                                </p>
+                                {% if club.founding_date %}
+                                    <p class="text-muted mb-2">
+                                        <strong>Founded:</strong> {{ club.founding_date|date:"Y" }}
+                                    </p>
+                                {% endif %}
+                                {% if club.stadium %}
+                                    <p class="text-muted mb-2">
+                                        <strong>Stadium:</strong> {{ club.stadium }}
+                                    </p>
+                                {% endif %}
+                                <div class="mt-3">
+                                    <span class="badge bg-primary">Active Club</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No clubs found in {{ lfa.name }}.
+                    <br><small class="text-muted">New clubs can be registered through the club management system.</small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

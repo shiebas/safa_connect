@@ -5,11 +5,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
-# Updated Wagtail imports
-from wagtail.admin import urls as wagtailadmin_urls
-from wagtail.documents import urls as wagtaildocs_urls
-from wagtail import urls as wagtail_urls  # Changed from wagtail.core
-
 # Update admin site title, header, and index title
 admin.site.site_header = "SAFA Administration"
 admin.site.site_title = "SAFA Admin Portal"
@@ -17,29 +12,18 @@ admin.site.index_title = "Welcome to SAFA Administration Portal"
 
 
 urlpatterns = [
+    path('admin/logout/', auth_views.LogoutView.as_view(next_page='/'), name='admin_logout'),
     path('admin/', admin.site.urls),
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
-    path('accounts/', include('accounts.urls')),  # This includes your accounts URLs with namespace
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),  # Add this back
+    path('accounts/', include('accounts.urls')),
     path('accounts/', include('allauth.urls')),  # Django-allauth URLs
     path('geography/', include('geography.urls')),
     path('membership/', include('membership.urls')),
-    path('competitions/', include(('competitions.urls', 'competitions'), namespace='competitions')),
-
-    # Wagtail admin and URLs
-    path('cms/', include(wagtailadmin_urls)),
-    path('documents/', include(wagtaildocs_urls)),
-    path('pages/', include(wagtail_urls)),
-
-    # Your other URLs
+    path('cards/', include('membership_cards.urls')),
+    
+    # Password reset URLs
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# Add this to your main URLs file
-if 'tools' in settings.INSTALLED_APPS:
-    urlpatterns += [
-        path('admin/tools/', include('tools.urls', namespace='tools')),
-    ]

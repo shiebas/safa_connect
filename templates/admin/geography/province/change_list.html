@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+    <!-- Hide the "Add Province" button for read-only provinces -->
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Provinces are part of the established SAFA structure and cannot be modified.
+    </div>
+{% endblock %}

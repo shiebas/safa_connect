@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ lfa.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-building"></i>
+                        {{ lfa.name }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'geography:lfas' %}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to LFAs
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Basic Information</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th width="30%">Name:</th>
+                                    <td>{{ lfa.name }}</td>
+                                </tr>
+                                {% if lfa.acronym %}
+                                <tr>
+                                    <th>Acronym:</th>
+                                    <td><span class="badge badge-secondary">{{ lfa.acronym }}</span></td>
+                                </tr>
+                                {% endif %}
+                                {% if lfa.safa_id %}
+                                <tr>
+                                    <th>SAFA ID:</th>
+                                    <td><code>{{ lfa.safa_id }}</code></td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Region:</th>
+                                    <td>
+                                        <a href="{% url 'geography:region-detail' lfa.region.pk %}">
+                                            {{ lfa.region.name }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Province:</th>
+                                    <td>
+                                        <a href="{% url 'geography:province-detail' lfa.region.province.pk %}">
+                                            {{ lfa.region.province.name }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% if lfa.association %}
+                                <tr>
+                                    <th>Association:</th>
+                                    <td>{{ lfa.association.name }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Statistics</h5>
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info">
+                                    <i class="fas fa-futbol"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Clubs</span>
+                                    <span class="info-box-number">{{ clubs_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if clubs %}
+                    <div class="mt-4">
+                        <h5>
+                            Clubs in {{ lfa.name }}
+                            <span class="badge badge-info ml-2">{{ clubs_count }}</span>
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Club Name</th>
+                                        <th>SAFA ID</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for club in clubs %}
+                                    <tr>
+                                        <td>{{ club.name }}</td>
+                                        <td>
+                                            {% if club.safa_id %}
+                                            <code>{{ club.safa_id }}</code>
+                                            {% else %}
+                                            <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'geography:club-detail' club.pk %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle"></i>
+                        No clubs are currently registered under this LFA.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

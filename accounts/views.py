@@ -15,6 +15,7 @@ from django.db import models
 from django.shortcuts import get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.crypto import get_random_string
+from django.views.decorators.http import require_GET
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -34,7 +35,11 @@ def register(request):
         form = UserRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             # This is probably calling the form's save method which checks 'province'
-            user = form.save()
+            user = form.save(commit=False)
+
+            # Handle empty ID number for passport users
+            if not user.id_number or user.id_number.strip() == '':
+                user.id_number = None  # Store as NULL, not empty string
 
             # Set user as inactive until approved by an admin
             user.is_active = False
@@ -96,28 +101,38 @@ def check_username(request):
 
     return JsonResponse({'available': not exists})
 
-def check_email_exists(request):
-    email = request.GET.get('email', '').strip().lower()
-    exists = get_user_model().objects.filter(email=email).exists()
+@require_GET
+def check_email_availability(request):
+    """AJAX endpoint to check if email is already registered"""
+    email = request.GET.get('email', '').strip()
+    
+    if not email:
+        return JsonResponse({'exists': False})
+    
+    exists = CustomUser.objects.filter(email=email).exists()
+    return JsonResponse({'exists': exists})
+
+@require_GET  
+def check_id_number_availability(request):
+    """AJAX endpoint to check if ID number is already registered"""
+    id_number = request.GET.get('id_number', '').strip()
+    
+    if not id_number:
+        return JsonResponse({'exists': False})
+    
+    exists = CustomUser.objects.filter(id_number=id_number).exists()
     return JsonResponse({'exists': exists})
 
 def user_qr_code(request, user_id=None):
     """
     View to display a QR code for a user.
-    If user_id is provided, displays the QR code for that user.
-    Otherwise, displays the QR code for the current user.
     """
-    
-
     @login_required
     def view_func(request, user_id=None):
-        # If user_id is provided, get that user
-        # Otherwise, use the current user
         if user_id:
-            # Only staff can view other users' QR codes
             if not request.user.is_staff:
                 messages.error(request, "You don't have permission to view this QR code.")
-                return redirect('home')
+                return redirect('accounts:login')  # Change from 'home' to 'accounts:login'
             user = get_object_or_404(CustomUser, id=user_id)
         else:
             user = request.user
@@ -125,12 +140,10 @@ def user_qr_code(request, user_id=None):
         # Generate the QR code
         qr_code = user.generate_qr_code()
 
-        # If QR code generation failed, show an error
         if not qr_code:
             messages.error(request, "Failed to generate QR code. Please make sure the qrcode library is installed.")
-            return redirect('home')
+            return redirect('accounts:login')  # Change from 'home' to 'accounts:login'
 
-        # Render the template with the QR code
         return render(request, 'accounts/qr_code.html', {
             'user': user,
             'qr_code': qr_code,
@@ -153,25 +166,5 @@ def model_debug_view(request):
             models_info.append(f"{app_config.name}.{model.__name__}")
     
     return HttpResponse("<br>".join(models_info))
-
-@staff_member_required
-def generate_safa_id_ajax(request):
-    """Generate a unique SAFA ID and return as JSON"""
-    try:
-        # Generate a unique SAFA ID
-        while True:
-            safa_id = get_random_string(length=5, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            if not CustomUser.objects.filter(safa_id=safa_id).exists():
-                break
-                
-        return JsonResponse({
-            'success': True,
-            'safa_id': safa_id
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
 

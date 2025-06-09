@@ -1,52 +1,44 @@
 {% extends "base.html" %}
-{% block title %}SAFA ADMINISTRATION{% endblock %}
+{% load static %}
+
+{% block title %}SAFA Global Administration - Home{% endblock %}
 
 {% block content %}
-<main role="main" class="content-container">
-    <div class="homepage-banner">
-        <h1>Welcome to SAFA ADMINISTRATION PLATFORM</h1>
-        <p class="lead">
-            Empowering football associations and clubs worldwide.<br>
-            Explore our features to get started.
-        </p>
-    </div>
-
-    <section class="features" aria-labelledby="features-heading">
-        <h2 id="features-heading">Platform Features</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <h3>Clubs & Associations</h3>
-                <p>Manage football clubs, associations, and registrations efficiently.</p>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="text-center">Welcome to SAFA Global Administration</h1>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead">South African Football Association Registration System</p>
+                    
+                    {% if user.is_authenticated %}
+                        <h3>Welcome, {{ user.get_full_name|default:user.email }}!</h3>
+                        <div class="mt-4">
+                            {% if user.is_staff %}
+                                <a href="/admin/" class="btn btn-primary me-2">Admin Panel</a>
+                            {% endif %}
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary me-2">View Profile</a>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger">Logout</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="mt-4">
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg me-3 px-4 py-2" style="font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                            <a href="{% url 'accounts:register' %}" class="btn btn-success btn-lg px-4 py-2" style="font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="feature-card">
-                <h3>Geographical Data</h3>
-                <p>Explore countries, regions, and cities participating in the platform.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Secure Access</h3>
-                <p>Multi-language and secure authentication for global users via Allauth.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Dynamic Reporting</h3>
-                <p>Generate real-time reports and analytics for your region or club.</p>
-            </div>
-            <!-- Add more feature cards as needed -->
         </div>
-    </section>
-
-    <section class="quick-links" aria-labelledby="quick-links-heading">
-        <h2 id="quick-links-heading">Quick Links</h2>
-        <ul>
-            <li><a class="btn" href="{% url 'accounts:register' %}" style="background-color: var(--safa-black); color: var(--safa-yellow); font-weight: bold;">Register Players & Administrators</a></li>
-            <li><a class="btn" href="{% url 'geography:geography_admin' %}">Geography Admin Dashboard</a></li>
-            <li><a class="btn" href="{% url 'geography:worldsportsbody-list' %}">World Sports Bodies</a></li>
-            <li><a class="btn" href="{% url 'geography:club-list' %}">Manage Clubs</a></li>
-            <!-- Add more quick links as your platform grows -->
-        </ul>
-    </section>
-</main>
-
-<footer>
-    <p>Contact us at <a href="mailto:support@safaglobaladmin.co.za">support@safaglobaladmin.co.za</a> | &copy; {{ year }} SAFA ADMINISTRATION</p>
-</footer>
+    </div>
+</div>
 {% endblock %}

@@ -6,10 +6,11 @@ if sys.version_info >= (3, 10) and not hasattr(collections, 'Iterator'):
     collections.Iterator = collections.abc.Iterator
 
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 # Fix import statement - update model names to match what's actually defined in models.py
 from .models import CustomUser, ModelWithLogo, RegistrationType
@@ -100,102 +101,127 @@ class CustomUserChangeForm(forms.ModelForm):
         # Return the initial value regardless of what the user provides
         return self.initial.get('password', '')
 
+@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    """Admin configuration for the CustomUser model."""
-    form = CustomUserChangeForm
-    add_form = CustomUserCreationForm
+    model = CustomUser
+    list_display = [
+        'email', 'get_full_name', 'role', 'membership_status', 
+        'safa_id', 'is_active', 'date_joined'
+    ]
+    list_filter = [
+        'role', 'membership_status', 'is_active', 'is_staff', 
+        'date_joined', 'card_delivery_preference'
+    ]
+    search_fields = ['email', 'name', 'surname', 'id_number', 'safa_id']
+    ordering = ['email']
     
-    list_display = ('email', 'first_name', 'last_name', 'role', 'is_active', 'safa_id', 'fifa_id')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'role')
-    search_fields = ('email', 'first_name', 'last_name', 'name', 'surname', 'safa_id', 'fifa_id')
-    ordering = ('email',)
-    
-    # Admin is divided into different sections for better organization
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        (_('Personal Information'), {
-            'fields': ('first_name', 'last_name', 'name', 'middle_name', 'surname', 'alias',
-                      'date_of_birth', 'gender', 'country_code', 'id_number', 'id_number_other',
-                      'passport_number', 'id_document_type', 'id_document')
+        (None, {
+            'fields': ('email', 'password')
         }),
-        (_('Role & Status'), {
-            'fields': ('role', 'registration_type', 'is_active', 'is_staff', 'is_superuser',
-                      'membership_card', 'payment_required', 'safa_id', 'fifa_id')
+        ('Personal Info', {
+            'fields': (
+                'name', 'surname', 'middle_name', 'alias',
+                'date_of_birth', 'gender', 'nationality', 'birth_country'
+            )
         }),
-        (_('Administrative Relationship'), {
-            'fields': ('province_id', 'region_id', 'local_federation_id', 'club_id')
+        ('Membership & Card Management', {
+            'fields': (
+                'membership_status', 'membership_paid_date', 
+                'membership_activated_date', 'membership_expires_date',
+                'membership_fee_amount', 'card_delivery_preference',
+                'physical_card_requested', 'physical_card_delivery_address'
+            )
         }),
-        (_('Media'), {
-            'fields': ('profile_photo', 'logo')
+        ('Identification', {
+            'fields': (
+                'id_document_type', 'id_number', 'id_number_other', 
+                'passport_number', 'country_code'
+            )
         }),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined', 'registration_date')}),
+        ('System IDs', {
+            'fields': ('safa_id', 'fifa_id')
+        }),
+        ('Role & Permissions', {
+            'fields': ('role', 'is_active', 'is_staff', 'is_superuser')
+        }),
+        ('Media', {
+            'fields': ('profile_photo', 'id_document', 'logo')
+        }),
+        ('Compliance', {
+            'fields': ('popi_act_consent',)
+        }),
+        ('Important dates', {
+            'fields': ('last_login', 'date_joined', 'registration_date')
+        }),
     )
     
-    # Fields shown when creating a new user through admin
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'role', 'first_name', 'last_name'),
+            'fields': ('email', 'password1', 'password2'),
         }),
     )
     
-    # Actions available in the admin
-    actions = ['activate_users', 'deactivate_users', 'generate_safa_ids', 'fetch_fifa_ids', 'generate_qr_codes']
-    
-    def activate_users(self, request, queryset):
-        """Activate selected users"""
-        queryset.update(is_active=True)
-    activate_users.short_description = _("Activate selected users")
-    
-    def deactivate_users(self, request, queryset):
-        """Deactivate selected users"""
-        queryset.update(is_active=False)
-    deactivate_users.short_description = _("Deactivate selected users")
-    
-    def generate_safa_ids(self, request, queryset):
-        """Generate SAFA IDs for selected users without IDs"""
-        count = 0
-        for user in queryset.filter(safa_id__isnull=True):
-            user.generate_safa_id()
-            user.save()
-            count += 1
-        self.message_user(request, _(f"Generated SAFA IDs for {count} users."))
-    generate_safa_ids.short_description = _("Generate SAFA IDs for selected users")
-    
-    def generate_qr_codes(self, request, queryset):
-        """Generate QR codes for users and display them"""
-        from django.http import HttpResponse
-        from django.template import loader
+    def activate_membership(self, request, queryset):
+        """Admin action to activate memberships and trigger card generation"""
+        from django.utils import timezone
+        from datetime import timedelta
+        updated = 0
+        cards_generated = 0
         
-        # Get users with SAFA IDs
-        users_with_ids = queryset.exclude(safa_id__isnull=True)
-        users_without_ids = queryset.filter(safa_id__isnull=True)
-        
-        # Generate SAFA IDs for those without them
-        for user in users_without_ids:
-            user.generate_safa_id()
-            user.save()
-            
-        # Generate QR codes for all users
-        users = []
         for user in queryset:
-            try:
-                qr_code = user.generate_qr_code()
-                users.append({
-                    'user': user,
-                    'qr_code': qr_code
-                })
-            except Exception as e:
-                self.message_user(request, f"Error generating QR code for {user}: {str(e)}", level='ERROR')
+            if user.membership_status == 'PAID':
+                user.membership_status = 'ACTIVE'
+                user.membership_activated_date = timezone.now()
+                if not user.membership_expires_date:
+                    # Set expiry to 1 year from activation
+                    user.membership_expires_date = timezone.now().date() + timedelta(days=365)
+                user.save()  # This will trigger the signal to generate cards
+                updated += 1
                 
-        # Render template with all QR codes
-        template = loader.get_template('admin/accounts/customuser/qr_codes.html')
-        context = {
-            'title': 'QR Codes',
-            'users': users,
-        }
-        return HttpResponse(template.render(context, request))
-    generate_qr_codes.short_description = _("Generate & View QR codes")
+                # Check if cards were created
+                if hasattr(user, 'digital_card'):
+                    cards_generated += 1
+        
+        self.message_user(
+            request,
+            f'{updated} membership(s) activated. {cards_generated} digital card(s) generated.',
+            messages.SUCCESS
+        )
+    activate_membership.short_description = "Activate selected memberships"
+    
+    def suspend_membership(self, request, queryset):
+        """Admin action to suspend memberships"""
+        updated = queryset.update(membership_status='SUSPENDED')
+        self.message_user(
+            request,
+            f'{updated} membership(s) successfully suspended.',
+            messages.WARNING
+        )
+    suspend_membership.short_description = "Suspend selected memberships"
+
+    def mark_payment_received(self, request, queryset):
+        """Admin action to mark payment as received"""
+        from django.utils import timezone
+        updated = 0
+        for user in queryset.filter(membership_status='PENDING'):
+            user.membership_status = 'PAID'
+            user.membership_paid_date = timezone.now()
+            user.save()
+            updated += 1
+        
+        self.message_user(
+            request,
+            f'{updated} payment(s) marked as received.',
+            messages.SUCCESS
+        )
+    mark_payment_received.short_description = "Mark payment as received"
+
+    actions = [
+        'generate_safa_ids', 'activate_users', 'deactivate_users', 
+        'mark_payment_received', 'activate_membership', 'suspend_membership'
+    ]
 
 class RegistrationTypeAdmin(admin.ModelAdmin):
     """Admin configuration for the RegistrationType model."""
@@ -203,7 +229,6 @@ class RegistrationTypeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'allowed_user_roles')
 
 # Register models with the admin site
-admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(RegistrationType, RegistrationTypeAdmin)
 
 """

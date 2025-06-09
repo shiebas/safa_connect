@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}SAFA System Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #000;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    
+    .dashboard-section {
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1><i class="fas fa-tachometer-alt me-2"></i>SAFA System Dashboard</h1>
+    
+    <!-- Card Statistics -->
+    <div class="dashboard-section">
+        <h3>Digital Card System</h3>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ card_stats.total_digital_cards }}</div>
+                    <div>Total Digital Cards</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ card_stats.active_cards }}</div>
+                    <div>Active Cards</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ card_stats.total_physical_cards }}</div>
+                    <div>Physical Cards</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ card_stats.pending_print }}</div>
+                    <div>Pending Print</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Geography Statistics -->
+    <div class="dashboard-section">
+        <h3>Geography Structure</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ geo_stats.total_provinces }}</div>
+                    <div>Provinces</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ geo_stats.total_regions }}</div>
+                    <div>Regions</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ geo_stats.total_lfas }}</div>
+                    <div>Local Football Associations</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Statistics -->
+    <div class="dashboard-section">
+        <h3>Membership Statistics</h3>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ user_stats.total_users }}</div>
+                    <div>Total Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ user_stats.active_memberships }}</div>
+                    <div>Active Members</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ user_stats.users_with_cards }}</div>
+                    <div>Members with Cards</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number">{{ user_stats.pending_memberships }}</div>
+                    <div>Pending Approval</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="dashboard-section">
+        <h3>Quick Actions</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <a href="/admin/membership_cards/digitalcard/" class="btn btn-primary btn-lg w-100 mb-2">
+                    <i class="fas fa-id-card me-2"></i>Manage Digital Cards
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="/admin/membership_cards/physicalcard/" class="btn btn-success btn-lg w-100 mb-2">
+                    <i class="fas fa-print me-2"></i>Manage Physical Cards
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

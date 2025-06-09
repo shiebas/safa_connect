@@ -53,6 +53,13 @@ class UserRegistrationForm(UserCreationForm):
         help_text="You must agree to the Protection of Personal Information Act terms to register."
     )
 
+    # Nationality field
+    nationality = forms.CharField(
+        max_length=50,
+        initial='South African',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
     # Fix the LocalFederation field to handle missing model
     if LocalFederation is not None:
         local_federation = forms.ModelChoiceField(
@@ -100,7 +107,7 @@ class UserRegistrationForm(UserCreationForm):
             'id_number', 'id_number_other', 'passport_number', 'id_document_type',
             'phone_number', 'address', 'city', 'postal_code', 'country', 'profile_photo', 
             'id_document', 'password1', 'password2', 'province', 'region', 'local_federation',
-            'popi_act_consent'  # Add the new field
+            'popi_act_consent', 'nationality'  # Add the new field
         )
 
     def __init__(self, *args, **kwargs):

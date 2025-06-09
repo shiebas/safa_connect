@@ -1,32 +1,42 @@
 from django.urls import path
 from . import views
-from geography.views import (
-    ContinentListView, ContinentCreateView, ContinentDetailView, ContinentUpdateView, ContinentDeleteView,
-    ContinentFederationListView, ContinentFederationCreateView, ContinentFederationDetailView,
-    ContinentFederationUpdateView, ContinentFederationDeleteView,
-    ContinentRegionListView, ContinentRegionCreateView, ContinentRegionDetailView,
-    ContinentRegionUpdateView, ContinentRegionDeleteView,
-    CountryListView, CountryCreateView, CountryDetailView, CountryUpdateView, CountryDeleteView,
-    NationalFederationListView, NationalFederationCreateView, NationalFederationDetailView,
-    NationalFederationUpdateView, NationalFederationDeleteView,
-    AssociationListView, AssociationCreateView, AssociationDetailView,
-    AssociationUpdateView, AssociationDeleteView,
-    ProvinceListView, ProvinceCreateView, ProvinceDetailView,
-    ProvinceUpdateView, ProvinceDeleteView,
-    RegionListView, RegionCreateView, RegionDetailView,
-    RegionUpdateView, RegionDeleteView,
-    ClubListView, ClubCreateView, ClubDetailView,
-    ClubUpdateView, ClubDeleteView,
-    LocalFootballAssociationListView, LocalFootballAssociationCreateView,
-    LocalFootballAssociationDetailView, LocalFootballAssociationUpdateView,
-    LocalFootballAssociationDeleteView
-)
+
 app_name = 'geography'
 
 urlpatterns = [
     path('admin/', views.geography_admin, name='geography_admin'),
     path('advanced/', views.advanced_home, name='advance_home'),
     
+    # Geography home and optimized list views (main navigation)
+    path('', views.geography_home, name='geography-home'),
+    path('provinces/', views.province_list_view, name='provinces'),
+    path('regions/', views.region_list_view, name='regions'),
+    path('lfas/', views.lfa_list_view, name='lfas'),
+    path('clubs/', views.club_list_view, name='clubs'),  # Now uses the clean function-based view
+    
+    # Better LFA views
+    path('lfas/hierarchical/', views.lfa_hierarchical_view, name='lfa_hierarchical'),
+    
+    # Debug URLs
+    path('debug/province-regions/', views.debug_province_regions, name='debug_province_regions'),
+    path('debug/fix-duplicate-regions/', views.fix_duplicate_regions, name='fix_duplicate_regions'),
+    
+    # Detail views
+    path('provinces/<int:pk>/', views.province_detail, name='province-detail'),
+    path('regions/<int:pk>/', views.region_detail, name='region-detail'),
+    path('lfas/<int:pk>/', views.lfa_detail, name='lfa-detail'),
+    
+    # Add back the hierarchical navigation URLs that templates expect
+    path('provinces/<int:province_id>/regions/', views.province_regions, name='province_regions'),
+    path('regions/<int:region_id>/lfas/', views.region_lfas, name='region_lfas'),
+    path('lfas/<int:lfa_id>/clubs/', views.lfa_clubs, name='lfa_clubs'),
+    
+    # API endpoints
+    path('api/get_regions_by_province/', views.get_regions_by_province, name='get_regions_by_province'),
+    path('api/get_lfas_by_region/', views.get_lfas_by_region, name='get_lfas_by_region'),
+    path('api/regions-by-province/<int:province_id>/', views.regions_by_province, name='regions_by_province'),
+    path('api/lfas-by-region/<int:region_id>/', views.lfas_by_region, name='lfas_by_region'),
+
     # WorldSportsBody
     path('worldsportsbodies/', views.WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
     path('worldsportsbodies/add/', views.WorldSportsBodyCreateView.as_view(), name='worldsportsbody-create'),
@@ -35,85 +45,77 @@ urlpatterns = [
     path('worldsportsbodies/<int:pk>/delete/', views.WorldSportsBodyDeleteView.as_view(), name='worldsportsbody-delete'),
 
     # Continent
-    path('continents/', ContinentListView.as_view(), name='continent-list'),
-    path('continents/add/', ContinentCreateView.as_view(), name='continent-create'),
-    path('continents/<int:pk>/', ContinentDetailView.as_view(), name='continent-detail'),
-    path('continents/<int:pk>/edit/', ContinentUpdateView.as_view(), name='continent-update'),
-    path('continents/<int:pk>/delete/', ContinentDeleteView.as_view(), name='continent-delete'),
+    path('continents/', views.ContinentListView.as_view(), name='continent-list'),
+    path('continents/add/', views.ContinentCreateView.as_view(), name='continent-create'),
+    path('continents/<int:pk>/', views.ContinentDetailView.as_view(), name='continent-detail'),
+    path('continents/<int:pk>/edit/', views.ContinentUpdateView.as_view(), name='continent-update'),
+    path('continents/<int:pk>/delete/', views.ContinentDeleteView.as_view(), name='continent-delete'),
 
     # ContinentFederation
-    path('continentfederations/', ContinentFederationListView.as_view(), name='continentfederation-list'),
-    path('continentfederations/add/', ContinentFederationCreateView.as_view(), name='continentfederation-create'),
-    path('continentfederations/<int:pk>/', ContinentFederationDetailView.as_view(), name='continentfederation-detail'),
-    path('continentfederations/<int:pk>/edit/', ContinentFederationUpdateView.as_view(), name='continentfederation-update'),
-    path('continentfederations/<int:pk>/delete/', ContinentFederationDeleteView.as_view(), name='continentfederation-delete'),
+    path('continentfederations/', views.ContinentFederationListView.as_view(), name='continentfederation-list'),
+    path('continentfederations/add/', views.ContinentFederationCreateView.as_view(), name='continentfederation-create'),
+    path('continentfederations/<int:pk>/', views.ContinentFederationDetailView.as_view(), name='continentfederation-detail'),
+    path('continentfederations/<int:pk>/edit/', views.ContinentFederationUpdateView.as_view(), name='continentfederation-update'),
+    path('continentfederations/<int:pk>/delete/', views.ContinentFederationDeleteView.as_view(), name='continentfederation-delete'),
 
     # ContinentRegion
-    path('continentregions/', ContinentRegionListView.as_view(), name='continentregion-list'),
-    path('continentregions/add/', ContinentRegionCreateView.as_view(), name='continentregion-create'),
-    path('continentregions/<int:pk>/', ContinentRegionDetailView.as_view(), name='continentregion-detail'),
-    path('continentregions/<int:pk>/edit/', ContinentRegionUpdateView.as_view(), name='continentregion-update'),
-    path('continentregions/<int:pk>/delete/', ContinentRegionDeleteView.as_view(), name='continentregion-delete'),
+    path('continentregions/', views.ContinentRegionListView.as_view(), name='continentregion-list'),
+    path('continentregions/add/', views.ContinentRegionCreateView.as_view(), name='continentregion-create'),
+    path('continentregions/<int:pk>/', views.ContinentRegionDetailView.as_view(), name='continentregion-detail'),
+    path('continentregions/<int:pk>/edit/', views.ContinentRegionUpdateView.as_view(), name='continentregion-update'),
+    path('continentregions/<int:pk>/delete/', views.ContinentRegionDeleteView.as_view(), name='continentregion-delete'),
 
     # Country
-    path('countries/', CountryListView.as_view(), name='country-list'),
-    path('countries/add/', CountryCreateView.as_view(), name='country-create'),
-    path('countries/<int:pk>/', CountryDetailView.as_view(), name='country-detail'),
-    path('countries/<int:pk>/edit/', CountryUpdateView.as_view(), name='country-update'),
-    path('countries/<int:pk>/delete/', CountryDeleteView.as_view(), name='country-delete'),
+    path('countries/', views.CountryListView.as_view(), name='country-list'),
+    path('countries/add/', views.CountryCreateView.as_view(), name='country-create'),
+    path('countries/<int:pk>/', views.CountryDetailView.as_view(), name='country-detail'),
+    path('countries/<int:pk>/edit/', views.CountryUpdateView.as_view(), name='country-update'),
+    path('countries/<int:pk>/delete/', views.CountryDeleteView.as_view(), name='country-delete'),
 
     # NationalFederation
-    path('nationalfederations/', NationalFederationListView.as_view(), name='nationalfederation-list'),
-    path('nationalfederations/add/', NationalFederationCreateView.as_view(), name='nationalfederation-create'),
-    path('nationalfederations/<int:pk>/', NationalFederationDetailView.as_view(), name='nationalfederation-detail'),
-    path('nationalfederations/<int:pk>/edit/', NationalFederationUpdateView.as_view(), name='nationalfederation-update'),
-    path('nationalfederations/<int:pk>/delete/', NationalFederationDeleteView.as_view(), name='nationalfederation-delete'),
+    path('nationalfederations/', views.NationalFederationListView.as_view(), name='nationalfederation-list'),
+    path('nationalfederations/add/', views.NationalFederationCreateView.as_view(), name='nationalfederation-create'),
+    path('nationalfederations/<int:pk>/', views.NationalFederationDetailView.as_view(), name='nationalfederation-detail'),
+    path('nationalfederations/<int:pk>/edit/', views.NationalFederationUpdateView.as_view(), name='nationalfederation-update'),
+    path('nationalfederations/<int:pk>/delete/', views.NationalFederationDeleteView.as_view(), name='nationalfederation-delete'),
 
     # Association
-    path('associations/', AssociationListView.as_view(), name='association-list'),
-    path('associations/add/', AssociationCreateView.as_view(), name='association-create'),
-    path('associations/<int:pk>/', AssociationDetailView.as_view(), name='association-detail'),
-    path('associations/<int:pk>/edit/', AssociationUpdateView.as_view(), name='association-update'),
-    path('associations/<int:pk>/delete/', AssociationDeleteView.as_view(), name='association-delete'),
+    path('associations/', views.AssociationListView.as_view(), name='association-list'),
+    path('associations/add/', views.AssociationCreateView.as_view(), name='association-create'),
+    path('associations/<int:pk>/', views.AssociationDetailView.as_view(), name='association-detail'),
+    path('associations/<int:pk>/edit/', views.AssociationUpdateView.as_view(), name='association-update'),
+    path('associations/<int:pk>/delete/', views.AssociationDeleteView.as_view(), name='association-delete'),
 
     # Province
-    path('provinces/', ProvinceListView.as_view(), name='province-list'),
-    path('provinces/add/', ProvinceCreateView.as_view(), name='province-create'),
-    path('provinces/<int:pk>/', ProvinceDetailView.as_view(), name='province-detail'),
-    path('provinces/<int:pk>/edit/', ProvinceUpdateView.as_view(), name='province-update'),
-    path('provinces/<int:pk>/delete/', ProvinceDeleteView.as_view(), name='province-delete'),
+    path('provinces/', views.ProvinceListView.as_view(), name='province-list'),
+    path('provinces/add/', views.ProvinceCreateView.as_view(), name='province-create'),
+    path('provinces/<int:pk>/', views.ProvinceDetailView.as_view(), name='province-detail'),
+    path('provinces/<int:pk>/edit/', views.ProvinceUpdateView.as_view(), name='province-update'),
+    path('provinces/<int:pk>/delete/', views.ProvinceDeleteView.as_view(), name='province-delete'),
 
     # Region
-    path('regions/', RegionListView.as_view(), name='region-list'),
-    path('regions/add/', RegionCreateView.as_view(), name='region-create'),
-    path('regions/<int:pk>/', RegionDetailView.as_view(), name='region-detail'),
-    path('regions/<int:pk>/edit/', RegionUpdateView.as_view(), name='region-update'),
-    path('regions/<int:pk>/delete/', RegionDeleteView.as_view(), name='region-delete'),
+    path('regions/', views.RegionListView.as_view(), name='region-list'),
+    path('regions/add/', views.RegionCreateView.as_view(), name='region-create'),
+    path('regions/<int:pk>/', views.RegionDetailView.as_view(), name='region-detail'),
+    path('regions/<int:pk>/edit/', views.RegionUpdateView.as_view(), name='region-update'),
+    path('regions/<int:pk>/delete/', views.RegionDeleteView.as_view(), name='region-delete'),
 
     # Club
-    path('clubs/', ClubListView.as_view(), name='club-list'),
-    path('clubs/add/', ClubCreateView.as_view(), name='club-create'),
-    path('clubs/<int:pk>/', ClubDetailView.as_view(), name='club-detail'),
-    path('clubs/<int:pk>/edit/', ClubUpdateView.as_view(), name='club-update'),
-    path('clubs/<int:pk>/delete/', ClubDeleteView.as_view(), name='club-delete'),
+    path('clubs/', views.ClubListView.as_view(), name='club-list'),
+    path('clubs/add/', views.ClubCreateView.as_view(), name='club-create'),
+    path('clubs/<int:pk>/', views.ClubDetailView.as_view(), name='club-detail'),
+    path('clubs/<int:pk>/edit/', views.ClubUpdateView.as_view(), name='club-update'),
+    path('clubs/<int:pk>/delete/', views.ClubDeleteView.as_view(), name='club-delete'),
 
     # LocalFootballAssociation
-    path('localfootballassociations/', LocalFootballAssociationListView.as_view(), name='localfootballassociation-list'),
-    path('localfootballassociations/add/', LocalFootballAssociationCreateView.as_view(), name='localfootballassociation-create'),
-    path('localfootballassociations/<int:pk>/', LocalFootballAssociationDetailView.as_view(), name='localfootballassociation-detail'),
-    path('localfootballassociations/<int:pk>/edit/', LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),
-    path('localfootballassociations/<int:pk>/delete/', LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
+    path('localfootballassociations/', views.LocalFootballAssociationListView.as_view(), name='localfootballassociation-list'),
+    path('localfootballassociations/add/', views.LocalFootballAssociationCreateView.as_view(), name='localfootballassociation-create'),
+    path('localfootballassociations/<int:pk>/', views.LocalFootballAssociationDetailView.as_view(), name='localfootballassociation-detail'),
+    path('localfootballassociations/<int:pk>/edit/', views.LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),
+    path('localfootballassociations/<int:pk>/delete/', views.LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
 
-    # Local Football Association URLs
-    path('lfas/', views.LocalFootballAssociationListView.as_view(), name='localfootballassociation-list'),
-    path('lfas/add/', views.LocalFootballAssociationCreateView.as_view(), name='localfootballassociation-create'),
-    path('lfas/<int:pk>/', views.LocalFootballAssociationDetailView.as_view(), name='localfootballassociation-detail'),
-    path('lfas/<int:pk>/edit/', views.LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),
-    path('lfas/<int:pk>/delete/', views.LocalFootballAssociationDeleteView.as_view(), name='localfootballassociation-delete'),
+    # Better LFA views
+    path('lfas/hierarchical/', views.lfa_hierarchical_view, name='lfa_hierarchical'),
 
-      # API endpoints
-    path('api/get_regions_by_province/', views.get_regions_by_province, name='get_regions_by_province'),
-    path('api/get_lfas_by_region/', views.get_lfas_by_region, name='get_lfas_by_region'),
-    path('api/regions-by-province/<int:province_id>/', views.regions_by_province, name='regions_by_province'),
-    path('api/lfas-by-region/<int:region_id>/', views.lfas_by_region, name='lfas_by_region'),
+    # REMOVE DUPLICATE ENTRIES - keep only the optimized function-based views above
 ]
