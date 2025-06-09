@@ -164,29 +164,35 @@ class CustomUserAdmin(UserAdmin):
     )
     
     def activate_membership(self, request, queryset):
-        """Admin action to activate memberships and trigger card generation"""
-        from django.utils import timezone
-        from datetime import timedelta
-        updated = 0
-        cards_generated = 0
-        
-        for user in queryset:
-            if user.membership_status == 'PAID':
-                user.membership_status = 'ACTIVE'
-                user.membership_activated_date = timezone.now()
-                if not user.membership_expires_date:
-                    # Set expiry to 1 year from activation
-                    user.membership_expires_date = timezone.now().date() + timedelta(days=365)
-                user.save()  # This will trigger the signal to generate cards
-                updated += 1
-                
-                # Check if cards were created
-                if hasattr(user, 'digital_card'):
-                    cards_generated += 1
+        """Activate selected memberships and generate SAFA IDs"""
+        activated_count = 0
+        for user in queryset.filter(membership_status='PENDING'):
+            user.membership_status = 'ACTIVE'
+            user.membership_approved_date = timezone.now()
+            
+            # Generate clean SAFA ID without random/PROV
+            if not user.safa_id:
+                user.generate_safa_id()
+            
+            user.save()
+            activated_count += 1
+            
+            # Create digital card automatically
+            from membership_cards.models import DigitalCard
+            try:
+                DigitalCard.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'expires_date': timezone.now().date() + timezone.timedelta(days=365),
+                        'status': 'ACTIVE'
+                    }
+                )
+            except:
+                pass
         
         self.message_user(
             request,
-            f'{updated} membership(s) activated. {cards_generated} digital card(s) generated.',
+            f'{activated_count} memberships activated and SAFA IDs generated',
             messages.SUCCESS
         )
     activate_membership.short_description = "Activate selected memberships"

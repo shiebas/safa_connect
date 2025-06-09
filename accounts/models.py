@@ -292,20 +292,26 @@ class CustomUser(AbstractUser, ModelWithLogo):
         super().save(*args, **kwargs)
 
     def generate_safa_id(self):
-        """Generate a unique 5-character uppercase alphanumeric code - ONLY for SA citizens with verified documents"""
-        # SECURITY: Only generate SAFA ID for verified South African documents
-        if self.id_document_type not in ['ID', 'BC']:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"SAFA ID generation blocked for user {self.email} - document type: {self.id_document_type}")
-            return False
-            
+        """Generate 5-digit alphanumeric SAFA ID (A-Z, 0-9)"""
+        if self.safa_id:
+            return self.safa_id
+        
+        import string
+        import random
+        
+        # Use only capital letters and digits
+        chars = string.ascii_uppercase + string.digits  # A-Z, 0-9
+        
+        # Generate 5-character alphanumeric ID
         while True:
-            code = get_random_string(length=5, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            if not CustomUser.objects.filter(safa_id=code).exists():
-                self.safa_id = code
+            safa_id = ''.join(random.choices(chars, k=5))
+            
+            # Ensure uniqueness
+            if not User.objects.filter(safa_id=safa_id).exists():
                 break
-        return True
+        
+        self.safa_id = safa_id
+        return safa_id
 
     @staticmethod
     def extract_id_info(id_number, country_code='ZAF'):

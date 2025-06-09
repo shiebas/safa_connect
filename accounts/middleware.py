@@ -1,27 +1,27 @@
-class AdminFormErrorMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
+from django.utils.deprecation import MiddlewareMixin
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 
-    def __call__(self, request):
-        response = self.get_response(request)
-        return response
-
+class AdminFormErrorMiddleware(MiddlewareMixin):
+    """
+    Middleware to handle admin form errors gracefully
+    """
     def process_exception(self, request, exception):
-        # Check if the error is about 'CustomUserForm' field 'province'
-        if (isinstance(exception, ValueError) and 
-            "has no field named 'province'" in str(exception) and
-            "CustomUserForm" in str(exception)):
-            # Return to the admin form page with a helpful error message
-            from django.contrib import messages
-            from django.shortcuts import redirect
+        # Handle admin form errors
+        if request.path.startswith('/admin/') and hasattr(exception, 'message_dict'):
+            # Add error messages for admin forms
+            for field, errors in exception.message_dict.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
             
-            # Get the current path
-            current_path = request.path
-            
-            # Add error message
-            messages.error(request, "Error: The 'province' field is missing. Please use 'province_id' instead.")
-            
-            # Redirect back to the same page
-            return redirect(current_path)
+            # Redirect back to the form
+            return HttpResponseRedirect(request.get_full_path())
         
+        # Let other exceptions pass through
         return None
+    
+    def process_request(self, request):
+        return None
+    
+    def process_response(self, request, response):
+        return response

@@ -1,0 +1,767 @@
+[
+  {
+    "model": "geography.province",
+    "pk": 1,
+    "fields": {
+      "name": "Eastern Cape",
+      "code": "EC",
+      "capital_city": "Bhisho",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 1,
+    "fields": {
+      "name": "Port Elizabeth",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 1,
+    "fields": {
+      "name": "Nelson Mandela Bay LFA",
+      "region": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 2,
+    "fields": {
+      "name": "New Brighton LFA",
+      "region": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 2,
+    "fields": {
+      "name": "East London",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 3,
+    "fields": {
+      "name": "Grahamstown",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 4,
+    "fields": {
+      "name": "King Williams Town",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 5,
+    "fields": {
+      "name": "Queenstown",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 6,
+    "fields": {
+      "name": "Uitenhage",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 7,
+    "fields": {
+      "name": "Border",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 8,
+    "fields": {
+      "name": "Amathole",
+      "province": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 2,
+    "fields": {
+      "name": "Free State",
+      "code": "FS",
+      "capital_city": "Bloemfontein",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 9,
+    "fields": {
+      "name": "Bloemfontein",
+      "province": 2,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 3,
+    "fields": {
+      "name": "Mangaung LFA",
+      "region": 9,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 4,
+    "fields": {
+      "name": "Botshabelo LFA",
+      "region": 9,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 10,
+    "fields": {
+      "name": "Welkom",
+      "province": 2,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 11,
+    "fields": {
+      "name": "Kroonstad",
+      "province": 2,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 12,
+    "fields": {
+      "name": "Sasolburg",
+      "province": 2,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 13,
+    "fields": {
+      "name": "Bethlehem",
+      "province": 2,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 3,
+    "fields": {
+      "name": "Gauteng",
+      "code": "GP",
+      "capital_city": "Johannesburg",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 14,
+    "fields": {
+      "name": "Johannesburg",
+      "province": 3,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 5,
+    "fields": {
+      "name": "Johannesburg LFA",
+      "region": 14,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 1,
+    "fields": {
+      "name": "Orlando Pirates FC",
+      "lfa": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 2,
+    "fields": {
+      "name": "Kaizer Chiefs FC",
+      "lfa": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 3,
+    "fields": {
+      "name": "Moroka Swallows FC",
+      "lfa": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 6,
+    "fields": {
+      "name": "Soweto LFA",
+      "region": 14,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 7,
+    "fields": {
+      "name": "Alexandra LFA",
+      "region": 14,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 15,
+    "fields": {
+      "name": "Ekurhuleni",
+      "province": 3,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 16,
+    "fields": {
+      "name": "Tshwane",
+      "province": 3,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 17,
+    "fields": {
+      "name": "West Rand",
+      "province": 3,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 18,
+    "fields": {
+      "name": "Sedibeng",
+      "province": 3,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 19,
+    "fields": {
+      "name": "Vaal Triangle",
+      "province": 3,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 4,
+    "fields": {
+      "name": "KwaZulu-Natal",
+      "code": "KZN",
+      "capital_city": "Pietermaritzburg",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 20,
+    "fields": {
+      "name": "Durban",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 8,
+    "fields": {
+      "name": "Durban LFA",
+      "region": 20,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 4,
+    "fields": {
+      "name": "AmaZulu FC",
+      "lfa": 8,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 5,
+    "fields": {
+      "name": "Golden Arrows FC",
+      "lfa": 8,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 6,
+    "fields": {
+      "name": "Maritzburg United FC",
+      "lfa": 8,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 9,
+    "fields": {
+      "name": "Umlazi LFA",
+      "region": 20,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 10,
+    "fields": {
+      "name": "Chatsworth LFA",
+      "region": 20,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 21,
+    "fields": {
+      "name": "Pietermaritzburg",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 22,
+    "fields": {
+      "name": "Newcastle",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 23,
+    "fields": {
+      "name": "Richards Bay",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 24,
+    "fields": {
+      "name": "South Coast",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 25,
+    "fields": {
+      "name": "Midlands",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 26,
+    "fields": {
+      "name": "Zululand",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 27,
+    "fields": {
+      "name": "Umgungundlovu",
+      "province": 4,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 5,
+    "fields": {
+      "name": "Limpopo",
+      "code": "LP",
+      "capital_city": "Polokwane",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 28,
+    "fields": {
+      "name": "Polokwane",
+      "province": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 11,
+    "fields": {
+      "name": "Polokwane LFA",
+      "region": 28,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 12,
+    "fields": {
+      "name": "Seshego LFA",
+      "region": 28,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 29,
+    "fields": {
+      "name": "Tzaneen",
+      "province": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 30,
+    "fields": {
+      "name": "Thohoyandou",
+      "province": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 31,
+    "fields": {
+      "name": "Giyani",
+      "province": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 32,
+    "fields": {
+      "name": "Lebowakgomo",
+      "province": 5,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 6,
+    "fields": {
+      "name": "Mpumalanga",
+      "code": "MP",
+      "capital_city": "Mbombela",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 33,
+    "fields": {
+      "name": "Mbombela",
+      "province": 6,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 34,
+    "fields": {
+      "name": "Witbank",
+      "province": 6,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 35,
+    "fields": {
+      "name": "Middelburg",
+      "province": 6,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 36,
+    "fields": {
+      "name": "Standerton",
+      "province": 6,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 37,
+    "fields": {
+      "name": "Secunda",
+      "province": 6,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 7,
+    "fields": {
+      "name": "Northern Cape",
+      "code": "NC",
+      "capital_city": "Kimberley",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 38,
+    "fields": {
+      "name": "Kimberley",
+      "province": 7,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 39,
+    "fields": {
+      "name": "Upington",
+      "province": 7,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 40,
+    "fields": {
+      "name": "Springbok",
+      "province": 7,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 41,
+    "fields": {
+      "name": "De Aar",
+      "province": 7,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 8,
+    "fields": {
+      "name": "North West",
+      "code": "NW",
+      "capital_city": "Mahikeng",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 42,
+    "fields": {
+      "name": "Mahikeng",
+      "province": 8,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 43,
+    "fields": {
+      "name": "Rustenburg",
+      "province": 8,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 44,
+    "fields": {
+      "name": "Klerksdorp",
+      "province": 8,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 45,
+    "fields": {
+      "name": "Potchefstroom",
+      "province": 8,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 9,
+    "fields": {
+      "name": "Western Cape",
+      "code": "WC",
+      "capital_city": "Cape Town",
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 46,
+    "fields": {
+      "name": "Cape Town",
+      "province": 9,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 13,
+    "fields": {
+      "name": "Cape Town LFA",
+      "region": 46,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 7,
+    "fields": {
+      "name": "Cape Town City FC",
+      "lfa": 13,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 8,
+    "fields": {
+      "name": "Ajax Cape Town FC",
+      "lfa": 13,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.club",
+    "pk": 9,
+    "fields": {
+      "name": "Santos FC",
+      "lfa": 13,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 14,
+    "fields": {
+      "name": "Mitchells Plain LFA",
+      "region": 46,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.localfootballassociation",
+    "pk": 15,
+    "fields": {
+      "name": "Khayelitsha LFA",
+      "region": 46,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 47,
+    "fields": {
+      "name": "Boland",
+      "province": 9,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 48,
+    "fields": {
+      "name": "Eden",
+      "province": 9,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 49,
+    "fields": {
+      "name": "Overberg",
+      "province": 9,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 50,
+    "fields": {
+      "name": "West Coast",
+      "province": 9,
+      "is_active": true
+    }
+  },
+  {
+    "model": "geography.region",
+    "pk": 51,
+    "fields": {
+      "name": "Central Karoo",
+      "province": 9,
+      "is_active": true
+    }
+  }
+]
