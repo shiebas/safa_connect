@@ -398,7 +398,7 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     colors = models.CharField(_('Club Colors'), max_length=100, blank=True)
     safa_id = models.CharField(
         _("SAFA ID"),
-        max_length=5,
+        max_length=5,  # Changed from 20 to 5
         unique=True,
         blank=True,
         null=True,
@@ -425,14 +425,19 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         if self.localfootballassociation_id:
             self.region = self.localfootballassociation.region
             self.province = self.localfootballassociation.region.province
-        # Only generate SAFA ID if payment confirmed and no existing ID
+        
+        # Generate 5-digit random alphanumeric SAFA ID if payment confirmed
         if self.payment_confirmed and not self.safa_id:
-            lfa_code = self.local_football_association.name[:3].upper().replace(' ', '')
-            count = Club.objects.filter(
-                local_football_association=self.local_football_association,
-                safa_id__isnull=False
-            ).count() + 1
-            self.safa_id = f"CLUB-{lfa_code}-{count:04d}"
+            import string
+            import random
+            
+            while True:
+                chars = string.ascii_uppercase + string.digits
+                safa_id = ''.join(random.choices(chars, k=5))
+                
+                if not Club.objects.filter(safa_id=safa_id).exists():
+                    self.safa_id = safa_id
+                    break
         
         # Generate FIFA ID if not set (7-digit alphanumeric)
         if not self.fifa_id:

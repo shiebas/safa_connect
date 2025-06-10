@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SAFA Global{% endblock %}</title>
+    <title>{% block title %}SAFA Global Administration{% endblock %}</title>
     
     <!-- SAFA Favicon from file -->
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/default_logo.png' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/default_logo.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
@@ -57,7 +57,7 @@
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="fas fa-futbol me-2"></i>
-                <strong>SAFA Global</strong>
+                <strong>SAFA Global Admin</strong>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -73,6 +73,29 @@
                             </a>
                         </li>
                         {% if user.is_staff %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="competitionsDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-trophy me-1"></i>Competitions
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'league_management:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>League Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/league_management/competition/">
+                                        <i class="fas fa-trophy me-2"></i>Manage Competitions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/league_management/team/">
+                                        <i class="fas fa-users me-2"></i>Teams
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/league_management/match/">
+                                        <i class="fas fa-calendar-alt me-2"></i>Fixtures & Results
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/admin/league_management/competitioncategory/">
+                                        <i class="fas fa-cogs me-2"></i>Categories
+                                    </a></li>
+                                </ul>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/admin/">
                                     <i class="fas fa-cog me-1"></i>Administration
@@ -94,6 +117,22 @@
                                     </a></li>
                                     <li><a class="dropdown-item" href="{% url 'geography:clubs' %}">
                                         <i class="fas fa-users me-2"></i>Clubs
+                                    </a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="membershipDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-id-badge me-1"></i>Membership
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/admin/membership/">
+                                        <i class="fas fa-users me-2"></i>Members
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/membership_cards/">
+                                        <i class="fas fa-id-card me-2"></i>Digital Cards
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/accounts/customuser/">
+                                        <i class="fas fa-user-cog me-2"></i>User Accounts
                                     </a></li>
                                 </ul>
                             </li>
@@ -144,7 +183,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:register' %}" style="background-color: rgba(255,215,0,0.9); border-radius: 6px; color: #004422 !important; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:registration_portal' %}" style="background-color: rgba(255,215,0,0.9); border-radius: 6px; color: #004422 !important; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">
                                 <i class="fas fa-user-plus me-1"></i>Register
                             </a>
                         </li>
@@ -185,7 +224,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5><i class="fas fa-futbol me-2"></i>SAFA Global</h5>
+                    <h5><i class="fas fa-futbol me-2"></i>SAFA Global Admin</h5>
                     <p class="mb-0">South African Football Association Registration System</p>
                 </div>
                 <div class="col-md-6 text-md-end">

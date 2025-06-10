@@ -13,7 +13,15 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 # Fix import statement - update model names to match what's actually defined in models.py
-from .models import CustomUser, ModelWithLogo, RegistrationType
+from .models import CustomUser, ModelWithLogo, RegistrationType, Position
+
+# Add missing imports at the top
+try:
+    from geography.models import Province, LocalFootballAssociation, Club
+except (ImportError, RuntimeError):
+    Province = None
+    LocalFootballAssociation = None
+    Club = None
 
 # Properly import Province directly
 try:
@@ -101,59 +109,86 @@ class CustomUserChangeForm(forms.ModelForm):
         # Return the initial value regardless of what the user provides
         return self.initial.get('password', '')
 
+@admin.register(Position)
+class PositionAdmin(admin.ModelAdmin):
+    list_display = ['title', 'level', 'employment_type', 'is_active', 'requires_approval', 'created_by', 'created_at']
+    list_filter = ['level', 'employment_type', 'is_active', 'requires_approval']
+    search_fields = ['title', 'description']
+    actions = ['approve_positions', 'activate_positions', 'duplicate_positions']
+    
+    def approve_positions(self, request, queryset):
+        updated = queryset.update(requires_approval=False)
+        self.message_user(request, f'{updated} positions approved.')
+    
+    def activate_positions(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} positions activated.')
+    
+    def duplicate_positions(self, request, queryset):
+        """Duplicate positions for different levels"""
+        duplicated = 0
+        for position in queryset:
+            # Get all levels except the current one
+            all_levels = ['NATIONAL', 'PROVINCE', 'REGION', 'LFA', 'CLUB']
+            other_levels = [level for level in all_levels if level != position.level]
+            
+            for level in other_levels:
+                # Check if position with same title and level already exists
+                if not Position.objects.filter(title=position.title, level=level).exists():
+                    Position.objects.create(
+                        title=position.title,
+                        description=position.description,
+                        level=level,
+                        employment_type=position.employment_type,
+                        is_active=position.is_active,
+                        created_by=request.user,
+                        requires_approval=position.requires_approval
+                    )
+                    duplicated += 1
+        
+        self.message_user(request, f'{duplicated} positions duplicated across different levels.')
+    
+    duplicate_positions.short_description = "Duplicate positions to other levels"
+
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
+    
     list_display = [
-        'email', 'get_full_name', 'role', 'membership_status', 
-        'safa_id', 'is_active', 'date_joined'
+        'email', 'get_full_name', 'role', 'get_organization', 'position', 'employment_status', 'popi_act_consent',
+        'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other',
+        'membership_status', 'club_membership_verified', 'safa_id', 'is_active', 'date_joined'
     ]
     list_filter = [
-        'role', 'membership_status', 'is_active', 'is_staff', 
-        'date_joined', 'card_delivery_preference'
+        'role', 'employment_status', 'popi_act_consent', 'membership_status', 'club_membership_verified',
+        'is_active', 'is_staff', 'date_joined', 'position__level'
     ]
     search_fields = ['email', 'name', 'surname', 'id_number', 'safa_id']
     ordering = ['email']
     
+    actions = ['activate_users', 'deactivate_users']
+    
+    def activate_users(self, request, queryset):
+        """Admin action to activate selected users"""
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} users have been activated.')
+    activate_users.short_description = "Activate selected users"
+    
+    def deactivate_users(self, request, queryset):
+        """Admin action to deactivate selected users"""
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} users have been deactivated.')
+    deactivate_users.short_description = "Deactivate selected users"
+    
+    # Fix the fieldsets to include all document fields and pictures
     fieldsets = (
-        (None, {
-            'fields': ('email', 'password')
-        }),
-        ('Personal Info', {
-            'fields': (
-                'name', 'surname', 'middle_name', 'alias',
-                'date_of_birth', 'gender', 'nationality', 'birth_country'
-            )
-        }),
-        ('Membership & Card Management', {
-            'fields': (
-                'membership_status', 'membership_paid_date', 
-                'membership_activated_date', 'membership_expires_date',
-                'membership_fee_amount', 'card_delivery_preference',
-                'physical_card_requested', 'physical_card_delivery_address'
-            )
-        }),
-        ('Identification', {
-            'fields': (
-                'id_document_type', 'id_number', 'id_number_other', 
-                'passport_number', 'country_code'
-            )
-        }),
-        ('System IDs', {
-            'fields': ('safa_id', 'fifa_id')
-        }),
-        ('Role & Permissions', {
-            'fields': ('role', 'is_active', 'is_staff', 'is_superuser')
-        }),
-        ('Media', {
-            'fields': ('profile_photo', 'id_document', 'logo')
-        }),
-        ('Compliance', {
-            'fields': ('popi_act_consent',)
-        }),
-        ('Important dates', {
-            'fields': ('last_login', 'date_joined', 'registration_date')
-        }),
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),
+        ('SAFA Structure', {'fields': ('role', 'employment_status', 'position', 'province_id', 'region_id', 'local_federation_id', 'club_id', 'club_membership_number', 'club_membership_verified')}),
+        ('Identification', {'fields': ('id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'id_document', 'popi_act_consent')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('SAFA Info', {'fields': ('safa_id', 'fifa_id', 'membership_status')}),
     )
     
     add_fieldsets = (
@@ -225,9 +260,53 @@ class CustomUserAdmin(UserAdmin):
     mark_payment_received.short_description = "Mark payment as received"
 
     actions = [
-        'generate_safa_ids', 'activate_users', 'deactivate_users', 
-        'mark_payment_received', 'activate_membership', 'suspend_membership'
+        'activate_users', 'deactivate_users', 
+        'mark_payment_received', 'activate_membership', 'suspend_membership',
+        'generate_safa_ids'  # Add this action back
     ]
+    
+    def generate_safa_ids(self, request, queryset):
+        """Generate SAFA IDs for selected users"""
+        generated_count = 0
+        for user in queryset.filter(safa_id__isnull=True):
+            user.generate_safa_id()
+            user.save()
+            generated_count += 1
+        
+        self.message_user(
+            request,
+            f'{generated_count} SAFA IDs generated successfully.',
+            messages.SUCCESS
+        )
+    generate_safa_ids.short_description = "Generate SAFA IDs for selected users"
+
+    def get_organization(self, obj):
+        """Display organization based on role"""
+        try:
+            if obj.role == 'ADMIN_NATIONAL':
+                return 'SAFA National'
+            elif obj.role == 'ADMIN_PROVINCE':
+                # Look for province_id field in the user object
+                if hasattr(obj, 'province_id') and obj.province_id and Province:
+                    province = Province.objects.get(id=obj.province_id)
+                    return f"Province: {province.name}"
+                return "Province: Not Set"
+            elif obj.role == 'ADMIN_LOCAL_FED':
+                # Look for local_federation_id field
+                if hasattr(obj, 'local_federation_id') and obj.local_federation_id and LocalFootballAssociation:
+                    lfa = LocalFootballAssociation.objects.get(id=obj.local_federation_id)
+                    return f"LFA: {lfa.name}"
+                return "LFA: Not Set"
+            elif obj.role == 'CLUB_ADMIN':
+                if hasattr(obj, 'club_id') and obj.club_id and Club:
+                    club = Club.objects.get(id=obj.club_id)
+                    return f"Club: {club.name}"
+                return "Club: Not Set"
+            return "Not Assigned"
+        except Exception as e:
+            return f"Error: {str(e)}"
+    
+    get_organization.short_description = 'Organization'
 
 class RegistrationTypeAdmin(admin.ModelAdmin):
     """Admin configuration for the RegistrationType model."""

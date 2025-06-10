@@ -24,6 +24,16 @@
                     <div class="col-sm-9">{{ user.date_joined|date }}</div>
                 </div>
                 {% endif %}
+                <div class="profile-section">
+                    <h4>Legal Compliance</h4>
+                    <p><strong>POPI Act Consent:</strong> 
+                        {% if user.popi_act_consent %}
+                            <span class="text-success">✓ Granted</span>
+                        {% else %}
+                            <span class="text-danger">✗ Not Granted</span>
+                        {% endif %}
+                    </p>
+                </div>
             </div>
         </div>
     </div>

@@ -15,9 +15,9 @@ ALLOWED_HOSTS = []
 
 SITE_ID = 1
 
-LOGIN_URL = '/accounts/login/'                    # Path to login page
-LOGIN_REDIRECT_URL = '/'                          # Where to go after login (home)
-LOGOUT_REDIRECT_URL = '/'                         # Where to go after logout
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'  # Redirect to home after login
+LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
 
 
 # Application definition
@@ -41,16 +41,15 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'widget_tweaks',
     
-    # Local apps - add back the missing ones
+    # Local apps - cleaned up
     'geography.apps.GeographyConfig',
     'accounts.apps.AccountsConfig',
-    'membership.apps.MembershipConfig',  # This was missing
+    'membership.apps.MembershipConfig',
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',
-    # 'competitions',  # Remove this - conflicts with league_management
-    'tools',
-    'membership_cards',  # Keep this - it's working fine
-    'league_management',  # Add this for the new competition system
+    'membership_cards',
+    'league_management',  # Competition management system
+    # 'tools',  # REMOVED - functionality moved to other apps
 ]
 
 MIDDLEWARE = [

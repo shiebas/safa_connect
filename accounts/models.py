@@ -46,10 +46,19 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 ROLES = (
+    ('ADMIN_NATIONAL', _('National Federation Admin')),
     ('ADMIN_PROVINCE', _('Province Admin')),
     ('ADMIN_REGION', _('Region Admin')),
     ('ADMIN_LOCAL_FED', _('Local Federation Admin')),
     ('CLUB_ADMIN', _('Club Administrator')),
+    ('SUPPORTER', _('Supporter/Public')),
+)
+
+# Add new employment status choices
+EMPLOYMENT_STATUS = (
+    ('EMPLOYEE', _('Full-time Employee')),
+    ('MEMBER', _('Member (Political Structure)')),
+    ('PUBLIC', _('Public/Supporter')),
 )
 
 DOCUMENT_TYPES = (
@@ -78,6 +87,37 @@ class RegistrationType(models.Model):
     def __str__(self):
         return self.name
 
+# Add new position model
+class Position(models.Model):
+    """Available positions within SAFA structures"""
+    title = models.CharField(max_length=100)  # Remove unique=True
+    description = models.TextField(blank=True)
+    level = models.CharField(max_length=20, choices=[
+        ('NATIONAL', 'National Level'),
+        ('PROVINCE', 'Province Level'),
+        ('REGION', 'Region Level'),
+        ('LFA', 'LFA Level'),
+        ('CLUB', 'Club Level'),
+    ])
+    employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_STATUS)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_positions')
+    requires_approval = models.BooleanField(default=True, help_text="New positions need admin approval")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['level', 'title']
+        # Change from unique_together to allow same title across levels
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'level'],
+                name='unique_title_per_level'
+            )
+        ]
+    
+    def __str__(self):
+        return f"{self.title} ({self.level})"
+
 class ModelWithLogo(models.Model):
     logo = models.ImageField(upload_to='logos/', null=True, blank=True)
 
@@ -89,6 +129,12 @@ class ModelWithLogo(models.Model):
 
     class Meta:
         abstract = True
+
+# Add missing import for Club
+try:
+    from geography.models import Club
+except ImportError:
+    Club = None
 
 class CustomUser(AbstractUser, ModelWithLogo):
     # Remove the username field
@@ -137,12 +183,11 @@ class CustomUser(AbstractUser, ModelWithLogo):
     id_number = models.CharField(
         max_length=20, 
         blank=True,
-        null=True,  # ADD THIS - allow NULL values
-        unique=True,  # This will work correctly with NULL values
+        null=True,
         help_text=_("13-digit South African ID number")
     )
-    id_number_other = models.CharField(max_length=25, blank=True, null=True)  # No unique constraint
-    passport_number = models.CharField(max_length=25, blank=True)
+    id_number_other = models.CharField(max_length=25, blank=True, null=True)
+    passport_number = models.CharField(max_length=25, blank=True, null=True)
     id_document_type = models.CharField(
         max_length=2,
         choices=DOCUMENT_TYPES,
@@ -157,9 +202,9 @@ class CustomUser(AbstractUser, ModelWithLogo):
     fifa_id = models.CharField(max_length=7, unique=True, blank=True, null=True)
 
     # Media
-    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    profile_photo = models.ImageField(upload_to='images/profile_photos/', blank=True, null=True)
     id_document = models.FileField(
-        upload_to='user_documents/',
+        upload_to='documents/user_documents/',
         null=True, 
         blank=True
     )
@@ -223,12 +268,68 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text='Delivery address for physical card (if requested)'
     )
 
+    # Add missing required validation
+    first_name = models.CharField(_('first name'), max_length=150, blank=False)
+    last_name = models.CharField(_('last name'), max_length=150, blank=False)
+
+    # Add employment status field
+    employment_status = models.CharField(
+        max_length=20,
+        choices=EMPLOYMENT_STATUS,
+        blank=True,
+        help_text=_("Employment/membership status within SAFA structure")
+    )
+
+    # Add position field
+    position = models.ForeignKey(
+        Position,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text=_("User's position within SAFA structure")
+    )
+    
+    # Add club membership verification for Members
+    club_membership_verified = models.BooleanField(
+        default=False,
+        help_text=_("Verified as bona fide club member")
+    )
+    club_membership_number = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text=_("Club membership number for verification")
+    )
+    
+    # Add supporting club for supporters - fix the string reference
+    supporting_club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='supporters',
+        help_text=_("Club that this supporter follows")
+    )
+
+    # Add driver_license_number field to the model
+    driver_license_number = models.CharField(
+        max_length=25, 
+        blank=True, 
+        null=True,
+        help_text="Driver's license number"
+    )
+
+    # Add foreign key fields to store organization relationships
+    province_id = models.IntegerField(null=True, blank=True, help_text="Province ID for province admins")
+    region_id = models.IntegerField(null=True, blank=True, help_text="Region ID for region admins") 
+    local_federation_id = models.IntegerField(null=True, blank=True, help_text="LFA ID for LFA admins")
+    club_id = models.IntegerField(null=True, blank=True, help_text="Club ID for club admins")
+    
     # Specify the custom manager
     objects = CustomUserManager()
 
     # Set email as the USERNAME_FIELD
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     class Meta:
         verbose_name = _('user')
@@ -240,39 +341,27 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 condition=models.Q(id_number__isnull=False) & ~models.Q(id_number=''),
                 name='unique_id_number_when_not_blank'
             ),
+            # Add unique constraint for passport numbers
+            models.UniqueConstraint(
+                fields=['passport_number'],
+                condition=models.Q(passport_number__isnull=False) & ~models.Q(passport_number=''),
+                name='unique_passport_number_when_not_blank'
+            ),
         ]
- 
-
-    def get_full_name(self):
-        """Return the first_name plus the last_name, with a space in between."""
-        if self.first_name and self.last_name:
-            return f"{self.first_name} {self.last_name}"
-        return self.email
-    
-    def __str__(self):
-        return self.get_full_name()
-
-    def clean(self):
-        """Remove the province validation that's causing the admin form problems"""
-        # Call the parent clean method but catch ValidationError for province
-        try:
-            super().clean()
-        except ValidationError as e:
-            # If it's about province, ignore it in admin
-            if 'province' in e.message_dict:
-                # Re-raise only other errors if any
-                other_errors = {k: v for k, v in e.message_dict.items() if k != 'province'}
-                if other_errors:
-                    raise ValidationError(other_errors)
-            else:
-                # Re-raise the error if it's not about province
-                raise
 
     def save(self, *args, **kwargs):
         """Override save method to validate ID number and set nationality"""
+        # Convert empty strings to None to avoid unique constraint issues
+        if self.id_number == '':
+            self.id_number = None
+        if self.passport_number == '':
+            self.passport_number = None
+        if self.id_number_other == '':
+            self.id_number_other = None
+            
         # Set nationality based on document type
         if self.id_document_type in ['ID', 'BC'] and not self.nationality:
-            self.nationality = 'ZAF'  # South African citizenship for SA documents
+            self.nationality = 'ZAF'
             
         # Set birth country to ZAF if not specified and using SA documents
         if self.id_document_type in ['ID', 'BC'] and not self.birth_country:
@@ -306,8 +395,8 @@ class CustomUser(AbstractUser, ModelWithLogo):
         while True:
             safa_id = ''.join(random.choices(chars, k=5))
             
-            # Ensure uniqueness
-            if not User.objects.filter(safa_id=safa_id).exists():
+            # Ensure uniqueness - fixed to use CustomUser instead of User
+            if not CustomUser.objects.filter(safa_id=safa_id).exists():
                 break
         
         self.safa_id = safa_id
@@ -461,75 +550,74 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 
             self.id_number = id_number
         except Exception as e:
-            # Log but don't raise
+            # Log any unexpected errors but allow admin to function
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error validating ID number for {self.email}: {str(e)}")
+            logger.exception("Unexpected error in ID validation")
+            pass  # Ignore errors to prevent admin lockout
 
-    def fetch_fifa_id_from_api(self, api_key):
-        """Fetch FIFA ID from external API or generate placeholder"""
-        # You would call the external API here
-        # Example placeholder
-        if not self.fifa_id:
-            self.fifa_id = get_random_string(length=7, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            self.save()
-            
-    @property
-    def is_province_admin(self):
-        """Check if user is a province administrator"""
-        return self.role == 'ADMIN_PROVINCE'
-        
-    @property
-    def is_region_admin(self):
-        """Check if user is a region administrator"""
-        return self.role == 'ADMIN_REGION'
-        
-    @property
-    def is_local_fed_admin(self):
-        """Check if user is a local federation administrator"""
-        return self.role == 'ADMIN_LOCAL_FED'
-        
-    @property
-    def is_federation_admin(self):
-        """Check if user is a federation administrator"""
-        return self.role == 'ADMIN_FEDERATION'
-        
-    @property
-    def is_club_admin(self):
-        """Check if user is a club administrator"""
-        return self.role == 'CLUB_ADMIN'
-        
-    def can_manage_province(self, province_id):
-        """Check if user can manage the specified province"""
-        return self.is_federation_admin or self.is_province_admin
-        
-    def can_manage_region(self, region_id):
-        """Check if user can manage the specified region"""
-        return self.is_federation_admin or self.is_province_admin or self.is_region_admin
-        
-    def can_manage_local_federation(self, local_fed_id):
-        """Check if user can manage the specified local federation"""
-        return self.is_federation_admin or self.is_province_admin or self.is_region_admin or self.is_local_fed_admin
-        
-    def can_manage_club(self, club_id):
-        """Check if user can manage the specified club"""
-        return self.is_federation_admin or self.is_province_admin or self.is_region_admin or self.is_local_fed_admin or self.is_club_admin
-        
-    def get_managed_provinces(self):
-        """Get QuerySet of provinces managed by this user"""
-        from django.db import models
-        if self.is_federation_admin or self.is_province_admin:
-            return models.Q(id__isnull=False)  # Can manage all provinces
-        else:
-            return models.Q(id__isnull=True)  # Cannot manage any provinces
-            
-    def get_managed_regions(self):
-        """Get QuerySet of regions managed by this user"""
-        from django.db import models
-        if self.is_federation_admin or self.is_province_admin or self.is_region_admin:
-            return models.Q(id__isnull=False)  # Can manage regions based on role
-        else:
-            return models.Q(id__isnull=True)  # Cannot manage any regions
+    def get_full_name(self):
+        """Return the first_name plus the last_name, with a space in between."""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.email
+    
+    def __str__(self):
+        return self.get_full_name()
+
+    def clean(self):
+        """Remove the province validation that's causing the admin form problems"""
+        # Call the parent clean method but catch ValidationError for province
+        try:
+            super().clean()
+        except ValidationError as e:
+            # If it's about province, ignore it in admin
+            if 'province' in e.message_dict:
+                # Re-raise only other errors if any
+                other_errors = {k: v for k, v in e.message_dict.items() if k != 'province'}
+                if other_errors:
+                    raise ValidationError(other_errors)
+            else:
+                # Re-raise the error if it's not about province
+                raise
+
+    def get_organization_info(self):
+        """Return organization information for profile display"""
+        if self.role == 'ADMIN_NATIONAL':
+            return {
+                'type': 'National',
+                'name': 'SAFA National Office',
+                'level': 'National Level'
+            }
+        elif self.role == 'ADMIN_PROVINCE' and hasattr(self, 'province') and self.province:
+            return {
+                'type': 'Province',
+                'name': self.province.name,
+                'level': 'Provincial Level'
+            }
+        elif self.role == 'ADMIN_REGION' and hasattr(self, 'region') and self.region:
+            return {
+                'type': 'Region',
+                'name': self.region.name,
+                'level': 'Regional Level'
+            }
+        elif self.role == 'ADMIN_LOCAL_FED' and hasattr(self, 'local_federation') and self.local_federation:
+            return {
+                'type': 'LFA',
+                'name': self.local_federation.name,
+                'level': 'LFA Level'
+            }
+        elif self.role == 'CLUB_ADMIN' and hasattr(self, 'club') and self.club:
+            return {
+                'type': 'Club',
+                'name': self.club.name,
+                'level': 'Club Level'
+            }
+        return {
+            'type': 'Unknown',
+            'name': 'Not Assigned',
+            'level': 'No Level'
+        }
 
 
 

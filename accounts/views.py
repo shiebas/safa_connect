@@ -4,7 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib import messages
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, ProvinceUserRegistrationForm, ClubUserRegistrationForm, EmailAuthenticationForm, NationalUserRegistrationForm, LFAUserRegistrationForm, SupporterRegistrationForm
 from .models import CustomUser
 from membership.models import Membership  # Import Membership from the correct location
 from django.views.generic import TemplateView
@@ -16,11 +16,27 @@ from django.shortcuts import get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET
+from geography.models import Province, Region, Club
+from django.http import JsonResponse
+from geography.models import LocalFootballAssociation
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
-    redirect_authenticated_user = False  # Simpler setup
-    success_url = reverse_lazy('admin:index') 
+    form_class = EmailAuthenticationForm
+    redirect_authenticated_user = False
+    success_url = reverse_lazy('admin:index')
+    
+    def form_invalid(self, form):
+        # Fix the username field error
+        email = form.cleaned_data.get('username') if form.cleaned_data else None
+        if email:
+            try:
+                user = CustomUser.objects.get(email=email)
+                if not user.is_active:
+                    messages.error(self.request, 'Your account is not yet activated. Please contact an administrator.')
+            except CustomUser.DoesNotExist:
+                messages.error(self.request, 'Invalid email or password.')
+        return super().form_invalid(form)
 
 def working_home(request):
     return HttpResponse("CONFIRMED WORKING - LOGIN SUCCESS")
@@ -87,17 +103,124 @@ def register(request):
 
     return render(request, 'accounts/register.html', {'form': form})
 
+def club_registration(request):
+    """Registration view for club-level users"""
+    provinces = Province.objects.all().order_by('name')  # Add this line
+    
+    if request.method == 'POST':
+        form = ClubUserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'Club administrator account created successfully!')
+            return redirect('accounts:login')
+    else:
+        form = ClubUserRegistrationForm()
+    
+    return render(request, 'accounts/club_registration.html', {
+        'form': form,
+        'provinces': provinces,  # Add this line
+        'title': 'Club Administrator Registration'
+    })
+
+def province_registration(request):
+    """Registration view for province-level users"""
+    if request.method == 'POST':
+        form = ProvinceUserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'Province administrator account created successfully!')
+            return redirect('accounts:login')
+    else:
+        form = ProvinceUserRegistrationForm()
+    
+    return render(request, 'accounts/province_registration.html', {
+        'form': form,
+        'title': 'Province Administrator Registration'
+    })
+
+def national_registration(request):
+    """Registration view for national federation users"""
+    if request.method == 'POST':
+        print("=== FORM SUBMISSION DEBUG ===")
+        print(f"Document type: {request.POST.get('id_document_type')}")
+        print(f"ID number: {request.POST.get('id_number')}")
+        print(f"Email: {request.POST.get('email')}")
+        print(f"All POST keys: {list(request.POST.keys())}")
+        
+        form = NationalUserRegistrationForm(request.POST, request.FILES)
+        print(f"Form is_valid: {form.is_valid()}")
+        
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'National administrator account created successfully!')
+            return redirect('accounts:login')
+        else:
+            print("=== FORM ERRORS ===")
+            for field, errors in form.errors.items():
+                print(f"Field '{field}': {errors}")
+            print(f"Non-field errors: {form.non_field_errors()}")
+    else:
+        form = NationalUserRegistrationForm()
+    
+    return render(request, 'accounts/national_registration.html', {
+        'form': form,
+        'title': 'National Federation Administrator Registration'
+    })
+
+def lfa_registration(request):
+    """Registration view for LFA users"""
+    provinces = Province.objects.all().order_by('name')
+    
+    if request.method == 'POST':
+        form = LFAUserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'LFA administrator account created successfully!')
+            return redirect('accounts:login')
+    else:
+        form = LFAUserRegistrationForm()
+    
+    return render(request, 'accounts/lfa_registration.html', {
+        'form': form,
+        'provinces': provinces,
+        'title': 'LFA Administrator Registration'
+    })
+
+from .forms import SupporterRegistrationForm
+
+def supporter_registration(request):
+    """Registration view for supporters/public"""
+    if request.method == 'POST':
+        form = SupporterRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'Supporter account created successfully!')
+            return redirect('accounts:login')
+    else:
+        form = SupporterRegistrationForm()
+    
+    return render(request, 'accounts/supporter_registration.html', {
+        'form': form,
+        'title': 'Supporter Registration'
+    })
+
+def registration_portal(request):
+    """Portal to choose registration type"""
+    return render(request, 'accounts/registration_portal.html', {
+        'title': 'SAFA Registration Portal'
+    })
+
 def check_username(request):
     """
-    AJAX view to check if a username is available.
+    AJAX view to check if an email is available.
     Returns JSON response with available: true/false.
     """
-    username = request.GET.get('username', '')
-    if not username:
+    email = request.GET.get('email', '')  # Changed from username to email
+    if not email:
         return JsonResponse({'available': False})
 
-    # Check if the username exists
-    exists = CustomUser.objects.filter(username=username).exists()
+    # Check if the email exists
+    exists = CustomUser.objects.filter(email=email).exists()  # Changed from username to email
 
     return JsonResponse({'available': not exists})
 
@@ -167,4 +290,55 @@ def model_debug_view(request):
     
     return HttpResponse("<br>".join(models_info))
 
+def api_regions(request):
+    """API endpoint to get regions by province"""
+    province_id = request.GET.get('province')
+    print(f"DEBUG: api_regions called with province_id: {province_id}")
+    
+    if province_id:
+        # Region has a ForeignKey to Province, so we use province=province_id
+        regions = Region.objects.filter(province=province_id).values('id', 'name')
+        regions_list = list(regions)
+        print(f"DEBUG: Found {len(regions_list)} regions: {regions_list}")
+        return JsonResponse(regions_list, safe=False)
+    
+    print("DEBUG: No province_id provided")
+    return JsonResponse([], safe=False)
 
+def api_clubs(request):
+    """API endpoint to get clubs by LFA"""
+    lfa_id = request.GET.get('lfa')
+    region_id = request.GET.get('region')
+    
+    print(f"DEBUG: api_clubs called with lfa_id: {lfa_id}, region_id: {region_id}")
+    
+    if lfa_id:
+        # Clubs filtered by LFA
+        clubs = Club.objects.filter(localfootballassociation=lfa_id, status='ACTIVE').values('id', 'name')
+        clubs_list = list(clubs)
+        print(f"DEBUG: Returning {len(clubs_list)} clubs by LFA: {clubs_list}")
+        return JsonResponse(clubs_list, safe=False)
+    elif region_id:
+        # Fallback: Clubs filtered by region
+        clubs = Club.objects.filter(localfootballassociation__region=region_id, status='ACTIVE').values('id', 'name')
+        clubs_list = list(clubs)
+        print(f"DEBUG: Returning {len(clubs_list)} clubs by region: {clubs_list}")
+        return JsonResponse(clubs_list, safe=False)
+    
+    print("DEBUG: No lfa_id or region_id provided")
+    return JsonResponse([], safe=False)
+
+def api_lfas(request):
+    """API endpoint to get LFAs by region"""
+    region_id = request.GET.get('region')
+    print(f"DEBUG: api_lfas called with region_id: {region_id}")
+    
+    if region_id:
+        # LFA has a ForeignKey to Region, so we use region=region_id
+        lfas = LocalFootballAssociation.objects.filter(region=region_id).values('id', 'name')
+        lfas_list = list(lfas)
+        print(f"DEBUG: Found {len(lfas_list)} LFAs: {lfas_list}")
+        return JsonResponse(lfas_list, safe=False)
+    
+    print("DEBUG: No region_id provided")
+    return JsonResponse([], safe=False)

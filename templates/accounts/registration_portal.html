@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}SAFA Registration Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>SAFA Registration Portal</h2>
+                    <p>Choose your registration type</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- National Admin -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">National Administrator</h5>
+                                    <p class="card-text">For SAFA National Office administrators</p>
+                                    <a href="{% url 'accounts:national_registration' %}" class="btn btn-primary">Register as National Admin</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Province Admin -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Province Administrator</h5>
+                                    <p class="card-text">For provincial football administrators</p>
+                                    <a href="{% url 'accounts:province_registration' %}" class="btn btn-primary">Register as Province Admin</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- LFA Admin -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">LFA Administrator</h5>
+                                    <p class="card-text">For Local Football Association administrators</p>
+                                    <a href="{% url 'accounts:lfa_registration' %}" class="btn btn-primary">Register as LFA Admin</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Club Admin -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Club Administrator</h5>
+                                    <p class="card-text">For football club administrators</p>
+                                    <a href="{% url 'accounts:club_registration' %}" class="btn btn-primary">Register as Club Admin</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Remove Supporter registration card -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

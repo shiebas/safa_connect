@@ -1,24 +1,14 @@
 import datetime
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Fieldset, Div, HTML, ButtonHolder, Submit
 from django.db.models.query import EmptyQuerySet as DjangoEmptyQuerySet
 from django.utils.translation import gettext_lazy as _
 
 # Import models with proper error handling
-from .models import CustomUser
-
-# Fixed geography imports - use try/except to handle possible missing models
-try:
-    from geography.models import Province, Region, Club
-    from geography.models import LocalFootballAssociation as LocalFederation  # Correct model name
-except ImportError:
-    # Define dummy models or placeholders for form fields
-    Province = None
-    Region = None
-    LocalFederation = None
-    Club = None
+from .models import CustomUser, EMPLOYMENT_STATUS, Position
+from geography.models import Province, Region, LocalFootballAssociation, Club  # Add missing imports
 
 class UserRegistrationForm(UserCreationForm):
     """
@@ -60,10 +50,10 @@ class UserRegistrationForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
 
-    # Fix the LocalFederation field to handle missing model
-    if LocalFederation is not None:
+    # Fix the LocalFederation reference
+    if LocalFootballAssociation is not None:  # Changed from LocalFederation to LocalFootballAssociation
         local_federation = forms.ModelChoiceField(
-            queryset=LocalFederation.objects.all(),
+            queryset=LocalFootballAssociation.objects.all(),
             required=False,
             label=_("Local Football Association"),
             widget=forms.Select(attrs={'class': 'form-select'}),
@@ -92,7 +82,6 @@ class UserRegistrationForm(UserCreationForm):
             widget=forms.Select(attrs={'class': 'form-select'}),
         )
         
-    # Similarly for other fields that use models
     region = forms.ModelChoiceField(
         queryset=Region.objects.all(),
         required=False,
@@ -388,4 +377,874 @@ class UserRegistrationForm(UserCreationForm):
         if commit:
             user.save()
             
+        return user
+
+class ProvinceUserRegistrationForm(forms.ModelForm):
+    """Standardized Province form based on National form"""
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    employment_status = forms.ChoiceField(
+        choices=EMPLOYMENT_STATUS,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your status within SAFA structure"
+    )
+    position = forms.ModelChoiceField(
+        queryset=Position.objects.filter(level='PROVINCE', is_active=True).order_by('title'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your position within Province structure",
+        empty_label="Select Position (Optional)"
+    )
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all().order_by('name'),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the province you will administer"
+    )
+    id_document_type = forms.ChoiceField(
+        choices=[
+            ('ID', 'South African ID'),
+            ('BC', 'Birth Certificate'),
+            ('PP', 'Passport'),
+            ('DL', 'Driver License'),
+            ('OT', 'Other')
+        ],
+        initial='ID',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your document type"
+    )
+    id_number = forms.CharField(
+        max_length=13,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit ID number',
+            'id': 'id_province_id_number'
+        }),
+        help_text="13-digit South African ID number"
+    )
+    passport_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter passport number'
+        }),
+        help_text="Passport number"
+    )
+    driver_license_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter driver license number'
+        }),
+        help_text="Driver license number"
+    )
+    id_number_other = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter other document number'
+        }),
+        help_text="Other document number"
+    )
+    popi_act_consent = forms.BooleanField(
+        required=True,
+        label="I consent to POPI Act terms",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        user.role = 'ADMIN_PROVINCE'
+        user.employment_status = self.cleaned_data['employment_status']
+        user.position = self.cleaned_data.get('position')
+        user.popi_act_consent = self.cleaned_data['popi_act_consent']
+        user.is_staff = True
+        
+        # CRITICAL FIX: Save the province_id
+        if self.cleaned_data.get('province'):
+            user.province_id = self.cleaned_data['province'].id
+        
+        # Save all document numbers
+        if self.cleaned_data.get('passport_number'):
+            user.passport_number = self.cleaned_data['passport_number']
+        if self.cleaned_data.get('driver_license_number'):
+            user.driver_license_number = self.cleaned_data['driver_license_number']
+        if self.cleaned_data.get('id_number_other'):
+            user.id_number_other = self.cleaned_data['id_number_other']
+        
+        if commit:
+            user.save()
+        return user
+
+class ClubUserRegistrationForm(forms.ModelForm):
+    """Registration form for club-level users with Province → Region → LFA → Club hierarchy"""
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    employment_status = forms.ChoiceField(
+        choices=EMPLOYMENT_STATUS,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your status within SAFA structure"
+    )
+    position = forms.ModelChoiceField(
+        queryset=Position.objects.filter(level='CLUB', is_active=True).order_by('title'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your position within Club structure",
+        empty_label="Select Position (Optional)"
+    )
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all().order_by('name'),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the province where club is located"
+    )
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.none(),  # Start empty
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the region (populated based on province)"
+    )
+    local_federation = forms.ModelChoiceField(
+        queryset=LocalFootballAssociation.objects.none(),  # Start empty
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the LFA (populated based on region)"
+    )
+    club = forms.ModelChoiceField(
+        queryset=Club.objects.none(),  # Start empty
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the club you represent"
+    )
+    id_document_type = forms.ChoiceField(
+        choices=[
+            ('ID', 'South African ID'),
+            ('BC', 'Birth Certificate'),
+            ('PP', 'Passport'),
+            ('DL', 'Driver License'),
+            ('OT', 'Other')
+        ],
+        initial='ID',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your document type"
+    )
+    id_number = forms.CharField(
+        max_length=13,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit ID number',
+            'id': 'id_club_id_number'
+        }),
+        help_text="13-digit South African ID number"
+    )
+    passport_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter passport number'
+        }),
+        help_text="Passport number"
+    )
+    driver_license_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter driver license number'
+        }),
+        help_text="Driver license number"
+    )
+    id_number_other = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter other document number'
+        }),
+        help_text="Other document number"
+    )
+    popi_act_consent = forms.BooleanField(
+        required=True,
+        label="I consent to POPI Act terms",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'club', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Handle dynamic population during form submission
+        if self.data:
+            try:
+                province_id = int(self.data.get('province'))
+                self.fields['region'].queryset = Region.objects.filter(province=province_id)
+            except (ValueError, TypeError):
+                pass
+            
+            try:
+                region_id = int(self.data.get('region'))
+                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.filter(region=region_id)
+            except (ValueError, TypeError):
+                pass
+                
+            try:
+                lfa_id = int(self.data.get('local_federation'))
+                self.fields['club'].queryset = Club.objects.filter(localfootballassociation=lfa_id, status='ACTIVE')
+            except (ValueError, TypeError):
+                pass
+    
+    def clean_region(self):
+        region = self.cleaned_data.get('region')
+        province = self.cleaned_data.get('province')
+        
+        if region and province:
+            if region.province != province:
+                raise forms.ValidationError("Selected region does not belong to the selected province.")
+        return region
+    
+    def clean_local_federation(self):
+        local_federation = self.cleaned_data.get('local_federation')
+        region = self.cleaned_data.get('region')
+        
+        if local_federation and region:
+            if local_federation.region != region:
+                raise forms.ValidationError("Selected LFA does not belong to the selected region.")
+        return local_federation
+    
+    def clean_club(self):
+        club = self.cleaned_data.get('club')
+        local_federation = self.cleaned_data.get('local_federation')
+        
+        if club and local_federation:
+            if club.localfootballassociation != local_federation:
+                raise forms.ValidationError("Selected club does not belong to the selected LFA.")
+        return club
+    
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        user.role = 'CLUB_ADMIN'
+        user.employment_status = self.cleaned_data['employment_status']
+        user.position = self.cleaned_data.get('position')
+        user.popi_act_consent = self.cleaned_data['popi_act_consent']
+        user.is_staff = True
+        
+        # Save all hierarchy IDs
+        if self.cleaned_data.get('province'):
+            user.province_id = self.cleaned_data['province'].id
+        if self.cleaned_data.get('region'):
+            user.region_id = self.cleaned_data['region'].id
+        if self.cleaned_data.get('local_federation'):
+            user.local_federation_id = self.cleaned_data['local_federation'].id
+        if self.cleaned_data.get('club'):
+            user.club_id = self.cleaned_data['club'].id
+        
+        # Save document numbers
+        if self.cleaned_data.get('passport_number'):
+            user.passport_number = self.cleaned_data['passport_number']
+        if self.cleaned_data.get('driver_license_number'):
+            user.driver_license_number = self.cleaned_data['driver_license_number']
+        if self.cleaned_data.get('id_number_other'):
+            user.id_number_other = self.cleaned_data['id_number_other']
+        
+        if commit:
+            user.save()
+        return user
+
+class EmailAuthenticationForm(AuthenticationForm):
+    """Custom authentication form that uses email instead of username"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Change the username field to email
+        self.fields['username'].label = 'Email'
+        self.fields['username'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter your email address',
+            'type': 'email'
+        })
+        self.fields['password'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter your password'
+        })
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            # Convert email to lowercase for consistency
+            return username.lower()
+        return username
+
+class NationalUserRegistrationForm(forms.ModelForm):
+    """Step 6 - Add position dropdown and separate document fields"""
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    employment_status = forms.ChoiceField(
+        choices=EMPLOYMENT_STATUS,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your status within SAFA structure"
+    )
+    id_document_type = forms.ChoiceField(
+        choices=[
+            ('ID', 'South African ID'),
+            ('BC', 'Birth Certificate'),
+            ('PP', 'Passport'),
+            ('DL', 'Driver License'),
+            ('OT', 'Other')
+        ],
+        initial='ID',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your document type"
+    )
+    id_number = forms.CharField(
+        max_length=13,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit ID number',
+            'id': 'id_national_id_number'
+        }),
+        help_text="13-digit South African ID number (optional)"
+    )
+    # Fix hidden fields for passport and other documents - remove inline display:none
+    passport_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter passport number'
+        }),
+        help_text="Passport number"
+    )
+    id_number_other = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter document number'
+        }),
+        help_text="Document number for driver license or other documents"
+    )
+    popi_act_consent = forms.BooleanField(
+        required=True,
+        label="I consent to POPI Act terms",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    position = forms.ModelChoiceField(
+        queryset=Position.objects.filter(level='NATIONAL', is_active=True).order_by('title'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your position within SAFA National structure",
+        empty_label="Select Position (Optional)"
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        user.role = 'ADMIN_NATIONAL'
+        user.employment_status = self.cleaned_data['employment_status']
+        user.id_document_type = self.cleaned_data['id_document_type']
+        user.popi_act_consent = self.cleaned_data['popi_act_consent']
+        user.position = self.cleaned_data.get('position')
+        user.is_staff = True
+        
+        # Save all document numbers
+        if self.cleaned_data.get('passport_number'):
+            user.passport_number = self.cleaned_data['passport_number']
+        if self.cleaned_data.get('driver_license_number'):
+            user.driver_license_number = self.cleaned_data['driver_license_number']
+        if self.cleaned_data.get('id_number_other'):
+            user.id_number_other = self.cleaned_data['id_number_other']
+        
+        if commit:
+            user.save()
+        return user
+
+class SupporterRegistrationForm(forms.ModelForm):
+    """Registration form for supporters/public - SAFA Support only"""
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    id_number = forms.CharField(
+        max_length=13,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit ID number',
+        }),
+        help_text="13-digit South African ID number (optional)"
+    )
+    popi_act_consent = forms.BooleanField(
+        required=True,
+        label="I consent to the processing of my personal information in accordance with the Protection of Personal Information Act (POPI Act)",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name', 'id_number', 'popi_act_consent']  # Removed supporting_club
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        user.role = 'SUPPORTER'
+        user.employment_status = 'PUBLIC'
+        if commit:
+            user.save()
+        return user
+
+class LFAUserRegistrationForm(forms.ModelForm):
+    """Standardized LFA form with Province → Region → LFA hierarchy"""
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    employment_status = forms.ChoiceField(
+        choices=EMPLOYMENT_STATUS,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your status within SAFA structure"
+    )
+    position = forms.ModelChoiceField(
+        queryset=Position.objects.filter(level='LFA', is_active=True).order_by('title'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your position within LFA structure",
+        empty_label="Select Position (Optional)"
+    )
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all().order_by('name'),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the province where LFA is located"
+    )
+    
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.none(),  # Start empty, will be populated by JavaScript
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the region (populated based on province)"
+    )
+    
+    local_federation = forms.ModelChoiceField(
+        queryset=LocalFootballAssociation.objects.none(),  # Start empty
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the LFA you will administer"
+    )
+    
+    id_document_type = forms.ChoiceField(
+        choices=[
+            ('ID', 'South African ID'),
+            ('BC', 'Birth Certificate'),
+            ('PP', 'Passport'),
+            ('DL', 'Driver License'),
+            ('OT', 'Other')
+        ],
+        initial='ID',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your document type"
+    )
+    id_number = forms.CharField(
+        max_length=13,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit ID number',
+            'id': 'id_lfa_id_number'
+        }),
+        help_text="13-digit South African ID number"
+    )
+    passport_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter passport number'
+        }),
+        help_text="Passport number"
+    )
+    driver_license_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter driver license number'
+        }),
+        help_text="Driver license number"
+    )
+    id_number_other = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter other document number'
+        }),
+        help_text="Other document number"
+    )
+    popi_act_consent = forms.BooleanField(
+        required=True,
+        label="I consent to POPI Act terms",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Handle dynamic population during form submission
+        if self.data:
+            try:
+                province_id = int(self.data.get('province'))
+                self.fields['region'].queryset = Region.objects.filter(province=province_id)
+            except (ValueError, TypeError):
+                pass
+            
+            try:
+                region_id = int(self.data.get('region'))
+                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.filter(region=region_id)
+            except (ValueError, TypeError):
+                pass
+    
+    def clean_region(self):
+        region = self.cleaned_data.get('region')
+        province = self.cleaned_data.get('province')
+        
+        if region and province:
+            # Verify that the region belongs to the selected province
+            if region.province != province:
+                raise forms.ValidationError("Selected region does not belong to the selected province.")
+        
+        return region
+    
+    def clean_local_federation(self):
+        local_federation = self.cleaned_data.get('local_federation')
+        region = self.cleaned_data.get('region')
+        
+        if local_federation and region:
+            # Verify that the LFA belongs to the selected region
+            if local_federation.region != region:
+                raise forms.ValidationError("Selected LFA does not belong to the selected region.")
+        
+        return local_federation
+    
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        user.role = 'ADMIN_LOCAL_FED'
+        user.employment_status = self.cleaned_data['employment_status']
+        user.position = self.cleaned_data.get('position')
+        user.popi_act_consent = self.cleaned_data['popi_act_consent']
+        user.is_staff = True
+        
+        # Save province_id, region_id, and local_federation_id
+        if self.cleaned_data.get('province'):
+            user.province_id = self.cleaned_data['province'].id
+        if self.cleaned_data.get('region'):
+            user.region_id = self.cleaned_data['region'].id
+        if self.cleaned_data.get('local_federation'):
+            user.local_federation_id = self.cleaned_data['local_federation'].id
+        
+        # Save all document numbers
+        if self.cleaned_data.get('passport_number'):
+            user.passport_number = self.cleaned_data['passport_number']
+        if self.cleaned_data.get('driver_license_number'):
+            user.driver_license_number = self.cleaned_data['driver_license_number']
+        if self.cleaned_data.get('id_number_other'):
+            user.id_number_other = self.cleaned_data['id_number_other']
+        
+        if commit:
+            user.save()
+        return user
+
+class ClubUserRegistrationForm(forms.ModelForm):
+    """Registration form for club-level users with Province → Region → LFA → Club hierarchy"""
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    employment_status = forms.ChoiceField(
+        choices=EMPLOYMENT_STATUS,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your status within SAFA structure"
+    )
+    position = forms.ModelChoiceField(
+        queryset=Position.objects.filter(level='CLUB', is_active=True).order_by('title'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your position within Club structure",
+        empty_label="Select Position (Optional)"
+    )
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all().order_by('name'),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the province where club is located"
+    )
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.none(),  # Start empty
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the region (populated based on province)"
+    )
+    local_federation = forms.ModelChoiceField(
+        queryset=LocalFootballAssociation.objects.none(),  # Start empty
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the LFA (populated based on region)"
+    )
+    club = forms.ModelChoiceField(
+        queryset=Club.objects.none(),  # Start empty
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the club you represent"
+    )
+    id_document_type = forms.ChoiceField(
+        choices=[
+            ('ID', 'South African ID'),
+            ('BC', 'Birth Certificate'),
+            ('PP', 'Passport'),
+            ('DL', 'Driver License'),
+            ('OT', 'Other')
+        ],
+        initial='ID',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select your document type"
+    )
+    id_number = forms.CharField(
+        max_length=13,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit ID number',
+            'id': 'id_club_id_number'
+        }),
+        help_text="13-digit South African ID number"
+    )
+    passport_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter passport number'
+        }),
+        help_text="Passport number"
+    )
+    driver_license_number = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter driver license number'
+        }),
+        help_text="Driver license number"
+    )
+    id_number_other = forms.CharField(
+        max_length=25,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter other document number'
+        }),
+        help_text="Other document number"
+    )
+    popi_act_consent = forms.BooleanField(
+        required=True,
+        label="I consent to POPI Act terms",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'club', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Handle dynamic population during form submission
+        if self.data:
+            try:
+                province_id = int(self.data.get('province'))
+                self.fields['region'].queryset = Region.objects.filter(province=province_id)
+            except (ValueError, TypeError):
+                pass
+            
+            try:
+                region_id = int(self.data.get('region'))
+                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.filter(region=region_id)
+            except (ValueError, TypeError):
+                pass
+                
+            try:
+                lfa_id = int(self.data.get('local_federation'))
+                self.fields['club'].queryset = Club.objects.filter(localfootballassociation=lfa_id, status='ACTIVE')
+            except (ValueError, TypeError):
+                pass
+    
+    def clean_region(self):
+        region = self.cleaned_data.get('region')
+        province = self.cleaned_data.get('province')
+        
+        if region and province:
+            if region.province != province:
+                raise forms.ValidationError("Selected region does not belong to the selected province.")
+        return region
+    
+    def clean_local_federation(self):
+        local_federation = self.cleaned_data.get('local_federation')
+        region = self.cleaned_data.get('region')
+        
+        if local_federation and region:
+            if local_federation.region != region:
+                raise forms.ValidationError("Selected LFA does not belong to the selected region.")
+        return local_federation
+    
+    def clean_club(self):
+        club = self.cleaned_data.get('club')
+        local_federation = self.cleaned_data.get('local_federation')
+        
+        if club and local_federation:
+            if club.localfootballassociation != local_federation:
+                raise forms.ValidationError("Selected club does not belong to the selected LFA.")
+        return club
+    
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        user.role = 'CLUB_ADMIN'
+        user.employment_status = self.cleaned_data['employment_status']
+        user.position = self.cleaned_data.get('position')
+        user.popi_act_consent = self.cleaned_data['popi_act_consent']
+        user.is_staff = True
+        
+        # Save all hierarchy IDs
+        if self.cleaned_data.get('province'):
+            user.province_id = self.cleaned_data['province'].id
+        if self.cleaned_data.get('region'):
+            user.region_id = self.cleaned_data['region'].id
+        if self.cleaned_data.get('local_federation'):
+            user.local_federation_id = self.cleaned_data['local_federation'].id
+        if self.cleaned_data.get('club'):
+            user.club_id = self.cleaned_data['club'].id
+        
+        # Save document numbers
+        if self.cleaned_data.get('passport_number'):
+            user.passport_number = self.cleaned_data['passport_number']
+        if self.cleaned_data.get('driver_license_number'):
+            user.driver_license_number = self.cleaned_data['driver_license_number']
+        if self.cleaned_data.get('id_number_other'):
+            user.id_number_other = self.cleaned_data['id_number_other']
+        
+        if commit:
+            user.save()
         return user

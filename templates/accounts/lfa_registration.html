@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}LFA Administrator Registration{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>LFA Administrator Registration</h3>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'accounts:lfa_registration' %}" method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label>Email:</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>First Name:</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger">{{ form.first_name.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Last Name:</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger">{{ form.last_name.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Employment Status:</label>
+                            {{ form.employment_status }}
+                            {% if form.employment_status.errors %}<div class="text-danger">{{ form.employment_status.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Position:</label>
+                            {{ form.position }}
+                            {% if form.position.errors %}<div class="text-danger">{{ form.position.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Province:</label>
+                            {{ form.province }}
+                            {% if form.province.errors %}<div class="text-danger">{{ form.province.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Region:</label>
+                            {{ form.region }}
+                            {% if form.region.errors %}<div class="text-danger">{{ form.region.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Local Football Association:</label>
+                            {{ form.local_federation }}
+                            {% if form.local_federation.errors %}<div class="text-danger">{{ form.local_federation.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Document Type:</label>
+                            {{ form.id_document_type }}
+                            {% if form.id_document_type.errors %}<div class="text-danger">{{ form.id_document_type.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="id-number-field">
+                            <label>ID Number:</label>
+                            {{ form.id_number }}
+                            {% if form.id_number.errors %}<div class="text-danger">{{ form.id_number.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="passport-field" style="display: none;">
+                            <label>Passport Number:</label>
+                            {{ form.passport_number }}
+                            {% if form.passport_number.errors %}<div class="text-danger">{{ form.passport_number.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="driver-license-field" style="display: none;">
+                            <label>Driver License Number:</label>
+                            {{ form.driver_license_number }}
+                            {% if form.driver_license_number.errors %}<div class="text-danger">{{ form.driver_license_number.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="other-document-field" style="display: none;">
+                            <label>Other Document Number:</label>
+                            {{ form.id_number_other }}
+                            {% if form.id_number_other.errors %}<div class="text-danger">{{ form.id_number_other.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <input type="checkbox" id="popi_consent" name="popi_act_consent" required>
+                            <label for="popi_consent">I consent to POPI Act terms</label>
+                            {% if form.popi_act_consent.errors %}<div class="text-danger">{{ form.popi_act_consent.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Password:</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<div class="text-danger">{{ form.password1.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Confirm Password:</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<div class="text-danger">{{ form.password2.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <input type="submit" class="btn btn-primary" value="Register LFA Administrator">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/registration_form.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('LFA template JS loaded');
+    
+    const provinceSelect = document.querySelector('select[name="province"]');
+    const regionSelect = document.querySelector('select[name="region"]');
+    const lfaSelect = document.querySelector('select[name="local_federation"]');
+    
+    if (provinceSelect && regionSelect && lfaSelect) {
+        console.log('Province, Region and LFA selects found');
+        
+        // Step 1: Province changes → Load Regions
+        provinceSelect.addEventListener('change', function() {
+            const provinceId = this.value;
+            console.log('Province changed to:', provinceId);
+            
+            // Clear dependent dropdowns
+            regionSelect.innerHTML = '<option value="">---------</option>';
+            lfaSelect.innerHTML = '<option value="">Select Region First</option>';
+            
+            if (provinceId) {
+                fetch(`/accounts/api/regions/?province=${provinceId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Region data received:', data);
+                        data.forEach(region => {
+                            const option = document.createElement('option');
+                            option.value = region.id;
+                            option.textContent = region.name;
+                            regionSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching regions:', error);
+                    });
+            }
+        });
+        
+        // Step 2: Region changes → Load LFAs
+        regionSelect.addEventListener('change', function() {
+            const regionId = this.value;
+            console.log('Region changed to:', regionId);
+            
+            // Clear LFA dropdown
+            lfaSelect.innerHTML = '<option value="">---------</option>';
+            
+            if (regionId) {
+                fetch(`/accounts/api/lfas/?region=${regionId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('LFA data received:', data);
+                        data.forEach(lfa => {
+                            const option = document.createElement('option');
+                            option.value = lfa.id;
+                            option.textContent = lfa.name;
+                            lfaSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching LFAs:', error);
+                    });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

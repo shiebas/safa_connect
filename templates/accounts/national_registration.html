@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}National Federation Administrator Registration{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>SIMPLE TEST FORM</h3>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'accounts:national_registration' %}" method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label>Email:</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>First Name:</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger">{{ form.first_name.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Last Name:</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger">{{ form.last_name.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Employment Status:</label>
+                            {{ form.employment_status }}
+                            {% if form.employment_status.errors %}<div class="text-danger">{{ form.employment_status.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Position:</label>
+                            {{ form.position }}
+                            {% if form.position.errors %}<div class="text-danger">{{ form.position.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Document Type:</label>
+                            {{ form.id_document_type }}
+                            {% if form.id_document_type.errors %}<div class="text-danger">{{ form.id_document_type.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="id-number-field">
+                            <label>ID Number:</label>
+                            {{ form.id_number }}
+                            {% if form.id_number.errors %}<div class="text-danger">{{ form.id_number.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="passport-field" style="display: none;">
+                            <label>Passport Number:</label>
+                            {{ form.passport_number }}
+                            {% if form.passport_number.errors %}<div class="text-danger">{{ form.passport_number.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="driver-license-field" style="display: none;">
+                            <label>Driver License Number:</label>
+                            {{ form.driver_license_number }}
+                            {% if form.driver_license_number.errors %}<div class="text-danger">{{ form.driver_license_number.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="other-document-field" style="display: none;">
+                            <label>Other Document Number:</label>
+                            {{ form.id_number_other }}
+                            {% if form.id_number_other.errors %}<div class="text-danger">{{ form.id_number_other.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <input type="checkbox" id="popi_consent" name="popi_act_consent" required>
+                            <label for="popi_consent">I consent to POPI Act terms</label>
+                            {% if form.popi_act_consent.errors %}<div class="text-danger">{{ form.popi_act_consent.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Password:</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<div class="text-danger">{{ form.password1.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Confirm Password:</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<div class="text-danger">{{ form.password2.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <input type="submit" class="btn btn-primary" value="TEST SUBMIT">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/registration_form.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('INLINE JS: Page loaded');
+    
+    // Simple test - add red border to email field
+    const emailField = document.querySelector('input[name="email"]');
+    if (emailField) {
+        console.log('Email field found');
+        emailField.addEventListener('focus', function() {
+            console.log('Email field focused - JS is working!');
+            this.style.borderColor = 'blue';
+        });
+    }
+    
+    // Test ID field detection
+    const idField = document.querySelector('input[name="id_number"]');
+    if (idField) {
+        console.log('ID field found:', idField);
+        idField.addEventListener('input', function() {
+            console.log('ID field input detected:', this.value);
+            if (this.value === '1234567890123') {
+                alert('TEST: Invalid ID detected!');
+                this.style.borderColor = 'red';
+            }
+        });
+    } else {
+        console.error('ID field NOT found!');
+    }
+});
+</script>
+{% endblock %}

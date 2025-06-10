@@ -55,17 +55,21 @@ class ProvinceAdmin(ModelWithLogoAdmin):
     
     def generate_safa_ids(self, request, queryset):
         """Generate unique SAFA IDs for selected provinces"""
-        used_ids = set()
+        import string
+        import random
+        
         updated_count = 0
         
         for province in queryset:
             if not province.safa_id:  # Only generate if empty
                 while True:
-                    # Generate 2-digit random number to make total length 6 (PROV + 2 digits)
-                    # Or generate 1-digit to make total length 5 (PROV + 1 digit)
-                    safa_id = f"PROV{get_random_string(length=1, allowed_chars='0123456789')}"
-                    if safa_id not in used_ids:
-                        used_ids.add(safa_id)
+                    # Generate 5-digit random alphanumeric SAFA ID (A-Z, 0-9)
+                    chars = string.ascii_uppercase + string.digits
+                    safa_id = ''.join(random.choices(chars, k=5))
+                    
+                    # Check if this ID already exists across the system
+                    from .models import Province
+                    if not Province.objects.filter(safa_id=safa_id).exists():
                         province.safa_id = safa_id
                         province.save(update_fields=['safa_id'])
                         updated_count += 1

@@ -47,7 +47,7 @@ class CompetitionCategory(models.Model):
 class Competition(models.Model):
     """Specific competition instance for a region/season"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    safa_id = models.CharField(max_length=20, unique=True, blank=True)
+    safa_id = models.CharField(max_length=5, unique=True, blank=True)  # Changed from 20 to 5
     
     # Competition details
     category = models.ForeignKey(CompetitionCategory, on_delete=models.CASCADE)
@@ -89,15 +89,17 @@ class Competition(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.safa_id:
-            year = self.season_year.split('/')[0] if '/' in self.season_year else self.season_year
-            region_code = self.region.name[:3].upper()
-            category_code = self.category.short_name or self.category.name[:3].upper()
-            count = Competition.objects.filter(
-                season_year__startswith=year,
-                region=self.region,
-                category=self.category
-            ).count() + 1
-            self.safa_id = f"{category_code}-{region_code}-{year}-{count:02d}"
+            # Generate 5-digit random alphanumeric SAFA ID (A-Z, 0-9)
+            import string
+            import random
+            
+            while True:
+                chars = string.ascii_uppercase + string.digits
+                safa_id = ''.join(random.choices(chars, k=5))
+                
+                if not Competition.objects.filter(safa_id=safa_id).exists():
+                    self.safa_id = safa_id
+                    break
         super().save(*args, **kwargs)
 
 class CompetitionGroup(models.Model):
@@ -127,7 +129,7 @@ class CompetitionGroup(models.Model):
 class Team(models.Model):
     """Teams in the SAFA system"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    safa_id = models.CharField(max_length=20, unique=True, blank=True)
+    safa_id = models.CharField(max_length=5, unique=True, blank=True)  # Changed from 20 to 5
     
     # Team details
     name = models.CharField(max_length=200)
@@ -165,9 +167,20 @@ class Team(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.safa_id:
-            region_code = self.lfa.region.name[:3].upper()
-            count = Team.objects.filter(lfa__region=self.lfa.region).count() + 1
-            self.safa_id = f"TEAM-{region_code}-{count:04d}"
+            # Generate 5-digit random alphanumeric SAFA ID (A-Z, 0-9)
+            import string
+            import random
+            
+            while True:
+                # Generate 5-character random string with capitals and numbers
+                chars = string.ascii_uppercase + string.digits
+                safa_id = ''.join(random.choices(chars, k=5))
+                
+                # Check if this ID already exists
+                if not Team.objects.filter(safa_id=safa_id).exists():
+                    self.safa_id = safa_id
+                    break
+        
         super().save(*args, **kwargs)
 
 class CompetitionTeam(models.Model):
@@ -230,6 +243,7 @@ class Match(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    match_number = models.CharField(max_length=10, unique=True, blank=True)  # Sequential match numbers
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='matches')
     group = models.ForeignKey(CompetitionGroup, on_delete=models.CASCADE, null=True, blank=True, related_name='matches')
     
@@ -272,6 +286,14 @@ class Match(models.Model):
         if self.status == 'completed' and self.home_score is not None:
             return f"{self.home_team.team.short_name or self.home_team.team.name} {self.home_score}-{self.away_score} {self.away_team.team.short_name or self.away_team.team.name}"
         return f"{self.home_team.team.short_name or self.home_team.team.name} vs {self.away_team.team.short_name or self.away_team.team.name}"
+    
+    def save(self, *args, **kwargs):
+        if not self.match_number:
+            # Generate sequential match number for the competition
+            year = self.competition.season_year.split('/')[0] if '/' in self.competition.season_year else self.competition.season_year
+            count = Match.objects.filter(competition=self.competition).count() + 1
+            self.match_number = f"M{year}-{count:04d}"  # e.g., M2024-0001
+        super().save(*args, **kwargs)
 
 class MatchEvent(models.Model):
     """Events that occur during matches (goals, cards, substitutions)"""
@@ -307,3 +329,67 @@ class MatchEvent(models.Model):
         if self.event_type == 'substitution':
             return f"{self.minute}' - SUB: {self.substitute_in} for {self.substitute_out} ({self.team.team.short_name})"
         return f"{self.minute}' - {self.get_event_type_display()}: {self.player_name} ({self.team.team.short_name})"
+
+class PlayerStatistics(models.Model):
+    """Individual player statistics for a competition"""
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='player_stats')
+    team = models.ForeignKey(CompetitionTeam, on_delete=models.CASCADE, related_name='player_stats')
+    
+    # Player details
+    player_name = models.CharField(max_length=200)
+    jersey_number = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(99)])
+    position = models.CharField(max_length=20, blank=True)  # GK, DEF, MID, FWD
+    
+    # Statistics
+    appearances = models.PositiveIntegerField(default=0)
+    goals = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)
+    yellow_cards = models.PositiveIntegerField(default=0)
+    red_cards = models.PositiveIntegerField(default=0)
+    minutes_played = models.PositiveIntegerField(default=0)
+    
+    # Goalkeeper specific
+    clean_sheets = models.PositiveIntegerField(default=0)
+    saves = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        unique_together = ['competition', 'team', 'player_name']
+        ordering = ['-goals', '-assists', 'player_name']
+    
+    def __str__(self):
+        return f"{self.player_name} ({self.team.team.name})"
+
+class LeagueTable(models.Model):
+    """Calculated league table for a competition/group"""
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='league_tables')
+    group = models.ForeignKey(CompetitionGroup, on_delete=models.CASCADE, null=True, blank=True, related_name='league_tables')
+    team = models.ForeignKey(CompetitionTeam, on_delete=models.CASCADE)
+    
+    # Table position and stats
+    position = models.PositiveIntegerField()
+    played = models.PositiveIntegerField(default=0)
+    won = models.PositiveIntegerField(default=0)
+    drawn = models.PositiveIntegerField(default=0)
+    lost = models.PositiveIntegerField(default=0)
+    goals_for = models.PositiveIntegerField(default=0)
+    goals_against = models.PositiveIntegerField(default=0)
+    goal_difference = models.IntegerField(default=0)
+    points = models.PositiveIntegerField(default=0)
+    
+    # Form (last 5 matches)
+    form = models.CharField(max_length=5, blank=True)  # e.g., "WWDLW"
+    
+    # Additional stats
+    home_wins = models.PositiveIntegerField(default=0)
+    away_wins = models.PositiveIntegerField(default=0)
+    clean_sheets = models.PositiveIntegerField(default=0)
+    
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['competition', 'group', 'team']
+        ordering = ['position']
+    
+    def __str__(self):
+        group_info = f" ({self.group.name})" if self.group else ""
+        return f"{self.position}. {self.team.team.name}{group_info}"

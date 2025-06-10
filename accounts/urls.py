@@ -4,7 +4,9 @@ from .views import (
     WorkingLoginView, working_home, register, 
     check_username, user_qr_code, profile_view, 
     model_debug_view,  # Remove generate_safa_id_ajax
-    check_email_availability, check_id_number_availability
+    check_email_availability, check_id_number_availability,
+    registration_portal, province_registration, club_registration,
+    api_regions, api_clubs, national_registration, lfa_registration, api_lfas, supporter_registration
 )
 
 app_name = 'accounts'
@@ -14,7 +16,7 @@ urlpatterns = [
     path('', working_home, name='home'),
     path('login/', WorkingLoginView.as_view(), name='login'),
     path('home/', working_home, name='working_home'),
-    path('register/', register, name='register'),
+    path('register/', register, name='register'),  # Add this back
     path('check-username/', check_username, name='check_username'),
     path('qr-code/', user_qr_code, name='qr_code'),
     path('profile/', profile_view, name='profile'),  # Use profile_view instead of ProfileView
@@ -26,7 +28,16 @@ urlpatterns = [
     path('ajax/check-email/', check_email_availability, name='check_email'),
     path('ajax/check-id-number/', check_id_number_availability, name='check_id_number'),
     # Remove the generate-safa-id URL since we're using admin actions now
-    # path('ajax/generate-safa-id/', generate_safa_id_ajax, name='generate_safa_id_ajax'),
+    path('registration-portal/', registration_portal, name='registration_portal'),
+    path('register/province/', province_registration, name='province_registration'),
+    path('register/club/', club_registration, name='club_registration'),
+    path('api/regions/', api_regions, name='api_regions'),
+    path('api/clubs/', api_clubs, name='api_clubs'),
+    path('register/national/', national_registration, name='national_registration'),
+    path('register/lfa/', lfa_registration, name='lfa_registration'),
+    # Remove supporter registration URL
+    # path('register/supporter/', supporter_registration, name='supporter_registration'),
+    path('api/lfas/', api_lfas, name='api_lfas'),
     
     # Add other paths as needed
 ]
