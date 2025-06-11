@@ -618,6 +618,84 @@ class CustomUser(AbstractUser, ModelWithLogo):
             'name': 'Not Assigned',
             'level': 'No Level'
         }
+    
+    def get_province_name(self):
+        """Get province name from province_id"""
+        if self.province_id:
+            try:
+                from geography.models import Province
+                province = Province.objects.get(id=self.province_id)
+                return province.name
+            except:
+                pass
+        return "Not Set"
+    
+    def get_region_name(self):
+        """Get region name from region_id"""
+        if self.region_id:
+            try:
+                from geography.models import Region
+                region = Region.objects.get(id=self.region_id)
+                return region.name
+            except:
+                pass
+        return "Not Set"
+    
+    def get_lfa_name(self):
+        """Get LFA name from local_federation_id"""
+        if self.local_federation_id:
+            try:
+                from geography.models import LocalFootballAssociation
+                lfa = LocalFootballAssociation.objects.get(id=self.local_federation_id)
+                return lfa.name
+            except:
+                pass
+        return "Not Set"
+    
+    def get_club_name(self):
+        """Get club name from club_id"""
+        if self.club_id:
+            try:
+                from geography.models import Club
+                club = Club.objects.get(id=self.club_id)
+                return club.name
+            except:
+                pass
+        return "Not Set"
+    
+    @property
+    def is_id_valid(self):
+        """Check if the provided ID number is valid"""
+        if self.id_number:
+            id_info = self.extract_id_info(self.id_number)
+            return id_info.get('is_valid', False)
+        return False
+    
+    @property
+    def is_profile_complete(self):
+        """Check if user profile is complete for compliance"""
+        required_items = [
+            self.profile_photo,
+            self.id_document,
+            self.popi_act_consent,
+        ]
+        return all(required_items)
+    
+    def get_compliance_score(self):
+        """Get compliance percentage"""
+        total_items = 4  # profile_photo, id_document, popi_consent, id_valid
+        completed_items = 0
+        
+        if self.profile_photo:
+            completed_items += 1
+        if self.id_document:
+            completed_items += 1
+        if self.popi_act_consent:
+            completed_items += 1
+        if self.is_id_valid:
+            completed_items += 1
+            
+        return int((completed_items / total_items) * 100)
 
 
 

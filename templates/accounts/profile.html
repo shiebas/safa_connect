@@ -1,41 +1,252 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Profile - {{ user.get_full_name|default:user.email }}{% endblock %}
+{% block title %}Profile - {{ user.get_full_name }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Profile Information</h3>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Profile Photo Section -->
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if user.profile_photo %}
+                        <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 200px; height: 200px; margin: 0 auto;">
+                            <i class="fas fa-user fa-5x text-white"></i>
+                        </div>
+                    {% endif %}
+                    <h4>{{ user.get_full_name }}</h4>
+                    <p class="text-muted">{{ user.get_role_display }}</p>
+                    
+                    <!-- Upload Photo Button -->
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#photoModal">
+                        {% if user.profile_photo %}Update Photo{% else %}Upload Photo{% endif %}
+                    </button>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-sm-3"><strong>Email:</strong></div>
-                    <div class="col-sm-9">{{ user.email }}</div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Profile Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-circle"></i> Profile Information</h5>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-sm-3"><strong>Name:</strong></div>
-                    <div class="col-sm-9">{{ user.get_full_name }}</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Email:</strong></div>
+                        <div class="col-sm-9">{{ user.email }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Role:</strong></div>
+                        <div class="col-sm-9">{{ user.get_role_display }}</div>
+                    </div>
+                    
+                    {% if user.employment_status %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Employment Status:</strong></div>
+                        <div class="col-sm-9">{{ user.get_employment_status_display }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.position %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Position:</strong></div>
+                        <div class="col-sm-9">{{ user.position }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.safa_id %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>SAFA ID:</strong></div>
+                        <div class="col-sm-9"><span class="badge bg-primary">{{ user.safa_id }}</span></div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Member Since:</strong></div>
+                        <div class="col-sm-9">{{ user.date_joined|date:"F d, Y" }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Account Status:</strong></div>
+                        <div class="col-sm-9">
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending Approval</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                {% if user.date_joined %}
-                <div class="row mb-3">
-                    <div class="col-sm-3"><strong>Member Since:</strong></div>
-                    <div class="col-sm-9">{{ user.date_joined|date }}</div>
+            </div>
+            
+            <!-- Organization Info -->
+            {% if user.role != 'SUPPORTER' %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-building"></i> Organization</h5>
                 </div>
-                {% endif %}
-                <div class="profile-section">
-                    <h4>Legal Compliance</h4>
-                    <p><strong>POPI Act Consent:</strong> 
-                        {% if user.popi_act_consent %}
-                            <span class="text-success">✓ Granted</span>
-                        {% else %}
-                            <span class="text-danger">✗ Not Granted</span>
-                        {% endif %}
-                    </p>
+                <div class="card-body">
+                    {% if user.role == 'ADMIN_NATIONAL' %}
+                        <div class="row mb-3">
+                            <div class="col-sm-3"><strong>Organization:</strong></div>
+                            <div class="col-sm-9">SAFA National</div>
+                        </div>
+                    {% elif user.role == 'ADMIN_PROVINCE' and user.province_id %}
+                        <div class="row mb-3">
+                            <div class="col-sm-3"><strong>Organization:</strong></div>
+                            <div class="col-sm-9">Province: {{ user.get_province_name }}</div>
+                        </div>
+                    {% elif user.role == 'ADMIN_LOCAL_FED' %}
+                        <div class="row mb-3">
+                            <div class="col-sm-3"><strong>Organization:</strong></div>
+                            <div class="col-sm-9">
+                                LFA: {{ user.get_lfa_name }}
+                                <br><small class="text-muted">{{ user.get_region_name }}, {{ user.get_province_name }}</small>
+                            </div>
+                        </div>
+                    {% elif user.role == 'CLUB_ADMIN' %}
+                        <div class="row mb-3">
+                            <div class="col-sm-3"><strong>Organization:</strong></div>
+                            <div class="col-sm-9">
+                                Club: {{ user.get_club_name }}
+                                <br><small class="text-muted">{{ user.get_lfa_name }}, {{ user.get_region_name }}, {{ user.get_province_name }}</small>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Compliance Status -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-clipboard-check"></i> Compliance Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Profile Photo:</strong></div>
+                        <div class="col-sm-9">
+                            {% if user.profile_photo %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Uploaded</span>
+                            {% else %}
+                                <span class="badge bg-warning"><i class="fas fa-exclamation-triangle"></i> Missing</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>ID Document:</strong></div>
+                        <div class="col-sm-9">
+                            {% if user.id_document %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Uploaded</span>
+                                <a href="{{ user.id_document.url }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            {% else %}
+                                <span class="badge bg-warning"><i class="fas fa-exclamation-triangle"></i> Missing</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>ID Validation:</strong></div>
+                        <div class="col-sm-9">
+                            {% if user.id_number %}
+                                {% if user.is_id_valid %}
+                                    <span class="badge bg-success"><i class="fas fa-check"></i> Valid</span>
+                                {% else %}
+                                    <span class="badge bg-danger"><i class="fas fa-times"></i> Invalid</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-minus"></i> Not Provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>POPI Consent:</strong></div>
+                        <div class="col-sm-9">
+                            {% if user.popi_act_consent %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Agreed</span>
+                                <small class="text-muted ms-2">{{ user.date_joined|date:"M d, Y" }}</small>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-times"></i> Not Agreed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Overall Status:</strong></div>
+                        <div class="col-sm-9">
+                            {% if user.is_profile_complete %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle"></i> Complete</span>
+                            {% else %}
+                                <span class="badge bg-warning"><i class="fas fa-exclamation-circle"></i> Incomplete</span>
+                                <div class="mt-2">
+                                    <small class="text-muted">Missing items:</small>
+                                    <ul class="small mt-1">
+                                        {% if not user.profile_photo %}<li>Profile photo</li>{% endif %}
+                                        {% if not user.id_document %}<li>ID document upload</li>{% endif %}
+                                        {% if not user.popi_act_consent %}<li>POPI Act consent</li>{% endif %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Photo Upload Modal -->
+<div class="modal fade" id="photoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Profile Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'accounts:update_profile_photo' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="profile_photo" class="form-label">Choose Photo:</label>
+                        <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*" required>
+                        <div class="form-text">Supported formats: JPG, PNG, GIF. Max size: 5MB</div>
+                    </div>
+                    
+                    <!-- Preview -->
+                    <div id="imagePreview" style="display: none;">
+                        <p><strong>Preview:</strong></p>
+                        <img id="preview" src="#" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload Photo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('profile_photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+});
+</script>
 {% endblock %}

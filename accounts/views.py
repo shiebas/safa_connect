@@ -105,10 +105,8 @@ def register(request):
 
 def club_registration(request):
     """Registration view for club-level users"""
-    provinces = Province.objects.all().order_by('name')  # Add this line
-    
     if request.method == 'POST':
-        form = ClubUserRegistrationForm(request.POST)
+        form = ClubUserRegistrationForm(request.POST, request.FILES)  # Add FILES
         if form.is_valid():
             user = form.save()
             messages.success(request, 'Club administrator account created successfully!')
@@ -118,14 +116,13 @@ def club_registration(request):
     
     return render(request, 'accounts/club_registration.html', {
         'form': form,
-        'provinces': provinces,  # Add this line
         'title': 'Club Administrator Registration'
     })
 
 def province_registration(request):
     """Registration view for province-level users"""
     if request.method == 'POST':
-        form = ProvinceUserRegistrationForm(request.POST)
+        form = ProvinceUserRegistrationForm(request.POST, request.FILES)  # Add FILES
         if form.is_valid():
             user = form.save()
             messages.success(request, 'Province administrator account created successfully!')
@@ -169,10 +166,8 @@ def national_registration(request):
 
 def lfa_registration(request):
     """Registration view for LFA users"""
-    provinces = Province.objects.all().order_by('name')
-    
     if request.method == 'POST':
-        form = LFAUserRegistrationForm(request.POST)
+        form = LFAUserRegistrationForm(request.POST, request.FILES)  # Add FILES
         if form.is_valid():
             user = form.save()
             messages.success(request, 'LFA administrator account created successfully!')
@@ -182,7 +177,6 @@ def lfa_registration(request):
     
     return render(request, 'accounts/lfa_registration.html', {
         'form': form,
-        'provinces': provinces,
         'title': 'LFA Administrator Registration'
     })
 
@@ -277,6 +271,27 @@ def user_qr_code(request, user_id=None):
 @login_required
 def profile_view(request):
     return render(request, 'accounts/profile.html')
+
+@login_required
+def update_profile_photo(request):
+    """Handle profile photo updates"""
+    if request.method == 'POST':
+        if 'profile_photo' in request.FILES:
+            user = request.user
+            
+            # Delete old photo if exists
+            if user.profile_photo:
+                user.profile_photo.delete()
+            
+            # Save new photo
+            user.profile_photo = request.FILES['profile_photo']
+            user.save()
+            
+            messages.success(request, 'Profile photo updated successfully!')
+        else:
+            messages.error(request, 'Please select a photo to upload.')
+    
+    return redirect('accounts:profile')
 
 # Add this temporarily to your views.py
 def model_debug_view(request):

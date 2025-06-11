@@ -51,10 +51,16 @@ function validateSAIdNumber(idNumber) {
     };
 }
 
+// [Previous validation functions remain exactly the same...]
+
+// [Keep all existing validation functions...]
+
+// [Previous validation functions remain exactly the same...]
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Registration form JS loaded');
     
-    // Name validation
+    // Name validation (unchanged)
     const firstNameInput = document.querySelector('input[name="first_name"]');
     const lastNameInput = document.querySelector('input[name="last_name"]');
     
@@ -76,94 +82,93 @@ document.addEventListener('DOMContentLoaded', function() {
     if (firstNameInput) firstNameInput.addEventListener('input', () => validateName(firstNameInput));
     if (lastNameInput) lastNameInput.addEventListener('input', () => validateName(lastNameInput));
     
-    // ID validation on focus AND input
-    const idInputs = document.querySelectorAll('input[name="id_number"]');
-    let isIdValid = false;
-    
-    idInputs.forEach(input => {
-        // Validate on focus (when user clicks into field)
-        input.addEventListener('focus', function() {
-            console.log('ID field focused');
-            if (this.value.length > 0) {
-                validateIdNumberField(this);
-            }
-        });
+    // Enhanced ID validation to work with all document types
+    function setupDocumentValidation() {
+        const docTypeSelect = document.querySelector('select[name="id_document_type"]');
+        const idInput = document.querySelector('input[name="id_number"]');
+        const passportInput = document.querySelector('input[name="passport_number"]');
+        const driverLicenseInput = document.querySelector('input[name="driver_license_number"]');
+        const otherDocInput = document.querySelector('input[name="id_number_other"]');
         
-        // Validate on input (as user types)
-        input.addEventListener('input', function() {
-            console.log('ID field input:', this.value);
-            if (this.value.length > 0) {
-                validateIdNumberField(this);
+        function validateCurrentField() {
+            const activeField = getActiveDocumentField();
+            if (!activeField) return;
+            
+            if (activeField.name === 'id_number') {
+                validateIdNumberField(activeField);
             } else {
-                clearValidation(this);
-                isIdValid = false;
+                // Basic validation for other document types
+                if (activeField.value.trim().length < 3) {
+                    activeField.style.borderColor = 'red';
+                } else {
+                    activeField.style.borderColor = '';
+                }
             }
-        });
-        
-        // Validate on blur (when user leaves field)
-        input.addEventListener('blur', function() {
-            console.log('ID field blur');
-            if (this.value.length > 0) {
-                validateIdNumberField(this);
-            }
-        });
-    });
-    
-    function validateIdNumberField(input) {
-        console.log('Validating ID:', input.value);
-        const validationDiv = input.parentNode.querySelector('.id-validation') || 
-                            (() => {
-                                const div = document.createElement('div');
-                                div.className = 'id-validation mt-1';
-                                input.parentNode.appendChild(div);
-                                return div;
-                            })();
-        
-        const result = validateSAIdNumber(input.value);
-        if (result.valid) {
-            validationDiv.innerHTML = `<small class="text-success">✓ Valid ID: ${result.details.gender}, Age ${result.details.age}</small>`;
-            input.style.borderColor = 'green';
-            isIdValid = true;
-        } else {
-            validationDiv.innerHTML = `<small class="text-danger">✗ ${result.message}</small>`;
-            input.style.borderColor = 'red';
-            isIdValid = false;
         }
+        
+        function getActiveDocumentField() {
+            if (!docTypeSelect) return null;
+            
+            switch(docTypeSelect.value) {
+                case 'id': return idInput;
+                case 'passport': return passportInput;
+                case 'driver_license': return driverLicenseInput;
+                case 'other': return otherDocInput;
+                default: return idInput;
+            }
+        }
+        
+        // Set up validation for all document fields
+        [idInput, passportInput, driverLicenseInput, otherDocInput].forEach(input => {
+            if (!input) return;
+            
+            input.addEventListener('focus', validateCurrentField);
+            input.addEventListener('input', validateCurrentField);
+            input.addEventListener('blur', validateCurrentField);
+        });
     }
     
-    function clearValidation(input) {
-        const validationDiv = input.parentNode.querySelector('.id-validation');
-        if (validationDiv) {
-            validationDiv.innerHTML = '';
-        }
-        input.style.borderColor = '';
-    }
+    // Initialize document validation
+    setupDocumentValidation();
     
-    // Prevent form submission if ID is invalid
+    // Form submission validation (updated to check all document types)
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            console.log('Form submission attempt');
+            const docTypeSelect = form.querySelector('select[name="id_document_type"]');
+            const activeField = docTypeSelect ? 
+                form.querySelector(`input[name="${getFieldNameForDocType(docTypeSelect.value)}"]`) : 
+                null;
             
-            // Check if there's an ID field with a value
-            const idField = form.querySelector('input[name="id_number"]');
-            if (idField && idField.value.length > 0) {
-                console.log('Checking ID validity before submit');
-                const result = validateSAIdNumber(idField.value);
-                if (!result.valid) {
+            if (activeField && activeField.value.trim().length > 0) {
+                if (activeField.name === 'id_number') {
+                    const result = validateSAIdNumber(activeField.value);
+                    if (!result.valid) {
+                        e.preventDefault();
+                        alert('Please enter a valid South African ID number before submitting.');
+                        activeField.focus();
+                    }
+                } else if (activeField.value.trim().length < 3) {
                     e.preventDefault();
-                    alert('Please enter a valid South African ID number before submitting.');
-                    idField.focus();
-                    return false;
+                    alert('Please enter a valid document number before submitting.');
+                    activeField.focus();
                 }
             }
-            
-            console.log('Form validation passed');
         });
     });
     
-    // Document type switching
-    const docTypeSelect = document.getElementById('id_id_document_type');
+    function getFieldNameForDocType(docType) {
+        switch(docType) {
+            case 'id': return 'id_number';
+            case 'passport': return 'passport_number';
+            case 'driver_license': return 'driver_license_number';
+            case 'other': return 'id_number_other';
+            default: return 'id_number';
+        }
+    }
+    
+    // Document type switching (updated to match your existing implementation)
+    const docTypeSelect = document.querySelector('select[name="id_document_type"]');
     const idNumberField = document.getElementById('id-number-field');
     const passportField = document.getElementById('passport-field');
     const driverLicenseField = document.getElementById('driver-license-field');
@@ -180,32 +185,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (field) field.style.display = 'none';
         });
         
-        // Show appropriate field
+        // Show appropriate field (using your existing type codes)
         if (docType === 'ID' || docType === 'BC') {
-            if (idNumberField) {
-                idNumberField.style.display = 'block';
-                console.log('Showing ID field');
-            }
+            if (idNumberField) idNumberField.style.display = 'block';
         } else if (docType === 'PP') {
-            if (passportField) {
-                passportField.style.display = 'block';
-                console.log('Showing passport field');
-            }
+            if (passportField) passportField.style.display = 'block';
         } else if (docType === 'DL') {
-            if (driverLicenseField) {
-                driverLicenseField.style.display = 'block';
-                console.log('Showing driver license field');
-            }
+            if (driverLicenseField) driverLicenseField.style.display = 'block';
         } else if (docType === 'OT') {
-            if (otherDocumentField) {
-                otherDocumentField.style.display = 'block';
-                console.log('Showing other document field');
-            }
+            if (otherDocumentField) otherDocumentField.style.display = 'block';
         }
     }
     
     if (docTypeSelect) {
         docTypeSelect.addEventListener('change', updateFields);
-        updateFields();
+        updateFields(); // Initialize on load
     }
 });

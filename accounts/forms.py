@@ -461,9 +461,27 @@ class ProvinceUserRegistrationForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
+    profile_photo = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        help_text="Upload profile photo (optional)"
+    )
+    
+    id_document = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Upload ID document (PDF, JPG, PNG)"
+    )
+    
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'profile_photo', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'id_document', 'popi_act_consent', 'password1', 'password2']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -599,9 +617,27 @@ class ClubUserRegistrationForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
+    profile_photo = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        help_text="Upload profile photo (optional)"
+    )
+    
+    id_document = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Upload ID document (PDF, JPG, PNG)"
+    )
+    
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'club', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'club', 'profile_photo', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'id_document', 'popi_act_consent', 'password1', 'password2']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -788,9 +824,27 @@ class NationalUserRegistrationForm(forms.ModelForm):
         empty_label="Select Position (Optional)"
     )
     
+    profile_photo = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        help_text="Upload profile photo (optional)"
+    )
+    
+    id_document = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Upload ID document (PDF, JPG, PNG)"
+    )
+    
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'profile_photo', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'id_document', 'popi_act_consent', 'password1', 'password2']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -971,9 +1025,27 @@ class LFAUserRegistrationForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
+    profile_photo = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        help_text="Upload profile photo (optional)"
+    )
+    
+    id_document = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Upload ID document (PDF, JPG, PNG)"
+    )
+    
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'profile_photo', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'id_document', 'popi_act_consent', 'password1', 'password2']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -1152,9 +1224,27 @@ class ClubUserRegistrationForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
+    profile_photo = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        help_text="Upload profile photo (optional)"
+    )
+    
+    id_document = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Upload ID document (PDF, JPG, PNG)"
+    )
+    
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'club', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'popi_act_consent', 'password1', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'employment_status', 'position', 'province', 'region', 'local_federation', 'club', 'profile_photo', 'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'id_document', 'popi_act_consent', 'password1', 'password2']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
