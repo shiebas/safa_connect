@@ -1,149 +1,136 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize form sections
+/**
+ * SAFA Registration Form Wizard
+ * Handles multi-step form navigation for all registration flows
+ */
+function initFormWizard() {
+    // Get all form sections
     const formSections = document.querySelectorAll('.form-section');
-    const formSteps = [];
+    if (!formSections.length) return;
     
-    // Create step indicator
-    const stepIndicator = document.createElement('div');
-    stepIndicator.className = 'step-indicator';
-    const formContainer = document.querySelector('.registration-form');
-    const formHeader = document.querySelector('.form-header');
-    formContainer.insertBefore(stepIndicator, formHeader.nextSibling);
+    // Create step navigation container
+    const formStepsContainer = document.createElement('div');
+    formStepsContainer.className = 'form-steps mb-4';
+    formStepsContainer.style.display = 'flex';
+    formStepsContainer.style.justifyContent = 'space-between';
+    formStepsContainer.style.position = 'sticky';
+    formStepsContainer.style.top = '0';
+    formStepsContainer.style.zIndex = '100';
+    formStepsContainer.style.background = '#fff';
+    formStepsContainer.style.padding = '15px';
+    formStepsContainer.style.borderRadius = '8px';
+    formStepsContainer.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)';
     
-    // Convert sections to steps
-    formSections.forEach((section, index) => {
-        // Create a wrapper for the section
-        const stepWrapper = document.createElement('div');
-        stepWrapper.className = 'form-step';
-        if (index === 0) stepWrapper.classList.add('active');
+    // Default step titles and icons (can be overridden with data attributes)
+    const defaultStepTitles = ['Personal Information', 'Organization Information','Document Information', 'Security & Compliance'];
+    const defaultStepIcons = ['user', 'file-alt', 'lock'];
+    
+    // Get custom step titles and icons if available
+    const customTitles = document.querySelector('form').dataset.stepTitles;
+    const customIcons = document.querySelector('form').dataset.stepIcons;
+    
+    // Parse custom values or use defaults
+    const stepTitles = customTitles ? customTitles.split(',') : defaultStepTitles;
+    const stepIcons = customIcons ? customIcons.split(',') : defaultStepIcons;
+    
+    // Create step buttons
+    for (let i = 0; i < formSections.length; i++) {
+        const stepBtn = document.createElement('button');
+        stepBtn.type = 'button';
+        stepBtn.className = i === 0 ? 'step-btn active' : 'step-btn';
+        stepBtn.dataset.step = i;
+        stepBtn.style.border = 'none';
+        stepBtn.style.background = 'transparent';
+        stepBtn.style.padding = '8px 15px';
+        stepBtn.style.borderRadius = '20px';
+        stepBtn.style.fontWeight = 'bold';
+        stepBtn.style.color = '#495057';
+        stepBtn.style.cursor = 'pointer';
+        stepBtn.style.transition = 'all 0.3s';
+        stepBtn.innerHTML = `<i class="fas fa-${stepIcons[i]} me-2"></i> ${i+1}. ${stepTitles[i]}`;
         
-        // Create dot for step indicator
-        const dot = document.createElement('div');
-        dot.className = 'step-dot';
-        if (index === 0) dot.classList.add('active');
-        stepIndicator.appendChild(dot);
+        stepBtn.addEventListener('click', function() {
+            showStep(parseInt(this.dataset.step));
+        });
         
-        // Move the section into the wrapper
-        section.parentNode.insertBefore(stepWrapper, section);
-        stepWrapper.appendChild(section);
+        formStepsContainer.appendChild(stepBtn);
+    }
+    
+    // Insert steps navigation before the form
+    const form = document.querySelector('form');
+    form.parentNode.insertBefore(formStepsContainer, form);
+    
+    // Add Next/Previous buttons to each section
+    for (let i = 0; i < formSections.length; i++) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'navigation-buttons d-flex mt-3';
         
-        // Add navigation buttons
-        const navigation = document.createElement('div');
-        navigation.className = 'step-navigation';
-        
-        if (index > 0) {
-            const prevButton = document.createElement('button');
-            prevButton.type = 'button';
-            prevButton.className = 'btn btn-prev btn-step';
-            prevButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Previous';
-            prevButton.addEventListener('click', () => goToStep(index - 1));
-            navigation.appendChild(prevButton);
-        } else {
-            // Empty div for spacing
-            const spacer = document.createElement('div');
-            navigation.appendChild(spacer);
-        }
-        
-        if (index < formSections.length - 1) {
-            const nextButton = document.createElement('button');
-            nextButton.type = 'button';
-            nextButton.className = 'btn btn-next btn-step';
-            nextButton.innerHTML = 'Next<i class="fas fa-arrow-right ms-2"></i>';
-            nextButton.addEventListener('click', () => {
-                if (validateStep(index)) {
-                    goToStep(index + 1);
-                }
+        if (i > 0) {
+            const prevBtn = document.createElement('button');
+            prevBtn.type = 'button';
+            prevBtn.className = 'btn btn-outline-secondary me-2';
+            prevBtn.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Previous';
+            prevBtn.addEventListener('click', function() {
+                showStep(i-1);
             });
-            navigation.appendChild(nextButton);
-        } else {
-            // For the last step, we'll use the submit button that already exists
-            const spacer = document.createElement('div');
-            navigation.appendChild(spacer);
+            buttonContainer.appendChild(prevBtn);
         }
         
-        stepWrapper.appendChild(navigation);
-        formSteps.push(stepWrapper);
-    });
+        if (i < formSections.length - 1) {
+            const nextBtn = document.createElement('button');
+            nextBtn.type = 'button';
+            nextBtn.className = 'btn btn-primary ms-auto';
+            nextBtn.innerHTML = 'Next<i class="fas fa-arrow-right ms-2"></i>';
+            nextBtn.addEventListener('click', function() {
+                showStep(i+1);
+            });
+            buttonContainer.appendChild(nextBtn);
+        }
+        
+        formSections[i].querySelector('.p-4').appendChild(buttonContainer);
+    }
     
-    // Hide the main submit button (we'll show it only on the last step)
-    const submitButton = document.querySelector('.text-center .btn-submit');
-    const submitContainer = submitButton.parentNode;
-    submitContainer.style.display = 'none';
+    // Initially show only the first section
+    showStep(0);
     
-    // Modify the last step's navigation to include the submit button
-    const lastNavigation = formSteps[formSteps.length - 1].querySelector('.step-navigation');
-    const submitClone = submitButton.cloneNode(true);
-    lastNavigation.appendChild(submitClone);
-    
-    // Function to navigate between steps
-    function goToStep(stepIndex) {
-        // Update step classes
-        formSteps.forEach((step, idx) => {
-            step.classList.remove('active');
-            const dot = stepIndicator.children[idx];
-            dot.classList.remove('active');
-            
-            if (idx < stepIndex) {
-                dot.classList.add('completed');
+    // Function to show a specific step
+    function showStep(stepIndex) {
+        // Update step buttons
+        const stepBtns = document.querySelectorAll('.step-btn');
+        stepBtns.forEach((btn, idx) => {
+            if (idx === stepIndex) {
+                btn.classList.add('active');
+                btn.style.background = 'var(--safa-green)';
+                btn.style.color = 'white';
             } else {
-                dot.classList.remove('completed');
+                btn.classList.remove('active');
+                btn.style.background = 'transparent';
+                btn.style.color = '#495057';
             }
         });
         
-        formSteps[stepIndex].classList.add('active');
-        stepIndicator.children[stepIndex].classList.add('active');
-        
-        // Scroll to top of form
-        formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    
-    // Basic validation for each step
-    function validateStep(stepIndex) {
-        const currentStep = formSteps[stepIndex];
-        const requiredFields = currentStep.querySelectorAll('input[required], select[required]');
-        let isValid = true;
-        
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                isValid = false;
-                field.classList.add('is-invalid');
+        // Show only the selected section
+        formSections.forEach((section, idx) => {
+            if (idx === stepIndex) {
+                section.style.display = 'block';
                 
-                // Add a shake animation to highlight the field
-                field.animate([
-                    { transform: 'translateX(0)' },
-                    { transform: 'translateX(-5px)' },
-                    { transform: 'translateX(5px)' },
-                    { transform: 'translateX(-5px)' },
-                    { transform: 'translateX(0)' }
-                ], {
-                    duration: 300,
-                    iterations: 1
-                });
+                // Scroll to the section
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
-                field.classList.remove('is-invalid');
+                section.style.display = 'none';
             }
         });
         
-        if (!isValid) {
-            // Highlight the first invalid field
-            const firstInvalid = currentStep.querySelector('.is-invalid');
-            if (firstInvalid) {
-                firstInvalid.focus();
-            }
+        // Show/hide submit button
+        const submitBtn = document.querySelector('.btn-submit').parentElement;
+        if (stepIndex === formSections.length - 1) {
+            submitBtn.style.display = 'block';
+        } else {
+            submitBtn.style.display = 'none';
         }
-        
-        return isValid;
     }
-    
-    // Add event listeners to remove validation errors when user types
-    document.querySelectorAll('input, select').forEach(field => {
-        field.addEventListener('input', () => {
-            if (field.value.trim()) {
-                field.classList.remove('is-invalid');
-            }
-        });
-    });
-    
-    // Hide the original submit button container
-    document.querySelector('form .text-center').style.display = 'none';
-});
+}
+
+// Initialize on document load
+document.addEventListener('DOMContentLoaded', initFormWizard);
+
+// Multi-step form navigation code we discussed earlier

@@ -35,19 +35,81 @@
                                     <tr>
                                         <th>{% trans "Registration Status" %}</th>
                                         <td>
-                                            <span class="badge badge-warning">{% trans "Pending Payment" %}</span>
+                                            {% if registration.status == 'ACTIVE' %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                            {% else %}
+                                            <span class="badge bg-warning">{% trans "Pending Payment" %}</span>
+                                            {% endif %}
                                         </td>
                                     </tr>
+                                    {% if invoice %}
+                                    <tr>
+                                        <th>{% trans "Invoice Number" %}</th>
+                                        <td>{{ invoice.invoice_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Amount" %}</th>
+                                        <td>R {{ invoice.amount|floatformat:2 }} ZAR</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Payment Reference" %}</th>
+                                        <td>{{ invoice.reference }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Payment Method" %}</th>
+                                        <td>{{ invoice.get_payment_method_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Due Date" %}</th>
+                                        <td>{{ invoice.due_date|date:"d M Y" }}</td>
+                                    </tr>
+                                    {% else %}
                                     <tr>
                                         <th>{% trans "Payment Reference" %}</th>
                                         <td>{{ payment_reference }}</td>
                                     </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    {% if not registration.status == 'ACTIVE' %}
+                    {% if invoice and invoice.status != 'PAID' and invoice.payment_method == 'EFT' %}
+                    <div class="alert alert-info mt-4">
+                        <h5>{% trans "Bank Details for Payment" %}</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>{% trans "Bank" %}</th>
+                                        <td>{{ bank_details.bank_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Branch" %}</th>
+                                        <td>{{ bank_details.branch_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Branch Code" %}</th>
+                                        <td>{{ bank_details.Branch_code }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Account Type" %}</th>
+                                        <td>{{ bank_details.account_type }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Account Number" %}</th>
+                                        <td>{{ bank_details.account_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{% trans "Reference" %}</th>
+                                        <td><strong>{{ invoice.reference }}</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mt-2 mb-0"><small>{% trans "Please use the reference number when making your payment." %}</small></p>
+                    </div>
+                    {% elif not registration.status == 'ACTIVE' %}
                     <div class="alert alert-info mt-4">
                         <h5>{% trans "Next Steps" %}</h5>
                         <p>{% trans "Your registration will be activated once payment has been confirmed." %}</p>
@@ -56,7 +118,19 @@
                     {% endif %}
 
                     <div class="mt-4">
-                        <a href="{% url 'membership:player-list' %}" class="btn btn-primary">{% trans "Back to Players" %}</a>
+                        {% if invoice %}
+                        <a href="{% url 'membership:invoice_detail' uuid=invoice.uuid %}" class="btn btn-primary">
+                            <i class="fas fa-file-invoice me-2"></i>{% trans "View Invoice" %}
+                        </a>
+                        
+                        {% if invoice.status != 'PAID' and invoice.payment_method == 'CARD' %}
+                        <a href="{% url 'membership:process_card_payment' invoice.uuid %}" class="btn btn-success">
+                            <i class="fas fa-credit-card me-2"></i>{% trans "Pay Now" %}
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                        
+                        <a href="{% url 'membership:player-list' %}" class="btn btn-secondary">{% trans "Back to Players" %}</a>
                         <a href="{% url 'membership:player_registration' %}" class="btn btn-outline-primary">{% trans "Register Another Player" %}</a>
                     </div>
                 </div>

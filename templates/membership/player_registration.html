@@ -111,8 +111,8 @@ $(document).ready(function() {
                 success: function(data) {
                     $('#club-info').removeClass('d-none').html(
                         '<h6>Club Information</h6>' +
-                        '<p><strong>Registration Fee:</strong> $' + data.registration_fee + '</p>' +
-                        '<p><strong>Monthly Fee:</strong> $' + data.monthly_fee + '</p>' +
+                        '<p><strong>Registration Fee:</strong> R' + data.registration_fee + ' ZAR</p>' +
+                        '<p><strong>Monthly Fee:</strong> R' + data.monthly_fee + ' ZAR</p>' +
                         '<p><strong>Location:</strong> ' + data.location + '</p>' +
                         '<p><strong>Training Days:</strong> ' + data.training_days + '</p>'
                     );

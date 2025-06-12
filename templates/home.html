@@ -7,8 +7,8 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-lg-8 mx-auto text-center">
-            <h1 class="display-4 text-safa">
-                <i class="fas fa-futbol me-3"></i>
+            <h1 class="display-4" style="color: var(--safa-dark);">
+                <i class="fas fa-futbol me-3" style="color: var(--safa-gold);"></i>
                 Welcome to SAFA Global Administration
             </h1>
             <p class="lead text-muted">
@@ -21,7 +21,7 @@
                     <div class="col-md-3 mb-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center p-4">
-                                <i class="fas fa-users text-primary fs-1 mb-3"></i>
+                                <i class="fas fa-users" style="color: var(--safa-gold); font-size: 2rem;" class="mb-3"></i>
                                 <h5>User Registrations</h5>
                                 <p class="text-muted">Manage pending registrations</p>
                                 <a href="/admin/accounts/customuser/" class="btn btn-safa">
@@ -33,7 +33,7 @@
                     <div class="col-md-3 mb-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center p-4">
-                                <i class="fas fa-briefcase text-warning fs-1 mb-3"></i>
+                                <i class="fas fa-briefcase text-safa-gold fs-1 mb-3"></i>
                                 <h5>Positions</h5>
                                 <p class="text-muted">Manage SAFA positions</p>
                                 <a href="/admin/accounts/position/" class="btn btn-safa">
@@ -47,7 +47,7 @@
                     <div class="col-md-4 mb-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center p-4">
-                                <i class="fas fa-id-card text-safa fs-1 mb-3"></i>
+                                <i class="fas fa-id-card" style="color: var(--safa-gold); font-size: 2rem;" class="mb-3"></i>
                                 <h5>Digital Membership</h5>
                                 <p class="text-muted">Access your digital membership card</p>
                                 <a href="{% url 'membership_cards:my_card' %}" class="btn btn-safa">
@@ -61,7 +61,7 @@
                     <div class="col-md-4 mb-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center p-4">
-                                <i class="fas fa-trophy text-warning fs-1 mb-3"></i>
+                                <i class="fas fa-trophy text-safa-gold fs-1 mb-3"></i>
                                 <h5>League Management</h5>
                                 <p class="text-muted">Manage competitions and teams</p>
                                 <a href="{% url 'league_management:dashboard' %}" class="btn btn-safa">
@@ -74,7 +74,7 @@
                     <div class="col-md-4 mb-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center p-4">
-                                <i class="fas fa-cogs text-success fs-1 mb-3"></i>
+                                <i class="fas fa-cogs" style="color: var(--safa-gold); font-size: 2rem;" class="mb-3"></i>
                                 <h5>Administration</h5>
                                 <p class="text-muted">System administration panel</p>
                                 <a href="/admin/" class="btn btn-safa">

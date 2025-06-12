@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFA Global Invoice System Training</title>
+    <style>
+        :root {
+            --primary: #086B3C; /* SAFA Green */
+            --secondary: #FFCC00; /* South African Gold */
+            --dark: #333333;
+            --light: #f5f5f5;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo img {
+            height: 50px;
+            margin-right: 15px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .video-container {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .video-player {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: #000;
+            position: relative;
+        }
+        
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--white);
+            background-image: linear-gradient(45deg, #086B3C, #0A9956);
+            font-size: 1.2rem;
+        }
+        
+        .video-controls {
+            background-color: var(--primary);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .controls-left {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .controls-right {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            background-color: var(--white);
+            color: var(--primary);
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            border: 1px solid var(--white);
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .language-selector {
+            margin-top: 2rem;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        
+        .language-selector h2 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+        
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+        
+        .language-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.8rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .language-option:hover {
+            background-color: var(--light);
+        }
+        
+        .language-option.active {
+            background-color: rgba(8, 107, 60, 0.1);
+            border: 2px solid var(--primary);
+        }
+        
+        .language-flag {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .language-name {
+            font-size: 0.85rem;
+            text-align: center;
+            color: var(--dark);
+        }
+        
+        .module-selection {
+            margin-top: 2rem;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        
+        .module-selection h2 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+        
+        .module-list {
+            list-style-type: none;
+        }
+        
+        .module-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .module-item:hover {
+            background-color: var(--light);
+        }
+        
+        .module-item.active {
+            background-color: rgba(8, 107, 60, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .module-title {
+            font-weight: 500;
+        }
+        
+        .module-duration {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .transcript-container {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .transcript-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .transcript-content {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: var(--light);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+        
+        .current-line {
+            background-color: rgba(8, 107, 60, 0.1);
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .language-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+            
+            .video-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .controls-left, .controls-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="https://www.safa.net/wp-content/uploads/2015/04/safa_logo.png" alt="SAFA Logo">
+            <h1>Invoice System Training</h1>
+        </div>
+        <div>
+            <span>Welcome, Administrator</span>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="video-container">
+            <div class="video-player">
+                <div class="video-placeholder">
+                    [Video Player: SAFA Global Invoice System Training]
+                </div>
+            </div>
+            <div class="video-controls">
+                <div class="controls-left">
+                    <button class="btn">
+                        <i class="fas fa-play"></i> Play
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <span style="color: white;">3:45 / 5:00</span>
+                </div>
+                <div class="controls-right">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-closed-captioning"></i> Subtitles
+                    </button>
+                    <button class="btn">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="language-selector">
+            <h2>Select Your Preferred Language</h2>
+            <div class="language-grid">
+                <div class="language-option active">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">English</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">isiZulu</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">isiXhosa</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">Afrikaans</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">Sesotho</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">Setswana</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">Sepedi</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">Xitsonga</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">siSwati</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">Tshivenḓa</div>
+                </div>
+                <div class="language-option">
+                    <div class="language-flag">🇿🇦</div>
+                    <div class="language-name">isiNdebele</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="module-selection">
+            <h2>Training Modules</h2>
+            <ul class="module-list">
+                <li class="module-item active">
+                    <span class="module-title">1. System Introduction</span>
+                    <span class="module-duration">5:00</span>
+                </li>
+                <li class="module-item">
+                    <span class="module-title">2. Registration & Invoice Generation</span>
+                    <span class="module-duration">4:12</span>
+                </li>
+                <li class="module-item">
+                    <span class="module-title">3. Payment Processing</span>
+                    <span class="module-duration">3:45</span>
+                </li>
+                <li class="module-item">
+                    <span class="module-title">4. Invoice Management</span>
+                    <span class="module-duration">5:20</span>
+                </li>
+                <li class="module-item">
+                    <span class="module-title">5. Reporting Capabilities</span>
+                    <span class="module-duration">4:08</span>
+                </li>
+                <li class="module-item">
+                    <span class="module-title">6. Administrator Tools</span>
+                    <span class="module-duration">5:33</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="transcript-container">
+            <div class="transcript-header">
+                <h2>Transcript</h2>
+                <div>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-volume-up"></i> Listen
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            </div>
+            <div class="transcript-content">
+                <p>Welcome to the SAFA Global Invoice System training. This state-of-the-art system helps manage all financial transactions related to player registrations and transfers.</p>
+                <p class="current-line">The invoice system has been designed with ease of use in mind, while providing powerful features for tracking payments and managing financial records.</p>
+                <p>Each invoice follows a simple lifecycle from creation during registration, through payment processing, to final reconciliation and reporting.</p>
+                <p>Depending on your role within SAFA, you'll have different capabilities in the system. System administrators have full access to all features, while club administrators can manage invoices for their own clubs.</p>
+                <p>Let's start by exploring the main dashboard. Here you can see an overview of all invoices in the system, with key statistics displayed at the top.</p>
+                <p>Notice the filters on the left side that allow you to narrow down the list of invoices by status, date range, and club.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // This would be replaced with actual functionality in the production version
+        document.addEventListener('DOMContentLoaded', function() {
+            // Language selection
+            const languageOptions = document.querySelectorAll('.language-option');
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    languageOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    alert('Language changed to: ' + this.querySelector('.language-name').textContent);
+                });
+            });
+            
+            // Module selection
+            const moduleItems = document.querySelectorAll('.module-item');
+            moduleItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    moduleItems.forEach(mi => mi.classList.remove('active'));
+                    this.classList.add('active');
+                    alert('Selected module: ' + this.querySelector('.module-title').textContent);
+                });
+            });
+            
+            // Text-to-speech simulation
+            const listenButton = document.querySelector('.transcript-header .btn:first-child');
+            listenButton.addEventListener('click', function() {
+                alert('Text-to-speech would start reading the transcript in the selected language.');
+            });
+        });
+    </script>
+</body>
+</html>

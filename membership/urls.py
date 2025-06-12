@@ -1,5 +1,6 @@
 from django.urls import path
-from . import views, registration_views, transfer_views, appeal_views
+from . import views, registration_views, transfer_views, appeal_views, invoice_views
+from . import outstanding_report
 from .views import MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, MembershipDeleteView
 
 app_name = 'membership'
@@ -41,13 +42,28 @@ urlpatterns = [
     path('appeals/<int:pk>/', appeal_views.AppealDetailView.as_view(), name='appeal_detail'),
     path('appeals/<int:pk>/review/', appeal_views.AppealReviewView.as_view(), name='appeal_review'),
     path('appeals/federation/', appeal_views.FederationAppealListView.as_view(), name='federation_appeals'),
-    path('appeals/federation/history/', appeal_views.FederationAppealHistoryView.as_view(), name='federation_appeal_history'),
-
-
-  # Membership
+    path('appeals/federation/history/', appeal_views.FederationAppealHistoryView.as_view(), name='federation_appeal_history'),    # Membership
     path('memberships/', MembershipListView.as_view(), name='membership-list'),
     path('memberships/add/', MembershipCreateView.as_view(), name='membership-create'),
     path('memberships/<int:pk>/', MembershipDetailView.as_view(), name='membership-detail'),
     path('memberships/<int:pk>/edit/', MembershipUpdateView.as_view(), name='membership-update'),
     path('memberships/<int:pk>/delete/', MembershipDeleteView.as_view(), name='membership-delete'),
+    
+    # Payment and Invoices
+    path('register/success/', registration_views.RegistrationSuccessView.as_view(), name='registration_success'),
+    path('register/payment/return/', views.PaymentReturnView.as_view(), name='payment_return'),
+    path('register/payment/cancel/', views.PaymentCancelView.as_view(), name='payment_cancel'),
+    
+    # Invoice Management
+    path('invoices/', invoice_views.InvoiceListView.as_view(), name='invoice_list'),
+    path('invoices/<uuid:uuid>/', invoice_views.InvoiceDetailView.as_view(), name='invoice_detail'),
+    path('invoices/<uuid:uuid>/pdf/', invoice_views.InvoicePDFView.as_view(), name='invoice_pdf'),
+    path('invoices/<uuid:uuid>/mark-paid/', invoice_views.mark_invoice_paid, name='mark_invoice_paid'),
+    path('invoices/export/<str:format>/', invoice_views.export_invoices, name='export_invoices'),
+    path('payments/<uuid:uuid>/process/', views.ProcessCardPaymentView.as_view(), name='process_card_payment'),
+    
+    # Reports
+    path('reports/outstanding-balance/', invoice_views.OutstandingReportView.as_view(), name='outstanding_report'),
+    path('reports/outstanding-balance/export/<str:format>/', outstanding_report.export_outstanding_report, name='export_outstanding_report'),
+    path('reports/payment-reminders/<str:entity_type>/<int:entity_id>/', views.send_payment_reminder, name='send_payment_reminder'),
 ]

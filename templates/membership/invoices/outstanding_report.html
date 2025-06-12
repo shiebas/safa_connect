@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Outstanding Balance Report" %}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{% trans "Outstanding Balance Report" %}</h1>
+            <p class="text-muted">{% trans "As of" %} {{ today|date:"d F Y" }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="dropdown">
+                <a class="btn btn-outline-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-export me-2"></i>{% trans "Export" %}
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <li><a class="dropdown-item" href="{% url 'membership:export_outstanding_report' format='csv' %}">CSV</a></li>
+                    <li><a class="dropdown-item" href="{% url 'membership:export_outstanding_report' format='excel' %}">Excel</a></li>
+                    <li><a class="dropdown-item" href="{% url 'membership:export_outstanding_report' format='pdf' %}">PDF</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row">
+                <div class="col-md-4 mb-2">
+                    <label for="id_level" class="form-label">{% trans "Grouping Level" %}</label>
+                    <select name="level" id="id_level" class="form-select">
+                        <option value="club" {% if request.GET.level == "club" %}selected{% endif %}>{% trans "Club" %}</option>
+                        <option value="lfa" {% if request.GET.level == "lfa" %}selected{% endif %}>{% trans "Local Football Association" %}</option>
+                        <option value="region" {% if request.GET.level == "region" %}selected{% endif %}>{% trans "Region" %}</option>
+                        <option value="province" {% if request.GET.level == "province" %}selected{% endif %}>{% trans "Province" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label for="id_days_overdue" class="form-label">{% trans "Overdue by (days)" %}</label>
+                    <select name="days_overdue" id="id_days_overdue" class="form-select">
+                        <option value="any" {% if request.GET.days_overdue == "any" %}selected{% endif %}>{% trans "Any" %}</option>
+                        <option value="30" {% if request.GET.days_overdue == "30" %}selected{% endif %}>{% trans "30+ days" %}</option>
+                        <option value="60" {% if request.GET.days_overdue == "60" %}selected{% endif %}>{% trans "60+ days" %}</option>
+                        <option value="90" {% if request.GET.days_overdue == "90" %}selected{% endif %}>{% trans "90+ days" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label for="id_sort_by" class="form-label">{% trans "Sort By" %}</label>
+                    <select name="sort_by" id="id_sort_by" class="form-select">
+                        <option value="total_desc" {% if request.GET.sort_by == "total_desc" %}selected{% endif %}>{% trans "Total Outstanding (High to Low)" %}</option>
+                        <option value="total_asc" {% if request.GET.sort_by == "total_asc" %}selected{% endif %}>{% trans "Total Outstanding (Low to High)" %}</option>
+                        <option value="name_asc" {% if request.GET.sort_by == "name_asc" %}selected{% endif %}>{% trans "Name (A to Z)" %}</option>
+                        <option value="days_desc" {% if request.GET.sort_by == "days_desc" %}selected{% endif %}>{% trans "Most Overdue" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-12 mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>{% trans "Generate Report" %}
+                    </button>
+                    <a href="{% url 'membership:outstanding_report' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "Reset" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Total Outstanding" %}</h5>
+                    <h3>R {{ total_amount|floatformat:2 }}</h3>
+                    <p class="mb-0">{{ total_count }} {% trans "invoices" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "1-30 Days" %}</h5>
+                    <h3>R {{ days_30_amount|floatformat:2 }}</h3>
+                    <p class="mb-0">{{ days_30_count }} {% trans "invoices" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-orange text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "31-90 Days" %}</h5>
+                    <h3>R {{ days_90_amount|floatformat:2 }}</h3>
+                    <p class="mb-0">{{ days_90_count }} {% trans "invoices" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Over 90 Days" %}</h5>
+                    <h3>R {{ days_90_plus_amount|floatformat:2 }}</h3>
+                    <p class="mb-0">{{ days_90_plus_count }} {% trans "invoices" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Total Invoices" %}</th>
+                            <th>{% trans "Total Players" %}</th>
+                            <th>{% trans "1-30 Days" %}</th>
+                            <th>{% trans "31-90 Days" %}</th>
+                            <th>{% trans "Over 90 Days" %}</th>
+                            <th>{% trans "Total Outstanding" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in report_items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.invoice_count }}</td>
+                            <td>{{ item.player_count }}</td>
+                            <td>R {{ item.days_30_amount|floatformat:2 }}</td>
+                            <td>R {{ item.days_90_amount|floatformat:2 }}</td>
+                            <td>R {{ item.days_90_plus_amount|floatformat:2 }}</td>
+                            <td><strong>R {{ item.total_amount|floatformat:2 }}</strong></td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'membership:invoice_list' %}?{{ item.filter_params }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-search"></i> {% trans "Details" %}
+                                    </a>
+                                    <a href="{% url 'membership:send_payment_reminder' entity_type=item.entity_type entity_id=item.id %}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-envelope"></i> {% trans "Send Reminders" %}
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">{% trans "No outstanding balances found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

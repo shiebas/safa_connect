@@ -123,8 +123,13 @@ class ModelWithLogo(models.Model):
 
     @cached_property
     def logo_url(self):
-        if self.logo and hasattr(self.logo, 'url'):
-            return self.logo.url
+        try:
+            if self.logo and hasattr(self.logo, 'url'):
+                # Check if the file actually exists to avoid timeouts
+                if self.logo.storage.exists(self.logo.name):
+                    return self.logo.url
+        except Exception:
+            pass
         return '/static/default_logo.png'
 
     class Meta:
@@ -136,6 +141,30 @@ try:
 except ImportError:
     Club = None
 
+# Add the OrganizationType model after the Position model
+class OrganizationType(models.Model):
+    """Types of organizations a user can belong to in the federation hierarchy"""
+    name = models.CharField(max_length=50)
+    level = models.CharField(
+        max_length=20,
+        choices=[
+            ('NATIONAL', 'National Federation'),
+            ('PROVINCE', 'Province'),
+            ('REGION', 'Region'),
+            ('LFA', 'Local Football Association'),
+            ('CLUB', 'Club'),
+        ]
+    )
+    requires_approval = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"{self.name} ({self.level})"
+    
+    class Meta:
+        ordering = ['level']
+
+# Update CustomUser model with improved organization relationships
 class CustomUser(AbstractUser, ModelWithLogo):
     # Remove the username field
     username = None
@@ -176,15 +205,20 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text=_("User must consent to POPI Act terms for registration")
     )
 
-    # Add country field to store country code
-    country_code = models.CharField(max_length=3, default='ZAF', blank=True)
+    # Simplify country handling for South African context
+    country_code = models.CharField(
+        max_length=3, 
+        default='ZAF', 
+        blank=True,
+        help_text=_("Default is ZAF for South African citizens")
+    )
 
     # Identification - FIXED to handle empty values
     id_number = models.CharField(
         max_length=20, 
         blank=True,
         null=True,
-        help_text=_("13-digit South African ID number")
+        help_text=_("13-digit South African ID number for citizens")
     )
     id_number_other = models.CharField(max_length=25, blank=True, null=True)
     passport_number = models.CharField(max_length=25, blank=True, null=True)
@@ -245,7 +279,8 @@ class CustomUser(AbstractUser, ModelWithLogo):
         decimal_places=2, 
         null=True, 
         blank=True,
-        help_text='Amount paid for membership'
+        verbose_name=_('Membership Fee (ZAR)'),
+        help_text=_('Amount paid for membership in ZAR (South African Rand)')
     )
     
     # Card Delivery Preferences
@@ -319,10 +354,62 @@ class CustomUser(AbstractUser, ModelWithLogo):
     )
 
     # Add foreign key fields to store organization relationships
-    province_id = models.IntegerField(null=True, blank=True, help_text="Province ID for province admins")
-    region_id = models.IntegerField(null=True, blank=True, help_text="Region ID for region admins") 
-    local_federation_id = models.IntegerField(null=True, blank=True, help_text="LFA ID for LFA admins")
-    club_id = models.IntegerField(null=True, blank=True, help_text="Club ID for club admins")
+    national_federation = models.ForeignKey(
+        'geography.NationalFederation',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='federation_users',
+        help_text="National federation this user belongs to"
+    )
+    
+    province = models.ForeignKey(
+        'geography.Province',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Province this user belongs to"
+    )
+    
+    region = models.ForeignKey(
+        'geography.Region',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Region this user belongs to"
+    )
+    
+    local_federation = models.ForeignKey(
+        'geography.LocalFootballAssociation',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Local Football Association this user belongs to"
+    )
+    
+    club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='members',
+        help_text="Club this user belongs to (required for political leaders)"
+    )
+    
+    # Add organization type to structure registration
+    organization_type = models.ForeignKey(
+        OrganizationType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Primary organization type this user belongs to"
+    )
+    
+    # Add a field to indicate if user is politically elected
+    is_political_position = models.BooleanField(
+        default=False,
+        help_text="Whether this user holds a politically elected position"
+    )
     
     # Specify the custom manager
     objects = CustomUserManager()
@@ -351,6 +438,26 @@ class CustomUser(AbstractUser, ModelWithLogo):
 
     def save(self, *args, **kwargs):
         """Override save method to validate ID number and set nationality"""
+        # Ensure mother_body is always set to SAFA if not specified
+        # Check if mother_body field exists and is accessible
+        # Temporarily commented out until field exists in database
+        # try:
+        #     if hasattr(self, 'mother_body') and not getattr(self, 'mother_body_id', None):
+        #         from geography.models import NationalFederation
+        #         safa, created = NationalFederation.objects.get_or_create(
+        #             name="South African Football Association",
+        #             defaults={
+        #                 'acronym': 'SAFA',
+        #                 'country_id': 1  # Assuming South Africa has ID 1
+        #             }
+        #         )
+        #         self.mother_body = safa
+        # except Exception as e:
+        #     # Log error but don't prevent save - field might not exist yet
+        #     import logging
+        #     logger = logging.getLogger(__name__)
+        #     logger.warning(f"Could not set SAFA as mother body: {str(e)}")
+        
         # Convert empty strings to None to avoid unique constraint issues
         if self.id_number == '':
             self.id_number = None
@@ -378,6 +485,26 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 logger = logging.getLogger(__name__)
                 logger.warning(f"ID number validation failed for user {self.email}: {str(e)}")
 
+        # If user is in a political position, ensure club is required
+        if self.is_political_position and not self.club:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Political position holder {self.email} has no club affiliation")
+        
+        # Set proper organization relationships based on role
+        if self.role == 'ADMIN_NATIONAL':
+            # For national admins, ensure national_federation is set
+            if not self.national_federation:
+                from geography.models import NationalFederation
+                default_federation, _ = NationalFederation.objects.get_or_create(
+                    name="South African Football Association",
+                    defaults={
+                        'short_name': "SAFA",
+                        'country_code': "ZAF"
+                    }
+                )
+                self.national_federation = default_federation
+        
         super().save(*args, **kwargs)
 
     def generate_safa_id(self):
@@ -696,6 +823,17 @@ class CustomUser(AbstractUser, ModelWithLogo):
             completed_items += 1
             
         return int((completed_items / total_items) * 100)
+
+    # Add mother body/federation field that defaults to SAFA
+    # Temporarily commented out until migration can be created properly
+    # mother_body = models.ForeignKey(
+    #     'geography.NationalFederation',
+    #     on_delete=models.PROTECT,  # Don't allow deletion of SAFA
+    #     null=True,
+    #     blank=True,
+    #     related_name='member_users',
+    #     help_text="The national federation this user belongs to (defaults to SAFA)"
+    # )
 
 
 

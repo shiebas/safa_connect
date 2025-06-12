@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Invoices" %}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{% trans "Invoices" %}</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="dropdown">
+                <a class="btn btn-outline-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-export me-2"></i>{% trans "Export" %}
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <li><a class="dropdown-item" href="{% url 'membership:export_invoices' format='csv' %}">CSV</a></li>
+                    <li><a class="dropdown-item" href="{% url 'membership:export_invoices' format='excel' %}">Excel</a></li>
+                    <li><a class="dropdown-item" href="{% url 'membership:export_invoices' format='pdf' %}">PDF</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row">
+                <div class="col-md-3 mb-2">
+                    <label for="id_status" class="form-label">{% trans "Status" %}</label>
+                    <select name="status" id="id_status" class="form-select">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="PENDING" {% if request.GET.status == "PENDING" %}selected{% endif %}>{% trans "Pending" %}</option>
+                        <option value="PAID" {% if request.GET.status == "PAID" %}selected{% endif %}>{% trans "Paid" %}</option>
+                        <option value="OVERDUE" {% if request.GET.status == "OVERDUE" %}selected{% endif %}>{% trans "Overdue" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="id_club" class="form-label">{% trans "Club" %}</label>
+                    <select name="club" id="id_club" class="form-select">
+                        <option value="">{% trans "All" %}</option>
+                        {% for club in clubs %}
+                            <option value="{{ club.id }}" {% if request.GET.club == club.id|stringformat:"i" %}selected{% endif %}>{{ club.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="id_date_from" class="form-label">{% trans "From Date" %}</label>
+                    <input type="date" name="date_from" id="id_date_from" class="form-control" value="{{ request.GET.date_from }}">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="id_date_to" class="form-label">{% trans "To Date" %}</label>
+                    <input type="date" name="date_to" id="id_date_to" class="form-control" value="{{ request.GET.date_to }}">
+                </div>
+                <div class="col-md-12 mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>{% trans "Filter" %}
+                    </button>
+                    <a href="{% url 'membership:invoice_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "Clear" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Total Invoices" %}</h5>
+                    <h3>{{ total_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Paid" %}</h5>
+                    <h3>{{ paid_count }}</h3>
+                    <small>R {{ paid_amount|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Pending" %}</h5>
+                    <h3>{{ pending_count }}</h3>
+                    <small>R {{ pending_amount|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Overdue" %}</h5>
+                    <h3>{{ overdue_count }}</h3>
+                    <small>R {{ overdue_amount|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Invoice #" %}</th>
+                            <th>{% trans "Player" %}</th>
+                            <th>{% trans "Club" %}</th>
+                            <th>{% trans "Issue Date" %}</th>
+                            <th>{% trans "Due Date" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td>{{ invoice.invoice_number }}</td>
+                            <td>{{ invoice.player.get_full_name }}</td>
+                            <td>{{ invoice.club.name }}</td>
+                            <td>{{ invoice.issue_date|date:"d M Y" }}</td>
+                            <td>{{ invoice.due_date|date:"d M Y" }}</td>
+                            <td>R {{ invoice.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if invoice.status == 'PAID' %}
+                                    <span class="badge bg-success">{% trans "Paid" %}</span>
+                                {% elif invoice.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger">{% trans "Overdue" %}</span>
+                                {% elif invoice.status == 'PENDING' %}
+                                    <span class="badge bg-warning">{% trans "Pending" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ invoice.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'membership:invoice_detail' uuid=invoice.uuid %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if invoice.status != 'PAID' and perms.membership.can_mark_invoice_paid %}
+                                    <a href="{% url 'membership:mark_invoice_paid' uuid=invoice.uuid %}" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-check-circle"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'membership:invoice_pdf' uuid=invoice.uuid %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">{% trans "No invoices found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if invoices.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if invoices.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ invoices.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            {% trans "Previous" %}
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in invoices.paginator.page_range %}
+                      {% if invoices.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                      {% elif num > invoices.number|add:'-3' and num < invoices.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                    
+                    {% if invoices.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ invoices.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            {% trans "Next" %}
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

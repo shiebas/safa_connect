@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from utils.admin import ModelWithLogoAdmin
 from .models import (
     WorldSportsBody, Continent, ContinentFederation,
@@ -26,32 +27,15 @@ class CountryAdmin(ModelWithLogoAdmin):
 
 
 class NationalFederationAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'acronym', 'country', 'safa_id', 'display_logo']  # Added safa_id
+    list_display = ['name', 'acronym', 'country', 'safa_id', 'display_logo']
     list_filter = ['country']
     search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
-    readonly_fields = ('name', 'acronym', 'country', 'safa_id')  # Make read-only
     
-    def has_add_permission(self, request):
-        return False  # Disable adding new national federations
-    
-    def has_delete_permission(self, request, obj=None):
-        return False  # Disable deleting national federations
-
 class ProvinceAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'code', 'country', 'safa_id', 'get_region_count', 'display_logo']
     list_filter = ['country']
     search_fields = ['name', 'code', 'safa_id']
-    readonly_fields = ('name', 'code', 'country')
     actions = ['generate_safa_ids']
-    
-    def has_add_permission(self, request):
-        return False  # Disable adding new provinces
-    
-    def has_delete_permission(self, request, obj=None):
-        return False  # Disable deleting provinces
-    
-    def has_change_permission(self, request, obj=None):
-        return False  # Completely disable editing
     
     def generate_safa_ids(self, request, queryset):
         """Generate unique SAFA IDs for selected provinces"""
@@ -78,9 +62,6 @@ class ProvinceAdmin(ModelWithLogoAdmin):
         messages.success(request, f'Generated SAFA IDs for {updated_count} provinces.')
     
     generate_safa_ids.short_description = "Generate SAFA IDs for selected provinces"
-    
-    def get_readonly_fields(self, request, obj=None):
-        return [f.name for f in self.model._meta.fields]  # Make all fields readonly
     
     def get_region_count(self, obj):
         return obj.region_set.count()  # Changed from regions to region_set
@@ -127,8 +108,9 @@ class ClubAdmin(ModelWithLogoAdmin):
         'get_lfa',
         'get_region',
         'get_province',
+        'display_fee',
+        'payment_confirmed',
         'stadium',
-        'founding_date',
         'display_logo'
     ]
     list_filter = [
@@ -145,6 +127,7 @@ class ClubAdmin(ModelWithLogoAdmin):
         'localfootballassociation__region__name',
         'localfootballassociation__region__province__name',
     ]
+    list_editable = ['payment_confirmed']
     
     def get_region(self, obj):
         return obj.region.name if obj.region else '-'
@@ -160,6 +143,37 @@ class ClubAdmin(ModelWithLogoAdmin):
         return obj.localfootballassociation.name if obj.localfootballassociation else '-'
     get_lfa.short_description = 'Local Football Association'
     get_lfa.admin_order_field = 'localfootballassociation__name'
+    
+    def display_fee(self, obj):
+        if obj.registration_fee is not None:
+            return f"R {obj.registration_fee:.2f}"
+        return '-'
+    display_fee.short_description = 'Registration Fee (ZAR)'
+    display_fee.admin_order_field = 'registration_fee'
+    
+    fieldsets = [
+        ('Club Information', {
+            'fields': ['name', 'code', 'status', 'description', 'colors', 'founding_date', 
+                      'website', 'stadium', 'logo']
+        }),
+        ('Location Information', {
+            'fields': ['localfootballassociation']
+        }),
+        ('SAFA Registration', {
+            'fields': ['safa_id', 'fifa_id']
+        }),
+        ('Payment Information', {
+            'fields': ['registration_fee', 'payment_confirmed', 'payment_date'],
+            'classes': ['collapse'],
+            'description': 'Payment details for club registration'
+        }),
+    ]
+    
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        """Customize the display of the registration fee field"""
+        if db_field.name == 'registration_fee':
+            kwargs['widget'] = forms.NumberInput(attrs={'step': '0.01', 'min': '0'})
+        return super().formfield_for_dbfield(db_field, **kwargs)
 
 # Register models
 admin.site.register(WorldSportsBody)

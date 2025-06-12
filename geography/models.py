@@ -410,7 +410,13 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     payment_confirmed = models.BooleanField(default=False, 
                                           help_text="Payment confirmed for SAFA registration")
     payment_date = models.DateTimeField(null=True, blank=True)
-    registration_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    registration_fee = models.DecimalField(
+        verbose_name=_('Registration Fee'),
+        max_digits=10, 
+        decimal_places=2, 
+        default=0.00,
+        help_text=_('Registration fee amount in ZAR (South African Rand)')
+    )
     
     class Meta:
         verbose_name = _('Club')
@@ -440,15 +446,16 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
                     break
         
         # Generate FIFA ID if not set (7-digit alphanumeric)
-        if not self.fifa_id:
-            import string
-            import random
-            chars = string.ascii_uppercase + string.digits
-            while True:
-                fifa_id = ''.join(random.choices(chars, k=7))
-                if not Club.objects.filter(fifa_id=fifa_id).exists():
-                    self.fifa_id = fifa_id
-                    break
+        # Commented out FIFA ID generation
+        # if not self.fifa_id:
+        #     import string
+        #     import random
+        #     chars = string.ascii_uppercase + string.digits
+        #     while True:
+        #         fifa_id = ''.join(random.choices(chars, k=7))
+        #         if not Club.objects.filter(fifa_id=fifa_id).exists():
+        #             self.fifa_id = fifa_id
+        #             break
         super().save(*args, **kwargs)
     
     def confirm_payment(self, amount=None):

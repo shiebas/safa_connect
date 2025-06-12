@@ -11,6 +11,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from .models import CustomUser, Membership, Club
 from .forms import PlayerRegistrationForm, PaymentSelectionForm
+from .constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
 
 
 class ClubAdminRequiredMixin(LoginRequiredMixin):
@@ -94,10 +95,11 @@ class PaymentSelectionView(ClubAdminRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from membership.constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
         context['club'] = self.user_club
         context['step'] = 2
-        context['junior_fee'] = 100  # R100
-        context['senior_fee'] = 200  # R200
+        context['junior_fee'] = float(JUNIOR_FEE_ZAR)  # ZAR 100
+        context['senior_fee'] = float(SENIOR_FEE_ZAR)  # ZAR 200
         return context
     
     def post(self, request, *args, **kwargs):
@@ -117,10 +119,11 @@ class PaymentSelectionView(ClubAdminRequiredMixin, TemplateView):
             return self.get(request, *args, **kwargs)
         
         # Store payment selection in session
+        from membership.constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
         request.session['payment_data'] = {
             'membership_type': membership_type,
             'payment_method': payment_method,
-            'fee_amount': 100 if membership_type == 'JR' else 200
+            'fee_amount': float(JUNIOR_FEE_ZAR) if membership_type == 'JR' else float(SENIOR_FEE_ZAR)
         }
         
         return redirect('membership:payment_confirmation')

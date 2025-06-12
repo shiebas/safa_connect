@@ -8,6 +8,9 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
+
+from .constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR, BANK_DETAILS
 
 from .forms import PaymentSelectionForm, PlayerRegistrationForm
 from .models import (
@@ -15,6 +18,7 @@ from .models import (
     Player,
     PlayerClubRegistration
 )
+from .models.invoice import Invoice, InvoiceItem
 from geography.models import Club
 
 
@@ -103,10 +107,11 @@ class PaymentSelectionView(ClubAdminRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from membership.constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
         context['club'] = self.user_club
         context['step'] = 2
-        context['junior_fee'] = 100  # R100
-        context['senior_fee'] = 200  # R200
+        context['junior_fee'] = float(JUNIOR_FEE_ZAR)  # ZAR 100
+        context['senior_fee'] = float(SENIOR_FEE_ZAR)  # ZAR 200
         return context
     
     def post(self, request, *args, **kwargs):
@@ -126,10 +131,11 @@ class PaymentSelectionView(ClubAdminRequiredMixin, TemplateView):
             return self.get(request, *args, **kwargs)
         
         # Store payment selection in session
+        from membership.constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
         request.session['payment_data'] = {
             'membership_type': membership_type,
             'payment_method': payment_method,
-            'fee_amount': 100 if membership_type == 'JR' else 200
+            'fee_amount': float(JUNIOR_FEE_ZAR) if membership_type == 'JR' else float(SENIOR_FEE_ZAR)
         }
         
         return redirect('membership:payment_confirmation')
@@ -187,7 +193,7 @@ class PaymentConfirmationView(ClubAdminRequiredMixin, TemplateView):
     
     @transaction.atomic
     def process_registration(self):
-        """Create the player and club registration records"""
+        """Create the player and club registration records with invoice"""
         try:
             player_data = self.request.session['player_data']
             payment_data = self.request.session['payment_data']
@@ -228,13 +234,51 @@ class PaymentConfirmationView(ClubAdminRequiredMixin, TemplateView):
                       f"Membership Type: {'Junior' if payment_data['membership_type'] == 'JR' else 'Senior'}"
             )
             
+            # Create invoice for payment
+            fee_amount = payment_data['fee_amount']
+            membership_type = 'Junior' if payment_data['membership_type'] == 'JR' else 'Senior'
+            
+            # Get content type for registration
+            content_type = ContentType.objects.get_for_model(registration)
+            
+            # Create invoice
+            invoice = Invoice.objects.create(
+                reference=payment_reference,
+                invoice_type='REGISTRATION',
+                amount=fee_amount,
+                player=player,
+                club=self.user_club,
+                issued_by=self.club_member,
+                content_type=content_type,
+                object_id=registration.id,
+                payment_method=payment_data['payment_method'],
+                status='PENDING',
+                notes=f"Registration invoice for {player.get_full_name()}\n"
+                      f"Membership Type: {membership_type}"
+            )
+            
+            # Create invoice item
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=f"{membership_type} Player Registration Fee",
+                quantity=1,
+                unit_price=fee_amount,
+                sub_total=fee_amount
+            )
+            
             # Store IDs for success page
             self.request.session['created_player_id'] = player.id
             self.request.session['created_registration_id'] = registration.id
+            self.request.session['created_invoice_id'] = invoice.id
             
             # Clear registration data but keep payment reference for tracking
             del self.request.session['player_data']
             del self.request.session['payment_data']
+            
+            # If payment method is CARD and we're not immediately processing
+            # Store the invoice UUID for the payment page
+            if payment_data['payment_method'] == 'CARD':
+                self.request.session['pending_invoice_uuid'] = str(invoice.uuid)
             
             messages.success(self.request, f"Player {player.get_full_name()} registered successfully!")
             return redirect('membership:registration_success')
@@ -248,19 +292,31 @@ class PaymentConfirmationView(ClubAdminRequiredMixin, TemplateView):
         payment_reference = self.request.session['payment_reference']
         payment_data = self.request.session['payment_data']
         
-        # Store additional data for payment gateway
+        # Create the registration and invoice
+        result = self.process_registration()
+        
+        # Get the invoice UUID
+        invoice_uuid = self.request.session.get('pending_invoice_uuid')
+        
+        if not invoice_uuid:
+            messages.error(self.request, "Payment processing failed: Invoice not created")
+            return result
+        
+        # Prepare payment gateway data
         self.request.session['payment_gateway_data'] = {
             'amount': payment_data['fee_amount'],
             'reference': payment_reference,
+            'invoice_uuid': invoice_uuid,
             'return_url': self.request.build_absolute_uri(reverse('membership:payment_return')),
             'cancel_url': self.request.build_absolute_uri(reverse('membership:payment_cancel')),
         }
         
-        # Simulate redirect to payment gateway
+        # In a real implementation, redirect to payment gateway
+        # For development, simulate a successful payment
         messages.info(self.request, f"Redirecting to payment gateway for R{payment_data['fee_amount']}...")
         
-        # For now, create the registration and redirect to success
-        return self.process_registration()
+        # For now, just return the registration process result
+        return result
 
 
 class RegistrationSuccessView(ClubAdminRequiredMixin, TemplateView):
@@ -270,21 +326,31 @@ class RegistrationSuccessView(ClubAdminRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get created player and registration
+        # Get created player, registration and invoice
         player_id = self.request.session.get('created_player_id')
         registration_id = self.request.session.get('created_registration_id')
+        invoice_id = self.request.session.get('created_invoice_id')
         payment_reference = self.request.session.get('payment_reference')
         
         if player_id and registration_id:
             try:
                 player = Player.objects.get(id=player_id)
                 registration = PlayerClubRegistration.objects.get(id=registration_id)
+                invoice = None
+                
+                if invoice_id:
+                    try:
+                        invoice = Invoice.objects.get(id=invoice_id)
+                    except Invoice.DoesNotExist:
+                        pass
                 
                 context.update({
                     'player': player,
                     'registration': registration,
+                    'invoice': invoice,
                     'payment_reference': payment_reference,
                     'club': self.user_club,
+                    'bank_details': BANK_DETAILS,
                 })
             except (Player.DoesNotExist, PlayerClubRegistration.DoesNotExist):
                 messages.error(self.request, "Registration details not found.")

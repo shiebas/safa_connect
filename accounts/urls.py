@@ -6,7 +6,7 @@ from .views import (
     model_debug_view,  # Remove generate_safa_id_ajax
     check_email_availability, check_id_number_availability,
     registration_portal, province_registration, club_registration,
-    api_regions, api_clubs, national_registration, lfa_registration, api_lfas, supporter_registration,
+    api_regions, api_clubs, national_registration, lfa_registration, api_lfas,
     update_profile_photo
 )
 
@@ -37,7 +37,6 @@ urlpatterns = [
     path('register/national/', national_registration, name='national_registration'),
     path('register/lfa/', lfa_registration, name='lfa_registration'),
     path('register/club/', club_registration, name='club_registration'),  # Keep only one
-    path('register/supporter/', supporter_registration, name='supporter_registration'),
     path('api/lfas/', api_lfas, name='api_lfas'),
     
     # Add other paths as needed

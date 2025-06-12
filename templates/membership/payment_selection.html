@@ -14,8 +14,8 @@
                     <h6>Registration Summary</h6>
                     <p><strong>Name:</strong> {{ player.first_name }} {{ player.last_name }}</p>
                     <p><strong>Club:</strong> {{ player.club.name }}</p>
-                    <p><strong>Registration Fee:</strong> ${{ club.registration_fee }}</p>
-                    <p><strong>Monthly Fee:</strong> ${{ club.monthly_fee }}</p>
+                    <p><strong>Registration Fee:</strong> R{{ club.registration_fee }} ZAR</p>
+                    <p><strong>Monthly Fee:</strong> R{{ club.monthly_fee }} ZAR</p>
                 </div>
 
                 <form method="post">
@@ -32,7 +32,7 @@
                                             <label class="form-check-label" for="monthly">
                                                 <h6>Monthly Payment</h6>
                                                 <p class="text-muted">Pay monthly fees</p>
-                                                <h4 class="text-primary">${{ club.monthly_fee }}/month</h4>
+                                                <h4 class="text-primary">R{{ club.monthly_fee }} ZAR/month</h4>
                                             </label>
                                         </div>
                                     </div>
@@ -46,8 +46,8 @@
                                             <label class="form-check-label" for="annual">
                                                 <h6>Annual Payment</h6>
                                                 <p class="text-muted">Save 10% with annual payment</p>
-                                                <h4 class="text-success">${{ annual_fee }}</h4>
-                                                <small class="text-success">Save ${{ savings }}!</small>
+                                                <h4 class="text-success">R{{ annual_fee }} ZAR</h4>
+                                                <small class="text-success">Save R{{ savings }} ZAR!</small>
                                             </label>
                                         </div>
                                     </div>

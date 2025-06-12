@@ -12,16 +12,18 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
-# Fix import statement - update model names to match what's actually defined in models.py
-from .models import CustomUser, ModelWithLogo, RegistrationType, Position
+# Update imports to include new models
+from .models import CustomUser, ModelWithLogo, RegistrationType, Position, OrganizationType
 
-# Add missing imports at the top
+# Import directly from geography models
 try:
-    from geography.models import Province, LocalFootballAssociation, Club
+    from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation
 except (ImportError, RuntimeError):
     Province = None
+    Region = None
     LocalFootballAssociation = None
     Club = None
+    NationalFederation = None
 
 # Properly import Province directly
 try:
@@ -159,11 +161,14 @@ class CustomUserAdmin(UserAdmin):
         'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other',
         'membership_status', 'club_membership_verified', 'safa_id', 'is_active', 'date_joined'
     ]
+    
     list_filter = [
         'role', 'employment_status', 'popi_act_consent', 'membership_status', 'club_membership_verified',
-        'is_active', 'is_staff', 'date_joined', 'position__level'
+        'is_active', 'is_staff', 'date_joined', 'position__level', 'organization_type',
+        'is_political_position'
     ]
-    search_fields = ['email', 'name', 'surname', 'id_number', 'safa_id']
+    
+    search_fields = ['email', 'first_name', 'last_name', 'id_number', 'safa_id']
     ordering = ['email']
     
     actions = ['activate_users', 'deactivate_users']
@@ -184,8 +189,21 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),
-        ('SAFA Structure', {'fields': ('role', 'employment_status', 'position', 'province_id', 'region_id', 'local_federation_id', 'club_id', 'club_membership_number', 'club_membership_verified')}),
-        ('Identification', {'fields': ('id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other', 'id_document', 'popi_act_consent')}),
+        ('SAFA Structure', {
+            'fields': (
+                'role', 'employment_status', 'position', 
+                'organization_type', 'is_political_position',
+                'national_federation', 'province', 'region', 'local_federation', 'club',
+                'club_membership_number', 'club_membership_verified'
+            )
+        }),
+        ('Identification', {
+            'fields': (
+                'id_document_type', 'id_number', 'passport_number', 
+                'driver_license_number', 'id_number_other', 'id_document', 
+                'popi_act_consent'
+            )
+        }),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('SAFA Info', {'fields': ('safa_id', 'fifa_id', 'membership_status')}),
@@ -284,23 +302,20 @@ class CustomUserAdmin(UserAdmin):
         """Display organization based on role"""
         try:
             if obj.role == 'ADMIN_NATIONAL':
-                return 'SAFA National'
+                if obj.national_federation:
+                    return f"National: {obj.national_federation.name}"
+                return "National: SAFA"
             elif obj.role == 'ADMIN_PROVINCE':
-                # Look for province_id field in the user object
-                if hasattr(obj, 'province_id') and obj.province_id and Province:
-                    province = Province.objects.get(id=obj.province_id)
-                    return f"Province: {province.name}"
+                if obj.province:
+                    return f"Province: {obj.province.name}"
                 return "Province: Not Set"
             elif obj.role == 'ADMIN_LOCAL_FED':
-                # Look for local_federation_id field
-                if hasattr(obj, 'local_federation_id') and obj.local_federation_id and LocalFootballAssociation:
-                    lfa = LocalFootballAssociation.objects.get(id=obj.local_federation_id)
-                    return f"LFA: {lfa.name}"
+                if obj.local_federation:
+                    return f"LFA: {obj.local_federation.name}"
                 return "LFA: Not Set"
             elif obj.role == 'CLUB_ADMIN':
-                if hasattr(obj, 'club_id') and obj.club_id and Club:
-                    club = Club.objects.get(id=obj.club_id)
-                    return f"Club: {club.name}"
+                if obj.club:
+                    return f"Club: {obj.club.name}"
                 return "Club: Not Set"
             return "Not Assigned"
         except Exception as e:
@@ -308,13 +323,19 @@ class CustomUserAdmin(UserAdmin):
     
     get_organization.short_description = 'Organization'
 
+# Add OrganizationType admin
+@admin.register(OrganizationType)
+class OrganizationTypeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'level', 'is_active', 'requires_approval']
+    list_filter = ['level', 'is_active', 'requires_approval']
+    search_fields = ['name']
+
+# Fix the RegistrationType registration by using only one method
+@admin.register(RegistrationType)
 class RegistrationTypeAdmin(admin.ModelAdmin):
     """Admin configuration for the RegistrationType model."""
     list_display = ('name', 'allowed_user_roles')
     search_fields = ('name', 'allowed_user_roles')
-
-# Register models with the admin site
-admin.site.register(RegistrationType, RegistrationTypeAdmin)
 
 """
 # This section is commented out as Membership model is not available

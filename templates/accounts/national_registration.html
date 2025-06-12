@@ -4,7 +4,7 @@
 {% block title %}National Administrator Registration{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/safa_style.css' %}"> 
+<link rel="stylesheet" href="{% static 'css/safa_style.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -13,65 +13,137 @@
         <div class="col-md-8">
             <div class="registration-form">
                 <div class="form-header text-center">
-                    <i class="fas fa-flag mb-3"></i>
-                    <h2 class="mb-0">National Administrator Registration</h2>
-                    <p class="mb-0 opacity-75">Join the SAFA National Federation Team</p>
+                    <i class="fas fa-flag fa-3x mb-3"></i>
+                    <h2 class="mb-0">National Administration Registration System</h2>
+                    
                 </div>
-                
+                <!-- Removed static progress indicator, only JS wizard will show steps -->
                 <div class="p-4">
                     <form action="{% url 'accounts:national_registration' %}" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
-                        
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger border-0 shadow-sm">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 {{ form.non_field_errors }}
                             </div>
                         {% endif %}
-                        
                         <!-- Personal Information Section -->
                         <div class="form-section">
                             <div class="p-4">
-                                <h5 class="text-primary mb-4">
-                                    <i class="fas fa-user me-2"></i>Personal Information
+                                <h5 class="text-safa mb-4">
+                                    <i class="fas fa-user me-2"></i>Personal Information1
                                 </h5>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Email</label>
-                                    {{ form.email }}
-                                    {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors }}</div>{% endif %}
-                                </div>
-                                
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label fw-bold">First Name</label>
+                                        <label class="form-label">Email Address</label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">First Name</label>
                                         {{ form.first_name }}
                                         {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors }}</div>{% endif %}
                                     </div>
-                                    
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label fw-bold">Last Name</label>
+                                        <label class="form-label">Last Name</label>
                                         {{ form.last_name }}
                                         {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors }}</div>{% endif %}
                                     </div>
                                 </div>
-                                
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Employment Status</label>
-                                    {{ form.employment_status }}
-                                    {% if form.employment_status.errors %}<div class="text-danger small mt-1">{{ form.employment_status.errors }}</div>{% endif %}
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Position</label>
-                                    {{ form.position }}
-                                    {% if form.position.errors %}<div class="text-danger small mt-1">{{ form.position.errors }}</div>{% endif %}
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Profile Photo</label>
+                                    <label class="form-label">Profile Photo</label>
                                     {{ form.profile_photo }}
                                     {% if form.profile_photo.errors %}<div class="text-danger small mt-1">{{ form.profile_photo.errors }}</div>{% endif %}
+                                    <div class="form-text">Upload a professional photo (optional)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Organization Information Section -->
+                        <div class="form-section">
+                            <div class="p-4">
+                                <h5 class="text-safa mb-4">
+                                    <i class="fas fa-building me-2"></i>Organization Information
+                                </h5>
+                                
+                                <!-- Add a hidden role field since this is national registration -->
+                                <input type="hidden" name="role" value="ADMIN_NATIONAL">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Organization Type</label>
+                                        {{ form.organization_type }}
+                                        {% if form.organization_type.errors %}<div class="text-danger small mt-1">{{ form.organization_type.errors }}</div>{% endif %}
+                                        <div class="form-text">Select your organization type within SAFA</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Political Position?</label>
+                                        <div class="form-check">
+                                            {{ form.is_political_position }}
+                                            <label class="form-check-label" for="{{ form.is_political_position.id_for_label }}">
+                                                I hold a politically elected position
+                                            </label>
+                                        </div>
+                                        {% if form.is_political_position.errors %}<div class="text-danger small mt-1">{{ form.is_political_position.errors }}</div>{% endif %}
+                                        <div class="form-text">Political position holders must be affiliated with a club</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Remove the National Federation Field since it's automatic -->
+                                <!-- <div class="mb-3">
+                                    <label class="form-label">National Federation</label>
+                                    {{ form.national_federation }}
+                                    {% if form.national_federation.errors %}<div class="text-danger small mt-1">{{ form.national_federation.errors }}</div>{% endif %}
+                                    <div class="form-text">All SAFA registrations belong to the South African Football Association</div>
+                                </div> -->
+                                
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-info-circle me-2"></i>SAFA Registration</h6>
+                                    <p class="mb-2">All users are automatically registered under the <strong>South African Football Association (SAFA)</strong> as the mother body.</p>
+                                    <h6><i class="fas fa-sitemap me-2"></i>Organization Levels</h6>
+                                    <p class="mb-1"><strong>Level 1:</strong> National (SAFA Head Office)</p>
+                                    <p class="mb-1"><strong>Level 2:</strong> Province (Provincial Office)</p>
+                                    <p class="mb-1"><strong>Level 3:</strong> Region (Regional Office)</p>
+                                    <p class="mb-1"><strong>Level 4:</strong> LFA (Local Football Association)</p>
+                                    <p class="mb-0"><strong>Level 5:</strong> Club (Football Club)</p>
+                                </div>
+
+                                <!-- Dynamic Organization Fields -->
+                                <div id="dynamic-org-fields">
+                                    <!-- Province Field -->
+                                    <div class="mb-3" id="province-field" style="display:none;">
+                                        <label class="form-label">Province</label>
+                                        {{ form.province }}
+                                        {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors }}</div>{% endif %}
+                                    </div>
+                                    
+                                    <!-- Region Field -->
+                                    <div class="mb-3" id="region-field" style="display:none;">
+                                        <label class="form-label">Region</label>
+                                        <select name="region" id="id_region" class="form-control">
+                                            <option value="">Select a region</option>
+                                        </select>
+                                        <div id="region-error" class="text-danger small mt-1" style="display:none;"></div>
+                                    </div>
+                                    
+                                    <!-- Local Federation Field -->
+                                    <div class="mb-3" id="lfa-field" style="display:none;">
+                                        <label class="form-label">Local Football Association</label>
+                                        <select name="local_federation" id="id_local_federation" class="form-control">
+                                            <option value="">Select an LFA</option>
+                                        </select>
+                                        <div id="lfa-error" class="text-danger small mt-1" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Club Field (shown when political position is checked) -->
+                                <div id="club-field-container" class="mb-3" style="display:none;">
+                                    <label class="form-label">Club Membership</label>
+                                    {{ form.club }}
+                                    {% if form.club.errors %}<div class="text-danger small mt-1">{{ form.club.errors }}</div>{% endif %}
+                                    <div class="form-text">Political position holders must be affiliated with a club</div>
                                 </div>
                             </div>
                         </div>
@@ -79,67 +151,87 @@
                         <!-- Document Information Section -->
                         <div class="form-section">
                             <div class="p-4">
-                                <h5 class="text-primary mb-4">
+                                <h5 class="text-safa mb-4">
                                     <i class="fas fa-file-alt me-2"></i>Document Information
                                 </h5>
-                                
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Document Type</label>
-                                    <select name="id_document_type" class="form-control" id="id_id_document_type">
-                                        <option value="ID">ID Document</option>
-                                        <option value="PP">Passport</option>
-                                        <option value="DL">Driver License</option>
-                                        <option value="OT">Other Document</option>
-                                    </select>
+                                    <label class="form-label">Document Type</label>
+                                    {{ form.id_document_type }}
                                     {% if form.id_document_type.errors %}<div class="text-danger small mt-1">{{ form.id_document_type.errors }}</div>{% endif %}
                                 </div>
                                 
-                                <div class="mb-3" id="id-number-field">
-    <label class="form-label fw-bold">ID Number</label>
-    <input type="text" name="id_number" class="form-control" placeholder="Enter your SA ID number (13 digits)">
-    {% if form.id_number.errors %}<div class="text-danger small mt-1">{{ form.id_number.errors }}</div>{% endif %}
-</div>
+                                <div id="sa-id-container" class="mb-3">
+                                    <label class="form-label">ID Number</label>
+                                    {{ form.id_number }}
+                                    {% if form.id_number.errors %}<div class="text-danger small mt-1">{{ form.id_number.errors }}</div>{% endif %}
+                                    <div id="id-validation-message" class="form-text"></div>
+                                </div>
                                 
-                       <div class="mb-3" id="passport-field" style="display: none;">
-    <label class="form-label fw-bold">Passport Number</label>
-    <input type="text" name="passport_number" class="form-control" placeholder="Enter your passport number">
-    {% if form.passport_number.errors %}<div class="text-danger small mt-1">{{ form.passport_number.errors }}</div>{% endif %}
-</div>
+                                <div id="passport-container" class="mb-3" style="display:none;">
+                                    <label class="form-label">Passport Number</label>
+                                    {{ form.passport_number }}
+                                    {% if form.passport_number.errors %}<div class="text-danger small mt-1">{{ form.passport_number.errors }}</div>{% endif %}
+                                </div>
                                 
-<div class="mb-3" id="driver-license-field" style="display: none;">
-    <label class="form-label fw-bold">Driver License Number</label>
-    <input type="text" name="driver_license_number" class="form-control" placeholder="Enter your driver's license number">
-    {% if form.driver_license_number.errors %}<div class="text-danger small mt-1">{{ form.driver_license_number.errors }}</div>{% endif %}
-</div>
+                                <div id="other-id-container" class="mb-3" style="display:none;">
+                                    <label class="form-label">Document Number</label>
+                                    {{ form.id_number_other }}
+                                    {% if form.id_number_other.errors %}<div class="text-danger small mt-1">{{ form.id_number_other.errors }}</div>{% endif %}
+                                </div>
                                 
-                           <div class="mb-3" id="other-document-field" style="display: none;">
-    <label class="form-label fw-bold">Other Document Number</label>
-    <input type="text" name="id_number_other" class="form-control" placeholder="Enter your document number">
-    {% if form.id_number_other.errors %}<div class="text-danger small mt-1">{{ form.id_number_other.errors }}</div>{% endif %}
-</div>
+                                <!-- DOB & Gender for ID/BC (extracted, read-only, auto-filled) -->
+                                <div class="row" id="dob-gender-readonly-row" style="display:none;">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date of Birth</label>
+                                        <input type="text" id="date_of_birth_readonly" class="form-control" readonly>
+                                        <input type="hidden" name="date_of_birth" id="date_of_birth_hidden">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Gender</label>
+                                        <input type="text" id="gender_readonly" class="form-control" readonly>
+                                        <input type="hidden" name="gender" id="gender_hidden">
+                                    </div>
+                                </div>
                                 
+                                <!-- DOB & Gender for PP/DL/OT (manual input) -->
+                                <div class="row" id="dob-gender-manual-row" style="display:none;">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date of Birth</label>
+                                        <input type="date" name="date_of_birth" id="date_of_birth_input" class="form-control">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Gender</label>
+                                        <select name="gender" id="gender_select" class="form-control">
+                                            <option value="">Select gender</option>
+                                            <option value="M">Male</option>
+                                            <option value="F">Female</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Upload Document</label>
+                                    <label class="form-label">Upload Document</label>
                                     {{ form.id_document }}
                                     {% if form.id_document.errors %}<div class="text-danger small mt-1">{{ form.id_document.errors }}</div>{% endif %}
+                                    <div class="form-text">Upload your ID document (PDF, JPG, PNG)</div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Security Section -->
+                        <!-- Security & Compliance Section -->
                         <div class="form-section">
                             <div class="p-4">
-                                <h5 class="text-primary mb-4">
-                                    <i class="fas fa-lock me-2"></i>Security & Compliance
+                                <h5 class="text-safa mb-4">
+                                    <i class="fas fa-shield-alt me-2"></i>Security & Compliance
                                 </h5>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label fw-bold">Password</label>
+                                        <label class="form-label">Password</label>
                                         {{ form.password1 }}
                                         {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors }}</div>{% endif %}
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label fw-bold">Confirm Password</label>
+                                        <label class="form-label">Confirm Password</label>
                                         {{ form.password2 }}
                                         {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors }}</div>{% endif %}
                                     </div>
@@ -170,46 +262,275 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/registration_form.js' %}"></script>
-<script src="{% static 'js/form_wizard.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add document type switching functionality
-    const documentTypeSelect = document.getElementById('id_id_document_type');
-    const idNumberField = document.getElementById('id-number-field');
-    const passportField = document.getElementById('passport-field');
-    const driverLicenseField = document.getElementById('driver-license-field');
-    const otherDocumentField = document.getElementById('other-document-field');
+    // Get all necessary elements once
+    const docTypeSelect = document.getElementById('id_id_document_type');
+    const saIdContainer = document.getElementById('sa-id-container');
+    const passportContainer = document.getElementById('passport-container');
+    const otherIdContainer = document.getElementById('other-id-container');
+    const dobGenderReadonlyRow = document.getElementById('dob-gender-readonly-row');
+    const dobGenderManualRow = document.getElementById('dob-gender-manual-row');
+    const idNumberInput = document.getElementById('id_id_number');
+    const dobReadonlyInput = document.getElementById('date_of_birth_readonly');
+    const dobHiddenInput = document.getElementById('date_of_birth_hidden');
+    const genderReadonlyInput = document.getElementById('gender_readonly');
+    const genderHiddenInput = document.getElementById('gender_hidden');
+    const validationMessage = document.getElementById('id-validation-message');
     
-    if (documentTypeSelect) {
-        documentTypeSelect.addEventListener('change', function() {
-            // Hide all fields first
-            idNumberField.style.display = 'none';
-            passportField.style.display = 'none';
-            driverLicenseField.style.display = 'none';
-            otherDocumentField.style.display = 'none';
-            
-            // Show the relevant field based on selection
-            switch(this.value) {
-                case 'ID':
-                    idNumberField.style.display = 'block';
-                    break;
-                case 'PP':
-                    passportField.style.display = 'block';
-                    break;
-                case 'DL':
-                    driverLicenseField.style.display = 'block';
-                    break;
-                case 'OT':
-                    otherDocumentField.style.display = 'block';
-                    break;
+    // Organization elements
+    const orgTypeSelect = document.getElementById('id_organization_type');
+    const isPoliticalCheckbox = document.getElementById('id_is_political_position');
+    const clubFieldContainer = document.getElementById('club-field-container');
+    const provinceField = document.getElementById('province-field');
+    const regionField = document.getElementById('region-field');
+    const lfaField = document.getElementById('lfa-field');
+    const provinceSelect = document.getElementById('id_province');
+    const regionSelect = document.getElementById('id_region');
+    const lfaSelect = document.getElementById('id_local_federation');
+    
+    // Document type toggle function
+    function toggleFields() {
+        if (!docTypeSelect) return;
+        
+        const selectedValue = docTypeSelect.value;
+        
+        // Hide all containers first
+        if (saIdContainer) saIdContainer.style.display = 'none';
+        if (passportContainer) passportContainer.style.display = 'none';
+        if (otherIdContainer) otherIdContainer.style.display = 'none';
+        if (dobGenderReadonlyRow) dobGenderReadonlyRow.style.display = 'none';
+        if (dobGenderManualRow) dobGenderManualRow.style.display = 'none';
+        
+        // Show appropriate containers
+        if (selectedValue === 'ID' || selectedValue === 'BC') {
+            if (saIdContainer) saIdContainer.style.display = 'block';
+            if (dobGenderReadonlyRow) dobGenderReadonlyRow.style.display = 'flex';
+        } else if (selectedValue === 'PP') {
+            if (passportContainer) passportContainer.style.display = 'block';
+            if (dobGenderManualRow) dobGenderManualRow.style.display = 'flex';
+        } else if (selectedValue === 'DL' || selectedValue === 'OT') {
+            if (otherIdContainer) otherIdContainer.style.display = 'block';
+            if (dobGenderManualRow) dobGenderManualRow.style.display = 'flex';
+        }
+    }
+    
+    // ID validation function
+    function validateSAID(idNumber) {
+        if (!idNumber || idNumber.length !== 13 || !/^\d+$/.test(idNumber)) {
+            return { isValid: false, message: "ID number must be 13 digits" };
+        }
+        
+        const year = idNumber.substring(0, 2);
+        const month = idNumber.substring(2, 4);
+        const day = idNumber.substring(4, 6);
+        
+        const currentYear = new Date().getFullYear() % 100;
+        const birthYear = parseInt(year);
+        const fullYear = birthYear > currentYear ? 1900 + birthYear : 2000 + birthYear;
+        
+        const birthDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+        if (
+            birthDate.getFullYear() !== fullYear || 
+            birthDate.getMonth() + 1 !== parseInt(month) || 
+            birthDate.getDate() !== parseInt(day)
+        ) {
+            return { isValid: false, message: "ID contains invalid date" };
+        }
+        
+        const genderDigits = parseInt(idNumber.substring(6, 10));
+        const gender = genderDigits >= 5000 ? 'M' : 'F';
+        const genderText = gender === 'M' ? 'Male' : 'Female';
+        
+        const formattedDate = birthDate.toISOString().split('T')[0];
+        const displayDate = new Intl.DateTimeFormat('en-ZA', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }).format(birthDate);
+        
+        return {
+            isValid: true,
+            message: "Valid ID number",
+            dateOfBirth: formattedDate,
+            displayDate: displayDate,
+            gender: gender,
+            genderText: genderText
+        };
+    }
+    
+    // Organization fields toggle function
+    function updateOrgFields() {
+        if (!orgTypeSelect) return;
+        
+        const selectedOption = orgTypeSelect.options[orgTypeSelect.selectedIndex];
+        const optionText = selectedOption.text.toUpperCase();
+        
+        // Hide all org fields first
+        if (provinceField) provinceField.style.display = 'none';
+        if (regionField) regionField.style.display = 'none';
+        if (lfaField) lfaField.style.display = 'none';
+        
+        // Show relevant fields based on organization type
+        if (optionText.includes('PROVINCE')) {
+            if (provinceField) provinceField.style.display = 'block';
+        } else if (optionText.includes('REGION')) {
+            if (provinceField) provinceField.style.display = 'block';
+            if (regionField) regionField.style.display = 'block';
+        } else if (optionText.includes('LFA') || optionText.includes('LOCAL')) {
+            if (provinceField) provinceField.style.display = 'block';
+            if (regionField) regionField.style.display = 'block';
+            if (lfaField) lfaField.style.display = 'block';
+        }
+    }
+    
+    // Province change handler
+    function handleProvinceChange() {
+        if (!provinceSelect || !regionSelect || !lfaSelect) return;
+        
+        console.log("Province changed to:", provinceSelect.value);
+        
+        // Reset dependent dropdowns
+        regionSelect.innerHTML = '<option value="">Loading regions...</option>';
+        regionSelect.disabled = true;
+        lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+        lfaSelect.disabled = true;
+        
+        if (provinceSelect.value) {
+            // Use the correct URL path with geography prefix
+            fetch(`/geography/api/regions/?province=${provinceSelect.value}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Regions data received:", data);
+                    regionSelect.innerHTML = '<option value="">Select a region</option>';
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(region => {
+                            const option = document.createElement('option');
+                            option.value = region.id;
+                            option.textContent = region.name;
+                            regionSelect.appendChild(option);
+                        });
+                        regionSelect.disabled = false;
+                    } else {
+                        regionSelect.innerHTML = '<option value="">No regions found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching regions:', error);
+                    regionSelect.innerHTML = '<option value="">Error loading regions</option>';
+                    alert('Error loading regions. Please try again.');
+                });
+        } else {
+            regionSelect.innerHTML = '<option value="">Select a region</option>';
+            regionSelect.disabled = false;
+        }
+    }
+    
+    // Region change handler
+    function handleRegionChange() {
+        if (!regionSelect || !lfaSelect) return;
+        
+        console.log("Region changed to:", regionSelect.value);
+        
+        lfaSelect.innerHTML = '<option value="">Loading LFAs...</option>';
+        lfaSelect.disabled = true;
+        
+        if (regionSelect.value) {
+            // Use the correct URL path with geography prefix
+            fetch(`/geography/api/lfas/?region=${regionSelect.value}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("LFAs data received:", data);
+                    lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(lfa => {
+                            const option = document.createElement('option');
+                            option.value = lfa.id;
+                            option.textContent = lfa.name;
+                            lfaSelect.appendChild(option);
+                        });
+                        lfaSelect.disabled = false;
+                    } else {
+                        lfaSelect.innerHTML = '<option value="">No LFAs found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching LFAs:', error);
+                    lfaSelect.innerHTML = '<option value="">Error loading LFAs</option>';
+                });
+        } else {
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+            lfaSelect.disabled = false;
+        }
+    }
+    
+    // Event listeners
+    if (docTypeSelect) {
+        docTypeSelect.addEventListener('change', toggleFields);
+    }
+    
+    if (idNumberInput) {
+        idNumberInput.addEventListener('input', function() {
+            if (docTypeSelect && (docTypeSelect.value === 'ID' || docTypeSelect.value === 'BC')) {
+                const result = validateSAID(this.value);
+                
+                if (validationMessage) {
+                    validationMessage.textContent = result.message;
+                    validationMessage.className = result.isValid ? "form-text text-success" : "form-text text-danger";
+                }
+                
+                if (result.isValid) {
+                    if (dobReadonlyInput) dobReadonlyInput.value = result.displayDate;
+                    if (dobHiddenInput) dobHiddenInput.value = result.dateOfBirth;
+                    if (genderReadonlyInput) genderReadonlyInput.value = result.genderText;
+                    if (genderHiddenInput) genderHiddenInput.value = result.gender;
+                } else {
+                    if (dobReadonlyInput) dobReadonlyInput.value = '';
+                    if (dobHiddenInput) dobHiddenInput.value = '';
+                    if (genderReadonlyInput) genderReadonlyInput.value = '';
+                    if (genderHiddenInput) genderHiddenInput.value = '';
+                }
             }
         });
     }
+    
+    if (orgTypeSelect) {
+        orgTypeSelect.addEventListener('change', updateOrgFields);
+    }
+    
+    if (isPoliticalCheckbox && clubFieldContainer) {
+        isPoliticalCheckbox.addEventListener('change', function() {
+            clubFieldContainer.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    
+    if (provinceSelect) {
+        provinceSelect.addEventListener('change', handleProvinceChange);
+    }
+    
+    if (regionSelect) {
+        regionSelect.addEventListener('change', handleRegionChange);
+    }
+    
+    // Initialize on page load
+    toggleFields();
+    updateOrgFields();
+    
+    if (isPoliticalCheckbox && clubFieldContainer) {
+        clubFieldContainer.style.display = isPoliticalCheckbox.checked ? 'block' : 'none';
+    }
 });
-console.log('National template JS loaded');
 </script>
+
+<!-- Include Form Wizard JS -->
+<script src="{% static 'js/form_wizard.js' %}"></script>
 {% endblock %}

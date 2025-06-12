@@ -398,8 +398,9 @@ class Transfer(TimeStampedModel):
     effective_date = models.DateField(_("Effective Date"), null=True, blank=True)
     status = models.CharField(_("Status"), max_length=20, 
                             choices=STATUS_CHOICES, default='PENDING')
-    transfer_fee = models.DecimalField(_("Transfer Fee"), max_digits=10, 
-                                     decimal_places=2, default=0)
+    transfer_fee = models.DecimalField(_("Transfer Fee (ZAR)"), max_digits=10, 
+                                     decimal_places=2, default=0,
+                                     help_text=_("Transfer fee amount in ZAR (South African Rand)"))
     reason = models.TextField(_("Transfer Reason"), blank=True)
     
     # Approval Details

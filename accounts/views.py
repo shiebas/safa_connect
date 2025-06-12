@@ -4,9 +4,9 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib import messages
-from .forms import UserRegistrationForm, ProvinceUserRegistrationForm, ClubUserRegistrationForm, EmailAuthenticationForm, NationalUserRegistrationForm, LFAUserRegistrationForm, SupporterRegistrationForm
+from .forms import EmailAuthenticationForm, NationalUserRegistrationForm, UniversalRegistrationForm
 from .models import CustomUser
-from membership.models import Membership  # Import Membership from the correct location
+from membership.models import Membership
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
@@ -48,7 +48,7 @@ def register(request):
     if request.method == 'POST':
         print("POST data:", request.POST)
         print("FILES data:", request.FILES)
-        form = UserRegistrationForm(request.POST, request.FILES)
+        form = UniversalRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             # This is probably calling the form's save method which checks 'province'
             user = form.save(commit=False)
@@ -99,20 +99,20 @@ def register(request):
                 print("Province field doesn't have a queryset - it's type:", type(form.fields['province']))
             # Make sure these errors are displayed in template
     else:
-        form = UserRegistrationForm()
+        form = UniversalRegistrationForm()
 
     return render(request, 'accounts/register.html', {'form': form})
 
 def club_registration(request):
     """Registration view for club-level users"""
     if request.method == 'POST':
-        form = ClubUserRegistrationForm(request.POST, request.FILES)  # Add FILES
+        form = UniversalRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             messages.success(request, 'Club administrator account created successfully!')
             return redirect('accounts:login')
     else:
-        form = ClubUserRegistrationForm()
+        form = UniversalRegistrationForm()
     
     return render(request, 'accounts/club_registration.html', {
         'form': form,
@@ -122,13 +122,13 @@ def club_registration(request):
 def province_registration(request):
     """Registration view for province-level users"""
     if request.method == 'POST':
-        form = ProvinceUserRegistrationForm(request.POST, request.FILES)  # Add FILES
+        form = UniversalRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             messages.success(request, 'Province administrator account created successfully!')
             return redirect('accounts:login')
     else:
-        form = ProvinceUserRegistrationForm()
+        form = UniversalRegistrationForm()
     
     return render(request, 'accounts/province_registration.html', {
         'form': form,
@@ -167,36 +167,19 @@ def national_registration(request):
 def lfa_registration(request):
     """Registration view for LFA users"""
     if request.method == 'POST':
-        form = LFAUserRegistrationForm(request.POST, request.FILES)  # Add FILES
+        form = UniversalRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             messages.success(request, 'LFA administrator account created successfully!')
             return redirect('accounts:login')
     else:
-        form = LFAUserRegistrationForm()
+        form = UniversalRegistrationForm()
     
     return render(request, 'accounts/lfa_registration.html', {
         'form': form,
         'title': 'LFA Administrator Registration'
     })
 
-from .forms import SupporterRegistrationForm
-
-def supporter_registration(request):
-    """Registration view for supporters/public"""
-    if request.method == 'POST':
-        form = SupporterRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            messages.success(request, 'Supporter account created successfully!')
-            return redirect('accounts:login')
-    else:
-        form = SupporterRegistrationForm()
-    
-    return render(request, 'accounts/supporter_registration.html', {
-        'form': form,
-        'title': 'Supporter Registration'
-    })
 
 def registration_portal(request):
     """Portal to choose registration type"""
@@ -357,3 +340,34 @@ def api_lfas(request):
     
     print("DEBUG: No region_id provided")
     return JsonResponse([], safe=False)
+
+def universal_registration(request):
+    """Single universal registration view for all admin types"""
+    if request.method == 'POST':
+        form = UniversalRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'{user.get_role_display()} account created successfully!')
+            return redirect('accounts:login')
+    else:
+        form = UniversalRegistrationForm()
+    
+    return render(request, 'accounts/universal_registration.html', {
+        'form': form,
+        'title': 'SAFA Registration'
+    })
+
+def national_registration_view(request):
+    if request.method == 'POST':
+        form = UniversalRegistrationForm(request.POST, request.FILES, registration_type='national')
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'National administrator account created successfully!')
+            return redirect('accounts:login')
+    else:
+        form = UniversalRegistrationForm(registration_type='national')
+    
+    return render(request, 'accounts/national_registration.html', {
+        'form': form,
+        'title': 'National Federation Administrator Registration'
+    })

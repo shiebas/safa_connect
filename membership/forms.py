@@ -172,8 +172,8 @@ class PaymentSelectionForm(forms.Form):
     """Form for selecting membership type and payment method"""
     
     MEMBERSHIP_CHOICES = [
-        ('JR', 'Junior (R100)'),
-        ('SR', 'Senior (R200)'),
+        ('JR', 'Junior (R100 ZAR)'),
+        ('SR', 'Senior (R200 ZAR)'),
     ]
     
     PAYMENT_METHOD_CHOICES = [

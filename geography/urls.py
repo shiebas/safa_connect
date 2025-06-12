@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = 'geography'
+app_name = 'geography'  # This should be defined only once
 
 urlpatterns = [
     path('admin/', views.geography_admin, name='geography_admin'),
@@ -32,10 +32,10 @@ urlpatterns = [
     path('lfas/<int:lfa_id>/clubs/', views.lfa_clubs, name='lfa_clubs'),
     
     # API endpoints
-    path('api/get_regions_by_province/', views.get_regions_by_province, name='get_regions_by_province'),
-    path('api/get_lfas_by_region/', views.get_lfas_by_region, name='get_lfas_by_region'),
     path('api/regions-by-province/<int:province_id>/', views.regions_by_province, name='regions_by_province'),
     path('api/lfas-by-region/<int:region_id>/', views.lfas_by_region, name='lfas_by_region'),
+    path('api/regions/', views.get_regions, name='api_regions'),
+    path('api/lfas/', views.get_lfas, name='api_lfas'),
 
     # WorldSportsBody
     path('worldsportsbodies/', views.WorldSportsBodyListView.as_view(), name='worldsportsbody-list'),
@@ -118,4 +118,8 @@ urlpatterns = [
     path('lfas/hierarchical/', views.lfa_hierarchical_view, name='lfa_hierarchical'),
 
     # REMOVE DUPLICATE ENTRIES - keep only the optimized function-based views above
+
+    # API URLs
+    path('api/regions/', views.api_regions, name='api_regions'),
+    path('api/lfas/', views.api_lfas, name='api_lfas'),
 ]
