@@ -495,12 +495,13 @@ class CustomUser(AbstractUser, ModelWithLogo):
         if self.role == 'ADMIN_NATIONAL':
             # For national admins, ensure national_federation is set
             if not self.national_federation:
-                from geography.models import NationalFederation
+                from geography.models import NationalFederation, Country
+                # Replace incorrect field references for NationalFederation
                 default_federation, _ = NationalFederation.objects.get_or_create(
                     name="South African Football Association",
                     defaults={
-                        'short_name': "SAFA",
-                        'country_code': "ZAF"
+                        'acronym': "SAFA",
+                        'country': Country.objects.get(name="South Africa")
                     }
                 )
                 self.national_federation = default_federation
@@ -707,6 +708,14 @@ class CustomUser(AbstractUser, ModelWithLogo):
             else:
                 # Re-raise the error if it's not about province
                 raise
+
+    def clean(self):
+        """Custom validation for the club field based on role and organization type."""
+        super().clean()
+
+        # Club is required for all organization types except Supporter
+        if self.role != 'SUPPORTER' and not self.club:
+            raise ValidationError({'club': _('Club selection is required for all organization types except Supporter.')})
 
     def get_organization_info(self):
         """Return organization information for profile display"""
