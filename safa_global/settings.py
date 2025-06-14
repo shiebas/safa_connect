@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'membership_cards',
     'league_management',  # Competition management system
     # 'tools',  # REMOVED - functionality moved to other apps
+    'supporters',
 ]
 
 MIDDLEWARE = [

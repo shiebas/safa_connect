@@ -32,8 +32,8 @@ class NationalFederationAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
     
 class ProvinceAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'code', 'country', 'safa_id', 'get_region_count', 'display_logo']
-    list_filter = ['country']
+    list_display = ['name', 'get_region_count', 'display_logo']
+    list_filter = []
     search_fields = ['name', 'code', 'safa_id']
     actions = ['generate_safa_ids']
     
@@ -68,29 +68,28 @@ class ProvinceAdmin(ModelWithLogoAdmin):
     get_region_count.short_description = 'Number of Regions'
 
 class AssociationAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'acronym', 'national_federation', 'safa_id', 'display_logo']  # Added safa_id
+    list_display = ['name', 'acronym', 'national_federation', 'safa_id', 'display_logo']
     list_filter = ['national_federation']
-    search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
-    readonly_fields = ('name', 'acronym', 'national_federation', 'safa_id')  # Make read-only
+    search_fields = ['name', 'acronym', 'safa_id']
+    readonly_fields = ('safa_id',)  # Only include actual readonly fields
     
     def has_add_permission(self, request):
-        return False  # Disable adding new associations
+        return False
     
     def has_delete_permission(self, request, obj=None):
-        return False  # Disable deleting associations
-
+        return False
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'safa_id', 'province', 'created']
+    list_display = ['name', 'province']
     list_filter = ['province', 'created']
     search_fields = ['name', 'safa_id', 'province__name']
     list_per_page = 50  # Show 50 regions per page instead of default 25
     ordering = ['province__name', 'name']
 
 class LocalFootballAssociationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'acronym', 'safa_id', 'region', 'get_province', 'created']
-    list_filter = ['region__province', 'region', 'created']
-    search_fields = ['name', 'acronym', 'safa_id', 'region__name', 'region__province__name']
+    list_display = ['name', 'region']
+    list_filter = ['region']
+    search_fields = ['name', 'region__name']
     list_per_page = 50  # Show 50 LFAs per page instead of default 25
     ordering = ['region__province__name', 'region__name', 'name']
     
@@ -100,81 +99,19 @@ class LocalFootballAssociationAdmin(admin.ModelAdmin):
     get_province.admin_order_field = 'region__province__name'
 
 class ClubAdmin(ModelWithLogoAdmin):
-    list_display = [
-        'name',
-        'code',
-        'safa_id',
-        'status',
-        'get_lfa',
-        'get_region',
-        'get_province',
-        'display_fee',
-        'payment_confirmed',
-        'stadium',
-        'display_logo'
-    ]
-    list_filter = [
-        'status',
-        'localfootballassociation__region__province',
-        'localfootballassociation__region',
-        'localfootballassociation',
-    ]
-    search_fields = [
-        'name',
-        'code',
-        'safa_id',
-        'localfootballassociation__name',
-        'localfootballassociation__region__name',
-        'localfootballassociation__region__province__name',
-    ]
-    list_editable = ['payment_confirmed']
-    
-    def get_region(self, obj):
-        return obj.region.name if obj.region else '-'
-    get_region.short_description = 'Region'
-    get_region.admin_order_field = 'localfootballassociation__region__name'
+    list_display = ['name', 'localfootballassociation', 'status', 'display_logo']
+    list_filter = ['localfootballassociation', 'status']
+    search_fields = ['name', 'localfootballassociation__name', 'safa_id']
+    list_editable = []
     
     def get_province(self, obj):
-        return obj.province.name if obj.province else '-'
+        return obj.localfootballassociation.region.province.name if obj.localfootballassociation else '-'
     get_province.short_description = 'Province'
-    get_province.admin_order_field = 'localfootballassociation__region__province__name'
     
-    def get_lfa(self, obj):
-        return obj.localfootballassociation.name if obj.localfootballassociation else '-'
-    get_lfa.short_description = 'Local Football Association'
-    get_lfa.admin_order_field = 'localfootballassociation__name'
+    def get_region(self, obj):
+        return obj.localfootballassociation.region.name if obj.localfootballassociation else '-'
+    get_region.short_description = 'Region'
     
-    def display_fee(self, obj):
-        if obj.registration_fee is not None:
-            return f"R {obj.registration_fee:.2f}"
-        return '-'
-    display_fee.short_description = 'Registration Fee (ZAR)'
-    display_fee.admin_order_field = 'registration_fee'
-    
-    fieldsets = [
-        ('Club Information', {
-            'fields': ['name', 'code', 'status', 'description', 'colors', 'founding_date', 
-                      'website', 'stadium', 'logo']
-        }),
-        ('Location Information', {
-            'fields': ['localfootballassociation']
-        }),
-        ('SAFA Registration', {
-            'fields': ['safa_id', 'fifa_id']
-        }),
-        ('Payment Information', {
-            'fields': ['registration_fee', 'payment_confirmed', 'payment_date'],
-            'classes': ['collapse'],
-            'description': 'Payment details for club registration'
-        }),
-    ]
-    
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        """Customize the display of the registration fee field"""
-        if db_field.name == 'registration_fee':
-            kwargs['widget'] = forms.NumberInput(attrs={'step': '0.01', 'min': '0'})
-        return super().formfield_for_dbfield(db_field, **kwargs)
-
 # Register models
 admin.site.register(WorldSportsBody)
 admin.site.register(Continent)

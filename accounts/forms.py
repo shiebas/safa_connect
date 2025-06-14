@@ -59,10 +59,10 @@ class UniversalRegistrationForm(forms.ModelForm):
     role = forms.ChoiceField(
         choices=[
             ('ADMIN_NATIONAL', 'National Administrator'),
-            ('ADMIN_PROVINCE', 'Province Administrator'), 
+            ('ADMIN_PROVINCE', 'Province Administrator'),
+            ('ADMIN_REGION', 'Region Administrator'), 
             ('ADMIN_LOCAL_FED', 'LFA Administrator'),
-            ('CLUB_ADMIN', 'Club Administrator'),
-            ('SUPPORTER', 'Supporter')
+            ('CLUB_ADMIN', 'Club Administrator')
         ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -125,18 +125,11 @@ class UniversalRegistrationForm(forms.ModelForm):
         help_text="Select your primary organization type"
     )
     
-    # Add political position field
-    is_political_position = forms.BooleanField(
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        help_text="Check this if you hold a politically elected position (requires club membership)"
-    )
-    
     class Meta:
         model = CustomUser
         fields = [
             'email', 'first_name', 'last_name', 'role', 
-            'organization_type', 'is_political_position',
+            'organization_type', 
             'province', 'region', 'local_federation', 'club',
             'id_document_type', 'id_number', 'passport_number', 'id_number_other',
             'date_of_birth', 'gender', 'id_document', 'profile_photo', 
@@ -185,7 +178,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         # Add region and local_federation fields dynamically
         self.fields['region'] = forms.ModelChoiceField(
             queryset=Region.objects.none(),
-            required=False,
+            required=False,  # Will set required dynamically below
             widget=forms.Select(attrs={
                 'class': 'form-select',
                 'data-placeholder': 'Select region'
@@ -199,21 +192,31 @@ class UniversalRegistrationForm(forms.ModelForm):
                 'data-placeholder': 'Select local football association'
             })
         )
-        
-        # Handle dynamic field population based on form data
-        if 'province' in self.data:
+        # Filter region queryset by selected province
+        province_id = self.data.get('province') or self.initial.get('province')
+        if province_id:
             try:
-                province_id = int(self.data.get('province'))
                 self.fields['region'].queryset = Region.objects.filter(province_id=province_id)
             except (ValueError, TypeError):
-                pass
-                
-        if 'region' in self.data:
+                self.fields['region'].queryset = Region.objects.none()
+        else:
+            self.fields['region'].queryset = Region.objects.none()
+        # Set region required for Region Admin and below
+        org_type = self.initial.get('organization_type') or self.data.get('organization_type')
+        if org_type:
             try:
-                region_id = int(self.data.get('region'))
-                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id)
-            except (ValueError, TypeError):
-                pass
+                if hasattr(org_type, 'level'):
+                    org_level = org_type.level
+                else:
+                    org_obj = OrganizationType.objects.get(pk=org_type)
+                    org_level = org_obj.level
+                if org_level in ['REGION', 'LFA', 'CLUB']:
+                    self.fields['region'].required = True
+                else:
+                    self.fields['region'].required = False
+            except Exception as e:
+                self.fields['region'].required = False
+        # ...existing code...
         
         # Create a layout with organization type selection
         self.helper.layout = Layout(
@@ -241,12 +244,8 @@ class UniversalRegistrationForm(forms.ModelForm):
                     Div(Field('role', css_id='id_role'), css_class='col-md-6'),
                     css_class='row mb-3'
                 ),
-                Div(
-                    Div(Field('is_political_position', css_id='id_is_political_position'), css_class='col-md-12'),
-                    css_class='row mb-3'
-                ),
             ),
-            
+
             # Organization Information - dynamically shown based on organization type
             Fieldset(
                 'Organization Information',
@@ -375,7 +374,7 @@ class UniversalRegistrationForm(forms.ModelForm):
                     function updateGeoFields() {
                         const role = roleSelect.value;
                         
-                        if (role === 'ADMIN_NATIONAL' || role === 'SUPPORTER') {
+                        if (role === 'ADMIN_NATIONAL') {
                             geoSection.style.display = 'none';
                         } else {
                             geoSection.style.display = 'block';
@@ -444,11 +443,6 @@ class UniversalRegistrationForm(forms.ModelForm):
                                 clubContainer.style.display = 'flex';
                                 break;
                         }
-                        
-                        // If political position is checked, always show club field
-                        if (isPoliticalCheckbox.checked) {
-                            clubContainer.style.display = 'flex';
-                        }
                     }
                     
                     // Set initial state
@@ -456,7 +450,6 @@ class UniversalRegistrationForm(forms.ModelForm):
                     
                     // Add change listeners
                     orgTypeSelect.addEventListener('change', updateOrgFields);
-                    isPoliticalCheckbox.addEventListener('change', updateOrgFields);
                 });
             </script>
             '''),
@@ -464,37 +457,7 @@ class UniversalRegistrationForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        org_type = cleaned_data.get('organization_type')
-        role = cleaned_data.get('role')
-
-        # Require club for all org types except Supporter
-        if org_type:
-            level = org_type.level
-            # For all admin org types (1-4) and club (5), require club
-            if level in ['NATIONAL', 'PROVINCE', 'REGION', 'LFA', 'CLUB']:
-                if not cleaned_data.get('club'):
-                    self.add_error('club', 'Club selection is required for all organization types except Supporter.')
-            # Additional checks for province/region/LFA as before
-            if level == 'PROVINCE':
-                if not cleaned_data.get('province'):
-                    self.add_error('province', 'Province selection is required')
-            elif level == 'REGION':
-                if not cleaned_data.get('province'):
-                    self.add_error('province', 'Province is required for region staff')
-                if not cleaned_data.get('region'):
-                    self.add_error('region', 'Region selection is required')
-            elif level == 'LFA':
-                if not cleaned_data.get('province'):
-                    self.add_error('province', 'Province is required for LFA staff')
-                if not cleaned_data.get('region'):
-                    self.add_error('region', 'Region is required for LFA staff')
-                if not cleaned_data.get('local_federation'):
-                    self.add_error('local_federation', 'Local Football Association selection is required')
-
-        # Political position validation (applies to all levels)
-        if cleaned_data.get('is_political_position') and not cleaned_data.get('club'):
-            self.add_error('club', 'Political position holders must have club membership')
-
+        # All custom validation removed as requested
         return cleaned_data
 
     def save(self, commit=True):
@@ -503,29 +466,35 @@ class UniversalRegistrationForm(forms.ModelForm):
         role = self.cleaned_data['role']
         user.role = role
 
-        # Everyone gets SAFA as their national federation
-        if not hasattr(user, 'national_federation') or not user.national_federation:
-            try:
-                safa_federation = NationalFederation.objects.get(
-                    name="South African Football Association"
-                )
-                user.national_federation = safa_federation
-                if hasattr(user, 'mother_body') and not user.mother_body:
-                    user.mother_body = safa_federation
-            except NationalFederation.DoesNotExist:
-                pass
-
         org_type = self.cleaned_data.get('organization_type')
+        # Clear all org fields first
+        user.national_federation = None
+        user.province = None
+        user.region = None
+        user.local_federation = None
+        user.club = None
+
         if org_type:
             level = org_type.level
-            # Set all org info for all levels (if provided)
-            user.province = self.cleaned_data.get('province')
-            user.region = self.cleaned_data.get('region')
-            user.local_federation = self.cleaned_data.get('local_federation')
-            user.club = self.cleaned_data.get('club')
+            # Assign only the relevant organization field(s) based on org type level
+            if level == 'NATIONAL':
+                user.national_federation = self.cleaned_data.get('national_federation')
+            elif level == 'PROVINCE':
+                user.province = self.cleaned_data.get('province')
+            elif level == 'REGION':
+                user.region = self.cleaned_data.get('region')
+                user.province = self.cleaned_data.get('province')
+            elif level == 'LFA':
+                user.local_federation = self.cleaned_data.get('local_federation')
+                user.region = self.cleaned_data.get('region')
+                user.province = self.cleaned_data.get('province')
+            elif level == 'CLUB':
+                user.club = self.cleaned_data.get('club')
+                user.local_federation = self.cleaned_data.get('local_federation')
+                user.region = self.cleaned_data.get('region')
+                user.province = self.cleaned_data.get('province')
 
         # If a club admin is registering a player, inherit club info
-        # (Assume self.initial['admin_user'] is set to the admin user instance if this is a player registration)
         admin_user = self.initial.get('admin_user')
         if admin_user and role == 'PLAYER':
             user.club = admin_user.club
@@ -534,6 +503,19 @@ class UniversalRegistrationForm(forms.ModelForm):
             user.local_federation = admin_user.local_federation
             user.national_federation = admin_user.national_federation
 
+        # Only set region if present in cleaned_data
+        if self.cleaned_data.get('region'):
+            user.region = self.cleaned_data.get('region')
+            print(f"[DEBUG] Assigned region: {user.region} (pk={getattr(user.region, 'pk', None)})")
+        else:
+            print("[DEBUG] No region assigned in form data!")
+        if self.cleaned_data.get('province'):
+            user.province = self.cleaned_data.get('province')
+        if self.cleaned_data.get('local_federation'):
+            user.local_federation = self.cleaned_data.get('local_federation')
+        if self.cleaned_data.get('club'):
+            user.club = self.cleaned_data.get('club')
+
         if role in ['ADMIN_NATIONAL', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'CLUB_ADMIN']:
             user.is_staff = True
         user.country_code = 'ZAF'
@@ -541,6 +523,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         user.popi_act_consent = self.cleaned_data.get('popi_act_consent')
         if commit:
             user.save()
+            print(f"[DEBUG] User saved with region: {user.region} (pk={getattr(user.region, 'pk', None)})")
         return user
 
 # Create alias for backward compatibility 

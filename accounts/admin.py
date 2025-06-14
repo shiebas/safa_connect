@@ -164,8 +164,7 @@ class CustomUserAdmin(UserAdmin):
     
     list_filter = [
         'role', 'employment_status', 'popi_act_consent', 'membership_status', 'club_membership_verified',
-        'is_active', 'is_staff', 'date_joined', 'position__level', 'organization_type',
-        'is_political_position'
+        'is_active', 'is_staff', 'date_joined', 'position__level', 'organization_type'
     ]
     
     search_fields = ['email', 'first_name', 'last_name', 'id_number', 'safa_id']
@@ -192,7 +191,7 @@ class CustomUserAdmin(UserAdmin):
         ('SAFA Structure', {
             'fields': (
                 'role', 'employment_status', 'position', 
-                'organization_type', 'is_political_position',
+                'organization_type',
                 'national_federation', 'province', 'region', 'local_federation', 'club',
                 'club_membership_number', 'club_membership_verified'
             )
@@ -299,7 +298,7 @@ class CustomUserAdmin(UserAdmin):
     generate_safa_ids.short_description = "Generate SAFA IDs for selected users"
 
     def get_organization(self, obj):
-        """Display organization based on role"""
+        """Display organization based on role, including Region Admins"""
         try:
             if obj.role == 'ADMIN_NATIONAL':
                 if obj.national_federation:
@@ -309,6 +308,10 @@ class CustomUserAdmin(UserAdmin):
                 if obj.province:
                     return f"Province: {obj.province.name}"
                 return "Province: Not Set"
+            elif obj.role == 'ADMIN_REGION':
+                if obj.region:
+                    return f"Region: {obj.region.name}"
+                return "Region: Not Set"
             elif obj.role == 'ADMIN_LOCAL_FED':
                 if obj.local_federation:
                     return f"LFA: {obj.local_federation.name}"

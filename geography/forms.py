@@ -324,7 +324,7 @@ class AssociationForm(forms.ModelForm):
 class ProvinceForm(forms.ModelForm):
     class Meta:
         model = Province
-        fields = ['name', 'code', 'country', 'description', 'logo']
+        fields = ['name', 'code', 'country', 'description']  # Removed 'logo'
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }

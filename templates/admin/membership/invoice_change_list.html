@@ -1,0 +1,28 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content_title %}
+    {{ block.super }}
+    {% if dashboard_summary %}
+    <div class="dashboard-summary" style="margin: 20px 0;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="background:#007bff;color:#fff;padding:10px 20px;border-radius:6px;min-width:160px;">
+                <strong>{% trans "Total Invoices" %}:</strong> {{ dashboard_summary.total }}<br>
+                <small>R {{ dashboard_summary.total_amount|floatformat:2 }}</small>
+            </div>
+            <div style="background:#28a745;color:#fff;padding:10px 20px;border-radius:6px;min-width:160px;">
+                <strong>{% trans "Paid" %}:</strong> {{ dashboard_summary.paid }}<br>
+                <small>R {{ dashboard_summary.paid_amount|floatformat:2 }}</small>
+            </div>
+            <div style="background:#ffc107;color:#333;padding:10px 20px;border-radius:6px;min-width:160px;">
+                <strong>{% trans "Pending" %}:</strong> {{ dashboard_summary.pending }}<br>
+                <small>R {{ dashboard_summary.pending_amount|floatformat:2 }}</small>
+            </div>
+            <div style="background:#dc3545;color:#fff;padding:10px 20px;border-radius:6px;min-width:160px;">
+                <strong>{% trans "Overdue" %}:</strong> {{ dashboard_summary.overdue }}<br>
+                <small>R {{ dashboard_summary.overdue_amount|floatformat:2 }}</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

@@ -91,33 +91,28 @@
                     <h5><i class="fas fa-building"></i> Organization</h5>
                 </div>
                 <div class="card-body">
-                    {% if user.role == 'ADMIN_NATIONAL' %}
-                        <div class="row mb-3">
-                            <div class="col-sm-3"><strong>Organization:</strong></div>
-                            <div class="col-sm-9">SAFA National</div>
-                        </div>
-                    {% elif user.role == 'ADMIN_PROVINCE' and user.province_id %}
-                        <div class="row mb-3">
-                            <div class="col-sm-3"><strong>Organization:</strong></div>
-                            <div class="col-sm-9">Province: {{ user.get_province_name }}</div>
-                        </div>
-                    {% elif user.role == 'ADMIN_LOCAL_FED' %}
+                    {% with org=user.get_organization_info %}
                         <div class="row mb-3">
                             <div class="col-sm-3"><strong>Organization:</strong></div>
                             <div class="col-sm-9">
-                                LFA: {{ user.get_lfa_name }}
-                                <br><small class="text-muted">{{ user.get_region_name }}, {{ user.get_province_name }}</small>
+                                {% if org.type == 'National' %}
+                                    SAFA National
+                                {% elif org.type == 'Province' %}
+                                    Province: {{ org.name }}
+                                {% elif org.type == 'Region' %}
+                                    Region: {{ org.name }}
+                                {% elif org.type == 'LFA' %}
+                                    LFA: {{ org.name }}
+                                    {% if org.region or org.province %}<br><small class="text-muted">Region: {{ org.region }}, {{ org.province }}</small>{% endif %}
+                                {% elif org.type == 'Club' %}
+                                    Club: {{ org.name }}
+                                    {% if org.lfa or org.region or org.province %}<br><small class="text-muted">LFA: {{ org.lfa }}, Region: {{ org.region }}, {{ org.province }}</small>{% endif %}
+                                {% else %}
+                                    {{ org.name|default:'Not Set' }}
+                                {% endif %}
                             </div>
                         </div>
-                    {% elif user.role == 'CLUB_ADMIN' %}
-                        <div class="row mb-3">
-                            <div class="col-sm-3"><strong>Organization:</strong></div>
-                            <div class="col-sm-9">
-                                Club: {{ user.get_club_name }}
-                                <br><small class="text-muted">{{ user.get_lfa_name }}, {{ user.get_region_name }}, {{ user.get_province_name }}</small>
-                            </div>
-                        </div>
-                    {% endif %}
+                    {% endwith %}
                 </div>
             </div>
             {% endif %}

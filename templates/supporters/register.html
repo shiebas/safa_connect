@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Supporter Registration{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Register as a Supporter</h2>
+  <div class="mb-3">
+    <a href="/accounts/social/login/google-oauth2/" class="btn btn-outline-danger me-2">
+      <i class="fab fa-google"></i> Register with Google
+    </a>
+    <a href="/accounts/social/login/facebook/" class="btn btn-outline-primary me-2">
+      <i class="fab fa-facebook"></i> Register with Facebook
+    </a>
+    <a href="/accounts/social/login/instagram/" class="btn btn-outline-warning me-2">
+      <i class="fab fa-instagram"></i> Register with Instagram
+    </a>
+    <a href="/accounts/social/login/twitter/" class="btn btn-outline-info me-2">
+      <i class="fab fa-x-twitter"></i> Register with X (Twitter)
+    </a>
+    <a href="/accounts/social/login/tiktok/" class="btn btn-outline-dark">
+      <i class="fab fa-tiktok"></i> Register with TikTok
+    </a>
+  </div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Register</button>
+  </form>
+</div>
+{% endblock %}

@@ -47,11 +47,10 @@ class CustomUserManager(BaseUserManager):
 
 ROLES = (
     ('ADMIN_NATIONAL', _('National Federation Admin')),
-    ('ADMIN_PROVINCE', _('Province Admin')),
-    ('ADMIN_REGION', _('Region Admin')),
-    ('ADMIN_LOCAL_FED', _('Local Federation Admin')),
+    ('ADMIN_PROVINCE', _('Provincial Administrator')),
+    ('ADMIN_REGION', _('Regionial Administrator')),
+    ('ADMIN_LOCAL_FED', _('Local Federation Administrator')),
     ('CLUB_ADMIN', _('Club Administrator')),
-    ('SUPPORTER', _('Supporter/Public')),
 )
 
 # Add new employment status choices
@@ -405,13 +404,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text="Primary organization type this user belongs to"
     )
     
-    # Add a field to indicate if user is politically elected
-    is_political_position = models.BooleanField(
-        default=False,
-        help_text="Whether this user holds a politically elected position"
-    )
-    
-    # Specify the custom manager
+     # Specify the custom manager
     objects = CustomUserManager()
 
     # Set email as the USERNAME_FIELD
@@ -485,12 +478,6 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 logger = logging.getLogger(__name__)
                 logger.warning(f"ID number validation failed for user {self.email}: {str(e)}")
 
-        # If user is in a political position, ensure club is required
-        if self.is_political_position and not self.club:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"Political position holder {self.email} has no club affiliation")
-        
         # Set proper organization relationships based on role
         if self.role == 'ADMIN_NATIONAL':
             # For national admins, ensure national_federation is set
@@ -505,6 +492,14 @@ class CustomUser(AbstractUser, ModelWithLogo):
                     }
                 )
                 self.national_federation = default_federation
+        
+        # Ensure mother_body is set to SAFAM if not specified
+        if not self.mother_body:
+            from geography.models import MotherBody
+            safam = MotherBody.objects.filter(name='SAFAM').first()
+            if not safam:
+                raise ValidationError("SAFAM does not exist in the MotherBody table.")
+            self.mother_body = safam
         
         super().save(*args, **kwargs)
 
@@ -713,10 +708,6 @@ class CustomUser(AbstractUser, ModelWithLogo):
         """Custom validation for the club field based on role and organization type."""
         super().clean()
 
-        # Club is required for all organization types except Supporter
-        if self.role != 'SUPPORTER' and not self.club:
-            raise ValidationError({'club': _('Club selection is required for all organization types except Supporter.')})
-
     def get_organization_info(self):
         """Return organization information for profile display"""
         if self.role == 'ADMIN_NATIONAL':
@@ -725,33 +716,51 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 'name': 'SAFA National Office',
                 'level': 'National Level'
             }
-        elif self.role == 'ADMIN_PROVINCE' and hasattr(self, 'province') and self.province:
+        elif self.role == 'ADMIN_PROVINCE' and self.province:
             return {
                 'type': 'Province',
                 'name': self.province.name,
                 'level': 'Provincial Level'
             }
-        elif self.role == 'ADMIN_REGION' and hasattr(self, 'region') and self.region:
+        elif self.role == 'ADMIN_REGION' and self.region:
             return {
                 'type': 'Region',
                 'name': self.region.name,
                 'level': 'Regional Level'
             }
-        elif self.role == 'ADMIN_LOCAL_FED' and hasattr(self, 'local_federation') and self.local_federation:
+        elif self.role == 'ADMIN_LOCAL_FED' and self.local_federation:
             return {
                 'type': 'LFA',
                 'name': self.local_federation.name,
-                'level': 'LFA Level'
+                'level': 'LFA Level',
+                'region': self.region.name if self.region else None,
+                'province': self.province.name if self.province else None
             }
-        elif self.role == 'CLUB_ADMIN' and hasattr(self, 'club') and self.club:
+        elif self.role == 'CLUB_ADMIN' and self.club:
             return {
                 'type': 'Club',
                 'name': self.club.name,
-                'level': 'Club Level'
+                'level': 'Club Level',
+                'lfa': self.local_federation.name if self.local_federation else None,
+                'region': self.region.name if self.region else None,
+                'province': self.province.name if self.province else None
+            }
+        # Fallback: show region/province if set, even if org is not
+        if self.region:
+            return {
+                'type': 'Region',
+                'name': self.region.name,
+                'level': 'Regional Level (Fallback)'
+            }
+        if self.province:
+            return {
+                'type': 'Province',
+                'name': self.province.name,
+                'level': 'Provincial Level (Fallback)'
             }
         return {
             'type': 'Unknown',
-            'name': 'Not Assigned',
+            'name': None,
             'level': 'No Level'
         }
     
@@ -767,13 +776,15 @@ class CustomUser(AbstractUser, ModelWithLogo):
         return "Not Set"
     
     def get_region_name(self):
-        """Get region name from region_id"""
+        """Get region name from region FK directly if possible, fallback to region_id lookup."""
+        if self.region and hasattr(self.region, 'name') and self.region.name:
+            return self.region.name
         if self.region_id:
             try:
                 from geography.models import Region
                 region = Region.objects.get(id=self.region_id)
                 return region.name
-            except:
+            except Exception:
                 pass
         return "Not Set"
     
@@ -833,16 +844,15 @@ class CustomUser(AbstractUser, ModelWithLogo):
             
         return int((completed_items / total_items) * 100)
 
-    # Add mother body/federation field that defaults to SAFA
-    # Temporarily commented out until migration can be created properly
-    # mother_body = models.ForeignKey(
-    #     'geography.NationalFederation',
-    #     on_delete=models.PROTECT,  # Don't allow deletion of SAFA
-    #     null=True,
-    #     blank=True,
-    #     related_name='member_users',
-    #     help_text="The national federation this user belongs to (defaults to SAFA)"
-    # )
+    # Add mother body/federation field that defaults to SAFAM
+    mother_body = models.ForeignKey(
+        'geography.MotherBody',
+        on_delete=models.PROTECT,  # Don't allow deletion of SAFAM
+        null=True,
+        blank=True,
+        related_name='member_users',
+        help_text="The mother body this user belongs to (defaults to SAFAM)"
+    )
 
 
 

@@ -18,6 +18,7 @@ urlpatterns = [
     path('membership/', include('membership.urls')),
     path('membership-cards/', include('membership_cards.urls')),
     path('league-management/', include('league_management.urls')),
+    path('supporters/', include('supporters.urls', namespace='supporters')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),  # Add home page instead
 ]
 

@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
 import uuid
+from membership.models.vendor import Vendor
 
 class Invoice(TimeStampedModel):
     """
@@ -141,6 +142,15 @@ class Invoice(TimeStampedModel):
         blank=True,
     )
     
+    vendor = models.ForeignKey(
+        'membership.Vendor',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoices',
+        help_text=_('Vendor associated with this invoice (if applicable)')
+    )
+    
     class Meta:
         verbose_name = _("Invoice")
         verbose_name_plural = _("Invoices")
@@ -180,11 +190,23 @@ class Invoice(TimeStampedModel):
     
     def mark_as_paid(self, payment_date=None):
         """
-        Mark invoice as paid and set payment date
+        Mark invoice as paid and set payment date. Activate player and registration if registration invoice.
         """
         self.status = 'PAID'
         self.payment_date = payment_date or timezone.now().date()
         self.save()
+        # Workflow automation: activate player and registration if registration invoice
+        if self.invoice_type == 'REGISTRATION':
+            try:
+                registration = self.player.club_registrations.get(club=self.club)
+                if registration.status != 'ACTIVE':
+                    registration.status = 'ACTIVE'
+                    registration.save()
+                if self.player.status != 'ACTIVE':
+                    self.player.status = 'ACTIVE'
+                    self.player.save()
+            except Exception:
+                pass
     
     def get_payment_instructions(self):
         """

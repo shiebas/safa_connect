@@ -16,6 +16,7 @@ from geography.models import (
 )
 from django.apps import apps
 import sys
+from membership.models.vendor import Vendor
 
 # Add path to utils if needed
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))

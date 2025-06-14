@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Supporter Profile{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Supporter Profile</h2>
+  <ul>
+    <li><strong>Name:</strong> {{ profile.user.get_full_name }}</li>
+    <li><strong>Email:</strong> {{ profile.user.email }}</li>
+    <li><strong>Favorite Club:</strong> {{ profile.favorite_club }}</li>
+    <li><strong>Membership Type:</strong> {{ profile.get_membership_type_display }}</li>
+    <li><strong>ID Number:</strong> {{ profile.id_number }}</li>
+    <li><strong>Date of Birth:</strong> {{ profile.date_of_birth }}</li>
+    <li><strong>Address:</strong> {{ profile.address }}</li>
+    <li><strong>Verified:</strong> {{ profile.is_verified }}</li>
+  </ul>
+</div>
+{% endblock %}

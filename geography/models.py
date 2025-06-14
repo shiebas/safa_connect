@@ -228,6 +228,17 @@ class Country(TimeStampedModel, ModelWithLogo):
     
     def __str__(self):
         return self.name
+    
+class MotherBody(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    country = models.ForeignKey(
+        'geography.Country',
+        on_delete=models.CASCADE,
+        help_text="The country this mother body belongs to"
+    )
+
+    def __str__(self):
+        return self.name    
 
 class NationalFederation(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a national football federation (e.g., SAFA)"""
@@ -251,7 +262,7 @@ class NationalFederation(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin)
 
 class Province(TimeStampedModel, ModelWithLogo):
     """Represents a province/state within a country (e.g., Western Cape)"""
-    name = models.CharField(_('Name'), max_length=100)
+    name = models.CharField(_('Name'), max_length=100, unique=True, null=True, blank=True)
     code = models.CharField(_('Code'), max_length=10, blank=True)
     country = models.ForeignKey(
         Country,
@@ -482,4 +493,8 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
 
 
 
+
+
+
+    
 

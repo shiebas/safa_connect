@@ -1,0 +1,47 @@
+# SAFA Administrator Registration Manual
+
+This guide explains how to register new users as an administrator in the SAFA system.
+
+---
+
+## SAFA Administrator Registration Manual
+
+### 1. Log In as Administrator
+- Use your SAFA admin credentials to log in to the system.
+
+### 2. Access the Registration Page
+- Go to the user registration section (usually under "Accounts" or "Users").
+
+### 3. Select the Appropriate Role
+- Choose the correct role for the new user:
+  - **ADMIN_NATIONAL**: National Administrator
+  - **ADMIN_PROVINCE**: Province Administrator
+  - **ADMIN_REGION**: Region Administrator
+  - **ADMIN_LOCAL_FED**: LFA Administrator
+  - **CLUB_ADMIN**: Club Administrator
+
+### 4. Fill in User Details
+- Enter all required personal information (email, name, password, etc.).
+- Select the **Organization Type** (National, Province, Region, LFA, Club).
+- For Province/Region/LFA/Club roles, select the relevant Province, Region, LFA, and/or Club as prompted:
+  - **Province Admin**: Select Province only.
+  - **Region Admin**: Select Province, then Region (filtered by Province).
+  - **LFA Admin**: Select Province, Region, then LFA.
+  - **Club Admin**: Select Province, Region, LFA, then Club.
+
+### 5. Complete Compliance Fields
+- Upload required documents (ID, profile photo).
+- Agree to POPI Act consent.
+
+### 6. Submit Registration
+- Review all details and submit the form.
+- The new user will be created with the correct organization links (e.g., region for Region Admin).
+
+### 7. Verification
+- Check the user’s profile and the admin panel to ensure the organization (Province, Region, etc.) displays correctly.
+
+---
+
+**SAFA IT Department**
+
+*For support, contact your SAFA system administrator.*
