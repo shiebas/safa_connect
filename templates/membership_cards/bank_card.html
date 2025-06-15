@@ -176,6 +176,7 @@
                     <strong>SAFA ID:</strong> {{ user.safa_id }}<br>
                     <strong>Role:</strong> {{ user.get_role_display }}
                     {% if card.loyalty_points %}<br><strong>Loyalty:</strong> {{ card.loyalty_points }} pts{% endif %}
+                    {% if user.age %}<br><strong>Age:</strong> {{ user.age }}{% endif %}
                 </div>
             </div>
         </div>

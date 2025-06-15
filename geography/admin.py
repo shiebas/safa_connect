@@ -16,8 +16,8 @@ class ContinentFederationAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'acronym']
 
 class ContinentRegionAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'continent', 'description', 'logo']
-    list_filter = ['continent']
+    list_display = ['name', 'continent', 'continent_federation', 'description', 'logo']
+    list_filter = ['continent', 'continent_federation']
     search_fields = ['name', 'code']
 
 class CountryAdmin(ModelWithLogoAdmin):
@@ -32,9 +32,9 @@ class NationalFederationAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
     
 class ProvinceAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'get_region_count', 'display_logo']
-    list_filter = []
-    search_fields = ['name', 'code', 'safa_id']
+    list_display = ['name', 'national_federation', 'get_region_count', 'display_logo']
+    list_filter = ['national_federation']
+    search_fields = ['name', 'code', 'safa_id', 'national_federation__name']
     actions = ['generate_safa_ids']
     
     def generate_safa_ids(self, request, queryset):
@@ -73,11 +73,6 @@ class AssociationAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'acronym', 'safa_id']
     readonly_fields = ('safa_id',)  # Only include actual readonly fields
     
-    def has_add_permission(self, request):
-        return False
-    
-    def has_delete_permission(self, request, obj=None):
-        return False
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
     list_display = ['name', 'province']
@@ -99,18 +94,16 @@ class LocalFootballAssociationAdmin(admin.ModelAdmin):
     get_province.admin_order_field = 'region__province__name'
 
 class ClubAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'localfootballassociation', 'status', 'display_logo']
-    list_filter = ['localfootballassociation', 'status']
-    search_fields = ['name', 'localfootballassociation__name', 'safa_id']
+    list_display = [
+        'name', 'localfootballassociation', 'region', 'province', 'status', 'safa_id', 'display_logo'
+    ]
+    list_filter = [
+        'localfootballassociation', 'region', 'province', 'status'
+    ]
+    search_fields = [
+        'name', 'localfootballassociation__name', 'region__name', 'province__name', 'safa_id'
+    ]
     list_editable = []
-    
-    def get_province(self, obj):
-        return obj.localfootballassociation.region.province.name if obj.localfootballassociation else '-'
-    get_province.short_description = 'Province'
-    
-    def get_region(self, obj):
-        return obj.localfootballassociation.region.name if obj.localfootballassociation else '-'
-    get_region.short_description = 'Region'
     
 # Register models
 admin.site.register(WorldSportsBody)

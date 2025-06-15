@@ -81,6 +81,15 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Date of Birth:</strong></div>
+                        <div class="col-sm-9">{{ user.date_of_birth|date:"F d, Y" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Age:</strong></div>
+                        <div class="col-sm-9">{% if user.age %}{{ user.age }}{% else %}<span class="text-muted">Not set</span>{% endif %}</div>
+                    </div>
                 </div>
             </div>
             

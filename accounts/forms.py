@@ -35,6 +35,7 @@ class EmailAuthenticationForm(AuthenticationForm):
         self.fields['username'].widget.attrs['placeholder'] = 'Email Address'
 
 class UniversalRegistrationForm(forms.ModelForm):
+    age = forms.IntegerField(label='Age', required=False, disabled=True)
     """
     Simplified registration form for South African context.
     Passport option primarily for player registration by clubs.
@@ -133,7 +134,7 @@ class UniversalRegistrationForm(forms.ModelForm):
             'province', 'region', 'local_federation', 'club',
             'id_document_type', 'id_number', 'passport_number', 'id_number_other',
             'date_of_birth', 'gender', 'id_document', 'profile_photo', 
-            'popi_act_consent', 'national_federation'
+            'popi_act_consent', 'national_federation', 'age'  # add age
         ]
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
@@ -143,6 +144,8 @@ class UniversalRegistrationForm(forms.ModelForm):
     
     def __init__(self, *args, registration_type=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance and hasattr(self.instance, 'age'):
+            self.fields['age'].initial = self.instance.age
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.form_method = 'post'

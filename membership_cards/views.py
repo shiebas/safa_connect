@@ -8,6 +8,8 @@ import base64
 import json
 
 from .models import DigitalCard, PhysicalCard
+from rest_framework import viewsets
+from .serializers import DigitalCardSerializer
 
 User = get_user_model()
 
@@ -304,3 +306,7 @@ def system_dashboard(request):
     }
     
     return render(request, 'membership_cards/dashboard.html', context)
+
+class DigitalCardViewSet(viewsets.ModelViewSet):
+    queryset = DigitalCard.objects.all()
+    serializer_class = DigitalCardSerializer

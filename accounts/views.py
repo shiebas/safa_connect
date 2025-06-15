@@ -19,6 +19,8 @@ from django.views.decorators.http import require_GET
 from geography.models import Province, Region, Club
 from django.http import JsonResponse
 from geography.models import LocalFootballAssociation
+from rest_framework import viewsets
+from .serializers import CustomUserSerializer
 
 class WorkingLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -371,3 +373,7 @@ def national_registration_view(request):
         'form': form,
         'title': 'National Federation Administrator Registration'
     })
+
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer

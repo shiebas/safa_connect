@@ -3,7 +3,9 @@ from django.http import JsonResponse
 from django.db.models import Count, Sum, Avg, Q, F
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from .models import Competition, CompetitionGroup, CompetitionTeam, Match, PlayerStatistics, LeagueTable
+from rest_framework import viewsets
+from .models import Competition, CompetitionGroup, CompetitionTeam, Match, PlayerStatistics, LeagueTable, CompetitionCategory
+from .serializers import CompetitionCategorySerializer, CompetitionSerializer
 
 @staff_member_required
 def dashboard(request):
@@ -206,3 +208,11 @@ def team_statistics(request, competition_id, team_id):
     }
     
     return render(request, 'league_management/team_statistics.html', context)
+
+class CompetitionCategoryViewSet(viewsets.ModelViewSet):
+    queryset = CompetitionCategory.objects.all()
+    serializer_class = CompetitionCategorySerializer
+
+class CompetitionViewSet(viewsets.ModelViewSet):
+    queryset = Competition.objects.all()
+    serializer_class = CompetitionSerializer

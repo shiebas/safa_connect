@@ -854,6 +854,23 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text="The mother body this user belongs to (defaults to SAFAM)"
     )
 
+    @property
+    def age(self):
+        """Return the user's age in years, or None if date_of_birth is not set."""
+        if not self.date_of_birth:
+            return None
+        from datetime import date
+        today = date.today()
+        dob = self.date_of_birth
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age
+
+    def is_junior(self):
+        """Return True if user is a junior (under 18), else False. None if unknown."""
+        if self.age is None:
+            return None
+        return self.age < 18
+
 
 
 

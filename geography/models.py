@@ -198,6 +198,13 @@ class ContinentRegion(TimeStampedModel, ModelWithLogo):
         related_name='regions',
         null=True
     )
+    continent_federation = models.ForeignKey(
+        ContinentFederation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='regions'
+    )
     description = models.TextField(_('Description'), blank=True)
     
     class Meta:
@@ -261,12 +268,14 @@ class NationalFederation(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin)
         return f"{self.name} ({self.country.name})"
 
 class Province(TimeStampedModel, ModelWithLogo):
-    """Represents a province/state within a country (e.g., Western Cape)"""
+    """Represents a province/state within a national federation (e.g., Western Cape)"""
     name = models.CharField(_('Name'), max_length=100, unique=True, null=True, blank=True)
     code = models.CharField(_('Code'), max_length=10, blank=True)
-    country = models.ForeignKey(
-        Country,
-        on_delete=models.CASCADE
+    national_federation = models.ForeignKey(
+        NationalFederation,
+        null=True,
+        on_delete=models.CASCADE,
+        help_text=_('The national federation this province belongs to')
     )
     description = models.TextField(_('Description'), blank=True)
     # Add safa_id field manually without mixin to avoid conflicts
@@ -281,10 +290,10 @@ class Province(TimeStampedModel, ModelWithLogo):
     class Meta:
         verbose_name = _('Province')
         verbose_name_plural = _('Provinces')
-        ordering = ['country', 'name']
+        ordering = ['national_federation', 'name']
     
     def __str__(self):
-        return f"{self.name} ({self.country.name})"
+        return f"{self.name} ({self.national_federation.name})"
 
 class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a region within an association (e.g., Southern Region)"""
@@ -302,7 +311,7 @@ class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         ordering = ['province', 'name']
     
     def __str__(self):
-        return f"{self.name} ({self.province.name})"
+        return f"{self.name} ({self.province.name} - {self.province.national_federation.name})"
 
 class Association(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a regional football association (e.g., SAFA Cape Town)"""
@@ -496,5 +505,5 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
 
 
 
-    
+
 

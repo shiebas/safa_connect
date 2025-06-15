@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',  # Required for allauth
     
     # Third party apps
+    'rest_framework',  # Added for Django REST Framework
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -102,11 +104,14 @@ AUTHENTICATION_BACKENDS = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'safa_db'),
+        'USER': os.environ.get('POSTGRES_USER', 'neetiesister'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'neetie12345'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

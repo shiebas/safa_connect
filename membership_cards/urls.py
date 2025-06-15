@@ -1,7 +1,12 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from rest_framework import routers
+from .views import DigitalCardViewSet
 
 app_name = 'membership_cards'
+
+router = routers.DefaultRouter()
+router.register(r'digitalcards', DigitalCardViewSet)
 
 urlpatterns = [
     path('my-card/', views.my_digital_card, name='my_card'),
@@ -13,4 +18,5 @@ urlpatterns = [
     path('test-qr-decode/', views.test_qr_decode, name='test_qr_decode'),
     path('force-regenerate/', views.force_regenerate_qr, name='force_regenerate'),
     path('dashboard/', views.system_dashboard, name='dashboard'),
+    path('api/', include(router.urls)),
 ]

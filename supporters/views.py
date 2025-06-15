@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from .forms import SupporterRegistrationForm
 from .models import SupporterProfile
 from accounts.models import CustomUser
+from rest_framework import viewsets
+from .serializers import SupporterProfileSerializer
+from .permissions import IsSupporterSelfOrReadOnly
 
 @login_required
 def register_supporter(request):
@@ -27,3 +30,14 @@ def register_supporter(request):
 def supporter_profile(request):
     profile = request.user.supporterprofile
     return render(request, 'supporters/profile.html', {'profile': profile})
+
+class SupporterProfileViewSet(viewsets.ModelViewSet):
+    queryset = SupporterProfile.objects.all()
+    serializer_class = SupporterProfileSerializer
+    permission_classes = [IsSupporterSelfOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and hasattr(user, 'supporterprofile'):
+            return SupporterProfile.objects.filter(user=user)
+        return super().get_queryset()

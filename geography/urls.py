@@ -1,7 +1,24 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework import routers
 from . import views
+from .views import (
+    WorldSportsBodyViewSet, ContinentViewSet, ContinentFederationViewSet, ContinentRegionViewSet, CountryViewSet, NationalFederationViewSet, ProvinceViewSet, RegionViewSet, AssociationViewSet, LocalFootballAssociationViewSet, ClubViewSet
+)
 
 app_name = 'geography'  # This should be defined only once
+
+router = routers.DefaultRouter()
+router.register(r'worldsportsbodies', WorldSportsBodyViewSet)
+router.register(r'continents', ContinentViewSet)
+router.register(r'continentfederations', ContinentFederationViewSet)
+router.register(r'continentregions', ContinentRegionViewSet)
+router.register(r'countries', CountryViewSet)
+router.register(r'nationalfederations', NationalFederationViewSet)
+router.register(r'provinces', ProvinceViewSet)
+router.register(r'regions', RegionViewSet)
+router.register(r'associations', AssociationViewSet)
+router.register(r'localfootballassociations', LocalFootballAssociationViewSet)
+router.register(r'clubs', ClubViewSet)
 
 urlpatterns = [
     path('admin/', views.geography_admin, name='geography_admin'),
@@ -122,4 +139,6 @@ urlpatterns = [
     # API URLs
     path('api/regions/', views.api_regions, name='api_regions'),
     path('api/lfas/', views.api_lfas, name='api_lfas'),
+
+    path('api/', include(router.urls)),
 ]

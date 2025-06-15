@@ -12,6 +12,8 @@ from geography.models import Club, Province, Region, LocalFootballAssociation  #
 from .forms import MemberForm, PlayerForm, ClubForm
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect
+from rest_framework import viewsets
+from .serializers import MemberSerializer
 
 class StaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -306,3 +308,7 @@ def send_payment_reminder(request, entity_type, entity_id):
     
     # Redirect to the referring page if available
     return redirect(request.META.get('HTTP_REFERER', reverse_lazy('membership:outstanding_report')))
+
+class MemberViewSet(viewsets.ModelViewSet):
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer

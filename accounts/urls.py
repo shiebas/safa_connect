@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from .views import (
     WorkingLoginView, working_home, register, 
@@ -7,11 +7,15 @@ from .views import (
     check_email_availability, check_id_number_availability,
     registration_portal, province_registration, club_registration,
     api_regions, api_clubs, national_registration, lfa_registration, api_lfas,
-    update_profile_photo
+    update_profile_photo, CustomUserViewSet
 )
+from .views_mcp import MCPUserListView
+from rest_framework import routers
 
 app_name = 'accounts'
 
+router = routers.DefaultRouter()
+router.register(r'users', CustomUserViewSet)
 
 urlpatterns = [
     path('', working_home, name='home'),
@@ -38,6 +42,8 @@ urlpatterns = [
     path('register/lfa/', lfa_registration, name='lfa_registration'),
     path('register/club/', club_registration, name='club_registration'),  # Keep only one
     path('api/lfas/', api_lfas, name='api_lfas'),
+    path('api/mcp/users/', MCPUserListView.as_view(), name='mcp_user_list'),
+    path('api/', include(router.urls)),
     
     # Add other paths as needed
 ]

@@ -14,6 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
+from rest_framework import viewsets
 
 # Local application imports
 from .forms import (
@@ -25,6 +26,12 @@ from .models import (
     Association, Club, Continent, ContinentFederation, ContinentRegion,
     Country, LocalFootballAssociation, NationalFederation, Province, Region,
     WorldSportsBody
+)
+from .serializers import (
+    WorldSportsBodySerializer, ContinentSerializer, ContinentFederationSerializer, ContinentRegionSerializer, CountrySerializer, NationalFederationSerializer, ProvinceSerializer, RegionSerializer, AssociationSerializer, LocalFootballAssociationSerializer, ClubSerializer
+)
+from .permissions import (
+    IsClubAdminOrReadOnly, IsLFAViewOnly, IsRegionViewOnly, IsProvinceViewOnly, IsNationalViewOnly
 )
 
 # Mixin to restrict access to staff users only
@@ -989,3 +996,69 @@ def lfa_hierarchical_view(request):
         'title': 'LFA Hierarchical View'
     }
     return render(request, 'geography/lfa_hierarchical.html', context)
+
+class WorldSportsBodyViewSet(viewsets.ModelViewSet):
+    queryset = WorldSportsBody.objects.all()
+    serializer_class = WorldSportsBodySerializer
+
+class ContinentViewSet(viewsets.ModelViewSet):
+    queryset = Continent.objects.all()
+    serializer_class = ContinentSerializer
+
+class ContinentFederationViewSet(viewsets.ModelViewSet):
+    queryset = ContinentFederation.objects.all()
+    serializer_class = ContinentFederationSerializer
+
+class ContinentRegionViewSet(viewsets.ModelViewSet):
+    queryset = ContinentRegion.objects.all()
+    serializer_class = ContinentRegionSerializer
+
+class CountryViewSet(viewsets.ModelViewSet):
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
+
+class NationalFederationViewSet(viewsets.ModelViewSet):
+    queryset = NationalFederation.objects.all()
+    serializer_class = NationalFederationSerializer
+
+class ProvinceViewSet(viewsets.ModelViewSet):
+    queryset = Province.objects.all()
+    serializer_class = ProvinceSerializer
+
+class RegionViewSet(viewsets.ModelViewSet):
+    queryset = Region.objects.all()
+    serializer_class = RegionSerializer
+
+class AssociationViewSet(viewsets.ModelViewSet):
+    queryset = Association.objects.all()
+    serializer_class = AssociationSerializer
+
+class LocalFootballAssociationViewSet(viewsets.ModelViewSet):
+    queryset = LocalFootballAssociation.objects.all()
+    serializer_class = LocalFootballAssociationSerializer
+
+class ClubViewSet(viewsets.ModelViewSet):
+    queryset = Club.objects.all()
+    serializer_class = ClubSerializer
+    permission_classes = [
+        IsClubAdminOrReadOnly,
+        IsLFAViewOnly,
+        IsRegionViewOnly,
+        IsProvinceViewOnly,
+        IsNationalViewOnly
+    ]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'role'):
+            if user.role == 'CLUB_ADMIN' and hasattr(user, 'club'):
+                return Club.objects.filter(pk=user.club.pk)
+            if user.role == 'ADMIN_LOCAL_FED' and hasattr(user, 'local_federation'):
+                return Club.objects.filter(localfootballassociation=user.local_federation)
+            if user.role == 'ADMIN_REGION' and hasattr(user, 'region'):
+                return Club.objects.filter(region=user.region)
+            if user.role == 'ADMIN_PROVINCE' and hasattr(user, 'province'):
+                return Club.objects.filter(province=user.province)
+            if user.role == 'ADMIN_NATIONAL':
+                return Club.objects.all()
+        return super().get_queryset()

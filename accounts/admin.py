@@ -159,7 +159,7 @@ class CustomUserAdmin(UserAdmin):
     list_display = [
         'email', 'get_full_name', 'role', 'get_organization', 'position', 'employment_status', 'popi_act_consent',
         'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other',
-        'membership_status', 'club_membership_verified', 'safa_id', 'is_active', 'date_joined'
+        'membership_status', 'club_membership_verified', 'safa_id', 'is_active', 'date_joined'  # removed 'age'
     ]
     
     list_filter = [
@@ -187,7 +187,7 @@ class CustomUserAdmin(UserAdmin):
     # Fix the fieldsets to include all document fields and pictures
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),  # removed 'age'
         ('SAFA Structure', {
             'fields': (
                 'role', 'employment_status', 'position', 

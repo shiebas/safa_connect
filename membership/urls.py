@@ -1,9 +1,14 @@
-from django.urls import path
+from django.urls import path, include
 from . import views, registration_views, transfer_views, appeal_views, invoice_views
 from . import outstanding_report
 from .views import MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, MembershipDeleteView
+from rest_framework import routers
+from .views import MemberViewSet
 
 app_name = 'membership'
+
+router = routers.DefaultRouter()
+router.register(r'members', MemberViewSet)
 
 urlpatterns = [
     # Member and Player Management
@@ -66,4 +71,5 @@ urlpatterns = [
     path('reports/outstanding-balance/', invoice_views.OutstandingReportView.as_view(), name='outstanding_report'),
     path('reports/outstanding-balance/export/<str:format>/', outstanding_report.export_outstanding_report, name='export_outstanding_report'),
     path('reports/payment-reminders/<str:entity_type>/<int:entity_id>/', views.send_payment_reminder, name='send_payment_reminder'),
+    path('api/', include(router.urls)),
 ]
