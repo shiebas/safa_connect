@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 # Update imports to include new models
-from .models import CustomUser, ModelWithLogo, RegistrationType, Position, OrganizationType
+from .models import CustomUser, ModelWithLogo, RegistrationType, Position, OrganizationType, LFAAdministrator
 
 # Import directly from geography models
 try:
@@ -339,6 +339,9 @@ class RegistrationTypeAdmin(admin.ModelAdmin):
     """Admin configuration for the RegistrationType model."""
     list_display = ('name', 'allowed_user_roles')
     search_fields = ('name', 'allowed_user_roles')
+
+# Register the LFAAdministrator model
+admin.site.register(LFAAdministrator)
 
 """
 # This section is commented out as Membership model is not available

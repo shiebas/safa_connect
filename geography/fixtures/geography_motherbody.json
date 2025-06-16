@@ -1,0 +1,10 @@
+[
+  {
+    "model": "geography.motherbody",
+    "pk": 1,
+    "fields": {
+      "name": "SAFAM",
+      "country": 1
+    }
+  }
+]

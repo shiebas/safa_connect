@@ -1,0 +1,17 @@
+[
+  {
+    "model": "geography.continentfederation",
+    "pk": 1,
+    "fields": {
+      "acronym": "CAF",
+      "name": "Confederation of African Football",
+      "continent": 1,
+      "world_body": 1,
+      "sport_code": "SOCCER",
+      "website": "https://www.cafonline.com",
+      "logo": "",
+      "created": "2025-06-16T00:00:00Z",
+      "modified": "2025-06-16T00:00:00Z"
+    }
+  }
+]

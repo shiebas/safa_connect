@@ -500,6 +500,18 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         """Return QR code for club identification"""
         return self.generate_qr_code()
 
+class OrganizationType(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class OrganizationLevel(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 
 
 

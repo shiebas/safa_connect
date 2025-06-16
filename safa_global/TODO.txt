@@ -127,6 +127,9 @@
 - Offline functionality for rural areas
 - Push notifications for match updates
 - QR code scanning for verification
+- Implement player self-registration in the mobile app
+- Add club admin approval workflow for player registrations
+- Allow members (e.g., Referees and Coaches) to register for Associations
 
 ### PHASE 8: Advanced Features 🔄
 - Payment integration for fees

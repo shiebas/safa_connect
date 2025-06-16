@@ -1,0 +1,26 @@
+[
+  {
+    "model": "geography.province",
+    "pk": 1,
+    "fields": {
+      "name": "Gauteng",
+      "code": "GP"
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 2,
+    "fields": {
+      "name": "KwaZulu-Natal",
+      "code": "KZN"
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 3,
+    "fields": {
+      "name": "Western Cape",
+      "code": "WC"
+    }
+  }
+]

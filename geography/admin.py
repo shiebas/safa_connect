@@ -4,7 +4,7 @@ from utils.admin import ModelWithLogoAdmin
 from .models import (
     WorldSportsBody, Continent, ContinentFederation,
     ContinentRegion, Country, NationalFederation, Province, Region,
-    Association, Club, LocalFootballAssociation
+    Association, Club, LocalFootballAssociation, OrganizationType, OrganizationLevel
 )
 from django.utils.crypto import get_random_string
 from django.contrib import messages
@@ -27,7 +27,8 @@ class CountryAdmin(ModelWithLogoAdmin):
 
 
 class NationalFederationAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'acronym', 'country', 'safa_id', 'display_logo']
+    list_display = ['name', 'acronym', 'country', 'safa_id', 'display_logo'
+    ]
     list_filter = ['country']
     search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
     
@@ -73,6 +74,13 @@ class AssociationAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'acronym', 'safa_id']
     readonly_fields = ('safa_id',)  # Only include actual readonly fields
     
+@admin.action(description="Generate and assign unique SAFA IDs to selected regions")
+def generate_safa_ids(modeladmin, request, queryset):
+    for region in queryset:
+        if not region.safa_id:
+            region.safa_id = region.generate_unique_safa_id()
+            region.save()
+
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
     list_display = ['name', 'province']
@@ -80,6 +88,7 @@ class RegionAdmin(admin.ModelAdmin):
     search_fields = ['name', 'safa_id', 'province__name']
     list_per_page = 50  # Show 50 regions per page instead of default 25
     ordering = ['province__name', 'name']
+    actions = [generate_safa_ids]
 
 class LocalFootballAssociationAdmin(admin.ModelAdmin):
     list_display = ['name', 'region']
@@ -116,6 +125,8 @@ admin.site.register(Province, ProvinceAdmin)
 admin.site.register(LocalFootballAssociation, LocalFootballAssociationAdmin)
 admin.site.register(Association, AssociationAdmin)
 admin.site.register(Club, ClubAdmin)
+admin.site.register(OrganizationType)
+admin.site.register(OrganizationLevel)
 # Note: Region is registered using @admin.register decorator above, so no need to register it here
 
 # Custom admin site configuration

@@ -1,0 +1,18 @@
+# Docker Cleanup Instructions
+
+The following files and scripts are related to Docker and can be safely deleted if you no longer wish to use Docker for your project:
+
+- Dockerfile
+- docker-compose.yml
+- entrypoint.sh
+- wait-for-postgres.sh
+
+You may also want to remove any Docker-related configuration from your VS Code settings or extensions.
+
+## Steps to Remove Docker from Your Project
+
+1. Delete the above files from your project directory.
+2. Uninstall or disable any Docker-related VS Code extensions (such as the official Docker extension).
+3. Remove any Docker-related environment variables or settings from your `.env` or configuration files if present.
+
+After these steps, your project will no longer contain Docker-related files or configuration.

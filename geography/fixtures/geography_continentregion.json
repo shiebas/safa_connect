@@ -1,0 +1,15 @@
+[
+  {
+    "model": "geography.continentregion",
+    "pk": 1,
+    "fields": {
+      "name": "Southern Africa",
+      "code": "SAF",
+      "continent": 1,
+      "continent_federation": 1,
+      "description": "Southern Africa region within Africa",
+      "created": "2025-06-16T00:00:00Z",
+      "modified": "2025-06-16T00:00:00Z"
+    }
+  }
+]

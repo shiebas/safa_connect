@@ -1,0 +1,137 @@
+[
+  {
+    "model": "geography.province",
+    "pk": 1,
+    "fields": {
+      
+      "created": "2025-06-09 10:29:56.981541",
+      "modified": "2025-06-09 10:29:56.981558",
+      "logo": "",
+      "name": "SAFA Eastern Cape",
+      "code": "EC",
+      "description": "",
+      "safa_id": "",
+      
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 2,
+    "fields": {
+      "created": "2025-06-09 10:29:56.982569",
+      "modified": "2025-06-09 10:29:56.982586",
+      "logo": "",
+      "name": "SAFA Free State",
+      "code": "FS",
+      "description": "",
+      "safa_id": "",
+      
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 3,
+    "fields": {
+      "created": "2025-06-09 10:29:56.983604",
+      "modified": "2025-06-09 10:29:56.983620",
+      "logo": "",
+      "name": "SAFA Gauteng",
+      "code": "GP",
+      "description": "",
+      "safa_id": "",
+      
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 4,
+    "fields": {
+      "created": "2025-06-09 10:29:56.984618",
+      "modified": "2025-06-09 10:29:56.984634",
+      "logo": "",
+      "name": "SAFA KwaZulu-Natal",
+      "code": "",
+      "description": "",
+      "safa_id": "KZN",
+     
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 5,
+    "fields": {
+      "created": "2025-06-09 10:29:56.985625",
+      "modified": "2025-06-09 10:29:56.985641",
+      "logo": "",
+      "name": "SAFA Limpopo",
+      "code": "LP",
+      "description": "",
+      "safa_id": "",
+     
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 6,
+    "fields": {
+      "created": "2025-06-09 10:29:56.986606",
+      "modified": "2025-06-09 10:29:56.986623",
+      "logo": "",
+      "name": "SAFA Mpumalanga",
+      "code": "MP",
+      "description": "",
+      "safa_id": "",
+      
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 7,
+    "fields": {
+      "created": "2025-06-09 10:29:56.987694",
+      "modified": "2025-06-09 10:29:56.987710",
+      "logo": "",
+      "name": "SAFA Northern Cape",
+      "code": "NC",
+      "description": "",
+      "safa_id": "",
+     
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 8,
+    "fields": {
+      "created": "2025-06-09 10:29:56.988688",
+      "modified": "2025-06-09 10:29:56.988714",
+      "logo": "",
+      "name": "SAFA North West",
+      "code": "NW",
+      "description": "",
+      "safa_id": "",
+     
+      "national_federation": 1
+    }
+  },
+  {
+    "model": "geography.province",
+    "pk": 9,
+    "fields": {
+      "created": "2025-06-09 10:29:56.989670",
+      "modified": "2025-06-09 10:29:56.989689",
+      "logo": "",
+      "name": "SAFA Western Cape",
+      "code": "WC",
+      "description": "",
+      "safa_id": "",
+      "national_federation": 1
+    }
+  }
+]

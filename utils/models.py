@@ -32,6 +32,7 @@ class SAFAIdentifiableMixin(models.Model):
         max_length=5, 
         unique=True, 
         blank=True,
+        null=True,
         help_text="Unique 5-character SAFA identifier"
     )
     

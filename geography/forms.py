@@ -476,3 +476,19 @@ class ClubForm(forms.ModelForm):
         
         return cleaned_data
 
+class ClubRegistrationForm(forms.ModelForm):
+    class Meta:
+        model = Club
+        fields = ['name', 'region', 'description', 'logo']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        # Restrict region choices to the user's region
+        if user and user.role == 'ADMIN_LOCAL_FED':
+            self.fields['region'].queryset = user.region_set.all()
+
+        # Add Bootstrap classes
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'form-control'})
+

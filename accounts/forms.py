@@ -204,6 +204,16 @@ class UniversalRegistrationForm(forms.ModelForm):
                 self.fields['region'].queryset = Region.objects.none()
         else:
             self.fields['region'].queryset = Region.objects.none()
+
+        # Filter local_federation queryset by selected region
+        region_id = self.data.get('region') or self.initial.get('region')
+        if region_id:
+            try:
+                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id)
+            except (ValueError, TypeError):
+                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.none()
+        else:
+            self.fields['local_federation'].queryset = LocalFootballAssociation.objects.none()
         # Set region required for Region Admin and below
         org_type = self.initial.get('organization_type') or self.data.get('organization_type')
         if org_type:

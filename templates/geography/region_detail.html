@@ -10,7 +10,7 @@
             <h2>{{ region.name }} {% if region.code %}({{ region.code }}){% endif %}</h2>
         </div>
         <div class="col-auto">
-            <a href="{% url 'geography:region-list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'geography:regions' %}" class="btn btn-secondary">Back to List</a>
             <!-- Remove edit and delete buttons for read-only regions -->
             <span class="badge bg-info">Read-Only - Established Structure</span>
             <!-- <a href="{% url 'geography:region-update' region.pk %}" class="btn btn-primary">Edit</a> -->

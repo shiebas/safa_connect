@@ -1,7 +1,7 @@
 [
     {
         "model": "geography.nationalfederation",
-        "pk": 2,
+        "pk": 1,
         "fields": {
             "acronym": "SAFA",
             "created": "2025-05-30T10:00:00.000Z",

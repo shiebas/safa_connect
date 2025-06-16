@@ -3,7 +3,7 @@ import datetime
 
 # Third-party imports (Django)
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.paginator import Paginator
 from django.db.models import Count, Prefetch, Q
@@ -20,7 +20,7 @@ from rest_framework import viewsets
 from .forms import (
     AssociationForm, ClubForm, ContinentFederationForm, ContinentRegionForm,
     CountryForm, LocalFootballAssociationForm, NationalFederationForm,
-    ProvinceForm, RegionForm, WorldSportsBodyForm
+    ProvinceForm, RegionForm, WorldSportsBodyForm, ClubRegistrationForm
 )
 from .models import (
     Association, Club, Continent, ContinentFederation, ContinentRegion,
@@ -328,7 +328,7 @@ class NationalFederationListView(LoginRequiredMixin, ListView):
     paginate_by = 10  # Add pagination
     
     def get_queryset(self):
-        return NationalFederation.objects.select_related('country')
+        return NationalFederation.objects.all()
 
 @login_decorator
 class NationalFederationDetailView(LoginRequiredMixin, DetailView):
@@ -431,7 +431,7 @@ class ProvinceListView(LoginRequiredMixin, ListView):
     paginate_by = 10  # Add pagination
     
     def get_queryset(self):
-        return Province.objects.select_related('country')
+        return Province.objects.select_related('national_federation')
 
 @login_decorator
 class ProvinceDetailView(LoginRequiredMixin, DetailView):
@@ -496,7 +496,7 @@ class RegionListView(LoginRequiredMixin, ListView):
                 'region_set__localfootballassociation_set__clubs',  # <-- changed from club_set to clubs
                 queryset=Club.objects.all()
             )
-        ).select_related('country').order_by('name')
+        ).select_related('national_federation').order_by('name')
 
         return provinces
 
@@ -547,6 +547,9 @@ class RegionUpdateView(LoginRequiredMixin, UpdateView):
     
     def form_valid(self, form):
         messages.success(self.request, 'Region updated successfully.')
+        print("Form is valid. Redirecting to:", self.success_url)
+        print("Request path:", self.request.path)
+        print("Request method:", self.request.method)
         return super().form_valid(form)
 
 class RegionDetailView(LoginRequiredMixin, DetailView):
@@ -661,7 +664,7 @@ class LocalFootballAssociationListView(LoginRequiredMixin, ListView):
                 'region_set__localfootballassociation_set', 
                 queryset=LocalFootballAssociation.objects.all().select_related('association')
             )
-        ).select_related('country').order_by('name')
+        ).select_related('national_federation').order_by('name')
         
         return provinces
     
@@ -1062,3 +1065,16 @@ class ClubViewSet(viewsets.ModelViewSet):
             if user.role == 'ADMIN_NATIONAL':
                 return Club.objects.all()
         return super().get_queryset()
+
+@login_required
+@permission_required('geography.add_club', raise_exception=True)
+def register_club(request):
+    if request.method == 'POST':
+        form = ClubRegistrationForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('geography:region-detail', pk=request.user.region.pk)
+    else:
+        form = ClubRegistrationForm(user=request.user)
+
+    return render(request, 'geography/register_club.html', {'form': form})

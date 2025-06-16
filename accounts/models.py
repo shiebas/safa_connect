@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager, Permission
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -870,6 +870,34 @@ class CustomUser(AbstractUser, ModelWithLogo):
         if self.age is None:
             return None
         return self.age < 18
+
+# Define permissions for roles
+class RolePermissions:
+    @staticmethod
+    def assign_permissions(user):
+        if user.role == 'ADMIN_LOCAL_FED':
+            # Example: Add permission to register clubs
+            permission = Permission.objects.get(codename='add_club')
+            user.user_permissions.add(permission)
+        elif user.role == 'ADMIN_REGION':
+            # Add region-specific permissions
+            pass
+        elif user.role == 'ADMIN_PROVINCE':
+            # Add province-specific permissions
+            pass
+        elif user.role == 'ADMIN_NATIONAL':
+            # Add national-specific permissions
+            pass
+        elif user.role == 'CLUB_ADMIN':
+            # Add club-specific permissions
+            pass
+
+class LFAAdministrator(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    lfa = models.ForeignKey('geography.LocalFootballAssociation', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.lfa.name}"
 
 
 
