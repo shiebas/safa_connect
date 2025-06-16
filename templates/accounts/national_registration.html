@@ -125,7 +125,9 @@
                                     <!-- Club Field -->
                                     <div class="mb-3" id="club-field" style="display:none;">
                                         <label class="form-label">Club</label>
-                                        {{ form.club }}
+                                        <select name="club" id="id_club" class="form-select">
+                                            <option value="">Select a club</option>
+                                        </select>
                                         {% if form.club.errors %}<div class="text-danger small mt-1">{{ form.club.errors }}</div>{% endif %}
                                     </div>
                                 </div>
@@ -464,6 +466,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // LFA change handler for clubs
+    function handleLFAChange() {
+        const clubSelect = document.getElementById('id_club');
+        if (!lfaSelect || !clubSelect) return;
+        clubSelect.innerHTML = '<option value="">Loading clubs...</option>';
+        clubSelect.disabled = true;
+        if (lfaSelect.value) {
+            fetch(`/accounts/api/clubs/?lfa=${lfaSelect.value}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    clubSelect.innerHTML = '<option value="">Select a club</option>';
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(club => {
+                            const option = document.createElement('option');
+                            option.value = club.id;
+                            option.textContent = club.name;
+                            clubSelect.appendChild(option);
+                        });
+                        clubSelect.disabled = false;
+                    } else {
+                        clubSelect.innerHTML = '<option value="">No clubs found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching clubs:', error);
+                    clubSelect.innerHTML = '<option value="">Error loading clubs</option>';
+                });
+        } else {
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = false;
+        }
+    }
+    
     // Event listeners
     if (docTypeSelect) {
         docTypeSelect.addEventListener('change', toggleFields);
@@ -504,9 +542,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (regionSelect) {
         regionSelect.addEventListener('change', handleRegionChange);
     }
+    if (lfaSelect) {
+        lfaSelect.addEventListener('change', handleLFAChange);
+    }
     // Initialize on page load
     toggleFields();
     updateOrgFields();
+    // If LFA is already selected (edit), trigger club load
+    if (lfaSelect && lfaSelect.value) {
+        handleLFAChange();
+    }
 });
 </script>
 

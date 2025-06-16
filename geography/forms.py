@@ -426,9 +426,8 @@ class ClubForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if user and hasattr(user, 'lfa_profile'):
-            # LFA admin: restrict to their LFA
-            lfa = user.lfa_profile.lfa
+        if user and getattr(user, 'role', None) == 'ADMIN_LOCAL_FED' and getattr(user, 'local_federation', None):
+            lfa = user.local_federation
             self.fields['localfootballassociation'].queryset = LocalFootballAssociation.objects.filter(pk=lfa.pk)
             self.fields['localfootballassociation'].initial = lfa
             self.fields['region'].queryset = Region.objects.filter(pk=lfa.region.pk)
@@ -436,6 +435,9 @@ class ClubForm(forms.ModelForm):
             self.fields['province'].queryset = Province.objects.filter(pk=lfa.region.province.pk)
             self.fields['province'].initial = lfa.region.province
             # Optionally, make these fields readonly or hidden
+            self.fields['province'].widget.attrs['readonly'] = True
+            self.fields['region'].widget.attrs['readonly'] = True
+            self.fields['localfootballassociation'].widget.attrs['readonly'] = True
         else:
             # Superuser: normal cascading logic
             self.fields['region'].queryset = Region.objects.none()

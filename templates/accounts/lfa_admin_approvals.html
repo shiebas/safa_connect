@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}LFA Admin: Approve Club Administrators{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Pending Club Administrator Approvals</h2>
+    {% if pending_admins %}
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Club</th>
+                <th>Date Registered</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for admin in pending_admins %}
+            <tr>
+                <td>{{ admin.first_name }} {{ admin.last_name }}</td>
+                <td>{{ admin.email }}</td>
+                <td>{{ admin.club.name }}</td>
+                <td>{{ admin.date_joined|date:'Y-m-d' }}</td>
+                <td>
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ admin.id }}">
+                        <button name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
+                        <button name="action" value="reject" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="alert alert-info">No pending club administrator registrations for your LFA.</div>
+    {% endif %}
+</div>
+{% endblock %}

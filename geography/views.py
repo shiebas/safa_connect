@@ -613,10 +613,20 @@ class ClubCreateView(LoginRequiredMixin, CreateView):
     template_name = 'geography/club_form.html'
     success_url = reverse_lazy('geography:club-list')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Club created successfully.')
-        return response
+        user = self.request.user
+        # If user is LFA admin, set club's Nat/Prov/Reg/LFA from user
+        if hasattr(user, 'local_federation') and user.role == 'ADMIN_LOCAL_FED':
+            lfa = user.local_federation
+            form.instance.localfootballassociation = lfa
+            form.instance.region = lfa.region
+            form.instance.province = lfa.region.province
+        return super().form_valid(form)
 
 class ClubUpdateView(LoginRequiredMixin, UpdateView):
     model = Club

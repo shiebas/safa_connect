@@ -72,14 +72,24 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="{{ form.region.id_for_label }}">Region*</label>
-                                    {{ form.region }}
+                                    {% if form.region.field.widget.attrs.readonly %}
+                                        <input type="text" class="form-control-plaintext" readonly value="{{ form.region.field.queryset.first }}">
+                                        <input type="hidden" name="region" value="{{ form.region.value }}">
+                                    {% else %}
+                                        {{ form.region }}
+                                    {% endif %}
                                     {% if form.region.errors %}
                                     <div class="text-danger">{{ form.region.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="{{ form.localfootballassociation.id_for_label }}">Local Football Association*</label>
-                                    {{ form.localfootballassociation }}
+                                    {% if form.localfootballassociation.field.widget.attrs.readonly %}
+                                        <input type="text" class="form-control-plaintext" readonly value="{{ form.localfootballassociation.field.queryset.first }}">
+                                        <input type="hidden" name="localfootballassociation" value="{{ form.localfootballassociation.value }}">
+                                    {% else %}
+                                        {{ form.localfootballassociation }}
+                                    {% endif %}
                                     {% if form.localfootballassociation.errors %}
                                     <div class="text-danger">{{ form.localfootballassociation.errors }}</div>
                                     {% endif %}

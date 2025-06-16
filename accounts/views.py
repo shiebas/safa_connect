@@ -107,15 +107,21 @@ def register(request):
 
 def club_registration(request):
     """Registration view for club-level users"""
+    user = request.user
+    lfa = getattr(user, 'local_federation', None)
     if request.method == 'POST':
         form = UniversalRegistrationForm(request.POST, request.FILES)
+        # Restrict club choices to clubs in this LFA
+        if lfa:
+            form.fields['club'].queryset = Club.objects.filter(localfootballassociation=lfa)
         if form.is_valid():
-            user = form.save()
+            club_admin = form.save()
             messages.success(request, 'Club administrator account created successfully!')
             return redirect('accounts:login')
     else:
         form = UniversalRegistrationForm()
-    
+        if lfa:
+            form.fields['club'].queryset = Club.objects.filter(localfootballassociation=lfa)
     return render(request, 'accounts/club_registration.html', {
         'form': form,
         'title': 'Club Administrator Registration'
@@ -377,3 +383,36 @@ def national_registration_view(request):
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+
+from django.contrib.auth.decorators import user_passes_test
+
+@login_required
+def lfa_admin_approvals(request):
+    user = request.user
+    # Only LFA admins can access
+    if user.role != 'ADMIN_LOCAL_FED' or not user.local_federation:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('accounts:profile')
+
+    # Get pending club admins in this LFA
+    pending_admins = CustomUser.objects.filter(
+        role='CLUB_ADMIN',
+        local_federation=user.local_federation,
+        is_active=False
+    ).select_related('club')
+
+    if request.method == 'POST':
+        admin_id = request.POST.get('user_id')
+        action = request.POST.get('action')
+        admin_user = CustomUser.objects.filter(id=admin_id, local_federation=user.local_federation, role='CLUB_ADMIN').first()
+        if admin_user:
+            if action == 'approve':
+                admin_user.is_active = True
+                admin_user.save()
+                messages.success(request, f"Approved {admin_user.get_full_name()} as club administrator.")
+            elif action == 'reject':
+                admin_user.delete()
+                messages.success(request, "Club administrator registration rejected and deleted.")
+        return redirect('accounts:lfa_admin_approvals')
+
+    return render(request, 'accounts/lfa_admin_approvals.html', {'pending_admins': pending_admins})
