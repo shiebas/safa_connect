@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Google Wallet Error{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="alert alert-danger my-5 p-4">
+        <h4 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i>Google Wallet Error</h4>
+        <p>
+            There was an error while trying to add your card to Google Wallet:
+        </p>
+        <div class="p-3 bg-light rounded">
+            <code>{{ error }}</code>
+        </div>
+        <hr>
+        <p class="mb-0">
+            Please try again later or contact support if this issue persists.
+        </p>
+    </div>
+    
+    <div class="text-center">
+        <a href="{% url 'membership_cards:my_card' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to My Card
+        </a>
+    </div>
+</div>
+{% endblock %}

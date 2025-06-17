@@ -81,13 +81,59 @@ class DigitalCard(models.Model):
     def __str__(self):
         return f"Digital Card #{self.card_number} - {self.user.get_full_name()}"
     
+    def generate_luhn_check_digit(self, partial_number):
+        """Generate Luhn algorithm check digit for card validation"""
+        # Convert to list of integers
+        digits = [int(d) for d in partial_number]
+        
+        # Double every second digit from right to left
+        for i in range(len(digits)-2, -1, -2):
+            digits[i] *= 2
+            if digits[i] > 9:
+                digits[i] -= 9
+                
+        # Sum all digits
+        total = sum(digits)
+        
+        # Calculate check digit (what to add to make multiple of 10)
+        check_digit = (10 - (total % 10)) % 10
+        
+        return str(check_digit)
+        
+    def verify_luhn_algorithm(self, card_number):
+        """Verify if a card number passes the Luhn algorithm check"""
+        # Remove any spaces or dashes
+        card_number = card_number.replace(" ", "").replace("-", "")
+        
+        if not card_number.isdigit():
+            return False
+            
+        # Get all digits except the last one
+        main_digits = card_number[:-1]
+        check_digit = card_number[-1]
+        
+        # Calculate what the check digit should be
+        calculated_check = self.generate_luhn_check_digit(main_digits)
+        
+        # Compare with the actual check digit
+        return calculated_check == check_digit
+    
     def generate_card_number(self):
-        """Generate unique 12-digit card number"""
+        """Generate unique 16-digit card number using Luhn algorithm"""
         while True:
-            # Format: YYYY + 8 random digits
+            # Format: 2 (SAFA prefix) + YYYY (year) + 9 random digits
             year = timezone.now().year
-            random_part = get_random_string(8, allowed_chars='0123456789')
-            card_number = f"{year}{random_part}"
+            prefix = "2"  # SAFA prefix
+            random_part = get_random_string(9, allowed_chars='0123456789')
+            
+            # Combine to get 15 digits (without check digit)
+            partial_number = f"{prefix}{year}{random_part}"
+            
+            # Generate the check digit using Luhn algorithm
+            check_digit = self.generate_luhn_check_digit(partial_number)
+            
+            # Create the 16-digit card number
+            card_number = f"{partial_number}{check_digit}"
             
             if not DigitalCard.objects.filter(card_number=card_number).exists():
                 self.card_number = card_number

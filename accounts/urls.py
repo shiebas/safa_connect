@@ -7,7 +7,8 @@ from .views import (
     check_email_availability, check_id_number_availability,
     registration_portal, province_registration, club_registration,
     api_regions, api_clubs, national_registration, lfa_registration, api_lfas,
-    update_profile_photo, CustomUserViewSet, lfa_admin_approvals
+    update_profile_photo, CustomUserViewSet, lfa_admin_approvals,
+    dashboard  # Import the dashboard view
 )
 from .views_mcp import MCPUserListView
 from rest_framework import routers
@@ -45,6 +46,7 @@ urlpatterns = [
     path('api/mcp/users/', MCPUserListView.as_view(), name='mcp_user_list'),
     path('api/', include(router.urls)),
     path('lfa-admin/approvals/', lfa_admin_approvals, name='lfa_admin_approvals'),
+    path('dashboard/', dashboard, name='dashboard'),  # Add the dashboard URL here
     
     # Add other paths as needed
 ]

@@ -1,5 +1,8 @@
 
-
+# Google Wallet integration
+google-auth>=2.10.0
+google-api-python-client>=2.50.0
+google-auth-oauthlib>=1.0.0
 
 crispy-bootstrap5        0.7
 cryptography             45.0.3

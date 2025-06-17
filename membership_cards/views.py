@@ -1,13 +1,17 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import get_user_model
 from django.core import signing
 from django.utils import timezone
+from django.conf import settings
+from django.urls import reverse
 import base64
 import json
+import os
 
 from .models import DigitalCard, PhysicalCard
+from .google_wallet import GoogleWalletManager
 from rest_framework import viewsets
 from .serializers import DigitalCardSerializer
 
@@ -310,3 +314,52 @@ def system_dashboard(request):
 class DigitalCardViewSet(viewsets.ModelViewSet):
     queryset = DigitalCard.objects.all()
     serializer_class = DigitalCardSerializer
+
+@login_required
+def add_to_google_wallet(request):
+    """Add user's digital card to Google Wallet"""
+    try:
+        # Get the user's digital card
+        digital_card = request.user.digital_card
+        
+        # Initialize the Google Wallet manager
+        wallet_manager = GoogleWalletManager()
+        
+        if not wallet_manager.is_configured():
+            # If Google Wallet is not configured, show a message
+            return render(request, 'membership_cards/wallet_not_configured.html')
+        
+        # Set issuer ID and class suffix from settings or use defaults
+        issuer_id = getattr(settings, 'GOOGLE_WALLET_ISSUER_ID', '3388000000022222228')
+        class_suffix = 'SAFAMembershipCard'
+        
+        # Generate the JWT token for adding to Google Wallet
+        jwt_token = wallet_manager.create_jwt_token(issuer_id, class_suffix, digital_card)
+        
+        if jwt_token:
+            # Construct the save URL with the JWT token
+            save_url = f"https://pay.google.com/gp/v/save/{jwt_token}"
+            
+            # Context for the template
+            context = {
+                'save_url': save_url,
+                'card': digital_card,
+                'user': request.user
+            }
+            
+            return render(request, 'membership_cards/add_to_google_wallet.html', context)
+        else:
+            # Failed to create JWT token
+            return render(request, 'membership_cards/wallet_error.html', {
+                'error': 'Failed to create wallet token'
+            })
+    
+    except DigitalCard.DoesNotExist:
+        # User doesn't have a digital card
+        return render(request, 'membership_cards/no_card.html')
+    
+    except Exception as e:
+        # Generic error handling
+        return render(request, 'membership_cards/wallet_error.html', {
+            'error': str(e)
+        })

@@ -5,31 +5,157 @@
 {% block extra_css %}
 <style>
     .stat-card {
-        background: linear-gradient(135deg, #FFD700, #FFA500);
+        background: linear-gradient(135deg, #006633, #004422);
         border-radius: 15px;
         padding: 20px;
         margin-bottom: 20px;
-        color: #000;
+        color: #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #FFD700, #FFA500);
     }
     
     .stat-number {
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: bold;
+        color: #FFD700;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     }
     
     .dashboard-section {
-        margin-bottom: 30px;
+        margin-bottom: 40px;
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .dashboard-section h3 {
+        color: #006633;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .card-examples {
+        display: flex;
+        gap: 20px;
+        padding: 20px 0;
+        overflow-x: auto;
+    }
+    
+    .card-example {
+        min-width: 280px;
+        height: 170px;
+        background: linear-gradient(135deg, #006633 0%, #004422 100%);
+        border-radius: 10px;
+        padding: 15px;
+        color: white;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .card-example::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(255,215,0,0.6));
+    }
+    
+    .card-example .chip {
+        width: 35px;
+        height: 25px;
+        background: linear-gradient(145deg, #FFD700, #DAA520);
+        border-radius: 4px;
+        position: absolute;
+        top: 50px;
+        left: 15px;
+    }
+    
+    .card-example .card-number {
+        position: absolute;
+        bottom: 50px;
+        left: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        color: #FFD700;
+        letter-spacing: 2px;
+    }
+    
+    .card-example .expires {
+        position: absolute;
+        bottom: 30px;
+        left: 15px;
+        font-size: 10px;
+        color: rgba(255,255,255,0.7);
+    }
+    
+    .card-example .logo {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        background: url("{% static 'images/default_logo.png' %}") no-repeat center/contain;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1><i class="fas fa-tachometer-alt me-2"></i>SAFA System Dashboard</h1>
+    <h1><i class="fas fa-credit-card me-2"></i>SAFA Digital Card System</h1>
+    
+    <!-- Card Examples -->
+    <div class="dashboard-section">
+        <h3><i class="fas fa-id-card me-2"></i>Digital Card Examples</h3>
+        <p class="text-muted mb-3">The following examples show how digital cards appear to users.</p>
+        
+        <div class="card-examples">
+            <div class="card-example">
+                <div class="chip"></div>
+                <div class="logo"></div>
+                <div class="card-number">2025 1234 5678</div>
+                <div class="expires">VALID THRU: 06/26</div>
+            </div>
+            
+            <div class="card-example" style="background: linear-gradient(135deg, #800080 0%, #4B0082 100%);">
+                <div class="chip"></div>
+                <div class="logo"></div>
+                <div class="card-number">2025 8765 4321</div>
+                <div class="expires">VALID THRU: 03/27</div>
+            </div>
+            
+            <div class="card-example" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+                <div class="chip"></div>
+                <div class="logo"></div>
+                <div class="card-number">2025 2468 1357</div>
+                <div class="expires">VALID THRU: 12/26</div>
+            </div>
+        </div>
+    </div>
     
     <!-- Card Statistics -->
     <div class="dashboard-section">
-        <h3>Digital Card System</h3>
+        <h3><i class="fas fa-chart-bar me-2"></i>Card Statistics</h3>
         <div class="row">
             <div class="col-md-3">
                 <div class="stat-card text-center">
@@ -116,17 +242,113 @@
     
     <!-- Quick Actions -->
     <div class="dashboard-section">
-        <h3>Quick Actions</h3>
+        <h3><i class="fas fa-bolt me-2"></i>Quick Actions</h3>
         <div class="row">
-            <div class="col-md-6">
-                <a href="/admin/membership_cards/digitalcard/" class="btn btn-primary btn-lg w-100 mb-2">
+            <div class="col-md-4 mb-3">
+                <a href="/admin/membership_cards/digitalcard/" class="btn btn-primary w-100 py-3">
                     <i class="fas fa-id-card me-2"></i>Manage Digital Cards
                 </a>
             </div>
-            <div class="col-md-6">
-                <a href="/admin/membership_cards/physicalcard/" class="btn btn-success btn-lg w-100 mb-2">
+            <div class="col-md-4 mb-3">
+                <a href="/admin/membership_cards/physicalcard/" class="btn btn-success w-100 py-3">
                     <i class="fas fa-print me-2"></i>Manage Physical Cards
                 </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="/admin/accounts/customuser/?membership_status=ACTIVE" class="btn btn-info w-100 py-3">
+                    <i class="fas fa-user-check me-2"></i>View Active Members
+                </a>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-6 mb-3">
+                <a href="{% url 'membership_cards:test_generate' %}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-magic me-2"></i>Generate Test Card
+                </a>
+            </div>
+            <div class="col-md-6 mb-3">
+                <a href="{% url 'membership_cards:my_card' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-eye me-2"></i>Preview My Card
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Digital Wallet Integration -->
+    <div class="dashboard-section">
+        <h3><i class="fas fa-wallet me-2"></i>Digital Wallet Integration</h3>
+        <p class="text-muted mb-3">Members can add their SAFA digital cards to mobile wallets for convenient access.</p>
+        
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <img src="https://developers.google.com/static/wallet/images/google-wallet.svg" alt="Google Wallet" class="img-fluid mb-3" style="max-width: 200px;">
+                <h5>Google Wallet Integration</h5>
+                <p>SAFA digital cards can be saved directly to Google Wallet, allowing members to:</p>
+                <ul>
+                    <li>Access their membership card directly from their phone</li>
+                    <li>Receive automatic updates when card details change</li>
+                    <li>Use location-based features for event check-ins</li>
+                    <li>Share their membership status securely</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Digital Card Features</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Luhn Algorithm Validation
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                SAFA ID Integration
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Google Wallet Support
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Interactive 3D Card Design
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Design Tutorial -->
+    <div class="dashboard-section">
+        <h3><i class="fas fa-palette me-2"></i>Card Design System</h3>
+        <p>The SAFA digital card system implements a modern bank card-like design with the following features:</p>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-qrcode me-2"></i>QR Verification</h5>
+                        <p class="card-text">Each card includes a unique QR code for real-time verification and security.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-mobile-alt me-2"></i>Mobile Responsive</h5>
+                        <p class="card-text">Cards are optimized for display on mobile devices and can be saved to mobile wallets.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-shield-alt me-2"></i>Security Features</h5>
+                        <p class="card-text">Cards include expiration dates, status indicators, and encrypted verification data with Luhn algorithm validation.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

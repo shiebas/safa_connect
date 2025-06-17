@@ -20,7 +20,7 @@ ALLOWED_HOSTS = []
 SITE_ID = 1
 
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'  # Redirect to home after login
+LOGIN_REDIRECT_URL = '/accounts/dashboard/'  # Redirect to dashboard after login
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
 
 
@@ -180,3 +180,17 @@ ACCOUNT_RATE_LIMITS = {
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# Google Wallet Settings
+GOOGLE_WALLET_ENABLED = True
+GOOGLE_WALLET_ISSUER_ID = '3388000000022222228'  # Replace with actual issuer ID in production
+GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL = 'safa-wallet-service@safa-global.iam.gserviceaccount.com'  # Replace with actual service account
+GOOGLE_WALLET_KEY_FILE = os.path.join(BASE_DIR, 'credentials', 'google_wallet_key.json')  # Path to service account key file
+
+# Create directory for credentials if it doesn't exist
+os.makedirs(os.path.join(BASE_DIR, 'credentials'), exist_ok=True)
+
+# Base URL for generating absolute URLs (for Google Wallet integration)
+BASE_URL = 'https://safa.org.za'  # Replace with actual domain in production
+if DEBUG:
+    BASE_URL = 'http://localhost:8000'

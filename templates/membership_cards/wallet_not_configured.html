@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Google Wallet Not Configured{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="alert alert-warning my-5 p-4">
+        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Google Wallet Not Configured</h4>
+        <p>
+            The Google Wallet integration has not been properly configured. To enable this feature, the system administrator needs to:
+        </p>
+        <ul>
+            <li>Create a Google Cloud project</li>
+            <li>Set up a service account with Google Wallet API access</li>
+            <li>Download the service account key file</li>
+            <li>Configure the settings in the application</li>
+        </ul>
+        <hr>
+        <p class="mb-0">
+            Please contact the system administrator for assistance.
+        </p>
+    </div>
+    
+    <div class="text-center">
+        <a href="{% url 'membership_cards:my_card' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to My Card
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -20,7 +20,8 @@ from rest_framework import viewsets
 from .forms import (
     AssociationForm, ClubForm, ContinentFederationForm, ContinentRegionForm,
     CountryForm, LocalFootballAssociationForm, NationalFederationForm,
-    ProvinceForm, RegionForm, WorldSportsBodyForm, ClubRegistrationForm
+    ProvinceForm, RegionForm, WorldSportsBodyForm, ClubRegistrationForm,
+    ClubComplianceForm
 )
 from .models import (
     Association, Club, Continent, ContinentFederation, ContinentRegion,
@@ -1088,3 +1089,35 @@ def register_club(request):
         form = ClubRegistrationForm(user=request.user)
 
     return render(request, 'geography/register_club.html', {'form': form})
+
+@login_required
+def club_compliance_update(request):
+    club = getattr(request.user, 'club', None)
+    if not club:
+        messages.error(request, 'You are not associated with a club.')
+        return redirect('accounts:profile')
+    if request.method == 'POST':
+        form = ClubComplianceForm(request.POST, request.FILES, instance=club)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Club compliance information updated successfully!')
+            return redirect('geography:club_compliance_update')
+    else:
+        form = ClubComplianceForm(instance=club)
+    return render(request, 'geography/club_compliance_form.html', {'form': form, 'club': club})
+
+@login_required
+def lfa_info_update(request):
+    lfa = getattr(request.user, 'local_federation', None)
+    if not lfa:
+        messages.error(request, 'You are not associated with an LFA.')
+        return redirect('accounts:profile')
+    if request.method == 'POST':
+        form = LocalFootballAssociationForm(request.POST, request.FILES, instance=lfa)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'LFA information updated successfully!')
+            return redirect('geography:lfa_info_update')
+    else:
+        form = LocalFootballAssociationForm(instance=lfa)
+    return render(request, 'geography/lfa_info_form.html', {'form': form, 'lfa': lfa})

@@ -494,3 +494,13 @@ class ClubRegistrationForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             field.widget.attrs.update({'class': 'form-control'})
 
+class ClubComplianceForm(forms.ModelForm):
+    class Meta:
+        model = Club
+        fields = ['club_type', 'club_owner_type', 'club_documents']
+        widgets = {
+            'club_type': forms.Select(attrs={'class': 'form-select'}),
+            'club_owner_type': forms.Select(attrs={'class': 'form-select'}),
+            'club_documents': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+

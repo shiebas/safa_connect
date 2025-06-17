@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add to Google Wallet - SAFA Digital Card{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wallet-container {
+        max-width: 500px;
+        margin: 40px auto;
+        text-align: center;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        background: #ffffff;
+    }
+    
+    .wallet-logo {
+        width: 100px;
+        margin: 0 auto 20px;
+    }
+    
+    .wallet-button {
+        display: inline-block;
+        background: #000000;
+        color: #ffffff;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-size: 16px;
+        margin: 20px 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .wallet-button:hover {
+        background: #333333;
+        transform: translateY(-2px);
+    }
+    
+    .card-preview {
+        max-width: 350px;
+        margin: 20px auto;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+    
+    .wallet-instructions {
+        margin: 20px 0;
+        font-size: 14px;
+        color: #666;
+        text-align: left;
+    }
+    
+    .wallet-instructions h4 {
+        color: #006633;
+        margin-bottom: 10px;
+    }
+    
+    .wallet-instructions ol {
+        padding-left: 20px;
+    }
+    
+    .wallet-instructions li {
+        margin-bottom: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="wallet-container">
+        <img src="https://developers.google.com/static/wallet/images/google-wallet.svg" alt="Google Wallet Logo" class="wallet-logo">
+        
+        <h2>Add Your SAFA Membership Card to Google Wallet</h2>
+        <p class="mb-4">Keep your digital membership card on your phone for easy access.</p>
+        
+        <div class="card-preview">
+            <img src="{{ card.get_qr_base64 }}" alt="Card Preview" style="width: 100%;">
+        </div>
+        
+        <a href="{{ save_url }}" class="wallet-button">
+            <i class="fab fa-google me-2"></i> Add to Google Wallet
+        </a>
+        
+        <div class="wallet-instructions">
+            <h4>How it works:</h4>
+            <ol>
+                <li>Click the button above to add your card to Google Wallet</li>
+                <li>Review and confirm the details</li>
+                <li>Access your membership card any time from your Google Wallet app</li>
+                <li>Show your digital card at SAFA events for verification</li>
+            </ol>
+            
+            <p class="mt-3">
+                <strong>Note:</strong> You need a Google account and the Google Wallet app installed on your Android device.
+            </p>
+        </div>
+        
+        <a href="{% url 'membership_cards:my_card' %}" class="btn btn-outline-secondary mt-3">
+            <i class="fas fa-arrow-left me-2"></i> Back to My Card
+        </a>
+    </div>
+</div>
+{% endblock %}

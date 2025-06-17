@@ -14,7 +14,7 @@ admin.site.index_title = "Welcome to SAFA Administration Portal"
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('geography/', include('geography.urls')),
+    path('geography/', include(('geography.urls', 'geography'), namespace='geography')),
     path('membership/', include('membership.urls')),
     path('membership-cards/', include('membership_cards.urls')),
     path('league-management/', include('league_management.urls')),

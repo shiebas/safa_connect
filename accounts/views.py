@@ -394,25 +394,54 @@ def lfa_admin_approvals(request):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('accounts:profile')
 
-    # Get pending club admins in this LFA
+    # Get pending club admins in this LFA, prefetch club for compliance checks
     pending_admins = CustomUser.objects.filter(
         role='CLUB_ADMIN',
         local_federation=user.local_federation,
         is_active=False
     ).select_related('club')
 
+    # Get clubs in this LFA that are fully compliant (all compliance fields complete)
+    compliant_clubs = []
+    for club in Club.objects.filter(localfootballassociation=user.local_federation):
+        if club.club_type and club.club_owner_type and club.club_documents:
+            compliant_clubs.append(club)
+
+    # Get clubs in this LFA that are not fully compliant (missing any compliance fields)
+    non_compliant_clubs = []
+    for club in Club.objects.filter(localfootballassociation=user.local_federation):
+        if not (club.club_type and club.club_owner_type and club.club_documents):
+            non_compliant_clubs.append(club)
+
     if request.method == 'POST':
         admin_id = request.POST.get('user_id')
         action = request.POST.get('action')
-        admin_user = CustomUser.objects.filter(id=admin_id, local_federation=user.local_federation, role='CLUB_ADMIN').first()
-        if admin_user:
-            if action == 'approve':
-                admin_user.is_active = True
-                admin_user.save()
-                messages.success(request, f"Approved {admin_user.get_full_name()} as club administrator.")
-            elif action == 'reject':
-                admin_user.delete()
-                messages.success(request, "Club administrator registration rejected and deleted.")
-        return redirect('accounts:lfa_admin_approvals')
+        club_id = request.POST.get('club_id')
+        if admin_id:
+            admin_user = CustomUser.objects.filter(id=admin_id, local_federation=user.local_federation, role='CLUB_ADMIN').first()
+            if admin_user:
+                if action == 'approve':
+                    admin_user.is_active = True
+                    admin_user.save()
+                    messages.success(request, f"Approved {admin_user.get_full_name()} as club administrator.")
+                elif action == 'reject':
+                    admin_user.delete()
+                    messages.success(request, "Club administrator registration rejected and deleted.")
+            return redirect('accounts:lfa_admin_approvals')
+        elif club_id and action == 'mark_paid':
+            club = Club.objects.filter(id=club_id, localfootballassociation=user.local_federation).first()
+            if club:
+                club.affiliation_fees_paid = True
+                club.save()
+                messages.success(request, f"Affiliation fees marked as paid for {club.name}.")
+            return redirect('accounts:lfa_admin_approvals')
 
-    return render(request, 'accounts/lfa_admin_approvals.html', {'pending_admins': pending_admins})
+    return render(request, 'accounts/lfa_admin_approvals.html', {
+        'pending_admins': pending_admins,
+        'compliant_clubs': compliant_clubs,
+        'non_compliant_clubs': non_compliant_clubs,
+    })
+
+@login_required
+def dashboard(request):
+    return render(request, 'accounts/dashboard.html')

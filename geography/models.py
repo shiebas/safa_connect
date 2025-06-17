@@ -437,6 +437,44 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         default=0.00,
         help_text=_('Registration fee amount in ZAR (South African Rand)')
     )
+    CLUB_TYPE_CHOICES = [
+        ('AMATEUR', 'Amateur'),
+        ('SEMI_PROFESSIONAL', 'Semi Professional'),
+        ('PROFESSIONAL', 'Professional'),
+    ]
+    CLUB_OWNER_TYPE_CHOICES = [
+        ('PRIVATE', 'Private'),
+        ('NPO', 'NPO'),
+        ('CONSTITUTIONAL', 'Constitutional'),
+    ]
+    club_type = models.CharField(
+        max_length=20,
+        choices=CLUB_TYPE_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name=_('Club Type'),
+        help_text=_('Amateur, Semi Professional, or Professional')
+    )
+    club_owner_type = models.CharField(
+        max_length=20,
+        choices=CLUB_OWNER_TYPE_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name=_('Club Owner Type'),
+        help_text=_('Private, NPO, or Constitutional')
+    )
+    club_documents = models.FileField(
+        upload_to='documents/club_documents/',
+        blank=True,
+        null=True,
+        verbose_name=_('Club Compliance Documents'),
+        help_text=_('Upload constitution or other compliance documents (PDF, DOC, etc)')
+    )
+    affiliation_fees_paid = models.BooleanField(
+        default=False,
+        verbose_name=_('Affiliation Fees Paid'),
+        help_text=_('Has the club paid its affiliation fees for the season?')
+    )
     
     class Meta:
         verbose_name = _('Club')
