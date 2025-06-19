@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     
     # Third party apps
     'rest_framework',  # Added for Django REST Framework
+    'rest_framework.authtoken',  # Added for DRF token authentication
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -191,6 +192,6 @@ GOOGLE_WALLET_KEY_FILE = os.path.join(BASE_DIR, 'credentials', 'google_wallet_ke
 os.makedirs(os.path.join(BASE_DIR, 'credentials'), exist_ok=True)
 
 # Base URL for generating absolute URLs (for Google Wallet integration)
-BASE_URL = 'https://safa.org.za'  # Replace with actual domain in production
+BASE_URL = 'https://safaglobaladmin.co.za'  # Replace with actual domain in production
 if DEBUG:
     BASE_URL = 'http://localhost:8000'

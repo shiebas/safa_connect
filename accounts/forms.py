@@ -1,8 +1,10 @@
+import os
 import datetime
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.utils.translation import gettext_lazy as _
 from django.forms import ValidationError
+from django.utils import timezone
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder, Submit
@@ -229,7 +231,6 @@ class UniversalRegistrationForm(forms.ModelForm):
                     self.fields['region'].required = False
             except Exception as e:
                 self.fields['region'].required = False
-        # ...existing code...
         
         # Create a layout with organization type selection
         self.helper.layout = Layout(
@@ -541,3 +542,364 @@ class UniversalRegistrationForm(forms.ModelForm):
 
 # Create alias for backward compatibility 
 NationalUserRegistrationForm = UniversalRegistrationForm
+
+from django import forms
+from membership.models import Player, PlayerClubRegistration
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+import re
+
+class ClubAdminPlayerRegistrationForm(forms.ModelForm):
+    # Optional email field for player (already in model)
+    popi_consent = forms.BooleanField(required=False, label="POPI Consent", help_text="Required for juniors")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make gender and email hidden fields
+        self.fields['gender'].widget = forms.HiddenInput()
+        self.fields['email'].widget = forms.HiddenInput()
+        self.fields['email'].required = False  # Will be auto-generated
+        self.fields['date_of_birth'].required = False  # Make DOB not required, will be calculated from ID
+        
+        # Name validation
+        self.fields['first_name'].widget.attrs.update({
+            'pattern': '[A-Za-z]{3,}', 
+            'minlength': '3', 
+            'title': 'Only letters, at least 3 characters'
+        })
+        self.fields['last_name'].widget.attrs.update({
+            'pattern': '[A-Za-z]{3,}', 
+            'minlength': '3', 
+            'title': 'Only letters, at least 3 characters'
+        })
+        
+        # Make ID number accept only digits
+        self.fields['id_number'].widget.attrs.update({
+            'pattern': '[0-9]{13}', 
+            'inputmode': 'numeric',
+            'title': 'ID number must be exactly 13 digits'
+        })
+        
+        # Set has_sa_passport to False by default
+        self.fields['has_sa_passport'].initial = False
+        self.fields['has_sa_passport'].help_text = "Optional: Check this if the player has a South African passport in addition to SA ID (for record purposes only)"
+        
+        # Configure SA passport related fields
+        self.fields['sa_passport_number'].required = False
+        self.fields['sa_passport_number'].help_text = "Optional: Enter the South African passport number for record-keeping purposes"
+        
+        self.fields['sa_passport_document'].required = False
+        self.fields['sa_passport_document'].help_text = "Optional: Upload a copy of the SA passport (PDF or image)"
+        
+        # Configure the expiry date field as a date widget
+        self.fields['sa_passport_expiry_date'].required = False
+        self.fields['sa_passport_expiry_date'].help_text = "Optional: Enter the expiry date of the SA passport"
+        self.fields['sa_passport_expiry_date'].widget = forms.DateInput(
+            attrs={'type': 'date', 'class': 'form-control', 'min': datetime.date.today().isoformat()}
+        )
+
+    class Meta:
+        model = Player
+        fields = [
+            'first_name', 'last_name',
+            'id_document_type', 'id_number', 'passport_number',
+            'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+            'gender', 'date_of_birth', 'email',
+            'profile_picture', 'id_document',
+            'popi_consent',
+        ]
+        # No widgets override: let JS handle field visibility
+
+    # Keep server-side validation for names, ID/passport uniqueness, etc.
+    def clean_first_name(self):
+        value = self.cleaned_data.get('first_name', '')
+        if not value.isalpha() or len(value) < 3:
+            raise ValidationError('First name must be at least 3 alphabetic characters.')
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data.get('last_name', '')
+        if not value.isalpha() or len(value) < 3:
+            raise ValidationError('Last name must be at least 3 alphabetic characters.')
+        return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        id_number = cleaned_data.get('id_number')
+        passport_number = cleaned_data.get('passport_number')
+        has_sa_passport = cleaned_data.get('has_sa_passport')
+        sa_passport_number = cleaned_data.get('sa_passport_number')
+        sa_passport_document = cleaned_data.get('sa_passport_document')
+        sa_passport_expiry_date = cleaned_data.get('sa_passport_expiry_date')
+        popi_consent = cleaned_data.get('popi_consent')
+        id_document_type = cleaned_data.get('id_document_type')
+        dob = cleaned_data.get('date_of_birth')
+        id_document = cleaned_data.get('id_document')
+        first_name = cleaned_data.get('first_name')
+        last_name = cleaned_data.get('last_name')
+        
+        errors = {}
+        
+        # Validate ID number format if provided
+        if id_number:
+            if not re.match(r'^\d{13}$', id_number):
+                errors['id_number'] = 'ID number must be exactly 13 digits'
+        
+        # Only require one of ID or passport, let JS/UI handle toggling
+        if not id_number and not passport_number:
+            errors['id_number'] = 'Either ID number or passport number is required'
+            errors['passport_number'] = 'Either ID number or passport number is required'
+        
+        # Validate passport document if using passport
+        from django.conf import settings
+        validate_documents = getattr(settings, 'VALIDATE_PASSPORT_DOCUMENTS', True)
+        
+        if validate_documents and id_document_type == 'PP' and id_document and passport_number:
+            from .utils import validate_passport_document
+            
+            # Validate the uploaded passport document
+            is_valid, messages = validate_passport_document(
+                id_document, passport_number, first_name, last_name, dob
+            )
+            
+            # If validation failed, add error
+            if not is_valid:
+                if any(msg.startswith("Document must be") for msg in messages):
+                    errors['id_document'] = f"Passport document validation failed: {', '.join(messages)}"
+                else:
+                    # For OCR validation failures, show warning but allow submission
+                    # Store warning in session for display after redirect
+                    request = getattr(self, 'request', None)
+                    if request and hasattr(request, 'session'):
+                        if 'document_warnings' not in request.session:
+                            request.session['document_warnings'] = []
+                        request.session['document_warnings'].append(
+                            f"Passport document accepted but requires validation: {', '.join(messages)}"
+                        )
+        
+        # If SA passport info is provided (optional), validate what's there
+        if has_sa_passport:
+            # Only validate passport expiry date if it's provided
+            today = timezone.now().date()
+            if sa_passport_expiry_date and sa_passport_expiry_date < today:
+                errors['sa_passport_expiry_date'] = 'The SA passport has expired. Please provide a valid passport with a future expiry date'
+                
+            # Validate document format (if provided)
+            if sa_passport_document:
+                ext = os.path.splitext(sa_passport_document.name)[1].lower()
+                if ext not in ['.pdf', '.jpg', '.jpeg', '.png']:
+                    errors['sa_passport_document'] = 'SA passport document must be a PDF or image file (jpg, jpeg, png)'
+                
+                # If SA passport document is provided with a number, validate it
+                if sa_passport_number and validate_documents:
+                    from .utils import validate_passport_document
+                    
+                    # Validate the uploaded SA passport document
+                    is_valid, messages = validate_passport_document(
+                        sa_passport_document, sa_passport_number, first_name, last_name, dob
+                    )
+                    
+                    # If validation failed, add error
+                    if not is_valid:
+                        if any(msg.startswith("Document must be") for msg in messages):
+                            errors['sa_passport_document'] = f"SA passport document validation failed: {', '.join(messages)}"
+                        else:
+                            # For OCR validation failures, show warning but allow submission
+                            request = getattr(self, 'request', None)
+                            if request and hasattr(request, 'session'):
+                                if 'document_warnings' not in request.session:
+                                    request.session['document_warnings'] = []
+                                request.session['document_warnings'].append(
+                                    f"SA passport document accepted but requires validation: {', '.join(messages)}"
+                                )
+        
+        # POPI consent required for juniors (under 18)
+        if dob:
+            age = (timezone.now().date() - dob).days // 365
+            if age < 18 and not popi_consent:
+                errors['popi_consent'] = 'POPI consent is required for players under 18'
+                
+        # Ensure id_number is unique
+        if id_number and Player.objects.filter(id_number=id_number).exists():
+            errors['id_number'] = 'A player with this ID number already exists'
+            
+        # Ensure passport_number is unique
+        if passport_number and Player.objects.filter(passport_number=passport_number).exists():
+            errors['passport_number'] = 'A player with this passport number already exists'
+            
+        # Check if SA passport number is unique
+        if sa_passport_number and Player.objects.filter(sa_passport_number=sa_passport_number).exists():
+            errors['sa_passport_number'] = 'A player with this South African passport number already exists'
+        
+        if errors:
+            raise ValidationError(errors)
+            
+        return cleaned_data
+        
+        # POPI consent required for juniors (under 18)
+        if dob:
+            age = (timezone.now().date() - dob).days // 365
+            if age < 18 and not popi_consent:
+                raise ValidationError('POPI consent is required for players under 18.')
+                
+        # Ensure id_number/passport is unique
+        if id_number and Player.objects.filter(id_number=id_number).exists():
+            raise ValidationError('A player with this ID number already exists.')
+            
+        if passport_number and Player.objects.filter(passport_number=passport_number).exists():
+            raise ValidationError('A player with this passport number already exists.')
+            
+        # Check if SA passport number is unique
+        if sa_passport_number and Player.objects.filter(sa_passport_number=sa_passport_number).exists():
+            raise ValidationError('A player with this South African passport number already exists.')
+            
+        return cleaned_data
+
+class PlayerClubRegistrationOnlyForm(forms.ModelForm):
+    class Meta:
+        model = PlayerClubRegistration
+        fields = ['position', 'jersey_number', 'height', 'weight', 'notes']
+
+class PlayerUpdateForm(forms.ModelForm):
+    """Form for updating player information after registration (including ID documents)"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set has_sa_passport to False by default
+        if not self.instance.has_sa_passport:
+            self.fields['has_sa_passport'].initial = False
+        # Help text for the checkbox
+        self.fields['has_sa_passport'].help_text = "Optional: Check if player has a South African passport (for record purposes only)"
+        # Make the SA passport number field not required initially
+        self.fields['sa_passport_number'].required = False
+        self.fields['sa_passport_number'].help_text = "Optional: Enter the South African passport number for record-keeping purposes"
+        
+        # Make phone_number optional
+        self.fields['phone_number'].required = False
+        self.fields['phone_number'].help_text = "Optional: Enter player's phone number if available"
+        
+        # Configure profile picture field
+        self.fields['profile_picture'].help_text = "Upload player photo (required for player approval)"
+        
+        # Configure ID document field
+        self.fields['id_document'].required = False
+        if self.instance.id_document_type == 'ID':
+            self.fields['id_document'].help_text = "Upload a copy of the South African ID document (required for approval)"
+            self.fields['id_document'].label = "SA ID Document"
+        else:
+            self.fields['id_document'].help_text = "Upload a copy of the passport document (required for approval)"
+            self.fields['id_document'].label = "Passport Document"
+        
+        # Configure the SA passport document and expiry fields
+        self.fields['sa_passport_document'].required = False
+        self.fields['sa_passport_document'].help_text = "Optional: Upload a copy of the SA passport (PDF or image)"
+        
+        # Configure the expiry date field
+        self.fields['sa_passport_expiry_date'].required = False
+        self.fields['sa_passport_expiry_date'].help_text = "Optional: Enter the expiry date of the SA passport"
+        self.fields['sa_passport_expiry_date'].widget = forms.DateInput(
+            attrs={'type': 'date', 'class': 'form-control', 'min': datetime.date.today().isoformat()}
+        )
+    
+    class Meta:
+        model = Player
+        fields = [
+            'email', 'phone_number', 'profile_picture', 'id_document',
+            'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+            'street_address', 'suburb', 'city', 'state', 'postal_code',
+        ]
+        
+    def clean(self):
+        from django.conf import settings
+        cleaned_data = super().clean()
+        sa_passport_number = cleaned_data.get('sa_passport_number')
+        id_document = cleaned_data.get('id_document')
+        
+        # Check if SA passport number is unique (excluding the current instance), but only if provided
+        if sa_passport_number:
+            existingPlayers = Player.objects.filter(sa_passport_number=sa_passport_number).exclude(pk=self.instance.pk)
+            if existingPlayers.exists():
+                raise ValidationError('A player with this South African passport number already exists.')
+        
+        # If document validation is enabled in settings (default to True if not specified)
+        validate_documents = getattr(settings, 'VALIDATE_PASSPORT_DOCUMENTS', True)
+        
+        if validate_documents:
+            # If a new passport document is uploaded and player is not using SA ID, validate it
+            if id_document and self.instance.id_document_type != 'ID' and hasattr(id_document, 'content_type'):
+                # Only validate if the file is new or changed (check if it's a UploadedFile object)
+                if hasattr(id_document, 'file') or hasattr(id_document, 'read'):
+                    from .utils import validate_passport_document
+                    
+                    passport_number = self.instance.passport_number
+                    first_name = self.instance.first_name
+                    last_name = self.instance.last_name
+                    dob = self.instance.date_of_birth
+                    
+                    # Validate the uploaded passport document
+                    is_valid, messages = validate_passport_document(
+                        id_document, passport_number, first_name, last_name, dob
+                    )
+                    
+                    # If validation failed, add error or warning
+                    if not is_valid:
+                        # If it's a serious problem, block submission
+                        if any(msg.startswith("Document must be") for msg in messages):
+                            raise ValidationError(f"Passport document validation failed: {', '.join(messages)}")
+                        else:
+                            # For OCR validation failures, show warning but allow submission
+                            # In a production system, you might want to flag these for manual review
+                            from django.contrib import messages as django_messages
+                            request = getattr(self, 'request', None)
+                            if request:
+                                django_messages.warning(
+                                    request, 
+                                    f"Passport document accepted but requires validation: {', '.join(messages)}"
+                                )
+    
+            # Similarly, if a new SA passport document is uploaded, validate it
+            sa_passport_document = cleaned_data.get('sa_passport_document')
+            has_sa_passport = cleaned_data.get('has_sa_passport')
+            
+            if sa_passport_document and has_sa_passport and hasattr(sa_passport_document, 'content_type'):
+                # Only validate if the file is new or changed
+                if hasattr(sa_passport_document, 'file') or hasattr(sa_passport_document, 'read'):
+                    from .utils import validate_passport_document
+                    
+                    sa_passport_number = cleaned_data.get('sa_passport_number')
+                    if sa_passport_number:  # Only validate if SA passport number is provided
+                        first_name = self.instance.first_name
+                        last_name = self.instance.last_name
+                        dob = self.instance.date_of_birth
+                        
+                        # Validate the SA passport document
+                        is_valid, messages = validate_passport_document(
+                            sa_passport_document, sa_passport_number, first_name, last_name, dob
+                        )
+                        
+                        # If validation failed, add error or warning
+                        if not is_valid:
+                            # If it's a serious problem, block submission
+                            if any(msg.startswith("Document must be") for msg in messages):
+                                raise ValidationError(f"SA passport document validation failed: {', '.join(messages)}")
+                            else:
+                                # For OCR validation failures, show warning but allow submission
+                                # In a production system, you might want to flag these for manual review
+                                from django.contrib import messages as django_messages
+                                request = getattr(self, 'request', None)
+                                if request:
+                                    django_messages.warning(
+                                        request, 
+                                        f"SA passport document accepted but requires validation: {', '.join(messages)}"
+                                    )
+                
+        return cleaned_data
+
+class PlayerClubRegistrationUpdateForm(forms.ModelForm):
+    """Form for updating player club registration information"""
+    class Meta:
+        model = PlayerClubRegistration
+        fields = ['position', 'jersey_number', 'height', 'weight', 'notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }

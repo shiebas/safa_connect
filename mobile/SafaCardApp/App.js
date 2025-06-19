@@ -1,13 +1,11 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import AppNavigator from './src/AppNavigator';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>SAFA Card App</Text>
-      <Text style={styles.subtitle}>Digital Membership Cards</Text>
-      <StatusBar style="auto" />
+      <AppNavigator />
     </View>
   );
 }
@@ -15,18 +13,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFD700',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#333',
-    marginTop: 10,
   },
 });

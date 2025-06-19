@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}SAFA System Dashboard{% endblock %}
 
@@ -63,23 +64,16 @@
     .card-example {
         min-width: 280px;
         height: 170px;
-        background: linear-gradient(135deg, #006633 0%, #004422 100%);
+        background: white;
         border-radius: 10px;
         padding: 15px;
-        color: white;
+        color: #004422;
         position: relative;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
     }
     
-    .card-example::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 30px;
-        background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(255,215,0,0.6));
-    }
+    /* Removed top green stripe for cleaner white front */
     
     .card-example .chip {
         width: 35px;
@@ -89,6 +83,7 @@
         position: absolute;
         top: 50px;
         left: 15px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     
     .card-example .card-number {
@@ -97,8 +92,9 @@
         left: 15px;
         font-family: 'Courier New', monospace;
         font-size: 14px;
-        color: #FFD700;
+        color: #006633;
         letter-spacing: 2px;
+        font-weight: bold;
     }
     
     .card-example .expires {
@@ -106,16 +102,27 @@
         bottom: 30px;
         left: 15px;
         font-size: 10px;
-        color: rgba(255,255,255,0.7);
+        color: #555;
     }
     
-    .card-example .logo {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 40px;
-        height: 40px;
-        background: url("{% static 'images/default_logo.png' %}") no-repeat center/contain;
+    .card-example-back {
+        min-width: 280px;
+        height: 170px;
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .card-example-back .safa-logo {
+        width: 100px;
+        height: 100px;
+        background: url("{% static 'images/favicon.png' %}") no-repeat center/contain;
     }
 </style>
 {% endblock %}
@@ -127,28 +134,41 @@
     <!-- Card Examples -->
     <div class="dashboard-section">
         <h3><i class="fas fa-id-card me-2"></i>Digital Card Examples</h3>
-        <p class="text-muted mb-3">The following examples show how digital cards appear to users.</p>
+        <p class="text-muted mb-3">Clean white card design with SAFA branding on the back.</p>
         
+        <h4>Front of Cards</h4>
         <div class="card-examples">
             <div class="card-example">
                 <div class="chip"></div>
-                <div class="logo"></div>
                 <div class="card-number">2025 1234 5678</div>
                 <div class="expires">VALID THRU: 06/26</div>
             </div>
             
-            <div class="card-example" style="background: linear-gradient(135deg, #800080 0%, #4B0082 100%);">
+            <div class="card-example">
                 <div class="chip"></div>
-                <div class="logo"></div>
                 <div class="card-number">2025 8765 4321</div>
                 <div class="expires">VALID THRU: 03/27</div>
             </div>
             
-            <div class="card-example" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+            <div class="card-example">
                 <div class="chip"></div>
-                <div class="logo"></div>
                 <div class="card-number">2025 2468 1357</div>
                 <div class="expires">VALID THRU: 12/26</div>
+            </div>
+        </div>
+        
+        <h4 class="mt-4">Back of Cards</h4>
+        <div class="card-examples">
+            <div class="card-example-back">
+                <div class="safa-logo"></div>
+            </div>
+            
+            <div class="card-example-back">
+                <div class="safa-logo"></div>
+            </div>
+            
+            <div class="card-example-back">
+                <div class="safa-logo"></div>
             </div>
         </div>
     </div>

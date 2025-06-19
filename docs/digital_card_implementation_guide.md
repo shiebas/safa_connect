@@ -16,8 +16,9 @@
 5. [Security Considerations](#security-considerations)
 6. [User Guides](#user-guides)
 7. [Administrative Functions](#administrative-functions)
-8. [Future Enhancements](#future-enhancements)
-9. [Troubleshooting](#troubleshooting)
+8. [Troubleshooting](#troubleshooting)
+9. [Appendices](#appendices)
+10. [Future Enhancements and Roadmap](#11-future-enhancements-and-roadmap)
 10. [Appendices](#appendices)
 
 ## 1. Introduction <a name="introduction"></a>
@@ -373,3 +374,7 @@ pillow>=8.0.0
 2. Luhn Algorithm Specification: ISO/IEC 7812
 3. QR Code Standards: ISO/IEC 18004:2015
 4. Django Documentation: https://docs.djangoproject.com/
+
+## 11. Future Enhancements and Roadmap
+
+For a complete list of planned enhancements, current tasks, and future development roadmap, please refer to the [Digital Card System TODO List](/docs/digital_card_todo.md). This list is regularly updated and serves as the primary roadmap for ongoing development of the SAFA Digital Card System.

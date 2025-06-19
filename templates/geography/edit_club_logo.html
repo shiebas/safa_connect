@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Edit Club Logo{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <!-- Navigation Bar with links -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Club Identity</h2>
+                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+            <hr>
+            <div class="btn-toolbar mt-3">
+                <a href="{% url 'accounts:club_admin_add_player' %}" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-person-plus"></i> Register Player
+                </a>
+                <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-outline-success">
+                    <i class="bi bi-people"></i> Player List
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Edit Club Logo</h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12 text-center">
+                            <h3>{{ club.name }}</h3>
+                            {% if club.logo %}
+                                <img src="{{ club.logo.url }}" alt="{{ club.name }} Logo" class="img-thumbnail mb-3" style="max-width: 200px; max-height: 200px;">
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    No logo uploaded yet
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Upload Logo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -150,6 +150,20 @@ def qr_to_base64(qr_img):
 
 def save_qr_image(qr_img, filename):
     """Save QR image to file"""
-    buffer = io.BytesIO()
-    qr_img.save(buffer, format='PNG')
-    return ContentFile(buffer.getvalue(), name=filename)
+    try:
+        import logging
+        logger = logging.getLogger(__name__)
+
+        buffer = io.BytesIO()
+        qr_img.save(buffer, format='PNG')
+        file_path = os.path.join(settings.MEDIA_ROOT, filename)
+
+        # Save file to media directory
+        with open(file_path, 'wb') as f:
+            f.write(buffer.getvalue())
+
+        logger.info(f"QR image saved successfully at {file_path}")
+        return file_path
+    except Exception as e:
+        logger.error(f"Failed to save QR image: {str(e)}")
+        return None

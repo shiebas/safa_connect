@@ -72,6 +72,7 @@ class Member(models.Model):
                              help_text=_("7-digit unique FIFA identification number"))
     id_number = models.CharField(_("ID Number"), max_length=13, blank=True,
                                help_text=_("13-digit South African ID number"))
+    passport_number = models.CharField(_('Passport Number'), max_length=25, blank=True, null=True, help_text=_('Passport number for non-citizens'))
     gender = models.CharField(_("Gender"), max_length=1, choices=GENDER_CHOICES, 
                             blank=True, help_text=_("Gender as per ID document"))
 
@@ -128,6 +129,20 @@ class Member(models.Model):
     emergency_phone = models.CharField(_("Emergency Contact Phone"), 
                                     max_length=20, blank=True)
     medical_notes = models.TextField(_("Medical Notes"), blank=True)
+
+    # Document Fields for Player Registration
+    id_document_type = models.CharField(
+        max_length=2,
+        choices=[('ID', 'SA ID'), ('PP', 'Passport')],
+        default='ID',
+        help_text=_('Type of identification document (SA ID or Passport)')
+    )
+    id_document = models.FileField(
+        upload_to='documents/member_documents/',
+        null=True,
+        blank=True,
+        help_text=_('Upload a scan/photo of the ID or passport')
+    )
 
     class Meta:
         verbose_name = _("Member")
@@ -292,6 +307,26 @@ class Player(Member):
     Player model represents a registered member who can play for clubs.
     Physical attributes and position details are handled in club registration.
     """
+    # Add approval field
+    is_approved = models.BooleanField(_("Approved"), default=False,
+                                     help_text=_("Whether the player has been approved by an admin"))
+    
+    # Track if a South African citizen also has a valid SA passport
+    has_sa_passport = models.BooleanField(_("Has SA Passport"), default=False,
+                                        help_text=_("Whether the SA citizen player also has a valid SA passport for international travel"))
+    
+    # Store the SA passport number for local citizens who have passports
+    sa_passport_number = models.CharField(_("SA Passport Number"), max_length=25, blank=True, null=True,
+                                       help_text=_("South African passport number for citizens (for international travel)"))
+    
+    # SA passport document
+    sa_passport_document = models.FileField(_("SA Passport Document"), upload_to='sa_passport_documents/',
+                                         blank=True, null=True, help_text=_("Upload a copy of the SA passport"))
+    
+    # SA passport expiry date
+    sa_passport_expiry_date = models.DateField(_("SA Passport Expiry Date"), blank=True, null=True,
+                                           help_text=_("Expiry date of the South African passport"))
+    
     class Meta:
         verbose_name = _("Player")
         verbose_name_plural = _("Players")

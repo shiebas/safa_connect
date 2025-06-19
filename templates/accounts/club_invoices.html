@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Club Invoices{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+    .summary-card {
+        transition: all 0.3s;
+    }
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .bg-light-warning {
+        background-color: rgba(255, 193, 7, 0.2);
+    }
+    .bg-light-danger {
+        background-color: rgba(220, 53, 69, 0.2);
+    }
+    .bg-light-success {
+        background-color: rgba(40, 167, 69, 0.2);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,123,255,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Navigation Bar with links -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>{{ club.name }} - Invoices</h2>
+                    <p class="text-muted">Manage your club's invoices and payments</p>
+                </div>
+                <div>
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-house"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card summary-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total</h5>
+                    <h3 class="mb-0">R{{ summary.total_amount|floatformat:2 }}</h3>
+                    <p class="text-muted">{{ summary.total_invoices }} invoices</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card summary-card bg-light-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">Pending</h5>
+                    <h3 class="mb-0 text-warning">R{{ summary.pending_amount|floatformat:2 }}</h3>
+                    <p class="text-muted">{{ summary.pending_invoices }} invoices</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card summary-card bg-light-danger">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger">Overdue</h5>
+                    <h3 class="mb-0 text-danger">R{{ summary.overdue_amount|floatformat:2 }}</h3>
+                    <p class="text-muted">{{ summary.overdue_invoices }} invoices</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card summary-card bg-light-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">Paid</h5>
+                    <h3 class="mb-0 text-success">R{{ summary.paid_amount|floatformat:2 }}</h3>
+                    <p class="text-muted">{{ summary.paid_invoices }} invoices</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Invoice Filters</h4>
+        </div>
+        <div class="card-body">
+            <div class="btn-group mb-3">
+                <a href="{% url 'accounts:club_invoices' %}" class="btn btn-outline-primary {% if not selected_status %}active{% endif %}">All</a>
+                <a href="{% url 'accounts:club_invoices' %}?status=PENDING" class="btn btn-outline-warning {% if selected_status == 'PENDING' %}active{% endif %}">Pending</a>
+                <a href="{% url 'accounts:club_invoices' %}?status=OVERDUE" class="btn btn-outline-danger {% if selected_status == 'OVERDUE' %}active{% endif %}">Overdue</a>
+                <a href="{% url 'accounts:club_invoices' %}?status=PAID" class="btn btn-outline-success {% if selected_status == 'PAID' %}active{% endif %}">Paid</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{% if selected_status %}{{ selected_status|title }} {% endif %}Invoices</h4>
+        </div>
+        <div class="card-body">
+            {% if invoices %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Player</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Issue Date</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in invoices %}
+                                <tr>
+                                    <td>{{ invoice.invoice_number }}</td>
+                                    <td>
+                                        <a href="{% url 'accounts:player_detail' invoice.player.id %}">
+                                            {{ invoice.player.first_name }} {{ invoice.player.last_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ invoice.get_invoice_type_display }}</td>
+                                    <td>R{{ invoice.amount|floatformat:2 }}</td>
+                                    <td>{{ invoice.issue_date|date:"Y-m-d" }}</td>
+                                    <td>{{ invoice.due_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <span class="badge {% if invoice.status == 'PAID' %}bg-success{% elif invoice.status == 'OVERDUE' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {{ invoice.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-primary" onclick="showInvoiceDetails('{{ invoice.invoice_number }}', '{{ invoice.player.first_name }} {{ invoice.player.last_name }}', '{{ invoice.amount|floatformat:2 }}', '{{ invoice.reference }}')">
+                                            <i class="bi bi-eye"></i> Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    No invoices found for your club{% if selected_status %} with status {{ selected_status }}{% endif %}.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Details Modal -->
+<div class="modal fade" id="invoiceDetailsModal" tabindex="-1" aria-labelledby="invoiceDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="invoiceDetailsModalLabel">Invoice Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Invoice Number:</dt>
+                    <dd class="col-sm-8" id="modalInvoiceNumber"></dd>
+                    
+                    <dt class="col-sm-4">Player:</dt>
+                    <dd class="col-sm-8" id="modalPlayerName"></dd>
+                    
+                    <dt class="col-sm-4">Amount:</dt>
+                    <dd class="col-sm-8">R<span id="modalAmount"></span></dd>
+                    
+                    <dt class="col-sm-4">Payment Reference:</dt>
+                    <dd class="col-sm-8" id="modalReference"></dd>
+                </dl>
+                
+                <div class="alert alert-info">
+                    <h6>Payment Instructions</h6>
+                    <p>Please make payment to the following bank account:</p>
+                    <p>
+                        Bank: SAFA National Bank<br>
+                        Branch Code: 123456<br>
+                        Account Number: 1234567890<br>
+                        Reference: <span id="modalReferenceRepeat"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showInvoiceDetails(invoiceNumber, playerName, amount, reference) {
+        document.getElementById('modalInvoiceNumber').textContent = invoiceNumber;
+        document.getElementById('modalPlayerName').textContent = playerName;
+        document.getElementById('modalAmount').textContent = amount;
+        document.getElementById('modalReference').textContent = reference;
+        document.getElementById('modalReferenceRepeat').textContent = reference;
+        
+        var invoiceModal = new bootstrap.Modal(document.getElementById('invoiceDetailsModal'));
+        invoiceModal.show();
+    }
+</script>
+{% endblock %}

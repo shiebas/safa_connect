@@ -6,232 +6,130 @@
 {% block extra_css %}
 <style>
     /* Card flip container */
+    /* Complete overhaul of flip card system */
     .flip-card {
-        perspective: 1000px;
         width: 100%;
         max-width: 400px;
+        height: 320px;
         margin: 20px auto;
-        height: 250px;
+        perspective: 1000px;
+        position: relative;
+        isolation: isolate; /* Creates a new stacking context */
+        z-index: 1;
     }
     
     .flip-card-inner {
-        position: relative;
         width: 100%;
         height: 100%;
-        text-align: center;
-        transition: transform 0.6s;
+        position: relative;
         transform-style: preserve-3d;
+        transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        border-radius: 15px;
     }
     
     .flip-card.flipped .flip-card-inner {
         transform: rotateY(180deg);
     }
     
-    .digital-card, .card-back {
+    .digital-card,
+    .card-back {
         position: absolute;
         width: 100%;
         height: 100%;
-        -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
         border-radius: 15px;
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
     }
     
     .digital-card {
-        background: linear-gradient(135deg, #006633 0%, #004422 100%);
-        padding: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        color: #fff;
-        position: relative;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        z-index: 2;
+        background: white;
+        border: 1px solid #e0e0e0;
     }
     
     .card-back {
-        background: linear-gradient(135deg, #004422 0%, #003311 100%);
+        background: white;
+        transform: rotateY(180deg);
+        border: 1px solid #e0e0e0;
+    }
+    
+    /* Important Safari/Firefox fix for backface-visibility */
+    @supports (-webkit-overflow-scrolling: touch) or ((-moz-appearance: none) and (background-attachment: local)) {
+        .digital-card {
+            transform: rotateY(0deg);
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+    }
+    
+    .digital-card {
+        background: white;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
+        padding: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        color: #004422;
+        position: relative;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        border-radius: 15px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .card-back {
+        background: #ffffff;
         transform: rotateY(180deg);
         padding: 20px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        color: #333333;
     }
     
-    .magnetic-strip {
-        position: absolute;
-        top: 40px;
-        left: 0;
-        width: 100%;
-        height: 40px;
-        background-color: #333;
-        opacity: 0.8;
-    }
-    
-    .digital-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 50px;
-        background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(255,215,0,0.6));
-    }
-    
-    .digital-card::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40px;
-        background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(255,215,0,0.1));
-        z-index: 1;
-    }
-    
+    /* Card Header */
     .card-header {
         text-align: center;
-        margin-bottom: 20px;
-    }
-    
-    .safa-logo {
-        width: 60px;
-        height: 60px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 2;
     }
     
     .card-title {
-        font-size: 16px;
+        font-size: 13px;
         font-weight: bold;
-        color: #FFD700;
+        color: #006633;
         margin: 0;
         text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
-    .member-photo {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        border: 2px solid #FFD700;
-        float: right;
-        margin-left: 15px;
-        object-fit: cover;
-        box-shadow: 0 0 10px rgba(255,215,0,0.3);
-    }
-    
-    .member-info {
-        overflow: hidden;
-        padding-top: 10px;
-        position: relative;
-        z-index: 2;
-    }
-    
-    .member-name {
-        font-size: 18px;
-        font-weight: bold;
-        color: #fff;
-        margin: 0 0 5px 0;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         letter-spacing: 0.5px;
+        line-height: 1.3;
+        max-width: 80%; /* Ensure there's room for the status badge */
     }
     
-    .member-details {
-        font-size: 13px;
-        color: rgba(255,255,255,0.85);
-        line-height: 1.4;
-    }
-    
-    .qr-section {
-        text-align: center;
-        margin-top: 10px;
-        padding-top: 15px;
-        border-top: 1px solid rgba(255,215,0,0.5);
-        position: relative;
-        z-index: 2;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    
-    .qr-code {
-        width: 90px;
-        height: 90px;
-        background: #fff;
-        padding: 6px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-    
-    .qr-code img {
-        width: 100%;
-        height: 100%;
-    }
-    
-    .card-info {
-        flex: 1;
-        text-align: right;
-        padding-left: 15px;
-    }
-    
-    .chip-icon {
-        position: absolute;
-        top: 70px;
-        left: 20px;
-        width: 40px;
-        height: 30px;
-        background: linear-gradient(145deg, #FFD700, #DAA520);
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        z-index: 3;
-    }
-    
-    .card-number {
-        font-family: 'Courier New', monospace;
-        font-size: 16px;
-        font-weight: bold;
-        color: #FFD700;
-        letter-spacing: 3px;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
-        margin-bottom: 8px;
-        display: block;
-    }
-    
-    .validity {
-        font-size: 11px;
-        color: rgba(255,255,255,0.9);
-        margin-top: 4px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        display: flex;
-        align-items: center;
-    }
-    
-    .validity::before {
-        content: "VALID THRU";
-        font-size: 8px;
-        margin-right: 5px;
-        color: rgba(255,215,0,0.7);
-    }
-    
-    .safa-id {
-        font-size: 11px;
-        color: rgba(255,255,255,0.9);
-        margin-top: 6px;
-        letter-spacing: 0.5px;
-        font-family: 'Courier New', monospace;
-    }
-    
+    /* Status Badge - Repositioned to avoid overlap with title */
     .status-badge {
         display: inline-block;
-        padding: 3px 10px;
+        padding: 4px 12px;
         border-radius: 12px;
-        font-size: 10px;
+        font-size: 12px;
         font-weight: bold;
-        margin-top: 8px;
         text-transform: uppercase;
         letter-spacing: 1px;
+        position: absolute;
+        top: 35px; /* Moved up another 4px as requested */
+        right: 15px;
+        z-index: 10;
     }
     
     .status-active {
@@ -248,61 +146,171 @@
         background: #6c757d;
         color: white;
     }
+
+    .status-yellow {
+        background: #FFFF00;
+        color: white;
+    }
     
-    .card-actions {
-        margin-top: 15px;
-        text-align: center;
+    /* Member Section */
+    .member-section {
+        position: relative;
+        margin-bottom: 15px;
+        min-height: 80px;
+    }
+    
+    .member-photo {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 2px solid #006633;
+        float: right;
+        margin-left: 10px;
+        margin-top: 0;
+        object-fit: cover;
+        box-shadow: 0 4px 15px rgba(0,102,51,0.3);
         position: relative;
         z-index: 3;
     }
     
-    .btn-card {
-        background: rgba(0,0,0,0.3);
-        color: #FFD700;
-        border: 1px solid #FFD700;
-        padding: 8px 16px;
-        border-radius: 20px;
-        margin: 4px;
-        text-decoration: none;
-        display: inline-block;
-        font-weight: bold;
-        transition: all 0.2s ease;
-    }
-    
-    .btn-card:hover {
-        background: #FFD700;
-        color: #004422;
-        text-decoration: none;
-    }
-    
-    .flip-card {
-        perspective: 1000px;
-        max-width: 400px;
-        margin: 20px auto;
-    }
-    
-    .flip-card-inner {
+    .member-info {
+        overflow: hidden;
+        padding-top: 0;
         position: relative;
+        z-index: 2;
+    }
+    
+    .member-name {
+        font-size: 20px;
+        font-weight: bold;
+        color: #006633;
+        margin: 0 0 8px 0;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    
+    .full-name {
+        display: block;
+        font-size: 16px;
+        color: #444;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    
+    .member-details {
+        font-size: 13px;
+        color: #555;
+        line-height: 1.4;
+    }
+    
+    /* QR Code Section - Completely revamped */
+    .qr-section {
+        margin-top: 20px;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        clear: both;
+        flex-wrap: nowrap;
+    }
+    
+    .qr-code {
+        flex: 0 0 auto;
+        width: 110px;
+        height: 110px;
+        background: #fff;
+        padding: 5px;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+        margin-right: 10px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .qr-code img {
+        max-width: 100%;
+        max-height: 100%;
+        display: block;
+        object-fit: contain;
+    }
+    
+    .card-info {
+        flex: 1 1 auto;
+        text-align: right;
+        padding-left: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .card-number {
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        font-weight: bold;
+        color: #006633;
+        letter-spacing: 0; /* Removed letter spacing to fit all numbers */
+        margin-bottom: 8px;
+        display: block;
+        white-space: nowrap;
         width: 100%;
-        height: 100%;
-        transition: transform 0.8s;
-        transform-style: preserve-3d;
+        overflow: visible;
+        text-overflow: clip;
     }
     
-    .flip-card.flipped .flip-card-inner {
-        transform: rotateY(180deg);
-    }
-    
-    .digital-card, .card-back {
-        backface-visibility: hidden;
+    .validity {
+        font-size: 11px;
+        color: #006633;
+        margin-top: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: right;
+        font-weight: bold;
         position: absolute;
-        width: 100%;
-        height: 100%;
+        bottom: 20px;
+        right: 20px;
     }
     
+    .validity::before {
+        content: "EXPIRES";
+        font-size: 9px;
+        margin-right: 5px;
+        color: #000000;
+        font-weight: normal;
+    }
+    
+    /* Card Actions Container */
+    .card-actions-container {
+        text-align: center;
+        margin: 0 auto 15px auto;
+        max-width: 400px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .card-actions-container .btn {
+        padding: 8px 15px;
+        margin: 5px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .card-actions-container .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Card Back */
     .card-back {
         transform: rotateY(180deg);
-        background: linear-gradient(135deg, #004422 0%, #006633 100%);
+        background: #ffffff; /* Change to white background */
         border-radius: 15px;
         padding: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -310,156 +318,153 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        border: 1px solid #e0e0e0;
     }
     
-    .magnetic-strip {
-        height: 40px;
-        background: #111;
-        width: 100%;
-        margin: 20px 0;
-    }
-    
+    /* Mobile Responsive Styles */
     @media (max-width: 480px) {
         .digital-card {
-            margin: 10px;
             padding: 15px;
+            height: auto;
+            min-height: 380px;
         }
         
         .member-photo {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
         }
         
         .member-name {
             font-size: 16px;
         }
         
-        .qr-code {
-            width: 80px;
-            height: 80px;
+        .qr-section {
+            margin-top: 15px;
+            flex-direction: column;
+            align-items: center;
         }
         
-        .card-number {
-            font-size: 14px;
-            letter-spacing: 2px;
+        .qr-code {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+        }
+        
+        .card-info {
+            margin-top: 10px;
+            text-align: center;
+            max-width: none;
+            padding-left: 0;
+        }
+        
+        .card-actions {
+            margin-top: 15px;
         }
         
         .btn-card {
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 5px 8px;
+            font-size: 11px;
+            margin: 2px;
         }
+    }
+    
+    .member-photo {
+        width: 90px; /* Increased by 10px */
+        height: 90px; /* Increased by 10px */
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid pb-5 mb-5">
+    <!-- Card Actions Above Card -->
+    <div class="card-actions-container mt-3">
+        <a href="{% url 'membership_cards:download_card' %}" class="btn btn-success btn-sm">
+            <i class="fas fa-download"></i> Download
+        </a>
+        <button onclick="shareCard()" class="btn btn-info btn-sm">
+            <i class="fas fa-share"></i> Share
+        </button>
+        <a href="{% url 'membership_cards:google_wallet' %}" class="btn btn-primary btn-sm">
+            <i class="fab fa-google"></i> Add to Wallet
+        </a>
+    </div>
+
     <div class="flip-card">
         <div class="flip-card-inner">
+            <!-- Front of Card -->
             <div class="digital-card">
+                <!-- Status Badge (Top Right) -->
+                <div class="status-badge status-{{ card.status|lower }}" {% if card.status == 'YELLOW CARD' %}style="background-color: #ffc107; color: white;"{% endif %}>
+                    {{ card.get_status_display }}
+                </div>
+                
                 <!-- Header -->
                 <div class="card-header">
-                    <img src="{% static 'images/default_logo.png' %}" alt="SAFA Logo" class="safa-logo">
                     <h2 class="card-title">SOUTH AFRICAN FOOTBALL ASSOCIATION</h2>
-                    <p style="margin: 0; font-size: 12px; color: #FFD700; letter-spacing: 1px;">DIGITAL MEMBERSHIP CARD</p>
                 </div>
         
-        <!-- Member Info -->
-        <div class="member-section">
-            {% if user.profile_photo %}
-            <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="member-photo">
-            {% else %}
-            <div class="member-photo" style="background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #666;">
-                <i class="fas fa-user"></i>
-            </div>
-            {% endif %}
-            
-            <div class="member-info">
-                <h3 class="member-name">{{ user.name }} {{ user.surname }}</h3>
-                <div class="member-details">
-                    <strong>SAFA ID:</strong> {{ user.safa_id }}<br>
-                    <strong>Role:</strong> {{ user.get_role_display }}<br>
-                    <strong>Member Since:</strong> {{ user.date_joined|date:"M Y" }}
+                <!-- Member Info -->
+                <div class="member-section">
+                    {% if user.profile_photo %}
+                    <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="member-photo">
+                    {% else %}
+                    <div class="member-photo" style="background: #eee; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #666;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="member-info">
+                        <h3 class="member-name">Member</h3>
+                        <span class="full-name">{{ user.name }} {{ user.surname }}</span>
+                        <div class="member-details">
+                            <strong>SAFA ID:</strong> {{ user.safa_id }}<br>
+                            <strong>Role:</strong> {{ user.get_role_display }}<br>
+                            <strong>Member Since:</strong> {{ user.date_joined|date:"M Y" }}
+                        </div>
+                    </div>
+                    <div style="clear: both;"></div>
                 </div>
-            </div>
-            <div style="clear: both;"></div>
-        </div>
-        
-        <!-- Bank Card Elements -->
-        <div class="chip-icon"></div>
-        
-        <!-- QR Code Section -->
-        <div class="qr-section">
-            <div class="qr-code">
-                {% if qr_base64 %}
-                <img src="{{ qr_base64 }}" alt="QR Code">
-                {% else %}
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 12px; color: #666;">
-                    QR Code<br>Generating...
-                </div>
-                {% endif %}
-            </div>
-            
-            <div class="card-info">
-                <div class="card-number">{{ card.card_number|slice:":4" }} {{ card.card_number|slice:"4:8" }} {{ card.card_number|slice:"8:12" }} {{ card.card_number|slice:"12:16" }}</div>
                 
+                <!-- QR Code Section -->
+                <div class="qr-section">
+                    <div class="qr-code">
+                        {% if qr_base64 %}
+                        <img src="{{ qr_base64 }}" alt="QR Code">
+                        {% else %}
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 12px; color: #666;">
+                            QR Code<br>Generating...
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-info">
+                        <div class="card-number">{{ card.card_number|slice:":4" }}-{{ card.card_number|slice:"4:8" }}-{{ card.card_number|slice:"8:12" }}-{{ card.card_number|slice:"12:" }}</div>
+                    </div>
+                </div>
+                
+                <!-- Validity date positioned absolutely -->
                 <div class="validity">
                     {{ card.expires_date|date:"m/y" }}
                 </div>
-                
-                <div class="safa-id">SAFA ID: {{ user.safa_id }}</div>
-                
-                <div class="status-badge status-{{ card.status|lower }}">
-                    {{ card.get_status_display }}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Actions -->
-        <div class="card-actions">
-            <a href="{% url 'membership_cards:download_card' %}" class="btn-card">
-                <i class="fas fa-download"></i> Download
-            </a>
-            <button onclick="shareCard()" class="btn-card">
-                <i class="fas fa-share"></i> Share
-            </button>
-            <button onclick="flipCard()" class="btn-card">
-                <i class="fas fa-sync-alt"></i> Flip
-            </button>
-            <a href="{% url 'membership_cards:google_wallet' %}" class="btn-card">
-                <i class="fab fa-google"></i> Add to Wallet
-            </a>
-        </div>
             </div>
             
-            <!-- Card Back Side -->
+            <!-- Card Back Side - Now with white background -->
             <div class="card-back">
-                <div class="magnetic-strip"></div>
-                
-                <div class="qr-code" style="margin: 20px 0;">
-                    {% if qr_base64 %}
-                    <img src="{{ qr_base64 }}" alt="QR Code">
-                    {% else %}
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 12px; color: #666;">
-                        QR Code<br>Generating...
-                    </div>
-                    {% endif %}
+                <!-- Only Centered SAFA Logo -->
+                <div style="width: 180px; height: 180px; display: flex; justify-content: center; align-items: center;">
+                    <img src="{% static 'images/favicon.png' %}" alt="SAFA Logo" style="width: 85%; height: 85%; object-fit: contain;">
                 </div>
-                
-                <div style="color: #FFD700; font-size: 12px; text-align: center; max-width: 80%;">
-                    <p>Scan this QR code to verify membership status.</p>
-                    <p style="font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 20px;">
-                        This card remains the property of SAFA.<br>
-                        If found, please return to nearest SAFA office.
-                    </p>
+                <div style="margin-top: 20px; text-align: center; color: #006633;">
+                    <!-- Removed text "SOUTH AFRICAN FOOTBALL ASSOCIATION" -->
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Additional Card Actions Outside Card -->
-    <div style="text-align: center; margin: 20px auto; max-width: 400px;">
-        <button onclick="flipCard()" class="btn btn-dark">
+    <!-- Additional Card Actions Below Card - With improved margins -->
+    <div style="text-align: center; margin: 30px auto 60px auto; max-width: 400px; position: relative; z-index: 5;">
+        <button onclick="flipCard()" class="btn btn-primary btn-lg shadow" style="border-radius: 30px; padding: 10px 30px;">
             <i class="fas fa-sync-alt"></i> Flip Card
         </button>
     </div>
@@ -483,35 +488,30 @@ function shareCard() {
 }
 
 function flipCard() {
-    document.querySelector('.flip-card').classList.toggle('flipped');
+    // Get the flip card container
+    const flipCardContainer = document.querySelector('.flip-card');
+    
+    // Toggle the flipped class
+    if (flipCardContainer.classList.contains('flipped')) {
+        flipCardContainer.classList.remove('flipped');
+    } else {
+        flipCardContainer.classList.add('flipped');
+    }
+    
+    // Remove any transforms from hover effects
+    const frontCard = document.querySelector('.digital-card');
+    if (frontCard) {
+        frontCard.style.transform = '';
+    }
+    
+    // Debug
+    console.log('Card flip toggled. Is flipped:', flipCardContainer.classList.contains('flipped'));
 }
 
-// Add 3D effects with mouse movement (credit card effect)
+// Disable the 3D mouse movement effect as it conflicts with flip functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const card = document.querySelector('.digital-card');
-    
-    if (window.innerWidth > 768) {  // Only on desktop
-        document.addEventListener('mousemove', function(e) {
-            const flipCard = document.querySelector('.flip-card');
-            if (flipCard.classList.contains('flipped')) return;
-            
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            
-            const rotateY = (x - centerX) / 15;
-            const rotateX = (centerY - y) / 15;
-            
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        });
-        
-        document.addEventListener('mouseleave', function() {
-            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
-        });
-    }
+    // Initialize any other card functionality here if needed
+    console.log("Card initialized");
 });
 
 // PWA offline functionality

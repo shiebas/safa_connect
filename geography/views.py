@@ -21,7 +21,7 @@ from .forms import (
     AssociationForm, ClubForm, ContinentFederationForm, ContinentRegionForm,
     CountryForm, LocalFootballAssociationForm, NationalFederationForm,
     ProvinceForm, RegionForm, WorldSportsBodyForm, ClubRegistrationForm,
-    ClubComplianceForm
+    ClubComplianceForm, ClubLogoForm
 )
 from .models import (
     Association, Club, Continent, ContinentFederation, ContinentRegion,
@@ -1121,3 +1121,30 @@ def lfa_info_update(request):
     else:
         form = LocalFootballAssociationForm(instance=lfa)
     return render(request, 'geography/lfa_info_form.html', {'form': form, 'lfa': lfa})
+
+@login_required
+def edit_club_logo(request):
+    """View for club admins to edit their club's logo"""
+    if not request.user.is_authenticated or request.user.role != 'CLUB_ADMIN':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('accounts:dashboard')
+    
+    if not request.user.club:
+        messages.error(request, 'Your user profile is not linked to a club. Please contact support.')
+        return redirect('accounts:dashboard')
+    
+    club = request.user.club
+    
+    if request.method == 'POST':
+        form = ClubLogoForm(request.POST, request.FILES, instance=club)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Club logo updated successfully!')
+            return redirect('accounts:dashboard')
+    else:
+        form = ClubLogoForm(instance=club)
+    
+    return render(request, 'geography/edit_club_logo.html', {
+        'form': form,
+        'club': club
+    })

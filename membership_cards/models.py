@@ -13,7 +13,8 @@ class DigitalCard(models.Model):
         ('ACTIVE', 'Active'),
         ('SUSPENDED', 'Suspended'),
         ('EXPIRED', 'Expired'),
-        ('REVOKED', 'Revoked')
+        ('REVOKED', 'Revoked'),
+        ('YELLOW CARD', 'Yellow Card')
     ]
     
     # Link to user
@@ -25,7 +26,7 @@ class DigitalCard(models.Model):
     
     # Card identification
     card_number = models.CharField(
-        max_length=12,
+        max_length=16,  # Updated to support 16-digit card numbers
         unique=True,
         help_text='Unique card number (auto-generated)'
     )
@@ -86,18 +87,16 @@ class DigitalCard(models.Model):
         # Convert to list of integers
         digits = [int(d) for d in partial_number]
         
-        # Double every second digit from right to left
-        for i in range(len(digits)-2, -1, -2):
-            digits[i] *= 2
-            if digits[i] > 9:
-                digits[i] -= 9
-                
-        # Sum all digits
-        total = sum(digits)
-        
-        # Calculate check digit (what to add to make multiple of 10)
-        check_digit = (10 - (total % 10)) % 10
-        
+        for i in range(len(digits) - 1, -1, -2):  # Double every second digit from the right
+            doubled_digit = digits[i] * 2
+            if doubled_digit > 9:
+                digits[i] = doubled_digit - 9
+            else:
+                digits[i] = doubled_digit
+
+        total_sum = sum(digits)
+        check_digit = (10 - (total_sum % 10)) % 10
+
         return str(check_digit)
         
     def verify_luhn_algorithm(self, card_number):
@@ -120,25 +119,32 @@ class DigitalCard(models.Model):
     
     def generate_card_number(self):
         """Generate unique 16-digit card number using Luhn algorithm"""
+        import logging
+        logger = logging.getLogger(__name__)
+
         while True:
-            # Format: 2 (SAFA prefix) + YYYY (year) + 9 random digits
+            # Generate 15 digits: 2 (SAFA prefix) + YYYY (year) + 10 random digits
             year = timezone.now().year
             prefix = "2"  # SAFA prefix
-            random_part = get_random_string(9, allowed_chars='0123456789')
-            
+            random_part = get_random_string(10, allowed_chars='0123456789')
+
             # Combine to get 15 digits (without check digit)
             partial_number = f"{prefix}{year}{random_part}"
-            
+            logger.info(f"Partial card number (15 digits): {partial_number}")
+
             # Generate the check digit using Luhn algorithm
             check_digit = self.generate_luhn_check_digit(partial_number)
-            
+            logger.info(f"Generated check digit: {check_digit}")
+
             # Create the 16-digit card number
             card_number = f"{partial_number}{check_digit}"
-            
+            logger.info(f"Final card number (16 digits): {card_number}")
+
+            # Validate uniqueness in the database
             if not DigitalCard.objects.filter(card_number=card_number).exists():
                 self.card_number = card_number
                 break
-    
+
     def generate_qr_data(self):
         """Generate optimized QR code data with size limits"""
         import json
@@ -188,13 +194,13 @@ class DigitalCard(models.Model):
         try:
             import logging
             logger = logging.getLogger(__name__)
-            
+
             # Ensure we have QR data first
             if not self.qr_code_data:
                 self.generate_qr_data()
-            
+
             logger.info(f"Generating QR image for card {self.card_number} with data length: {len(self.qr_code_data)}")
-            
+
             # Get SAFA logo path from static files
             logo_path = None
             possible_paths = [
@@ -202,12 +208,12 @@ class DigitalCard(models.Model):
                 os.path.join(settings.STATICFILES_DIRS[0], 'images', 'default_logo.png') if settings.STATICFILES_DIRS else None,
                 os.path.join(settings.STATIC_ROOT, 'images', 'default_logo.png') if settings.STATIC_ROOT else None,
             ]
-            
+
             for path in possible_paths:
                 if path and os.path.exists(path):
                     logo_path = path
                     break
-            
+
             # Generate QR image with SAFA branding
             qr_img = generate_qr_with_logo(
                 qr_data=self.qr_code_data,  # Use the encrypted data, not card number
@@ -215,31 +221,33 @@ class DigitalCard(models.Model):
                 profile_image=None,  # Skip profile for now to avoid scan issues
                 size=400
             )
-            
+
             # Save QR image
             from .qr_generator import save_qr_image
             filename = f"qr_{self.card_number}_{self.qr_code_version}.png"
             self.qr_image = save_qr_image(qr_img, filename)
-            
+
             logger.info(f"QR image saved successfully for card {self.card_number}")
             return True
-            
+
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
             logger.error(f"Failed to generate QR image for card {self.card_number}: {str(e)}")
             return False
 
     def get_qr_base64(self):
         """Get QR code as base64 for web display"""
-        if self.qr_image:
-            try:
+        try:
+            if self.qr_image:
                 with open(self.qr_image.path, 'rb') as img_file:
                     import base64
                     img_str = base64.b64encode(img_file.read()).decode()
                     return f"data:image/png;base64,{img_str}"
-            except:
-                pass
+            else:
+                raise FileNotFoundError("QR image file not found")
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to convert QR image to base64: {str(e)}")
         return None
     
     def is_valid(self):
@@ -249,7 +257,17 @@ class DigitalCard(models.Model):
             self.expires_date >= timezone.now().date()
         )
     
+    def is_card_number_valid(self):
+        """Check if the card number is valid using Luhn algorithm"""
+        return self.verify_luhn_algorithm(self.card_number)
+
     def save(self, *args, **kwargs):
+        """Override save method to log card number before saving"""
+        import logging
+        logger = logging.getLogger(__name__)
+
+        logger.info(f"Saving DigitalCard with card number: {self.card_number}")
+        
         # Generate card number if not set
         if not self.card_number:
             self.generate_card_number()

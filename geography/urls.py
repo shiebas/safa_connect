@@ -117,5 +117,6 @@ urlpatterns = [
     # path('api/', include(router.urls)),
     path('clubs/register/', views.register_club, name='register-club'),
     path('club/compliance/', views.club_compliance_update, name='club_compliance_update'),
+    path('club/logo/', views.edit_club_logo, name='edit_club_logo'),
     path('lfa/info/', views.lfa_info_update, name='lfa_info_update'),
 ]

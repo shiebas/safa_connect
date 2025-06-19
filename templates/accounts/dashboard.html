@@ -35,6 +35,16 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-graph-up display-4 text-danger"></i>
+                        <h5 class="card-title mt-3">Player Statistics</h5>
+                        <p class="card-text">View player registration statistics for your LFA, including female player counts and gender distribution.</p>
+                        <a href="{% url 'accounts:player_statistics' %}" class="btn btn-outline-danger">View Statistics</a>
+                    </div>
+                </div>
+            </div>
         {% elif user.role == "CLUB_ADMIN" %}
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm h-100">
@@ -46,13 +56,33 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-plus display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Register New Player</h5>
+                        <p class="card-text">Add a new player to your club.</p>
+                        <a href="{% url 'accounts:club_admin_add_player' %}" class="btn btn-outline-primary">Register Player</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
                 <div class="card shadow-sm h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-people display-4 text-success"></i>
-                        <h5 class="card-title mt-3">Manage Club Members</h5>
-                        <p class="card-text">Add or update members in your club.</p>
-                        <a href="#" class="btn btn-outline-success disabled">Coming Soon</a>
+                        <h5 class="card-title mt-3">Player Approvals</h5>
+                        <p class="card-text">View and manage player registrations.</p>
+                        <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-outline-success">View Players</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-receipt display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Invoices & Payments</h5>
+                        <p class="card-text">View and manage player registration invoices.</p>
+                        <a href="{% url 'accounts:club_invoices' %}" class="btn btn-outline-warning">View Invoices</a>
                     </div>
                 </div>
             </div>

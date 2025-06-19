@@ -1,4 +1,3 @@
-
 # Google Wallet integration
 google-auth>=2.10.0
 google-api-python-client>=2.50.0
@@ -23,6 +22,7 @@ django-stubs-ext         4.2.5
 django-tasks             0.1.1
 django-widget-tweaks     1.5.0
 djangorestframework      3.14.0
+djangorestframework-authtoken
 fonttools                4.58.2
 gunicorn                 21.2.0
 idna                     3.10
@@ -48,6 +48,10 @@ requests                 2.32.3
 requests-oauthlib        2.0.0
 setuptools               80.9.0
 sqlparse                 0.5.3
+PyMuPDF                  1.23.5
+pytesseract              0.3.10
+opencv-python            4.9.0.80
+numpy                    1.26.3
 tinycss2                 1.4.0
 tinyhtml5                2.0.0
 typing_extensions        4.14.0

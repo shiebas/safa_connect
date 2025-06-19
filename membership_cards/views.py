@@ -290,9 +290,9 @@ def system_dashboard(request):
     
     # Geography statistics  
     geo_stats = {
-        'total_provinces': Province.objects.filter(is_active=True).count(),
-        'total_regions': Region.objects.filter(is_active=True).count(),
-        'total_lfas': LocalFootballAssociation.objects.filter(is_active=True).count(),
+        'total_provinces': Province.objects.count(),
+        'total_regions': Region.objects.count(),
+        'total_lfas': LocalFootballAssociation.objects.count(),
     }
     
     # User statistics
