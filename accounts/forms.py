@@ -11,6 +11,7 @@ from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder
 
 from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation
+from membership.models.main import Player, Official, OfficialCertification
 from .utils import extract_sa_id_dob_gender
 
 class EmailAuthenticationForm(AuthenticationForm):
@@ -561,6 +562,23 @@ class ClubAdminPlayerRegistrationForm(forms.ModelForm):
         self.fields['email'].required = False  # Will be auto-generated
         self.fields['date_of_birth'].required = False  # Make DOB not required, will be calculated from ID
         
+        # Configure SAFA ID and FIFA ID fields
+        self.fields['safa_id'].required = False  # Will be auto-generated if not provided
+        self.fields['safa_id'].help_text = "If the player already has a SAFA ID, enter it here. Otherwise, leave blank and it will be auto-generated."
+        self.fields['safa_id'].widget.attrs.update({
+            'pattern': '[A-Z0-9]{5}',
+            'title': '5-character alphanumeric code (all caps)',
+            'placeholder': 'e.g. A12B3'
+        })
+        
+        self.fields['fifa_id'].required = False
+        self.fields['fifa_id'].help_text = "If the player has a FIFA ID, enter it here. Otherwise, leave blank."
+        self.fields['fifa_id'].widget.attrs.update({
+            'pattern': '[0-9]{7}',
+            'title': '7-digit FIFA identification number',
+            'placeholder': 'e.g. 1234567'
+        })
+        
         # Name validation
         self.fields['first_name'].widget.attrs.update({
             'pattern': '[A-Za-z]{3,}', 
@@ -604,6 +622,7 @@ class ClubAdminPlayerRegistrationForm(forms.ModelForm):
             'first_name', 'last_name',
             'id_document_type', 'id_number', 'passport_number',
             'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+            'safa_id', 'fifa_id',
             'gender', 'date_of_birth', 'email',
             'profile_picture', 'id_document',
             'popi_consent',
@@ -900,6 +919,398 @@ class PlayerClubRegistrationUpdateForm(forms.ModelForm):
     class Meta:
         model = PlayerClubRegistration
         fields = ['position', 'jersey_number', 'height', 'weight', 'notes']
+
+
+class OfficialCertificationForm(forms.ModelForm):
+    """Form for adding certifications to officials"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Configure date fields as date input
+        self.fields['obtained_date'].widget = forms.DateInput(attrs={'type': 'date'})
+        self.fields['expiry_date'].widget = forms.DateInput(attrs={'type': 'date'})
+        
+        # Add classes and placeholders
+        self.fields['name'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter certification name'
+        })
+        
+        self.fields['issuing_body'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter organization that issued this certification'
+        })
+        
+        self.fields['certification_number'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter certification number (if applicable)'
+        })
+        
+        self.fields['notes'].widget.attrs.update({
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Enter any additional notes about this certification'
+        })
+        
+        # Set current date as default for obtained_date
+        self.fields['obtained_date'].initial = timezone.now().date()
+    
+    class Meta:
+        model = OfficialCertification
+        fields = [
+            'certification_type', 'level', 'name', 'issuing_body',
+            'certification_number', 'obtained_date', 'expiry_date', 
+            'document', 'notes'
+        ]
         widgets = {
-            'notes': forms.Textarea(attrs={'rows': 3}),
+            'certification_type': forms.Select(attrs={'class': 'form-control'}),
+            'level': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
+class ClubAdminOfficialRegistrationForm(forms.ModelForm):
+    # Optional email field for official (already in model)
+    popi_consent = forms.BooleanField(required=False, label="POPI Consent", help_text="Required for all officials")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make gender and email hidden fields
+        self.fields['gender'].widget = forms.HiddenInput()
+        self.fields['email'].widget = forms.HiddenInput()
+        self.fields['email'].required = False  # Will be auto-generated
+        
+        # Name validation
+        self.fields['first_name'].widget.attrs.update({
+            'pattern': '[A-Za-z]{3,}', 
+            'minlength': '3', 
+            'title': 'Only letters, at least 3 characters'
+        })
+        self.fields['last_name'].widget.attrs.update({
+            'pattern': '[A-Za-z]{3,}', 
+            'minlength': '3', 
+            'title': 'Only letters, at least 3 characters'
+        })
+        
+        # Make ID number accept only digits
+        self.fields['id_number'].widget.attrs.update({
+            'pattern': '[0-9]{13}', 
+            'inputmode': 'numeric',
+            'title': 'ID number must be exactly 13 digits'
+        })
+        
+        # Configure SAFA ID and FIFA ID fields
+        self.fields['safa_id'].required = False  # Will be auto-generated if not provided
+        self.fields['safa_id'].help_text = "If the official already has a SAFA ID, enter it here. Otherwise, leave blank and it will be auto-generated."
+        self.fields['safa_id'].widget.attrs.update({
+            'pattern': '[A-Z0-9]{5}',
+            'title': '5-character alphanumeric code (all caps)',
+            'placeholder': 'e.g. A12B3'
+        })
+        
+        self.fields['fifa_id'].required = False
+        self.fields['fifa_id'].help_text = "If the official has a FIFA ID, enter it here. Otherwise, leave blank."
+        self.fields['fifa_id'].widget.attrs.update({
+            'pattern': '[0-9]{7}',
+            'title': '7-digit FIFA identification number',
+            'placeholder': 'e.g. 1234567'
+        })
+        
+        # Filter positions to only show positions available at club level
+        self.fields['position'].queryset = self.fields['position'].queryset.filter(
+            levels__contains='CLUB', is_active=True)
+        self.fields['position'].help_text = "Select the official's role or position in the club"
+        self.fields['position'].required = True
+
+    class Meta:
+        model = Official
+        fields = [
+            'first_name', 'last_name',
+            'id_document_type', 'id_number', 'passport_number',
+            'gender', 'date_of_birth', 'email',
+            'position', 'certification_number', 'certification_document',
+            'certification_expiry_date', 'referee_level',
+            'safa_id', 'fifa_id',
+            'profile_picture', 'id_document',
+            'popi_consent',
+        ]
+
+    # Keep server-side validation for names, ID/passport uniqueness, etc.
+    def clean_first_name(self):
+        value = self.cleaned_data.get('first_name', '')
+        if not value.isalpha() or len(value) < 3:
+            raise ValidationError('First name must be at least 3 alphabetic characters.')
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data.get('last_name', '')
+        if not value.isalpha() or len(value) < 3:
+            raise ValidationError('Last name must be at least 3 alphabetic characters.')
+        return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        id_number = cleaned_data.get('id_number')
+        passport_number = cleaned_data.get('passport_number')
+        popi_consent = cleaned_data.get('popi_consent')
+        id_document_type = cleaned_data.get('id_document_type')
+        dob = cleaned_data.get('date_of_birth')
+        id_document = cleaned_data.get('id_document')
+        first_name = cleaned_data.get('first_name')
+        last_name = cleaned_data.get('last_name')
+        
+        errors = {}
+        
+        # Validate ID number format if provided
+        if id_number:
+            if not re.match(r'^\d{13}$', id_number):
+                errors['id_number'] = 'ID number must be exactly 13 digits'
+        
+        # Only require one of ID or passport, let JS/UI handle toggling
+        if not id_number and not passport_number:
+            errors['id_number'] = 'Either ID number or passport number is required'
+            errors['passport_number'] = 'Either ID number or passport number is required'
+        
+        # Validate passport document if using passport
+        from django.conf import settings
+        validate_documents = getattr(settings, 'VALIDATE_PASSPORT_DOCUMENTS', True)
+        
+        if validate_documents and id_document_type == 'PP' and id_document and passport_number:
+            from .utils import validate_passport_document
+            
+            # Validate the uploaded passport document
+            is_valid, messages = validate_passport_document(
+                id_document, passport_number, first_name, last_name, dob
+            )
+            
+            # If validation failed, add error
+            if not is_valid:
+                if any(msg.startswith("Document must be") for msg in messages):
+                    errors['id_document'] = f"Passport document validation failed: {', '.join(messages)}"
+                else:
+                    # For OCR validation failures, show warning but allow submission
+                    # Store warning in session for display after redirect
+                    request = getattr(self, 'request', None)
+                    if request and hasattr(request, 'session'):
+                        if 'document_warnings' not in request.session:
+                            request.session['document_warnings'] = []
+                        request.session['document_warnings'].append(
+                            f"Passport document accepted but requires validation: {', '.join(messages)}"
+                        )
+        
+        # POPI consent required for everyone
+        if not popi_consent:
+            errors['popi_consent'] = 'POPI consent is required'
+                
+        # Ensure id_number is unique across all members
+        if id_number:
+            from membership.models import Member
+            if Member.objects.filter(id_number=id_number).exists():
+                errors['id_number'] = 'A member with this ID number already exists'
+            
+        # Ensure passport_number is unique across all members
+        if passport_number:
+            from membership.models import Member
+            if Member.objects.filter(passport_number=passport_number).exists():
+                errors['passport_number'] = 'A member with this passport number already exists'
+        
+        if errors:
+            raise ValidationError(errors)
+            
+        return cleaned_data
+
+class PositionForm(forms.ModelForm):
+    """Form for creating and editing positions with level checkboxes"""
+    LEVEL_CHOICES = [
+        ('NATIONAL', 'National Level'),
+        ('PROVINCE', 'Province Level'),
+        ('REGION', 'Region Level'),
+        ('LFA', 'LFA Level'),
+        ('CLUB', 'Club Level'),
+        ('ASSOCIATION', 'Association Level'),
+    ]
+    
+    level_checkboxes = forms.MultipleChoiceField(
+        choices=LEVEL_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Available at Levels",
+        help_text="Select all levels where this position can be used"
+    )
+    
+    class Meta:
+        model = Position
+        fields = ['title', 'description', 'employment_type', 'is_active', 'requires_approval']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # If instance exists, populate checkboxes from levels string
+        if self.instance and self.instance.pk and self.instance.levels:
+            selected_levels = [level.strip() for level in self.instance.levels.split(',')]
+            self.initial['level_checkboxes'] = selected_levels
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Convert selected checkboxes to comma-separated string
+        selected_levels = self.cleaned_data.get('level_checkboxes', [])
+        if selected_levels:
+            instance.levels = ','.join(selected_levels)
+        else:
+            # Default to all levels if none selected
+            instance.levels = 'NATIONAL,PROVINCE,REGION,LFA,CLUB'
+        
+        if commit:
+            instance.save()
+        
+        return instance
+
+class AssociationOfficialRegistrationForm(forms.ModelForm):
+    """Form for registering officials at Association level"""
+    # Optional email field for official (already in model)
+    popi_consent = forms.BooleanField(required=False, label="POPI Consent", help_text="Required for all officials")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make gender and email hidden fields
+        self.fields['gender'].widget = forms.HiddenInput()
+        self.fields['email'].widget = forms.HiddenInput()
+        self.fields['email'].required = False  # Will be auto-generated
+        
+        # Name validation
+        self.fields['first_name'].widget.attrs.update({
+            'pattern': '[A-Za-z]{3,}', 
+            'minlength': '3', 
+            'title': 'Only letters, at least 3 characters'
+        })
+        self.fields['last_name'].widget.attrs.update({
+            'pattern': '[A-Za-z]{3,}', 
+            'minlength': '3', 
+            'title': 'Only letters, at least 3 characters'
+        })
+        
+        # Make ID number accept only digits
+        self.fields['id_number'].widget.attrs.update({
+            'pattern': '[0-9]{13}', 
+            'inputmode': 'numeric',
+            'title': 'ID number must be exactly 13 digits'
+        })
+        
+        # Configure SAFA ID and FIFA ID fields
+        self.fields['safa_id'].required = False  # Will be auto-generated if not provided
+        self.fields['safa_id'].help_text = "If the official already has a SAFA ID, enter it here. Otherwise, leave blank and it will be auto-generated."
+        self.fields['safa_id'].widget.attrs.update({
+            'pattern': '[A-Z0-9]{5}',
+            'title': '5-character alphanumeric code (all caps)',
+            'placeholder': 'e.g. A12B3'
+        })
+        
+        self.fields['fifa_id'].required = False
+        self.fields['fifa_id'].help_text = "If the official has a FIFA ID, enter it here. Otherwise, leave blank."
+        self.fields['fifa_id'].widget.attrs.update({
+            'pattern': '[0-9]{7}',
+            'title': '7-digit FIFA identification number',
+            'placeholder': 'e.g. 1234567'
+        })
+        # Filter positions to only show positions available at association level
+        self.fields['position'].queryset = self.fields['position'].queryset.filter(
+            levels__contains='ASSOCIATION', is_active=True)
+        self.fields['position'].help_text = "Select the official's role or position in the association"
+        self.fields['position'].required = True
+        
+    class Meta:
+        model = Official
+        fields = [
+            'first_name', 'last_name',
+            'id_document_type', 'id_number', 'passport_number',
+            'gender', 'date_of_birth', 'email',
+            'position', 'certification_number', 'certification_document',
+            'certification_expiry_date', 'referee_level',
+            'safa_id', 'fifa_id',
+            'profile_picture', 'id_document',
+            'popi_consent',
+        ]
+
+    # Keep server-side validation for names, ID/passport uniqueness, etc.
+    def clean_first_name(self):
+        value = self.cleaned_data.get('first_name', '')
+        if not value.isalpha() or len(value) < 3:
+            raise ValidationError('First name must be at least 3 alphabetic characters.')
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data.get('last_name', '')
+        if not value.isalpha() or len(value) < 3:
+            raise ValidationError('Last name must be at least 3 alphabetic characters.')
+        return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        id_number = cleaned_data.get('id_number')
+        passport_number = cleaned_data.get('passport_number')
+        popi_consent = cleaned_data.get('popi_consent')
+        id_document_type = cleaned_data.get('id_document_type')
+        dob = cleaned_data.get('date_of_birth')
+        id_document = cleaned_data.get('id_document')
+        first_name = cleaned_data.get('first_name')
+        last_name = cleaned_data.get('last_name')
+        
+        errors = {}
+        
+        # Validate ID number format if provided
+        if id_number:
+            if not re.match(r'^\d{13}$', id_number):
+                errors['id_number'] = 'ID number must be exactly 13 digits'
+        
+        # Only require one of ID or passport, let JS/UI handle toggling
+        if not id_number and not passport_number:
+            errors['id_number'] = 'Either ID number or passport number is required'
+            errors['passport_number'] = 'Either ID number or passport number is required'
+        
+        # Validate passport document if using passport
+        from django.conf import settings
+        validate_documents = getattr(settings, 'VALIDATE_PASSPORT_DOCUMENTS', True)
+        
+        if validate_documents and id_document_type == 'PP' and id_document and passport_number:
+            from .utils import validate_passport_document
+            
+            # Validate the uploaded passport document
+            is_valid, messages = validate_passport_document(
+                id_document, passport_number, first_name, last_name, dob
+            )
+            
+            # If validation failed, add error
+            if not is_valid:
+                if any(msg.startswith("Document must be") for msg in messages):
+                    errors['id_document'] = f"Passport document validation failed: {', '.join(messages)}"
+                else:
+                    # For OCR validation failures, show warning but allow submission
+                    # Store warning in session for display after redirect
+                    request = getattr(self, 'request', None)
+                    if request and hasattr(request, 'session'):
+                        if 'document_warnings' not in request.session:
+                            request.session['document_warnings'] = []
+                        request.session['document_warnings'].append(
+                            f"Passport document accepted but requires validation: {', '.join(messages)}"
+                        )
+        
+        # POPI consent required for everyone
+        if not popi_consent:
+            errors['popi_consent'] = 'POPI consent is required'
+                
+        # Ensure id_number is unique across all members
+        if id_number:
+            from membership.models import Member
+            if Member.objects.filter(id_number=id_number).exists():
+                errors['id_number'] = 'A member with this ID number already exists'
+            
+        # Ensure passport_number is unique across all members
+        if passport_number:
+            from membership.models import Member
+            if Member.objects.filter(passport_number=passport_number).exists():
+                errors['passport_number'] = 'A member with this passport number already exists'
+        
+        if errors:
+            raise ValidationError(errors)
+            
+        return cleaned_data

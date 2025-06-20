@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Add Official to Association{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Navigation Bar with links -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Official Registration</h2>
+                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+            <hr>
+            <div class="btn-toolbar mt-3">
+                <a href="{% url 'accounts:official_list' %}" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-people"></i> Officials List
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card" style="border: 2px solid var(--safa-black);">
+                <div class="card-header text-center">
+                    <h2 class="mb-0">Register New Official</h2>
+                    <p class="text-muted">Register an official for {{ request.user.association.name }}</p>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if official_form.errors %}
+                        <div class="alert alert-danger">
+                            <h5><i class="bi bi-exclamation-triangle-fill"></i> Please correct the errors below:</h5>
+                            {% for field in official_form %}
+                                {% for error in field.errors %}
+                                    <div class="mb-1">{{ field.label }}: {{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in official_form.non_field_errors %}
+                                <div class="mb-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" id="officialRegistrationForm" class="mt-4">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Personal Information Section -->
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">Personal Information</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                {{ official_form.first_name|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ official_form.last_name|as_crispy_field }}
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="form-group mb-3">
+                                                    <label>Identification</label>
+                                                    <div class="btn-group w-100 mb-2" role="group">
+                                                        <input type="radio" class="btn-check" name="idType" id="idRadio" autocomplete="off" checked>
+                                                        <label class="btn btn-outline-primary" for="idRadio">SA ID</label>
+
+                                                        <input type="radio" class="btn-check" name="idType" id="passportRadio" autocomplete="off">
+                                                        <label class="btn btn-outline-primary" for="passportRadio">Passport</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="idSection">
+                                            {{ official_form.id_document_type.as_hidden }}
+                                            {{ official_form.id_number|as_crispy_field }}
+                                            {{ official_form.date_of_birth|as_crispy_field }}
+                                            {{ official_form.gender.as_hidden }}
+                                        </div>
+                                        
+                                        <div id="passportSection" style="display: none;">
+                                            {{ official_form.passport_number|as_crispy_field }}
+                                            {{ official_form.date_of_birth|as_crispy_field }}
+                                        </div>
+                                        
+                                        {{ official_form.email.as_hidden }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Role/Position Section -->
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">Role Information</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ official_form.position|as_crispy_field }}
+                                        
+                                        <div id="refereeFields" class="collapse">
+                                            {{ official_form.referee_level|as_crispy_field }}
+                                        </div>
+                                        
+                                        {{ official_form.certification_number|as_crispy_field }}
+                                        {{ official_form.certification_expiry_date|as_crispy_field }}
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">IDs</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ official_form.safa_id|as_crispy_field }}
+                                        {{ official_form.fifa_id|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Documents Section -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h4 class="mb-0">Documents</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ official_form.profile_picture|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ official_form.id_document|as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        {{ official_form.certification_document|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Consent Section -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h4 class="mb-0">Agreement</h4>
+                            </div>
+                            <div class="card-body">
+                                {{ official_form.popi_consent|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-person-check"></i> Register Official
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const positionSelect = document.getElementById('id_position');
+        const refereeFields = document.getElementById('refereeFields');
+        
+        // ID/Passport toggle functionality
+        const idRadio = document.getElementById('idRadio');
+        const passportRadio = document.getElementById('passportRadio');
+        const idSection = document.getElementById('idSection');
+        const passportSection = document.getElementById('passportSection');
+        const idDocTypeField = document.querySelector('input[name="id_document_type"]');
+        
+        idRadio.addEventListener('change', function() {
+            if (this.checked) {
+                idSection.style.display = 'block';
+                passportSection.style.display = 'none';
+                idDocTypeField.value = 'ID';
+            }
+        });
+        
+        passportRadio.addEventListener('change', function() {
+            if (this.checked) {
+                idSection.style.display = 'none';
+                passportSection.style.display = 'block';
+                idDocTypeField.value = 'PP';
+            }
+        });
+        
+        // Show/hide referee fields based on position selection
+        function checkRefereeFields() {
+            if (positionSelect.options[positionSelect.selectedIndex]) {
+                const positionText = positionSelect.options[positionSelect.selectedIndex].text.toLowerCase();
+                if (positionText.includes('referee')) {
+                    $(refereeFields).collapse('show');
+                } else {
+                    $(refereeFields).collapse('hide');
+                }
+            }
+        }
+        
+        positionSelect.addEventListener('change', checkRefereeFields);
+        
+        // Initial check
+        checkRefereeFields();
+        
+        // South African ID number automatic calculation of DOB and gender
+        const idNumberInput = document.getElementById('id_id_number');
+        const dobInput = document.getElementById('id_date_of_birth');
+        
+        idNumberInput.addEventListener('input', function() {
+            const idNumber = this.value.trim();
+            if (idNumber.length === 13 && /^\d+$/.test(idNumber)) {
+                try {
+                    // Extract year, month, day
+                    const yearPart = idNumber.substring(0, 2);
+                    const monthPart = idNumber.substring(2, 4);
+                    const dayPart = idNumber.substring(4, 6);
+                    
+                    // Determine century (19xx or 20xx)
+                    const currentYear = new Date().getFullYear() % 100;
+                    const century = parseInt(yearPart) > currentYear ? '19' : '20';
+                    const fullYear = century + yearPart;
+                    
+                    // Format date for input field (YYYY-MM-DD)
+                    const formattedDate = `${fullYear}-${monthPart}-${dayPart}`;
+                    
+                    // Set date of birth
+                    dobInput.value = formattedDate;
+                    
+                    // Set gender based on 7th digit
+                    const genderDigit = parseInt(idNumber.substring(6, 7));
+                    const genderField = document.getElementById('id_gender');
+                    if (genderField) {
+                        genderField.value = genderDigit >= 5 ? 'M' : 'F';
+                    }
+                    
+                } catch (e) {
+                    console.error("Error processing ID number:", e);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

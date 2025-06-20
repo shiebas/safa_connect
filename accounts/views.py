@@ -6,9 +6,10 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.utils import timezone
 import datetime
-from .forms import EmailAuthenticationForm, NationalUserRegistrationForm, UniversalRegistrationForm, ClubAdminPlayerRegistrationForm, PlayerClubRegistrationOnlyForm, PlayerUpdateForm, PlayerClubRegistrationUpdateForm, PlayerUpdateForm
+from .forms import EmailAuthenticationForm, NationalUserRegistrationForm, UniversalRegistrationForm, ClubAdminPlayerRegistrationForm, PlayerClubRegistrationOnlyForm, PlayerUpdateForm, PlayerClubRegistrationUpdateForm, PlayerUpdateForm, ClubAdminOfficialRegistrationForm, AssociationOfficialRegistrationForm, OfficialCertificationForm
 from .models import CustomUser
 from membership.models import Membership, Player, PlayerClubRegistration
+from membership.models.main import Official
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
@@ -545,7 +546,16 @@ def club_admin_add_player(request):
             player_form.data['email'] = unique_email
         
         if player_form.is_valid():
-            # Save player with all fields including the generated unique email
+            # Generate a unique SAFA ID if one wasn't provided
+            if not player_form.cleaned_data.get('safa_id'):
+                from .utils import generate_unique_safa_id
+                try:
+                    unique_safa_id = generate_unique_safa_id()
+                    player_form.instance.safa_id = unique_safa_id
+                except Exception as e:
+                    messages.warning(request, f"Could not generate a unique SAFA ID: {e}")
+            
+            # Save player with all fields including the generated unique email and SAFA ID
             player = player_form.save()
             
             # Create minimal club registration (just linking player to club)
@@ -634,7 +644,37 @@ def ajax_check_sa_passport_number(request):
         query = query.exclude(pk=player_id)
     
     exists = query.exists()
-    return JsonResponse({'is_unique': not exists, 'exists': exists})
+    return JsonResponse({'exists': exists})
+
+@require_GET
+def ajax_check_safa_id(request):
+    """AJAX endpoint to check if a SAFA ID already exists"""
+    safa_id = request.GET.get('safa_id', '')
+    player_id = request.GET.get('player_id', None)
+    
+    # Use Member model since SAFA ID is in the parent class
+    from membership.models import Member
+    query = Member.objects.filter(safa_id=safa_id)
+    if player_id:
+        query = query.exclude(pk=player_id)
+    
+    exists = query.exists()
+    return JsonResponse({'exists': exists})
+
+@require_GET
+def ajax_check_fifa_id(request):
+    """AJAX endpoint to check if a FIFA ID already exists"""
+    fifa_id = request.GET.get('fifa_id', '')
+    player_id = request.GET.get('player_id', None)
+    
+    # Use Member model since FIFA ID is in the parent class
+    from membership.models import Member
+    query = Member.objects.filter(fifa_id=fifa_id)
+    if player_id:
+        query = query.exclude(pk=player_id)
+    
+    exists = query.exists()
+    return JsonResponse({'exists': exists})
 
 @login_required
 def player_approval_list(request):
@@ -973,51 +1013,97 @@ def edit_player(request, player_id):
 
 @login_required
 def club_invoices(request):
-    """View to show outstanding and all invoices for a club"""
-    if not hasattr(request.user, 'role') or request.user.role != 'CLUB_ADMIN':
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('accounts:dashboard')
-    
-    if not hasattr(request.user, 'club') or not request.user.club:
-        messages.error(request, 'Your profile is not linked to any club.')
-        return redirect('accounts:dashboard')
-    
+    """View to show outstanding and all invoices for a club or association"""
     # Import here to avoid circular imports
     from membership.models.invoice import Invoice
     
-    # Get all invoices for this club
-    club = request.user.club
+    # Check permission based on user role
+    is_association = request.GET.get('association') == 'true'
     
-    # Filter by status if provided
-    status = request.GET.get('status')
-    if status:
-        club_invoices = Invoice.objects.filter(
-            club=club,
-            status=status
-        ).select_related('player')
+    if is_association:
+        # Association admin viewing invoices
+        if not hasattr(request.user, 'role') or request.user.role != 'ASSOCIATION_ADMIN':
+            messages.error(request, 'You do not have permission to access this page.')
+            return redirect('accounts:dashboard')
+        
+        if not hasattr(request.user, 'association') or not request.user.association:
+            messages.error(request, 'Your profile is not linked to an association.')
+            return redirect('accounts:dashboard')
+        
+        # Get all invoices for this association
+        association = request.user.association
+        
+        # Filter by status if provided
+        status = request.GET.get('status')
+        if status:
+            invoices = Invoice.objects.filter(
+                association=association,
+                status=status
+            ).select_related('official')
+        else:
+            invoices = Invoice.objects.filter(
+                association=association
+            ).select_related('official')
+            
+        entity = association
+        template = 'accounts/association_invoices.html'
     else:
-        club_invoices = Invoice.objects.filter(
-            club=club
-        ).select_related('player')
+        # Club admin viewing invoices
+        if not hasattr(request.user, 'role') or request.user.role != 'CLUB_ADMIN':
+            messages.error(request, 'You do not have permission to access this page.')
+            return redirect('accounts:dashboard')
+        
+        if not hasattr(request.user, 'club') or not request.user.club:
+            messages.error(request, 'Your profile is not linked to a club.')
+            return redirect('accounts:dashboard')
+        
+        # Get all invoices for this club
+        club = request.user.club
+        
+        # Filter by status if provided
+        status = request.GET.get('status')
+        if status:
+            invoices = Invoice.objects.filter(
+                club=club,
+                status=status
+            ).select_related('player')
+        else:
+            invoices = Invoice.objects.filter(
+                club=club
+            ).select_related('player')
+        
+        entity = club
+        template = 'accounts/club_invoices.html'
     
     # Calculate summary statistics
     summary = {
-        'total_invoices': club_invoices.count(),
-        'total_amount': sum(invoice.amount for invoice in club_invoices),
-        'pending_invoices': club_invoices.filter(status='PENDING').count(),
-        'pending_amount': sum(invoice.amount for invoice in club_invoices.filter(status='PENDING')),
-        'overdue_invoices': club_invoices.filter(status='OVERDUE').count(),
-        'overdue_amount': sum(invoice.amount for invoice in club_invoices.filter(status='OVERDUE')),
-        'paid_invoices': club_invoices.filter(status='PAID').count(),
-        'paid_amount': sum(invoice.amount for invoice in club_invoices.filter(status='PAID')),
+        'total_invoices': invoices.count(),
+        'total_amount': sum(invoice.amount for invoice in invoices),
+        'pending_invoices': invoices.filter(status='PENDING').count(),
+        'pending_amount': sum(invoice.amount for invoice in invoices.filter(status='PENDING')),
+        'overdue_invoices': invoices.filter(status='OVERDUE').count(),
+        'overdue_amount': sum(invoice.amount for invoice in invoices.filter(status='OVERDUE')),
+        'paid_invoices': invoices.filter(status='PAID').count(),
+        'paid_amount': sum(invoice.amount for invoice in invoices.filter(status='PAID')),
     }
     
-    return render(request, 'accounts/club_invoices.html', {
-        'club': club,
-        'invoices': club_invoices,
-        'summary': summary,
-        'selected_status': status
-    })
+    # If this is an association, use club_invoices.html but pass is_association flag
+    if is_association:
+        return render(request, 'accounts/club_invoices.html', {
+            'club': entity,
+            'invoices': invoices,
+            'summary': summary,
+            'selected_status': status,
+            'is_association': True
+        })
+    else:
+        return render(request, 'accounts/club_invoices.html', {
+            'club': entity,
+            'invoices': invoices,
+            'summary': summary,
+            'selected_status': status,
+            'is_association': False
+        })
 
 @login_required
 def player_statistics(request):
@@ -1304,4 +1390,658 @@ def player_statistics(request):
         'stats': stats,
         'entities': entities,
         'entity_type': entity_type,
+    })
+
+def club_admin_add_official(request):
+    if not request.user.is_authenticated or request.user.role != 'CLUB_ADMIN':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('accounts:dashboard')
+
+    if not request.user.club:
+        messages.error(request, 'Your user profile is not linked to a club. Please contact support.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        official_form = ClubAdminOfficialRegistrationForm(request.POST, request.FILES)
+        # Store request in form to allow showing document validation warnings
+        official_form.request = request
+        # Process ID number before validation if provided
+        if 'id_number' in request.POST and request.POST['id_number'].strip():
+            id_number = request.POST['id_number'].strip()
+            try:
+                # Extract DOB from ID number (format: YYMMDD...)
+                year = int(id_number[:2])
+                month = int(id_number[2:4])
+                day = int(id_number[4:6])
+                
+                # Determine century (00-99)
+                current_year = timezone.now().year % 100
+                century = 2000 if year <= current_year else 1900
+                full_year = century + year
+                
+                # Check if date is valid
+                try:
+                    dob = datetime.date(full_year, month, day)
+                    # Set the date_of_birth field in the form data
+                    official_form.data = official_form.data.copy()
+                    official_form.data['date_of_birth'] = dob.isoformat()
+                    
+                    # Also set gender based on ID number
+                    gender_digit = int(id_number[6])
+                    official_form.data['gender'] = 'M' if gender_digit >= 5 else 'F'
+                except ValueError:
+                    # Invalid date in ID number, will be caught in form validation
+                    pass
+            except (ValueError, IndexError):
+                # Invalid ID number, will be caught in form validation
+                pass
+        
+        # Generate a unique email for the official before checking form validity
+        if 'first_name' in request.POST and 'last_name' in request.POST:
+            first_name = request.POST['first_name']
+            last_name = request.POST['last_name']
+            
+            # Generate unique email using position name as a prefix
+            position_id = request.POST.get('position')
+            position_prefix = 'official'
+            
+            if position_id:
+                try:
+                    from .models import Position
+                    position = Position.objects.get(pk=position_id)
+                    position_prefix = position.title.lower().replace(' ', '')
+                except (Position.DoesNotExist, ValueError):
+                    position_prefix = 'official'
+            
+            # Generate unique email
+            unique_email = f"{position_prefix}.{first_name.lower()}.{last_name.lower()}@{request.user.club.name.lower().replace(' ', '')}.safa.net"
+            
+            # Set the email in the form data
+            official_form.data = official_form.data.copy()
+            official_form.data['email'] = unique_email
+        
+        if official_form.is_valid():
+            # Generate a unique SAFA ID if one wasn't provided
+            if not official_form.cleaned_data.get('safa_id'):
+                from .utils import generate_unique_safa_id
+                try:
+                    unique_safa_id = generate_unique_safa_id()
+                    official_form.instance.safa_id = unique_safa_id
+                except Exception as e:
+                    messages.warning(request, f"Could not generate a unique SAFA ID: {e}")
+            
+            # Save official with club reference
+            official = official_form.save(commit=False)
+            official.club = request.user.club
+            official.province = request.user.province
+            official.region = request.user.region
+            official.local_federation = request.user.local_federation
+            official.save()
+            
+            # Create invoice for the official
+            from .utils import create_official_invoice
+            position = official_form.cleaned_data.get('position')
+            position_type = position.title if position else None
+            
+            invoice = create_official_invoice(
+                official=official,
+                club=request.user.club,
+                issued_by=official,  # Using official as issued_by as they don't have a separate Member instance
+                position_type=position_type
+            )
+            
+            # Associate with appropriate referee/coach associations if needed
+            position_title = position.title.lower() if position else ""
+            if "referee" in position_title or "coach" in position_title:
+                from geography.models import Association
+                
+                # Find relevant associations by type
+                association_type = "referee" if "referee" in position_title else "coach"
+                associations = Association.objects.filter(
+                    type__icontains=association_type,
+                    local_football_association=request.user.local_federation
+                )
+                
+                # Link to associations
+                if associations.exists():
+                    for association in associations:
+                        official.associations.add(association)
+            
+            # If this is a referee with a level, create a certification record
+            referee_level = official_form.cleaned_data.get('referee_level')
+            if referee_level and "referee" in position_title:
+                from membership.models.main import OfficialCertification
+                
+                # Create certification record
+                certification = OfficialCertification(
+                    official=official,
+                    certification_type='REFEREE',
+                    level=referee_level,
+                    name=f"Referee Level {referee_level}",
+                    issuing_body="SAFA",
+                    certification_number=official_form.cleaned_data.get('certification_number'),
+                    obtained_date=timezone.now().date(),
+                    expiry_date=official_form.cleaned_data.get('certification_expiry_date'),
+                    document=official_form.cleaned_data.get('certification_document'),
+                    notes="Initial certification registered with official",
+                    is_verified=False  # Requires verification
+                )
+                certification.save()
+            
+            success_message = f'Official registered successfully with email {official.email}!'
+            if invoice:
+                success_message += f' An invoice (#{invoice.invoice_number}) has been created.'
+                base_fee = "250" if "referee" in position_title else "200" if "coach" in position_title else "150"
+                success_message += f' Registration fee: R{base_fee}.'
+                success_message += ' Official will be eligible for approval once the invoice is paid.'
+            
+            messages.success(request, success_message)
+            return redirect('accounts:official_list')
+        else:
+            # Add a summary error message at the top without showing specific fields
+            messages.error(request, 'Please correct the errors in the form below.')
+    else:
+        official_form = ClubAdminOfficialRegistrationForm()
+    
+    return render(request, 'accounts/club_admin_add_official.html', {
+        'official_form': official_form
+    })
+
+def official_list(request):
+    """View for listing club officials"""
+    if not request.user.is_authenticated:
+        return redirect('accounts:login')
+        
+    # Club admins can see officials in their own club
+    if request.user.role == 'CLUB_ADMIN':
+        if not request.user.club:
+            messages.error(request, 'Your profile is not linked to a club.')
+            return redirect('accounts:dashboard')
+            
+        officials = Official.objects.filter(club=request.user.club).order_by('-created')
+            
+    # LFA admins can see officials across clubs in their LFA
+    elif request.user.role == 'ADMIN_LOCAL_FED':
+        if not request.user.local_federation:
+            messages.error(request, 'Your profile is not linked to an LFA.')
+            return redirect('accounts:dashboard')
+            
+        officials = Official.objects.filter(
+            local_federation=request.user.local_federation
+        ).order_by('-created')
+            
+    # Region admins can see officials across LFAs in their region
+    elif request.user.role == 'ADMIN_REGION':
+        if not request.user.region:
+            messages.error(request, 'Your profile is not linked to a region.')
+            return redirect('accounts:dashboard')
+            
+        officials = Official.objects.filter(
+            region=request.user.region
+        ).order_by('-created')
+            
+    # Province admins can see officials across regions in their province
+    elif request.user.role == 'ADMIN_PROVINCE':
+        if not request.user.province:
+            messages.error(request, 'Your profile is not linked to a province.')
+            return redirect('accounts:dashboard')
+            
+        officials = Official.objects.filter(
+            province=request.user.province
+        ).order_by('-created')
+            
+    # National admins can see all officials
+    elif request.user.role == 'ADMIN_NATIONAL' or request.user.is_superuser:
+        officials = Official.objects.all().order_by('-created')
+            
+    # Other users don't have access
+    else:
+        messages.error(request, 'You do not have permission to view officials.')
+        return redirect('accounts:dashboard')
+        
+    # Count officials by position
+    position_counts = {}
+    for official in officials:
+        if official.position:
+            position_name = official.position.title
+            if position_name in position_counts:
+                position_counts[position_name] += 1
+            else:
+                position_counts[position_name] = 1
+    
+    # Sort by position count (descending)
+    sorted_positions = sorted(position_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    return render(request, 'accounts/official_list.html', {
+        'officials': officials,
+        'position_counts': sorted_positions,
+        'total_count': officials.count()
+    })
+
+@login_required
+def official_detail(request, official_id):
+    """View details of an official"""
+    official = get_object_or_404(Official, id=official_id)
+    
+    # Check permissions
+    has_permission = False
+    
+    # Determine if current user can view this official
+    if request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
+        has_permission = official.club == request.user.club
+    elif request.user.role == 'ADMIN_LOCAL_FED' and hasattr(request.user, 'local_federation') and request.user.local_federation:
+        has_permission = official.local_federation == request.user.local_federation
+    elif request.user.role == 'ADMIN_REGION' and hasattr(request.user, 'region') and request.user.region:
+        has_permission = official.region == request.user.region
+    elif request.user.role == 'ADMIN_PROVINCE' and hasattr(request.user, 'province') and request.user.province:
+        has_permission = official.province == request.user.province
+    elif request.user.role == 'ADMIN_NATIONAL' or request.user.is_superuser:
+        has_permission = True
+    
+    if not has_permission:
+        messages.error(request, 'You do not have permission to view this official.')
+        return redirect('accounts:dashboard')
+    
+    # Get certifications
+    certifications = official.certifications.all().order_by('-obtained_date')
+    
+    # Get associations
+    associations = official.associations.all()
+    
+    # Get invoices
+    from membership.models.invoice import Invoice
+    invoices = Invoice.objects.filter(official=official)
+    
+    # Check if user can approve official
+    can_approve = request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'] or request.user.is_superuser
+    
+    # Today's date for checking expiry
+    today = timezone.now().date()
+    
+    context = {
+        'official': official,
+        'certifications': certifications,
+        'associations': associations,
+        'invoices': invoices,
+        'can_approve': can_approve,
+        'today': today,
+        'referee_level': official.referee_level,
+    }
+    
+    return render(request, 'accounts/official_detail.html', context)
+
+
+@login_required
+def add_official_certification(request, official_id):
+    """Add a certification to an official"""
+    official = get_object_or_404(Official, id=official_id)
+    
+    # Check permissions - only club admins for their own club, or higher level admins
+    has_permission = False
+    if request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
+        has_permission = official.club == request.user.club
+    elif request.user.role == 'ADMIN_LOCAL_FED' and hasattr(request.user, 'local_federation') and request.user.local_federation:
+        has_permission = official.local_federation == request.user.local_federation
+    elif request.user.role == 'ADMIN_REGION' and hasattr(request.user, 'region') and request.user.region:
+        has_permission = official.region == request.user.region
+    elif request.user.role == 'ADMIN_PROVINCE' and hasattr(request.user, 'province') and request.user.province:
+        has_permission = official.province == request.user.province
+    elif request.user.role == 'ADMIN_NATIONAL' or request.user.is_superuser:
+        has_permission = True
+    
+    if not has_permission:
+        messages.error(request, 'You do not have permission to add certifications for this official.')
+        return redirect('accounts:dashboard')
+    
+    if request.method == 'POST':
+        form = OfficialCertificationForm(request.POST, request.FILES)
+        if form.is_valid():
+            certification = form.save(commit=False)
+            certification.official = official
+            
+            # Only admin levels above club can directly verify certifications
+            if request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'] or request.user.is_superuser:
+                certification.is_verified = True
+            
+            certification.save()
+            
+            messages.success(request, 'Certification added successfully.')
+            
+            # Check if this is a referee certification and update official's referee_level if needed
+            if certification.certification_type == 'REFEREE' and not official.referee_level:
+                official.referee_level = certification.level
+                official.save()
+                messages.info(request, f"Updated official's referee level to {certification.get_level_display()}.")
+            
+            return redirect('accounts:official_detail', official_id=official.id)
+    else:
+        form = OfficialCertificationForm()
+    
+    return render(request, 'accounts/add_official_certification.html', {
+        'form': form,
+        'official': official
+    })
+
+@login_required
+def manage_official_associations(request, official_id):
+    """Manage associations linked to an official"""
+    official = get_object_or_404(Official, id=official_id)
+    
+    # Check permissions - only admins can manage associations
+    has_permission = False
+    if request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
+        has_permission = official.club == request.user.club
+    elif request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'] or request.user.is_superuser:
+        has_permission = True
+    
+    if not has_permission:
+        messages.error(request, 'You do not have permission to manage associations for this official.')
+        return redirect('accounts:dashboard')
+    
+    from geography.models import Association
+    
+    # Get all available associations
+    position_type = ""
+    if official.position:
+        position_type = official.position.title.lower()
+    
+    # Filter associations based on the position
+    if "referee" in position_type:
+        filter_type = "referee"
+    elif "coach" in position_type:
+        filter_type = "coach"
+    else:
+        filter_type = ""
+    
+    all_associations = Association.objects.all()
+    if filter_type:
+        all_associations = all_associations.filter(type__icontains=filter_type)
+    
+    # Get current associations
+    current_associations = official.associations.all()
+    
+    if request.method == 'POST':
+        # Process form submission
+        selected_associations = request.POST.getlist('associations')
+        
+        # Update associations
+        official.associations.clear()
+        if selected_associations:
+            for assoc_id in selected_associations:
+                try:
+                    association = Association.objects.get(id=assoc_id)
+                    official.associations.add(association)
+                except Association.DoesNotExist:
+                    continue
+        
+        messages.success(request, f'Associations updated successfully for {official.get_full_name()}.')
+        return redirect('accounts:official_detail', official_id=official.id)
+    
+    context = {
+        'official': official,
+        'all_associations': all_associations,
+        'current_associations': current_associations,
+        'position_type': position_type
+    }
+    
+    return render(request, 'accounts/manage_official_associations.html', context)
+
+@login_required
+def approve_official(request, official_id):
+    """Approve an official registration"""
+    official = get_object_or_404(Official, id=official_id)
+    
+    # Check permissions - only admins can approve officials
+    has_permission = False
+    if request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'] or request.user.is_superuser:
+        has_permission = True
+    
+    if not has_permission:
+        messages.error(request, 'You do not have permission to approve officials.')
+        return redirect('accounts:dashboard')
+    
+    # Check if the official has any unpaid invoices
+    from membership.models.invoice import Invoice
+    unpaid_invoices = Invoice.objects.filter(official=official, status__in=['PENDING', 'OVERDUE'])
+    
+    if unpaid_invoices.exists():
+        messages.error(request, 'Official cannot be approved until all registration invoices are paid.')
+        return redirect('accounts:official_detail', official_id=official.id)
+    
+    # Approve the official
+    official.is_approved = True
+    official.status = 'ACTIVE'
+    official.save()
+    
+    messages.success(request, f'Official {official.get_full_name()} has been approved.')
+    return redirect('accounts:official_detail', official_id=official.id)
+
+@login_required
+def unapprove_official(request, official_id):
+    """Unapprove an official registration"""
+    official = get_object_or_404(Official, id=official_id)
+    
+    # Check permissions - only admins can unapprove officials
+    has_permission = False
+    if request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'] or request.user.is_superuser:
+        has_permission = True
+    
+    if not has_permission:
+        messages.error(request, 'You do not have permission to unapprove officials.')
+        return redirect('accounts:dashboard')
+    
+    # Unapprove the official
+    official.is_approved = False
+    official.status = 'PENDING'
+    official.save()
+    
+    messages.success(request, f'Official {official.get_full_name()} has been unapproved and status set to pending.')
+    return redirect('accounts:official_detail', official_id=official.id)
+
+def association_admin_add_official(request):
+    """View for an association admin to add a new official (particularly referees)"""
+    # Check if user is authenticated and has the correct role
+    if not request.user.is_authenticated or request.user.role != 'ASSOCIATION_ADMIN':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('accounts:dashboard')
+
+    # Check if user is linked to an association
+    if not hasattr(request.user, 'association') or not request.user.association:
+        messages.error(request, 'Your user profile is not linked to an association. Please contact support.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        official_form = AssociationOfficialRegistrationForm(request.POST, request.FILES)
+        # Store request in form to allow showing document validation warnings
+        official_form.request = request
+        # Process ID number before validation if provided
+        if 'id_number' in request.POST and request.POST['id_number'].strip():
+            id_number = request.POST['id_number'].strip()
+            try:
+                # Extract DOB from ID number (format: YYMMDD...)
+                year = int(id_number[:2])
+                month = int(id_number[2:4])
+                day = int(id_number[4:6])
+                
+                # Determine century (00-99)
+                current_year = timezone.now().year % 100
+                century = 2000 if year <= current_year else 1900
+                full_year = century + year
+                
+                # Check if date is valid
+                try:
+                    dob = datetime.date(full_year, month, day)
+                    # Set the date_of_birth field in the form data
+                    official_form.data = official_form.data.copy()
+                    official_form.data['date_of_birth'] = dob.isoformat()
+                    
+                    # Also set gender based on ID number
+                    gender_digit = int(id_number[6])
+                    official_form.data['gender'] = 'M' if gender_digit >= 5 else 'F'
+                except ValueError:
+                    # Invalid date in ID number, will be caught in form validation
+                    pass
+            except (ValueError, IndexError):
+                # Invalid ID number, will be caught in form validation
+                pass
+        
+        # Generate a unique email for the official before checking form validity
+        if 'first_name' in request.POST and 'last_name' in request.POST:
+            first_name = request.POST['first_name']
+            last_name = request.POST['last_name']
+            
+            # Generate unique email using position name as a prefix
+            position_id = request.POST.get('position')
+            position_prefix = 'official'
+            
+            if position_id:
+                try:
+                    from .models import Position
+                    position = Position.objects.get(pk=position_id)
+                    position_prefix = position.title.lower().replace(' ', '')
+                except (Position.DoesNotExist, ValueError):
+                    position_prefix = 'official'
+            
+            # Generate unique email
+            unique_email = f"{position_prefix}.{first_name.lower()}.{last_name.lower()}@{request.user.association.name.lower().replace(' ', '')}.safa.net"
+            
+            # Set the email in the form data
+            official_form.data = official_form.data.copy()
+            official_form.data['email'] = unique_email
+        
+        if official_form.is_valid():
+            # Generate a unique SAFA ID if one wasn't provided
+            if not official_form.cleaned_data.get('safa_id'):
+                from .utils import generate_unique_safa_id
+                try:
+                    unique_safa_id = generate_unique_safa_id()
+                    official_form.instance.safa_id = unique_safa_id
+                except Exception as e:
+                    messages.warning(request, f"Could not generate a unique SAFA ID: {e}")
+            
+            # Save official with association reference
+            official = official_form.save(commit=False)
+            official.club = None  # No club affiliation for association officials
+            official.province = request.user.province
+            official.region = request.user.region
+            official.local_federation = request.user.local_federation
+            official.save()
+            
+            # Add association to the official's associations
+            official.associations.add(request.user.association)
+            
+            # Create invoice for the official
+            from .utils import create_official_invoice
+            position = official_form.cleaned_data.get('position')
+            position_type = position.title if position else None
+            
+            invoice = create_official_invoice(
+                official=official,
+                association=request.user.association,  # Use association instead of club
+                club=None,  # No club for association officials
+                issued_by=official,  # Using official as issued_by as they don't have a separate Member instance
+                position_type=position_type
+            )
+            
+            # Associate with appropriate referee/coach associations if needed
+            position_title = position.title.lower() if position else ""
+            if "referee" in position_title or "coach" in position_title:
+                from geography.models import Association
+                
+                # Find relevant associations by type
+                association_type = "referee" if "referee" in position_title else "coach"
+                associations = Association.objects.filter(
+                    type__icontains=association_type,
+                    local_football_association=request.user.local_federation
+                )
+                
+                # Link to associations
+                if associations.exists():
+                    for association in associations:
+                        official.associations.add(association)
+            
+            # If this is a referee with a level, create a certification record
+            referee_level = official_form.cleaned_data.get('referee_level')
+            if referee_level and "referee" in position_title:
+                from membership.models.main import OfficialCertification
+                
+                # Create certification record
+                certification = OfficialCertification(
+                    official=official,
+                    certification_type='REFEREE',
+                    level=referee_level,
+                    name=f"Referee Level {referee_level}",
+                    issuing_body="SAFA",
+                    certification_number=official_form.cleaned_data.get('certification_number'),
+                    obtained_date=timezone.now().date(),
+                    expiry_date=official_form.cleaned_data.get('certification_expiry_date'),
+                    document=official_form.cleaned_data.get('certification_document'),
+                    notes="Initial certification registered with official",
+                    is_verified=False  # Requires verification
+                )
+                certification.save()
+            
+            success_message = f'Official registered successfully with email {official.email}!'
+            if invoice:
+                success_message += f' An invoice (#{invoice.invoice_number}) has been created.'
+                base_fee = "250" if "referee" in position_title else "200" if "coach" in position_title else "150"
+                success_message += f' Registration fee: R{base_fee}.'
+                success_message += ' Official will be eligible for approval once the invoice is paid.'
+            
+            messages.success(request, success_message)
+            return redirect('accounts:official_list')
+        else:
+            # Add a summary error message at the top without showing specific fields
+            messages.error(request, 'Please correct the errors in the form below.')
+    else:
+        official_form = AssociationOfficialRegistrationForm()
+    
+    return render(request, 'accounts/association_admin_add_official.html', {
+        'official_form': official_form
+    })
+
+def association_registration(request):
+    """Registration view for association admins (referee associations)"""
+    if request.method == 'POST':
+        form = UniversalRegistrationForm(request.POST, request.FILES)
+        # Set the role to ASSOCIATION_ADMIN
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.role = 'ASSOCIATION_ADMIN'
+            
+            # Get the association from the form
+            association = form.cleaned_data.get('association')
+            if association:
+                user.association = association
+                
+                # Set the province, region and LFA based on the association
+                if hasattr(association, 'province') and association.province:
+                    user.province = association.province
+                if hasattr(association, 'region') and association.region:
+                    user.region = association.region
+                if hasattr(association, 'local_football_association') and association.local_football_association:
+                    user.local_federation = association.local_football_association
+            
+            user.save()
+            messages.success(request, 'Association administrator account created successfully! Your account is pending approval.')
+            return redirect('accounts:login')
+    else:
+        form = UniversalRegistrationForm()
+        # Modify the form to show association field
+        if hasattr(form.fields, 'association'):
+            form.fields['association'].required = True
+            # Filter associations that are for referees
+            from geography.models import Association
+            form.fields['association'].queryset = Association.objects.filter(
+                type__icontains='referee'
+            )
+        
+        # Set role field to ASSOCIATION_ADMIN and make it read-only
+        if 'role' in form.fields:
+            form.fields['role'].initial = 'ASSOCIATION_ADMIN'
+            form.fields['role'].widget.attrs['readonly'] = True
+    
+    return render(request, 'accounts/association_registration.html', {
+        'form': form,
+        'title': 'Referee Association Administrator Registration'
     })

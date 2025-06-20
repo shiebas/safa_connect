@@ -51,6 +51,7 @@ ROLES = (
     ('ADMIN_REGION', _('Regionial Administrator')),
     ('ADMIN_LOCAL_FED', _('Local Federation Administrator')),
     ('CLUB_ADMIN', _('Club Administrator')),
+    ('ASSOCIATION_ADMIN', _('Association Administrator')),
 )
 
 # Add new employment status choices
@@ -89,15 +90,11 @@ class RegistrationType(models.Model):
 # Add new position model
 class Position(models.Model):
     """Available positions within SAFA structures"""
-    title = models.CharField(max_length=100)  # Remove unique=True
+    title = models.CharField(max_length=100, unique=True)  # Make title unique across all levels
     description = models.TextField(blank=True)
-    level = models.CharField(max_length=20, choices=[
-        ('NATIONAL', 'National Level'),
-        ('PROVINCE', 'Province Level'),
-        ('REGION', 'Region Level'),
-        ('LFA', 'LFA Level'),
-        ('CLUB', 'Club Level'),
-    ])
+    # Level is no longer a constraint but indicates where this position can be used
+    levels = models.CharField(max_length=100, default='NATIONAL,PROVINCE,REGION,LFA,CLUB', 
+                              help_text="Comma-separated list of levels where this position can be used")
     employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_STATUS)
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_positions')
@@ -105,17 +102,22 @@ class Position(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['level', 'title']
-        # Change from unique_together to allow same title across levels
-        constraints = [
-            models.UniqueConstraint(
-                fields=['title', 'level'],
-                name='unique_title_per_level'
-            )
-        ]
+        ordering = ['title']
+        # No more unique constraints by level since title is unique
     
     def __str__(self):
-        return f"{self.title} ({self.level})"
+        return self.title
+        
+    @property
+    def available_levels(self):
+        """Return list of levels where this position can be used"""
+        if not self.levels:
+            return []
+        return [level.strip() for level in self.levels.split(',')]
+        
+    def can_be_used_at_level(self, level):
+        """Check if position can be used at the specified level"""
+        return level in self.available_levels
 
 class ModelWithLogo(models.Model):
     logo = models.ImageField(upload_to='logos/', null=True, blank=True)
@@ -393,6 +395,15 @@ class CustomUser(AbstractUser, ModelWithLogo):
         blank=True,
         related_name='members',
         help_text="Club this user belongs to (required for political leaders)"
+    )
+    
+    association = models.ForeignKey(
+        'geography.Association',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='admin_users',
+        help_text="Association this user administers (required for association admins)"
     )
     
     # Add organization type to structure registration

@@ -35,7 +35,11 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2>{{ club.name }} - Invoices</h2>
+                    {% if is_association %}
+                    <p class="text-muted">Manage your association's invoices and payments</p>
+                    {% else %}
                     <p class="text-muted">Manage your club's invoices and payments</p>
+                    {% endif %}
                 </div>
                 <div>
                     <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
@@ -94,10 +98,17 @@
         </div>
         <div class="card-body">
             <div class="btn-group mb-3">
+                {% if is_association %}
+                <a href="{% url 'accounts:club_invoices' %}?association=true" class="btn btn-outline-primary {% if not selected_status %}active{% endif %}">All</a>
+                <a href="{% url 'accounts:club_invoices' %}?status=PENDING&association=true" class="btn btn-outline-warning {% if selected_status == 'PENDING' %}active{% endif %}">Pending</a>
+                <a href="{% url 'accounts:club_invoices' %}?status=OVERDUE&association=true" class="btn btn-outline-danger {% if selected_status == 'OVERDUE' %}active{% endif %}">Overdue</a>
+                <a href="{% url 'accounts:club_invoices' %}?status=PAID&association=true" class="btn btn-outline-success {% if selected_status == 'PAID' %}active{% endif %}">Paid</a>
+                {% else %}
                 <a href="{% url 'accounts:club_invoices' %}" class="btn btn-outline-primary {% if not selected_status %}active{% endif %}">All</a>
                 <a href="{% url 'accounts:club_invoices' %}?status=PENDING" class="btn btn-outline-warning {% if selected_status == 'PENDING' %}active{% endif %}">Pending</a>
                 <a href="{% url 'accounts:club_invoices' %}?status=OVERDUE" class="btn btn-outline-danger {% if selected_status == 'OVERDUE' %}active{% endif %}">Overdue</a>
                 <a href="{% url 'accounts:club_invoices' %}?status=PAID" class="btn btn-outline-success {% if selected_status == 'PAID' %}active{% endif %}">Paid</a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -114,7 +125,11 @@
                         <thead>
                             <tr>
                                 <th>Invoice #</th>
-                                <th>Player</th>
+                                {% if is_association %}
+                                <th>Official</th>
+                                {% else %}
+                                <th>Person</th>
+                                {% endif %}
                                 <th>Type</th>
                                 <th>Amount</th>
                                 <th>Issue Date</th>
@@ -128,9 +143,21 @@
                                 <tr>
                                     <td>{{ invoice.invoice_number }}</td>
                                     <td>
+                                        {% if is_association and invoice.official %}
+                                        <a href="{% url 'accounts:official_detail' invoice.official.id %}">
+                                            {{ invoice.official.first_name }} {{ invoice.official.last_name }}
+                                        </a>
+                                        {% elif invoice.player %}
                                         <a href="{% url 'accounts:player_detail' invoice.player.id %}">
                                             {{ invoice.player.first_name }} {{ invoice.player.last_name }}
                                         </a>
+                                        {% elif invoice.official %}
+                                        <a href="{% url 'accounts:official_detail' invoice.official.id %}">
+                                            {{ invoice.official.first_name }} {{ invoice.official.last_name }}
+                                        </a>
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
                                     </td>
                                     <td>{{ invoice.get_invoice_type_display }}</td>
                                     <td>R{{ invoice.amount|floatformat:2 }}</td>
@@ -142,8 +169,16 @@
                                         </span>
                                     </td>
                                     <td>
+                                        {% if invoice.player %}
                                         <a href="#" class="btn btn-sm btn-primary" onclick="showInvoiceDetails('{{ invoice.invoice_number }}', '{{ invoice.player.first_name }} {{ invoice.player.last_name }}', '{{ invoice.amount|floatformat:2 }}', '{{ invoice.reference }}')">
                                             <i class="bi bi-eye"></i> Details
+                                        {% elif invoice.official %}
+                                        <a href="#" class="btn btn-sm btn-primary" onclick="showInvoiceDetails('{{ invoice.invoice_number }}', '{{ invoice.official.first_name }} {{ invoice.official.last_name }}', '{{ invoice.amount|floatformat:2 }}', '{{ invoice.reference }}')">
+                                            <i class="bi bi-eye"></i> Details
+                                        {% else %}
+                                        <a href="#" class="btn btn-sm btn-primary" onclick="showInvoiceDetails('{{ invoice.invoice_number }}', 'N/A', '{{ invoice.amount|floatformat:2 }}', '{{ invoice.reference }}')">
+                                            <i class="bi bi-eye"></i> Details
+                                        {% endif %}
                                         </a>
                                     </td>
                                 </tr>

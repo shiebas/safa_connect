@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Officials List{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+    .badge-success { background-color: #28a745; color: white; }
+    .badge-warning { background-color: #ffc107; }
+    .badge-danger { background-color: #dc3545; color: white; }
+    .badge-info { background-color: #17a2b8; color: white; }
+    .badge-primary { background-color: #007bff; color: white; }
+    .badge-secondary { background-color: #6c757d; color: white; }
+    
+    .stats-card {
+        transition: transform 0.3s;
+        border-radius: 10px;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .official-card {
+        transition: transform 0.2s;
+        border-radius: 8px;
+    }
+    .official-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .profile-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #ddd;
+    }
+    
+    .official-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .official-position {
+        font-style: italic;
+        color: #555;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Officials Management</h2>
+                <div>
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-house"></i> Dashboard
+                    </a>
+                    {% if user.role == 'CLUB_ADMIN' %}
+                    <a href="{% url 'accounts:club_admin_add_official' %}" class="btn btn-primary">
+                        <i class="bi bi-person-plus"></i> Register New Official
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <hr>
+            
+            <div class="btn-toolbar mt-3">
+                <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-outline-success me-2">
+                    <i class="bi bi-people"></i> Player List
+                </a>
+                <a href="{% url 'accounts:club_invoices' %}" class="btn btn-outline-warning">
+                    <i class="bi bi-receipt"></i> Invoices
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Officials Statistics</h3>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card bg-light">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ total_count }}</h1>
+                    <p class="lead mb-0">Total Officials</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <h5 class="card-title">Officials by Position</h5>
+                    <div class="row">
+                        {% for position, count in position_counts %}
+                        <div class="col-6 col-md-4 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ position }}</span>
+                                <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">No position data available</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Officials List -->
+    <h3>Officials List</h3>
+    <div class="row">
+        {% for official in officials %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card official-card h-100">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            {% if official.profile_picture %}
+                            <img src="{{ official.profile_picture.url }}" class="profile-img" alt="{{ official.get_full_name }}">
+                            {% else %}
+                            <div class="profile-img d-flex align-items-center justify-content-center bg-light">
+                                <i class="bi bi-person-fill" style="font-size: 2.5rem; color: #aaa;"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5 class="official-name mb-1">{{ official.get_full_name }}</h5>
+                            <div class="official-position mb-2">
+                                {% if official.position %}
+                                {{ official.position.title }}
+                                {% else %}
+                                <span class="text-muted">No Position Assigned</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-1">
+                                <span class="badge {% if official.is_approved %}bg-success{% else %}bg-warning text-dark{% endif %} me-1">
+                                    {% if official.is_approved %}Approved{% else %}Pending Approval{% endif %}
+                                </span>
+                                
+                                {% if official.referee_level %}
+                                <span class="badge bg-info me-1">
+                                    {{ official.get_referee_level_display }}
+                                </span>
+                                {% endif %}
+                                
+                                {% if official.certification_number %}
+                                <span class="badge bg-secondary">Certified</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-2">
+                                <a href="#" class="btn btn-sm btn-outline-primary me-1">View Details</a>
+                                {% if user.role == 'CLUB_ADMIN' and not official.is_approved %}
+                                <a href="#" class="btn btn-sm btn-outline-success">Edit</a>
+                                {% endif %}
+                                
+                                {% if user.role == 'ADMIN_LOCAL_FED' or user.role == 'ADMIN_REGION' or user.role == 'ADMIN_PROVINCE' or user.role == 'ADMIN_NATIONAL' or user.is_superuser %}
+                                {% if not official.is_approved %}
+                                <a href="#" class="btn btn-sm btn-outline-success">Approve</a>
+                                {% else %}
+                                <a href="#" class="btn btn-sm btn-outline-danger">Unapprove</a>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No officials found. 
+                {% if user.role == 'CLUB_ADMIN' %}
+                <a href="{% url 'accounts:club_admin_add_official' %}" class="alert-link">Register a new official</a> for your club.
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

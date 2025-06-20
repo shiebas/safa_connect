@@ -7,6 +7,8 @@ from django.conf import settings
 # Import utilities for invoice creation
 from django.utils import timezone
 from django.db import transaction
+import random
+import string
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -287,4 +289,86 @@ def create_player_invoice(player, club, issued_by, is_junior=False):
             return invoice
     except Exception as e:
         logger.error(f"Error creating player invoice: {str(e)}")
+        return None
+
+def generate_unique_safa_id():
+    """
+    Generates a unique 5-character SAFA ID.
+    Format: A combination of uppercase letters and numbers (e.g., A12B3)
+    
+    Returns:
+        str: A unique 5-character SAFA ID
+    """
+    from django.utils.crypto import get_random_string
+    from membership.models import Member
+    
+    # Generate a unique code
+    while True:
+        code = get_random_string(length=5, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+        if not Member.objects.filter(safa_id=code).exists():
+            return code
+
+def create_official_invoice(official, club=None, association=None, issued_by=None, position_type=None):
+    """
+    Create an invoice for official registration
+    
+    Args:
+        official (Official): The official to create an invoice for
+        club (Club, optional): The club the official is registering with
+        association (Association, optional): The association the official is registering with
+        issued_by (Member): The admin who issued the invoice
+        position_type (str): Type of position - determines fee amount
+        
+    Returns:
+        Invoice: The created invoice
+    """
+    try:
+        # Import at function level to avoid circular imports
+        from membership.models.invoice import Invoice, InvoiceItem
+        
+        # Set fee amount based on position type
+        # Default fee is R150, but can be adjusted based on position
+        fee_amount = 150.00
+        position_title = "Standard Position"
+        
+        if official.position:
+            position_title = official.position.title
+            # Check if referee or coach for higher fee
+            if "referee" in position_title.lower():
+                fee_amount = 250.00
+            elif "coach" in position_title.lower():
+                fee_amount = 200.00
+        
+        # Generate a reference number
+        reference = f"REG-OFF-{official.membership_number or official.id}-{timezone.now().strftime('%Y%m%d')}"
+
+        with transaction.atomic():
+            # Create invoice
+            invoice = Invoice(
+                invoice_type='REGISTRATION',
+                amount=fee_amount,
+                status='PENDING',
+                issue_date=timezone.now().date(),
+                player=None,  # Not a player registration
+                official=official,  # Link to official
+                club=club,
+                association=association,
+                issued_by=issued_by,
+                reference=reference
+            )
+            invoice.save()
+            
+            # Create invoice item
+            item = InvoiceItem(
+                invoice=invoice,
+                description=f"{position_title} Registration Fee",
+                quantity=1,
+                unit_price=fee_amount,
+                sub_total=fee_amount
+            )
+            item.save()
+            
+            return invoice
+    except Exception as e:
+        logger.error(f"Error creating official invoice: {str(e)}")
         return None

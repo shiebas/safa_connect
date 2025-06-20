@@ -98,6 +98,18 @@ class Invoice(TimeStampedModel):
         'Player',
         on_delete=models.CASCADE,
         related_name='invoices',
+        null=True,
+        blank=True,
+        help_text=_("Player this invoice is for (if player registration)")
+    )
+    
+    official = models.ForeignKey(
+        'Official',
+        on_delete=models.CASCADE,
+        related_name='invoices',
+        null=True,
+        blank=True,
+        help_text=_("Official this invoice is for (if official registration)")
     )
     
     club = models.ForeignKey(
@@ -149,6 +161,14 @@ class Invoice(TimeStampedModel):
         blank=True,
         related_name='invoices',
         help_text=_('Vendor associated with this invoice (if applicable)')
+    )
+    
+    association = models.ForeignKey(
+        'geography.Association',
+        on_delete=models.PROTECT,
+        related_name='invoices',
+        null=True,
+        blank=True,
     )
     
     class Meta:

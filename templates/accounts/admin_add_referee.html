@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Referee{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Register a New Referee</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="alert alert-info" role="alert">
+                        {% for message in messages %}
+                        {{ message }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-info" role="alert">
+                            <p class="mb-0">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                This referee will be associated with your organization automatically.
+                            </p>
+                        </div>
+                        
+                        <h5 class="mb-3 border-bottom pb-2">Personal Information</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ official_form.name.id_for_label }}" class="form-label">First Name*</label>
+                                {{ official_form.name }}
+                                <div class="text-danger small">{{ official_form.name.errors }}</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ official_form.middle_name.id_for_label }}" class="form-label">Middle Name</label>
+                                {{ official_form.middle_name }}
+                                <div class="text-danger small">{{ official_form.middle_name.errors }}</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ official_form.surname.id_for_label }}" class="form-label">Last Name*</label>
+                                {{ official_form.surname }}
+                                <div class="text-danger small">{{ official_form.surname.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.id_number.id_for_label }}" class="form-label">ID Number*</label>
+                                {{ official_form.id_number }}
+                                <div class="text-danger small">{{ official_form.id_number.errors }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.date_of_birth.id_for_label }}" class="form-label">Date of Birth*</label>
+                                {{ official_form.date_of_birth }}
+                                <div class="text-danger small">{{ official_form.date_of_birth.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.gender.id_for_label }}" class="form-label">Gender*</label>
+                                {{ official_form.gender }}
+                                <div class="text-danger small">{{ official_form.gender.errors }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.mobile_number.id_for_label }}" class="form-label">Mobile Number*</label>
+                                {{ official_form.mobile_number }}
+                                <div class="text-danger small">{{ official_form.mobile_number.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ official_form.email.id_for_label }}" class="form-label">Email Address*</label>
+                                {{ official_form.email }}
+                                <div class="text-danger small">{{ official_form.email.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3 mt-4 border-bottom pb-2">Referee Certification</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.referee_level.id_for_label }}" class="form-label">Referee Level*</label>
+                                {{ official_form.referee_level }}
+                                <div class="text-danger small">{{ official_form.referee_level.errors }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.certification_number.id_for_label }}" class="form-label">Certification Number</label>
+                                {{ official_form.certification_number }}
+                                <div class="text-danger small">{{ official_form.certification_number.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.certification_document.id_for_label }}" class="form-label">Certification Document</label>
+                                {{ official_form.certification_document }}
+                                <div class="text-danger small">{{ official_form.certification_document.errors }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ official_form.certification_expiry_date.id_for_label }}" class="form-label">Certification Expiry Date</label>
+                                {{ official_form.certification_expiry_date }}
+                                <div class="text-danger small">{{ official_form.certification_expiry_date.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ official_form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                                {{ official_form.profile_picture }}
+                                <div class="text-danger small">{{ official_form.profile_picture.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">Register Referee</button>
+                            <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

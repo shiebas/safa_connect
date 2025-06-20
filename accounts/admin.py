@@ -113,10 +113,24 @@ class CustomUserChangeForm(forms.ModelForm):
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ['title', 'level', 'employment_type', 'is_active', 'requires_approval', 'created_by', 'created_at']
-    list_filter = ['level', 'employment_type', 'is_active', 'requires_approval']
-    search_fields = ['title', 'description']
-    actions = ['approve_positions', 'activate_positions', 'duplicate_positions']
+    list_display = ['title', 'display_levels', 'employment_type', 'is_active', 'requires_approval', 'created_by', 'created_at']
+    list_filter = ['employment_type', 'is_active', 'requires_approval']
+    search_fields = ['title', 'description', 'levels']
+    actions = ['approve_positions', 'activate_positions', 'make_available_all_levels']
+    
+    def display_levels(self, obj):
+        """Format the levels for display in admin"""
+        if not obj.levels:
+            return "None"
+        levels = obj.levels.split(',')
+        return ', '.join(levels)
+    display_levels.short_description = 'Available at Levels'
+    
+    def make_available_all_levels(self, request, queryset):
+        """Make selected positions available at all levels"""
+        all_levels = 'NATIONAL,PROVINCE,REGION,LFA,CLUB'
+        updated = queryset.update(levels=all_levels)
+        self.message_user(request, f'{updated} positions updated to be available at all levels.')
     
     def approve_positions(self, request, queryset):
         updated = queryset.update(requires_approval=False)
@@ -130,23 +144,11 @@ class PositionAdmin(admin.ModelAdmin):
         """Duplicate positions for different levels"""
         duplicated = 0
         for position in queryset:
-            # Get all levels except the current one
-            all_levels = ['NATIONAL', 'PROVINCE', 'REGION', 'LFA', 'CLUB']
-            other_levels = [level for level in all_levels if level != position.level]
-            
-            for level in other_levels:
-                # Check if position with same title and level already exists
-                if not Position.objects.filter(title=position.title, level=level).exists():
-                    Position.objects.create(
-                        title=position.title,
-                        description=position.description,
-                        level=level,
-                        employment_type=position.employment_type,
-                        is_active=position.is_active,
-                        created_by=request.user,
-                        requires_approval=position.requires_approval
-                    )
-                    duplicated += 1
+            # This method is now obsolete as positions can be available at multiple levels
+            # Just update the levels field to include all levels
+            position.levels = 'NATIONAL,PROVINCE,REGION,LFA,CLUB'
+            position.save()
+            duplicated += 1
         
         self.message_user(request, f'{duplicated} positions duplicated across different levels.')
     
@@ -164,7 +166,7 @@ class CustomUserAdmin(UserAdmin):
     
     list_filter = [
         'role', 'employment_status', 'popi_act_consent', 'membership_status', 'club_membership_verified',
-        'is_active', 'is_staff', 'date_joined', 'position__level', 'organization_type'
+        'is_active', 'is_staff', 'date_joined', 'organization_type'
     ]
     
     search_fields = ['email', 'first_name', 'last_name', 'id_number', 'safa_id']
@@ -332,6 +334,13 @@ class OrganizationTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'level', 'is_active', 'requires_approval']
     list_filter = ['level', 'is_active', 'requires_approval']
     search_fields = ['name']
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # Display all positions regardless of level - this supports the new levels field
+        # which can include multiple levels (NATIONAL,PROVINCE,REGION,LFA,CLUB,ASSOCIATION)
+        if db_field.name == "position":
+            kwargs["queryset"] = Position.objects.filter(is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 # Fix the RegistrationType registration by using only one method
 @admin.register(RegistrationType)

@@ -6,16 +6,19 @@ from .views import (
     model_debug_view,  # Remove generate_safa_id_ajax
     check_email_availability, check_id_number_availability,
     registration_portal, province_registration, club_registration,
-    national_registration, lfa_registration,
+    national_registration, lfa_registration, association_registration,
     update_profile_photo, CustomUserViewSet, lfa_admin_approvals,
-    dashboard, club_admin_add_player,
+    dashboard, club_admin_add_player, club_admin_add_official, association_admin_add_official,
     api_regions, api_clubs, api_lfas,
     ajax_check_id_number, ajax_check_passport_number, ajax_check_sa_passport_number,
+    ajax_check_safa_id, ajax_check_fifa_id,  # Add new AJAX endpoints
     player_approval_list, player_detail, approve_player, unapprove_player,
-    edit_player, club_invoices, player_statistics
+    edit_player, club_invoices, player_statistics, official_list,
+    official_detail, add_official_certification, approve_official, unapprove_official, manage_official_associations
 )
 from .views_mcp import MCPUserListView
 from .api_auth import APILoginView
+from .views_admin_referees import admin_add_referee
 from rest_framework import routers
 
 app_name = 'accounts'
@@ -43,14 +46,20 @@ urlpatterns = [
     path('ajax/check-id-number/', ajax_check_id_number, name='ajax_check_id_number'),
     path('ajax/check-passport-number/', ajax_check_passport_number, name='ajax_check_passport_number'),
     path('ajax/check-sa-passport-number/', ajax_check_sa_passport_number, name='ajax_check_sa_passport_number'),
+    path('ajax/check-safa-id/', ajax_check_safa_id, name='ajax_check_safa_id'),
+    path('ajax/check-fifa-id/', ajax_check_fifa_id, name='ajax_check_fifa_id'),
     path('registration-portal/', registration_portal, name='registration_portal'),
     path('register/province/', province_registration, name='province_registration'),
     path('register/national/', national_registration, name='national_registration'),
     path('register/lfa/', lfa_registration, name='lfa_registration'),
     path('register/club/', club_registration, name='club_registration'),
+    path('register/association/', association_registration, name='association_registration'),
     path('lfa-admin/approvals/', lfa_admin_approvals, name='lfa_admin_approvals'),
     path('dashboard/', dashboard, name='dashboard'),
     path('club-admin/add-player/', club_admin_add_player, name='club_admin_add_player'),
+    path('club-admin/add-official/', club_admin_add_official, name='club_admin_add_official'),
+    path('association-admin/add-official/', association_admin_add_official, name='association_admin_add_official'),
+    path('officials/', official_list, name='official_list'),
     path('players/approval-list/', player_approval_list, name='player_approval_list'),
     path('players/<int:player_id>/', player_detail, name='player_detail'),
     path('players/<int:player_id>/edit/', edit_player, name='edit_player'),
@@ -58,6 +67,13 @@ urlpatterns = [
     path('players/<int:player_id>/unapprove/', unapprove_player, name='unapprove_player'),
     path('club-admin/invoices/', club_invoices, name='club_invoices'),
     path('admin/player-statistics/', player_statistics, name='player_statistics'),
+    # Official management URLs
+    path('officials/<int:official_id>/', official_detail, name='official_detail'),
+    path('officials/<int:official_id>/add-certification/', add_official_certification, name='add_official_certification'),
+    path('officials/<int:official_id>/approve/', approve_official, name='approve_official'),
+    path('officials/<int:official_id>/unapprove/', unapprove_official, name='unapprove_official'),
+    path('officials/<int:official_id>/manage-associations/', manage_official_associations, name='manage_official_associations'),
+    path('admin/add-referee/', admin_add_referee, name='admin_add_referee'),
     # --- API endpoints below ---
     path('api/regions/', api_regions, name='api_regions'),
     path('api/clubs/', api_clubs, name='api_clubs'),

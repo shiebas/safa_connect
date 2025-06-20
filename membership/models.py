@@ -344,6 +344,152 @@ class Player(Member):
         self.role = 'PLAYER'
         super().save(*args, **kwargs)
 
+class Official(Member):
+    """
+    Official model represents club or association staff members like referees, secretaries, etc.
+    """
+    # Add approval field
+    is_approved = models.BooleanField(_("Approved"), default=False,
+                                     help_text=_("Whether the official has been approved by an admin"))
+    
+    # Position in the club or association
+    position = models.ForeignKey('accounts.Position', on_delete=models.PROTECT, 
+                                related_name='officials',
+                                help_text=_("Official's position or role in the club/association"))
+    
+    # Certification information
+    certification_number = models.CharField(_("Certification Number"), max_length=50, blank=True, null=True,
+                                          help_text=_("Certification or license number if applicable"))
+    
+    certification_document = models.FileField(_("Certification Document"), upload_to='certification_documents/',
+                                           blank=True, null=True, 
+                                           help_text=_("Upload proof of certification or qualification"))
+    
+    certification_expiry_date = models.DateField(_("Certification Expiry Date"), blank=True, null=True,
+                                              help_text=_("Expiry date of the certification or license"))
+    
+    # For referees
+    referee_level = models.CharField(_("Referee Level"), max_length=20, blank=True, null=True,
+                                  choices=[
+                                      ('LOCAL', 'Local'),
+                                      ('REGIONAL', 'Regional'),
+                                      ('PROVINCIAL', 'Provincial'),
+                                      ('NATIONAL', 'National'),
+                                      ('INTERNATIONAL', 'International'),
+                                  ],
+                                  help_text=_("Level of referee qualification if applicable"))
+    
+    # Link to referee associations (many-to-many)
+    associations = models.ManyToManyField('geography.Association', 
+                                        related_name='member_officials',
+                                        blank=True,
+                                        help_text=_("Referee or coaching associations this official belongs to"))
+    
+    class Meta:
+        verbose_name = _("Official")
+        verbose_name_plural = _("Officials")
+
+    def clean(self):
+        super().clean()
+        # Force role to be OFFICIAL
+        self.role = 'OFFICIAL'
+
+    def __str__(self):
+        position_name = self.position.title if self.position else "No Position"
+        return f"{self.get_full_name()} - {position_name}"
+
+    def save(self, *args, **kwargs):
+        # Force role to be OFFICIAL before saving
+        self.role = 'OFFICIAL'
+        super().save(*args, **kwargs)
+
+
+class OfficialCertification(TimeStampedModel):
+    """
+    Tracks certification history for officials (referees, coaches, etc.)
+    Allows recording multiple certifications with dates obtained
+    """
+    CERTIFICATION_TYPES = [
+        ('REFEREE', _('Referee Certification')),
+        ('COACH', _('Coaching Certification')),
+        ('ADMIN', _('Administrative Certification')),
+        ('OTHER', _('Other Certification')),
+    ]
+
+    LEVEL_CHOICES = [
+        ('LOCAL', _('Local')),
+        ('REGIONAL', _('Regional')),
+        ('PROVINCIAL', _('Provincial')),
+        ('NATIONAL', _('National')),
+        ('INTERNATIONAL', _('International')),
+    ]
+
+    official = models.ForeignKey(Official, on_delete=models.CASCADE,
+                              related_name='certifications',
+                              help_text=_("The official who holds this certification"))
+    
+    certification_type = models.CharField(_("Certification Type"), max_length=20,
+                                       choices=CERTIFICATION_TYPES,
+                                       help_text=_("Type of certification"))
+    
+    level = models.CharField(_("Level"), max_length=20, 
+                          choices=LEVEL_CHOICES,
+                          help_text=_("Level or grade of the certification"))
+    
+    name = models.CharField(_("Certification Name"), max_length=100,
+                         help_text=_("Name of the specific certification or qualification"))
+    
+    issuing_body = models.CharField(_("Issuing Organization"), max_length=100,
+                                 help_text=_("Organization that issued this certification"))
+    
+    certification_number = models.CharField(_("Certification Number"), max_length=50,
+                                         blank=True, null=True,
+                                         help_text=_("Unique identifier for this certification"))
+    
+    obtained_date = models.DateField(_("Date Obtained"),
+                                  help_text=_("When the certification was first obtained"))
+    
+    expiry_date = models.DateField(_("Expiry Date"),
+                                blank=True, null=True, 
+                                help_text=_("When the certification expires (if applicable)"))
+    
+    document = models.FileField(_("Certificate Document"), 
+                             upload_to='certification_documents/history/',
+                             blank=True, null=True,
+                             help_text=_("Upload proof of certification"))
+    
+    notes = models.TextField(_("Notes"), blank=True,
+                          help_text=_("Additional information about this certification"))
+    
+    is_verified = models.BooleanField(_("Verified"), default=False,
+                                   help_text=_("Whether this certification has been verified by an administrator"))
+    
+    class Meta:
+        verbose_name = _("Official Certification")
+        verbose_name_plural = _("Official Certifications")
+        ordering = ['-obtained_date']
+    
+    def __str__(self):
+        return f"{self.official.get_full_name()} - {self.name} ({self.level})"
+    
+    @property
+    def is_active(self):
+        """Check if certification is currently active based on expiry date"""
+        if not self.expiry_date:
+            return True  # Certifications without expiry dates are considered active
+        return self.expiry_date >= timezone.now().date()
+    
+    @property
+    def validity_status(self):
+        """Return the validity status of the certification"""
+        if not self.is_verified:
+            return "Pending Verification"
+        if not self.expiry_date:
+            return "Active (No Expiration)"
+        if self.is_active:
+            return "Active"
+        return "Expired"
+
 class PlayerClubRegistration(TimeStampedModel):
     """Represents a player's registration with a specific club"""
     POSITION_CHOICES = [

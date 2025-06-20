@@ -4,7 +4,69 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center">Welcome, {{ user.get_full_name|default:user.email }}</h2>
     <div class="row justify-content-center">
-        {% if user.role == "ADMIN_LOCAL_FED" %}
+        {% if user.role == "ADMIN_PROVINCE" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-building-fill display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Manage Province</h5>
+                        <p class="card-text">Update your province information and settings.</p>
+                        <a href="#" class="btn btn-outline-primary">Go</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill display-4 text-success"></i>
+                        <h5 class="card-title mt-3">View/Edit Regions</h5>
+                        <p class="card-text">Manage and update regions in your province.</p>
+                        <a href="#" class="btn btn-outline-success">Go</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-whistle display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Register New Referee</h5>
+                        <p class="card-text">Register new referees for your province.</p>
+                        <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-outline-warning">Register Referee</a>
+                    </div>
+                </div>
+            </div>
+        {% elif user.role == "ADMIN_REGION" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-building display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Manage Region</h5>
+                        <p class="card-text">Update your region information and settings.</p>
+                        <a href="#" class="btn btn-outline-primary">Go</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill display-4 text-success"></i>
+                        <h5 class="card-title mt-3">View/Edit LFAs</h5>
+                        <p class="card-text">Manage and update LFAs in your region.</p>
+                        <a href="#" class="btn btn-outline-success">Go</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-whistle display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Register New Referee</h5>
+                        <p class="card-text">Register new referees for your region.</p>
+                        <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-outline-warning">Register Referee</a>
+                    </div>
+                </div>
+            </div>
+        {% elif user.role == "ADMIN_LOCAL_FED" %}
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm h-100">
                     <div class="card-body text-center">
@@ -30,7 +92,7 @@
                     <div class="card-body text-center">
                         <i class="bi bi-building display-4 text-info"></i>
                         <h5 class="card-title mt-3">Edit My LFA Information</h5>
-                        <p class="card-text">Update your LFA’s details and compliance information.</p>
+                        <p class="card-text">Update your LFA's details and compliance information.</p>
                         <a href="{% url 'geography:lfa_info_update' %}" class="btn btn-outline-info">Go</a>
                     </div>
                 </div>
@@ -45,13 +107,54 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-whistle display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Register New Referee</h5>
+                        <p class="card-text">Register new referees for your LFA.</p>
+                        <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-outline-warning">Register Referee</a>
+                    </div>
+                </div>
+            </div>
+        {% elif user.role == "ASSOCIATION_ADMIN" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-badge display-4 text-info"></i>
+                        <h5 class="card-title mt-3">Register New Referee</h5>
+                        <p class="card-text">Register new referees for your association.</p>
+                        <a href="{% url 'accounts:association_admin_add_official' %}" class="btn btn-outline-info">Register Referee</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-vcard display-4 text-success"></i>
+                        <h5 class="card-title mt-3">View Referees</h5>
+                        <p class="card-text">View and manage registered referees.</p>
+                        <a href="{% url 'accounts:official_list' %}" class="btn btn-outline-success">View Officials</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-receipt display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Invoices & Payments</h5>
+                        <p class="card-text">View and manage registration invoices.</p>
+                        <a href="{% url 'accounts:club_invoices' %}?association=true" class="btn btn-outline-warning">View Invoices</a>
+                    </div>
+                </div>
+            </div>
         {% elif user.role == "CLUB_ADMIN" %}
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-pencil-square display-4 text-primary"></i>
                         <h5 class="card-title mt-3">Edit My Club Information</h5>
-                        <p class="card-text">Update your club’s details and compliance status.</p>
+                        <p class="card-text">Update your club's details and compliance status.</p>
                         <a href="{% url 'geography:club_compliance_update' %}" class="btn btn-outline-primary">Go</a>
                     </div>
                 </div>
@@ -69,10 +172,30 @@
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm h-100">
                     <div class="card-body text-center">
+                        <i class="bi bi-person-badge display-4 text-info"></i>
+                        <h5 class="card-title mt-3">Register New Official</h5>
+                        <p class="card-text">Add referees, secretaries and other officials.</p>
+                        <a href="{% url 'accounts:club_admin_add_official' %}" class="btn btn-outline-info">Register Official</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
                         <i class="bi bi-people display-4 text-success"></i>
                         <h5 class="card-title mt-3">Player Approvals</h5>
                         <p class="card-text">View and manage player registrations.</p>
                         <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-outline-success">View Players</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-vcard display-4 text-success"></i>
+                        <h5 class="card-title mt-3">Club Officials</h5>
+                        <p class="card-text">View and manage club officials and referees.</p>
+                        <a href="{% url 'accounts:official_list' %}" class="btn btn-outline-success">View Officials</a>
                     </div>
                 </div>
             </div>

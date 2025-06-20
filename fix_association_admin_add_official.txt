@@ -1,0 +1,23 @@
+            # Save official with association reference
+            official = official_form.save(commit=False)
+            official.club = None  # No club affiliation for association officials
+            official.province = request.user.province
+            official.region = request.user.region
+            official.local_federation = request.user.local_federation
+            official.save()
+            
+            # Add association to the official's associations
+            official.associations.add(request.user.association)
+            
+            # Create invoice for the official
+            from .utils import create_official_invoice
+            position = official_form.cleaned_data.get('position')
+            position_type = position.title if position else None
+            
+            invoice = create_official_invoice(
+                official=official,
+                association=request.user.association,  # Use association instead of club
+                club=None,  # No club for association officials
+                issued_by=official,  # Using official as issued_by as they don't have a separate Member instance
+                position_type=position_type
+            )

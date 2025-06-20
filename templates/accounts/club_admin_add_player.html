@@ -96,6 +96,14 @@
                                 <div class="mb-3 passport-field" style="display:none;">
                                     {{ player_form.passport_number|as_crispy_field }}
                                 </div>
+                                
+                                <!-- SAFA ID and FIFA ID fields -->
+                                <div class="mb-3">
+                                    {{ player_form.safa_id|as_crispy_field }}
+                                </div>
+                                <div class="mb-3">
+                                    {{ player_form.fifa_id|as_crispy_field }}
+                                </div>
                             </div>
                             
                             <div class="col-md-6">
@@ -221,6 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const passportFields = document.querySelectorAll('.passport-field');
     const dobField = document.getElementById('id_date_of_birth');
     const genderField = document.getElementById('id_gender');
+    const safaIdField = document.getElementById('id_safa_id');
+    const fifaIdField = document.getElementById('id_fifa_id');
     
     function toggleFields() {
         const idNumberField = document.querySelector('.id-number-field');
@@ -610,6 +620,137 @@ document.addEventListener('DOMContentLoaded', function() {
                 successDiv.textContent = 'Valid future expiry date.';
                 
                 saPassportExpiryDate.parentElement.appendChild(successDiv);
+            }
+        });
+    }
+    
+    // Validate SAFA ID and FIFA ID fields
+    if (safaIdField) {
+        safaIdField.addEventListener('blur', function() {
+            const safaId = this.value.trim().toUpperCase();
+            
+            // If not empty, validate SAFA ID format (5 alphanumeric characters)
+            if (safaId) {
+                this.value = safaId; // Convert to uppercase
+                
+                // Check format: should be 5 alphanumeric characters
+                const safaIdRegex = /^[A-Z0-9]{5}$/;
+                if (!safaIdRegex.test(safaId)) {
+                    // Show validation error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback d-block';
+                    errorDiv.textContent = 'SAFA ID must be exactly 5 alphanumeric characters (letters and numbers only)';
+                    
+                    // Remove any existing feedback
+                    const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                    if (existingFeedback) existingFeedback.remove();
+                    
+                    this.classList.add('is-invalid');
+                    this.parentElement.appendChild(errorDiv);
+                } else {
+                    // Check if SAFA ID exists in database
+                    fetch(`/accounts/ajax/check-safa-id/?safa_id=${safaId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Remove any existing feedback
+                            const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                            if (existingFeedback) existingFeedback.remove();
+                            
+                            if (data.exists) {
+                                // Show error message for duplicate SAFA ID
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'invalid-feedback d-block';
+                                errorDiv.textContent = 'This SAFA ID is already registered in the system.';
+                                
+                                this.classList.add('is-invalid');
+                                this.parentElement.appendChild(errorDiv);
+                            } else {
+                                // Show success message
+                                const successDiv = document.createElement('div');
+                                successDiv.className = 'valid-feedback d-block';
+                                successDiv.textContent = 'Valid SAFA ID format.';
+                                
+                                this.classList.remove('is-invalid');
+                                this.classList.add('is-valid');
+                                this.parentElement.appendChild(successDiv);
+                            }
+                        })
+                        .catch(error => console.error('Error checking SAFA ID:', error));
+                }
+            } else {
+                // Remove any existing feedback since empty is valid (will be auto-generated)
+                const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                this.classList.remove('is-invalid');
+                this.classList.remove('is-valid');
+                
+                // Show info message about auto-generation
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'form-text text-info';
+                infoDiv.innerHTML = '<i class="bi bi-info-circle"></i> SAFA ID will be auto-generated if left blank.';
+                this.parentElement.appendChild(infoDiv);
+            }
+        });
+    }
+    
+    if (fifaIdField) {
+        fifaIdField.addEventListener('blur', function() {
+            const fifaId = this.value.trim();
+            
+            // If not empty, validate FIFA ID format (7 digits)
+            if (fifaId) {
+                // Check format: should be 7 digits
+                const fifaIdRegex = /^[0-9]{7}$/;
+                if (!fifaIdRegex.test(fifaId)) {
+                    // Show validation error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback d-block';
+                    errorDiv.textContent = 'FIFA ID must be exactly 7 digits';
+                    
+                    // Remove any existing feedback
+                    const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                    if (existingFeedback) existingFeedback.remove();
+                    
+                    this.classList.add('is-invalid');
+                    this.parentElement.appendChild(errorDiv);
+                } else {
+                    // Check if FIFA ID exists in database
+                    fetch(`/accounts/ajax/check-fifa-id/?fifa_id=${fifaId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Remove any existing feedback
+                            const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                            if (existingFeedback) existingFeedback.remove();
+                            
+                            if (data.exists) {
+                                // Show error message for duplicate FIFA ID
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'invalid-feedback d-block';
+                                errorDiv.textContent = 'This FIFA ID is already registered in the system.';
+                                
+                                this.classList.add('is-invalid');
+                                this.parentElement.appendChild(errorDiv);
+                            } else {
+                                // Show success message
+                                const successDiv = document.createElement('div');
+                                successDiv.className = 'valid-feedback d-block';
+                                successDiv.textContent = 'Valid FIFA ID format.';
+                                
+                                this.classList.remove('is-invalid');
+                                this.classList.add('is-valid');
+                                this.parentElement.appendChild(successDiv);
+                            }
+                        })
+                        .catch(error => console.error('Error checking FIFA ID:', error));
+                }
+            } else {
+                // Remove any existing feedback
+                const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                this.classList.remove('is-invalid');
+                this.classList.remove('is-valid');
             }
         });
     }
