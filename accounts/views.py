@@ -1476,6 +1476,30 @@ def club_admin_add_official(request):
             official.province = request.user.province
             official.region = request.user.region
             official.local_federation = request.user.local_federation
+            
+            # Set organization_type to CLUB type
+            try:
+                from accounts.models import OrganizationType
+                # Try to get an organization type with CLUB level
+                club_type = OrganizationType.objects.filter(
+                    level='CLUB'
+                ).first()
+                
+                # If not found, create one
+                if not club_type:
+                    club_type = OrganizationType.objects.create(
+                        name="Club",
+                        level="CLUB",
+                        requires_approval=True,
+                        is_active=True
+                    )
+                    print(f"[DEBUG - CLUB OFFICIAL REG] Created new organization type: {club_type}")
+                
+                official.organization_type = club_type
+                print(f"[DEBUG - CLUB OFFICIAL REG] Set organization type to: {club_type}")
+            except Exception as e:
+                print(f"[DEBUG - CLUB OFFICIAL REG] Error setting organization type: {e}")
+                
             official.save()
             
             # Create invoice for the official
@@ -1593,6 +1617,18 @@ def official_list(request):
     # National admins can see all officials
     elif request.user.role == 'ADMIN_NATIONAL' or request.user.is_superuser:
         officials = Official.objects.all().order_by('-created')
+    
+    # Association admins can see officials in their association
+    elif request.user.role == 'ASSOCIATION_ADMIN':
+        if not request.user.association:
+            messages.error(request, 'Your profile is not linked to an association.')
+            return redirect('accounts:dashboard')
+            
+        # Find officials that are part of this association (either through primary_association or the many-to-many relationship)
+        officials = Official.objects.filter(
+            models.Q(primary_association=request.user.association) | 
+            models.Q(associations=request.user.association)
+        ).distinct().order_by('-created')
             
     # Other users don't have access
     else:
@@ -1611,6 +1647,23 @@ def official_list(request):
     
     # Sort by position count (descending)
     sorted_positions = sorted(position_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    # Ensure all officials have their primary_association set
+    for official in officials:
+        if hasattr(official, 'primary_association') and not official.primary_association:
+            # Try to find if this official has a SAFRA association
+            if official.associations.filter(id=11).exists():
+                try:
+                    from geography.models import Association
+                    safra = Association.objects.get(id=11)
+                    official.primary_association = safra
+                    official.save(update_fields=['primary_association'])
+                    print(f"[DEBUG - OFFICIALS LIST] Set primary_association for {official.get_full_name()} to SAFRA")
+                except Exception as e:
+                    print(f"[DEBUG - OFFICIALS LIST] Error setting SAFRA as primary_association: {e}")
+    
+    # Force prefetch of primary_association to avoid N+1 queries
+    officials = officials.select_related('primary_association', 'user__association')
     
     return render(request, 'accounts/official_list.html', {
         'officials': officials,
@@ -1635,6 +1688,12 @@ def official_detail(request, official_id):
         has_permission = official.region == request.user.region
     elif request.user.role == 'ADMIN_PROVINCE' and hasattr(request.user, 'province') and request.user.province:
         has_permission = official.province == request.user.province
+    elif request.user.role == 'ASSOCIATION_ADMIN' and hasattr(request.user, 'association') and request.user.association:
+        # Association admins can view officials in their association
+        if hasattr(official, 'primary_association') and official.primary_association:
+            has_permission = official.primary_association == request.user.association
+        else:
+            has_permission = official.associations.filter(id=request.user.association.id).exists()
     elif request.user.role == 'ADMIN_NATIONAL' or request.user.is_superuser:
         has_permission = True
     
@@ -1647,6 +1706,31 @@ def official_detail(request, official_id):
     
     # Get associations
     associations = official.associations.all()
+    
+    # Debug log to see if primary association is set
+    if hasattr(official, 'primary_association') and official.primary_association:
+        print(f"[DEBUG - OFFICIAL DETAIL] Official has primary_association: {official.primary_association.name} (ID: {official.primary_association.id})")
+    else:
+        print("[DEBUG - OFFICIAL DETAIL] Official has no primary_association")
+        
+        # Try to find association with ID 11 (SAFRA) and set it as primary
+        try:
+            from geography.models import Association
+            safra = Association.objects.filter(id=11).first()
+            if safra:
+                print(f"[DEBUG - OFFICIAL DETAIL] Found SAFRA: {safra.name} (ID: {safra.id})")
+                official.primary_association = safra
+                official.save(update_fields=['primary_association'])
+                print("[DEBUG - OFFICIAL DETAIL] Set primary_association to SAFRA")
+                
+                # Also ensure it's in the M2M relationship
+                if not official.associations.filter(id=11).exists():
+                    official.associations.add(safra)
+                    print("[DEBUG - OFFICIAL DETAIL] Added SAFRA to associations M2M")
+            else:
+                print("[DEBUG - OFFICIAL DETAIL] SAFRA with ID 11 not found")
+        except Exception as e:
+            print(f"[DEBUG - OFFICIAL DETAIL] Error setting SAFRA as primary_association: {e}")
     
     # Get invoices
     from membership.models.invoice import Invoice
@@ -1925,10 +2009,61 @@ def association_admin_add_official(request):
             official.province = request.user.province
             official.region = request.user.region
             official.local_federation = request.user.local_federation
+            
+            # Set organization_type to ASSOCIATION type
+            try:
+                from accounts.models import OrganizationType
+                # Try to get an organization type with ASSOCIATION level
+                association_type = OrganizationType.objects.filter(
+                    level='ASSOCIATION'
+                ).first()
+                
+                # If not found, create one
+                if not association_type:
+                    association_type = OrganizationType.objects.create(
+                        name="Referee Association",
+                        level="ASSOCIATION",
+                        requires_approval=True,
+                        is_active=True
+                    )
+                    print(f"[DEBUG - OFFICIAL REG] Created new organization type: {association_type}")
+                
+                official.organization_type = association_type
+                print(f"[DEBUG - OFFICIAL REG] Set organization type to: {association_type}")
+            except Exception as e:
+                print(f"[DEBUG - OFFICIAL REG] Error setting organization type: {e}")
+                
             official.save()
             
-            # Add association to the official's associations
-            official.associations.add(request.user.association)
+            # Make sure to add SAFA Referee Association (SAFRA) with ID 11 if it exists
+            try:
+                from geography.models import Association
+                safra = Association.objects.filter(id=11).first()
+                if safra:
+                    print(f"[DEBUG - OFFICIAL REG] Found SAFRA association: {safra.name}")
+                    # Set primary association to SAFRA
+                    if hasattr(official, 'primary_association'):
+                        official.primary_association = safra
+                        print(f"[DEBUG - OFFICIAL REG] Set primary_association to SAFRA: {safra.id}")
+                    
+                    # Also add to ManyToMany relationship
+                    official.associations.add(safra)
+                    print(f"[DEBUG - OFFICIAL REG] Added SAFRA to official's associations")
+                else:
+                    print("[DEBUG - OFFICIAL REG] SAFRA association with ID 11 not found")
+            except Exception as e:
+                print(f"[DEBUG - OFFICIAL REG] Error adding SAFRA association: {e}")
+            
+            # Also add the association administrator's association
+            if request.user.association:
+                if hasattr(official, 'primary_association') and not official.primary_association:
+                    # Only set primary association if not already set to SAFRA
+                    official.primary_association = request.user.association
+                    print(f"[DEBUG - OFFICIAL REG] Set primary_association to user association: {request.user.association.id}")
+                
+                # Always add to ManyToMany relationship
+                official.associations.add(request.user.association)
+                print(f"[DEBUG - OFFICIAL REG] Added user association to official's associations")
             
             # Create invoice for the official
             from .utils import create_official_invoice
@@ -2002,44 +2137,92 @@ def association_admin_add_official(request):
 
 def association_registration(request):
     """Registration view for association admins (referee associations)"""
+    from django import forms
+    from .models import OrganizationType
+    
     if request.method == 'POST':
         form = UniversalRegistrationForm(request.POST, request.FILES)
-        # Set the role to ASSOCIATION_ADMIN
+        
+        # Fix the role field to allow ASSOCIATION_ADMIN
+        form.fields['role'].choices = [('ASSOCIATION_ADMIN', 'Association Administrator')] + list(form.fields['role'].choices)
+        
+        # Make organization_type not required for this form
+        form.fields['organization_type'].required = False
+        
         if form.is_valid():
-            user = form.save(commit=False)
-            user.role = 'ASSOCIATION_ADMIN'
-            
-            # Get the association from the form
-            association = form.cleaned_data.get('association')
-            if association:
-                user.association = association
+            try:
+                user = form.save(commit=False)
+                user.role = 'ASSOCIATION_ADMIN'
                 
-                # Set the province, region and LFA based on the association
-                if hasattr(association, 'province') and association.province:
-                    user.province = association.province
-                if hasattr(association, 'region') and association.region:
-                    user.region = association.region
-                if hasattr(association, 'local_football_association') and association.local_football_association:
-                    user.local_federation = association.local_football_association
-            
-            user.save()
-            messages.success(request, 'Association administrator account created successfully! Your account is pending approval.')
-            return redirect('accounts:login')
+                # Set default organization type if missing
+                if not user.organization_type:
+                    default_org_type = OrganizationType.objects.filter(name__icontains='referee').first()
+                    if not default_org_type:
+                        default_org_type = OrganizationType.objects.filter(is_active=True).first()
+                    user.organization_type = default_org_type
+                
+                # Get the association from the form
+                association = form.cleaned_data.get('association')
+                if association:
+                    user.association = association
+                    
+                    # Set the province, region and LFA based on the association
+                    if hasattr(association, 'province') and association.province:
+                        user.province = association.province
+                    if hasattr(association, 'region') and association.region:
+                        user.region = association.region
+                    if hasattr(association, 'local_football_association') and association.local_football_association:
+                        user.local_federation = association.local_football_association
+                else:
+                    # If no association is selected, try to set SAFRA as default
+                    try:
+                        from geography.models import Association
+                        safra = Association.objects.filter(id=11).first()
+                        if safra:
+                            print(f"[DEBUG - ASSOC REG] Found SAFRA: {safra.name} (ID: {safra.id})")
+                            user.association = safra
+                            print(f"[DEBUG - ASSOC REG] Set user's association to SAFRA")
+                            
+                            # Set geographic fields if available
+                            if hasattr(safra, 'province') and safra.province:
+                                user.province = safra.province
+                            if hasattr(safra, 'region') and safra.region:
+                                user.region = safra.region
+                            if hasattr(safra, 'local_football_association') and safra.local_football_association:
+                                user.local_federation = safra.local_football_association
+                        else:
+                            print("[DEBUG - ASSOC REG] SAFRA association with ID 11 not found")
+                    except Exception as e:
+                        print(f"[DEBUG - ASSOC REG] Error setting SAFRA as default: {e}")
+                
+                user.save()
+                messages.success(request, 'Association administrator account created successfully! Your account is pending approval.')
+                return redirect('accounts:login')
+            except Exception as e:
+                # Add errors to the form, not as messages
+                form.add_error(None, f'Error creating account: {str(e)}')
+        # Don't show form errors as messages - they'll appear in the form fields
     else:
         form = UniversalRegistrationForm()
-        # Modify the form to show association field
-        if hasattr(form.fields, 'association'):
-            form.fields['association'].required = True
-            # Filter associations that are for referees
-            from geography.models import Association
-            form.fields['association'].queryset = Association.objects.filter(
-                type__icontains='referee'
-            )
-        
-        # Set role field to ASSOCIATION_ADMIN and make it read-only
-        if 'role' in form.fields:
-            form.fields['role'].initial = 'ASSOCIATION_ADMIN'
-            form.fields['role'].widget.attrs['readonly'] = True
+    
+    # Common form setup regardless of GET or invalid POST    
+    # Update role choices to include ASSOCIATION_ADMIN
+    form.fields['role'].choices = [('ASSOCIATION_ADMIN', 'Association Administrator')] + list(form.fields['role'].choices)
+    form.fields['role'].initial = 'ASSOCIATION_ADMIN'
+    form.fields['role'].widget = forms.HiddenInput()
+    
+    # Hide organization_type field - we'll set it automatically
+    form.fields['organization_type'].required = False
+    form.fields['organization_type'].widget = forms.HiddenInput()
+    
+    # Modify the form to show association field
+    if hasattr(form.fields, 'association'):
+        form.fields['association'].required = True
+        # Filter associations that are for referees
+        from geography.models import Association
+        form.fields['association'].queryset = Association.objects.filter(
+            type__icontains='referee'
+        )
     
     return render(request, 'accounts/association_registration.html', {
         'form': form,

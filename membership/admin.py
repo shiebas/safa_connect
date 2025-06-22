@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db import models
 # Use relative imports to get the models directly from models.py file
-from .models import Member, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership
+from .models import Member, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
 # Import from the invoice module within the models package
 from .models.invoice import Invoice, InvoiceItem, Vendor
 
@@ -197,6 +197,52 @@ class PlayerClubRegistrationAdmin(admin.ModelAdmin):
 
 admin.site.register(TransferAppeal)
 admin.site.register(Membership)
+
+@admin.register(Official)
+class OfficialAdmin(MemberAdmin):
+    list_display = ('get_full_name', 'email', 'safa_id', 'position', 'primary_association', 'status', 'is_approved')
+    list_filter = ('status', 'is_approved', 'referee_level', 'primary_association')
+    search_fields = ('first_name', 'last_name', 'email', 'safa_id', 'certification_number')
+    fieldsets = (
+        (None, {
+            'fields': ('first_name', 'last_name', 'email', 'phone_number', 'date_of_birth')
+        }),
+        (_('Identification'), {
+            'fields': ('safa_id', 'fifa_id', 'id_number', 'gender')
+        }),
+        (_('Membership Details'), {
+            'fields': ('role', 'status', 'registration_date', 'expiry_date', 'is_approved')
+        }),
+        (_('Position & Association'), {
+            'fields': ('position', 'primary_association', 'associations', 'club')
+        }),
+        (_('Certification'), {
+            'fields': ('certification_number', 'certification_document', 'certification_expiry_date', 'referee_level')
+        }),
+        (_('Address'), {
+            'fields': ('street_address', 'suburb', 'city', 'state', 'postal_code', 'country'),
+            'classes': ('collapse',),
+        }),
+        (_('Emergency Contact'), {
+            'fields': ('emergency_contact', 'emergency_phone', 'medical_notes'),
+            'classes': ('collapse',),
+        }),
+        (_('Media'), {
+            'fields': ('profile_picture', 'qr_code_preview'),
+        }),
+    )
+    
+    actions = ['approve_officials', 'reject_officials']
+    
+    def approve_officials(self, request, queryset):
+        updated = queryset.update(is_approved=True, status='ACTIVE')
+        self.message_user(request, _(f"{updated} official(s) approved and activated."))
+    approve_officials.short_description = _('Approve selected officials')
+    
+    def reject_officials(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, _(f"{updated} official(s) rejected."))
+    reject_officials.short_description = _('Reject selected officials')
 
 # Invoice Administration
 class InvoiceItemInline(admin.TabularInline):

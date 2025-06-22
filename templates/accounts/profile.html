@@ -116,6 +116,8 @@
                                 {% elif org.type == 'Club' %}
                                     Club: {{ org.name }}
                                     {% if org.lfa or org.region or org.province %}<br><small class="text-muted">LFA: {{ org.lfa }}, Region: {{ org.region }}, {{ org.province }}</small>{% endif %}
+                                {% elif org.type == 'Association' %}
+                                    Association: {{ org.name }}
                                 {% else %}
                                     {{ org.name|default:'Not Set' }}
                                 {% endif %}

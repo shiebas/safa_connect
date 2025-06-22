@@ -93,6 +93,15 @@ class Member(models.Model):
     postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True)
     country = models.CharField(_("Country"), max_length=100, blank=True)
 
+    # Organization Information
+    organization_type = models.ForeignKey(
+        'accounts.OrganizationType',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Primary organization type this member belongs to"
+    )
+    
     # Membership Information
     club = models.ForeignKey(
         'geography.Club',
@@ -379,11 +388,22 @@ class Official(Member):
                                   ],
                                   help_text=_("Level of referee qualification if applicable"))
     
+    # Primary association (foreign key)
+    primary_association = models.ForeignKey(
+        'geography.Association',
+        on_delete=models.SET_NULL,
+        related_name='primary_officials',
+        blank=True,
+        null=True,
+        help_text=_("Primary association this official belongs to")
+    )
+    
     # Link to referee associations (many-to-many)
-    associations = models.ManyToManyField('geography.Association', 
-                                        related_name='member_officials',
-                                        blank=True,
-                                        help_text=_("Referee or coaching associations this official belongs to"))
+    associations = models.ManyToManyField(
+        'geography.Association', 
+        related_name='member_officials',
+        blank=True,
+        help_text=_("Referee or coaching associations this official belongs to"))
     
     class Meta:
         verbose_name = _("Official")
@@ -401,7 +421,28 @@ class Official(Member):
     def save(self, *args, **kwargs):
         # Force role to be OFFICIAL before saving
         self.role = 'OFFICIAL'
+        
+        # Sync associations between CustomUser and Official
+        if hasattr(self, 'user') and self.user:
+            # If user has an association but official doesn't have a primary, set it
+            if self.user.association and not self.primary_association:
+                self.primary_association = self.user.association
+                print(f"[DEBUG - OFFICIAL SAVE] Setting primary_association from user: {self.user.association}")
+            
+            # If official has a primary association but user doesn't have one, set it
+            elif self.primary_association and not self.user.association:
+                self.user.association = self.primary_association
+                self.user.save(update_fields=['association'])
+                print(f"[DEBUG - OFFICIAL SAVE] Setting user.association from primary: {self.primary_association}")
+        
+        # Now save the official
         super().save(*args, **kwargs)
+        
+        # Add primary association to associations M2M if it exists and isn't already there
+        if self.primary_association:
+            if not self.associations.filter(id=self.primary_association.id).exists():
+                self.associations.add(self.primary_association)
+                print(f"[DEBUG - OFFICIAL SAVE] Added primary_association to associations M2M")
 
 
 class OfficialCertification(TimeStampedModel):

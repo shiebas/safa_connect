@@ -1,10 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://safa.org.za'; // Change to your actual server URL
-// For development, you might use:
-// const BASE_URL = 'http://10.0.2.2:8000'; // Android emulator pointing to localhost
-// const BASE_URL = 'http://localhost:8000'; // iOS simulator
+const BASE_URL = 'http://192.168.43.172:8000'; // Use your actual local IP address here
+// For Android emulator use: http://10.0.2.2:8000
+// For iOS simulator use: http://localhost:8000
 
 /**
  * API Service for managing communication with the SAFA backend
@@ -49,14 +48,14 @@ class ApiService {
 
   /**
    * Authenticate user and get token
-   * @param {string} username User's email or username
+   * @param {string} email User's email
    * @param {string} password User's password
    * @returns Promise with auth token
    */
-  async login(username, password) {
+  async login(email, password) {
     try {
       const response = await this.api.post('/accounts/api/login/', {
-        username,
+        email,
         password,
       });
       if (response.data.token) {

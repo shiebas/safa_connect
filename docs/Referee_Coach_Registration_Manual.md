@@ -4,6 +4,8 @@
 
 This manual provides instructions for registering and managing coaches and referees in the SAFA system. The system now includes enhanced features for tracking certification history, maintaining professional associations, and handling the approval workflow.
 
+> **Note:** For a dedicated guide on referee registration for administrators, please refer to the [Referee Registration Guide](./Referee_Registration_Guide.md).
+
 ## Table of Contents
 
 1. [Registration Process](#registration-process)

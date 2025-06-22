@@ -62,20 +62,17 @@ class UniversalRegistrationForm(forms.ModelForm):
     # Role selection
     role = forms.ChoiceField(
         choices=[
-            ('ADMIN_NATIONAL', 'National Administrator'),
-            ('ADMIN_PROVINCE', 'Province Administrator'),
-            ('ADMIN_REGION', 'Region Administrator'), 
-            ('ADMIN_LOCAL_FED', 'LFA Administrator'),
-            ('CLUB_ADMIN', 'Club Administrator')
+            ('ADMIN_NATIONAL', 'SAFA System Administrator'),
+            ('ASSOCIATION_ADMIN', 'Referee Association Administrator')
         ],
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     # Identity fields
     id_document_type = forms.ChoiceField(
         choices=[('ID', 'SA ID'), ('PP', 'Passport'), ('OT', 'Other')],
         initial='ID',
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     id_number = forms.CharField(
         max_length=13, 
@@ -102,7 +99,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         })
     )
     date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
-    gender = forms.ChoiceField(choices=[('M', 'Male'), ('F', 'Female')], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    gender = forms.ChoiceField(choices=[('M', 'Male'), ('F', 'Female')], required=False, widget=forms.Select(attrs={'class': 'form-select'}))
     
     # Files - ID document moved to identity section, profile photo to compliance
     id_document = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
@@ -125,7 +122,7 @@ class UniversalRegistrationForm(forms.ModelForm):
     organization_type = forms.ModelChoiceField(
         queryset=OrganizationType.objects.filter(is_active=True),
         required=True,
-        widget=forms.Select(attrs={'class': 'form-control'}),
+        widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Select your primary organization type"
     )
     
@@ -134,7 +131,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         fields = [
             'email', 'first_name', 'last_name', 'role', 
             'organization_type', 
-            'province', 'region', 'local_federation', 'club',
+            'province', 'region', 'local_federation', 'club', 'association',
             'id_document_type', 'id_number', 'passport_number', 'id_number_other',
             'date_of_birth', 'gender', 'id_document', 'profile_photo', 
             'popi_act_consent', 'national_federation', 'age'  # add age
@@ -178,9 +175,46 @@ class UniversalRegistrationForm(forms.ModelForm):
                     )
                 self.fields['national_federation'].widget.attrs['readonly'] = True
                 self.fields['national_federation'].help_text = "Default: SAFA (All registrations belong to SAFA)"
+                
+                # Set default SAFA Referee Association for National admins
+                try:
+                    from geography.models import Association
+                    safa_referee_association, _ = Association.objects.get_or_create(
+                        name="SAFA Referees Association",
+                        defaults={
+                            'acronym': "SRA",
+                            'national_federation': safa_federation
+                        }
+                    )
+                    self.initial['association'] = safa_referee_association.id
+                except Exception:
+                    pass
             except Exception:
                 pass
         
+        # Add association field to all forms - Simple implementation with debug
+        from geography.models import Association
+        associations = Association.objects.all()
+        print(f"[DEBUG - REFEREE REG] Available associations: {[a.name for a in associations]}")
+        
+        self.fields['association'] = forms.ModelChoiceField(
+            queryset=associations,
+            required=False, 
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            help_text="Select a referee association"
+        )
+        
+        # Set association required for referee-related roles
+        if self.data.get('role') == 'ASSOCIATION_ADMIN' or self.initial.get('role') == 'ASSOCIATION_ADMIN':
+            self.fields['association'].required = True
+            print("[DEBUG - REFEREE REG] Association field set to required for ASSOCIATION_ADMIN")
+            
+            # For referee association admins, we shouldn't require club data
+            self.fields['club'].required = False
+            self.fields['organization_type'].required = False
+            
+        print("[DEBUG - REFEREE REG] Association field added to form")
+
         # Add region and local_federation fields dynamically
         self.fields['region'] = forms.ModelChoiceField(
             queryset=Region.objects.none(),
@@ -289,6 +323,16 @@ class UniversalRegistrationForm(forms.ModelForm):
                     style='display:none;'
                 ),
                 css_id='organization-section'
+            ),
+            
+            # Association Information - separate section for clarity
+            Fieldset(
+                'Referee Association',
+                Div(
+                    Div(Field('association', css_id='id_association'), css_class='col-md-12'),
+                    HTML('<div class="form-text mb-3">Select the referee association you are affiliated with</div>'),
+                    css_class='row mb-3'
+                )
             ),
             
             # Identity Information
@@ -400,7 +444,13 @@ class UniversalRegistrationForm(forms.ModelForm):
                     updateGeoFields();
                     
                     // Add change listener
-                    roleSelect.addEventListener('change', updateGeoFields);
+                    roleSelect.addEventListener('change', function() {
+                        updateGeoFields();
+                        // Also update organization fields when role changes
+                        if (typeof updateOrgFields === 'function') {
+                            updateOrgFields();
+                        }
+                    });
                     
                     // Organization type handling - add data attributes to options first
                     const orgTypeSelect = document.getElementById('id_organization_type');
@@ -422,6 +472,7 @@ class UniversalRegistrationForm(forms.ModelForm):
                     const regionContainer = document.getElementById('region-container');
                     const lfaContainer = document.getElementById('lfa-container');
                     const clubContainer = document.getElementById('club-container');
+                    // Association container is always shown, no need to reference it here
                     
                     // Function to update visible organization fields
                     function updateOrgFields() {
@@ -458,6 +509,8 @@ class UniversalRegistrationForm(forms.ModelForm):
                                 clubContainer.style.display = 'flex';
                                 break;
                         }
+                        
+                        // Association field is always visible, no need to conditionally show it
                     }
                     
                     // Set initial state
@@ -470,66 +523,291 @@ class UniversalRegistrationForm(forms.ModelForm):
             '''),
         )
     
+    def clean_id_number(self):
+        """Validate that the ID number is unique"""
+        id_number = self.cleaned_data.get('id_number')
+        id_document_type = self.cleaned_data.get('id_document_type')
+        
+        # Only validate if ID is the selected document type and a number is provided
+        if id_document_type == 'ID' and id_number:
+            # Check if ID is valid (13 digits for South African ID)
+            if not id_number.isdigit() or len(id_number) != 13:
+                raise forms.ValidationError("South African ID number must be 13 digits.")
+                
+            # Check if ID already exists
+            if CustomUser.objects.filter(id_number=id_number).exists():
+                raise forms.ValidationError("This ID number is already registered in the system.")
+        
+        return id_number
+    
+    def clean_passport_number(self):
+        """Validate that the passport number is unique"""
+        passport_number = self.cleaned_data.get('passport_number')
+        id_document_type = self.cleaned_data.get('id_document_type')
+        
+        # Only validate if Passport is the selected document type and a number is provided
+        if id_document_type == 'PP' and passport_number:
+            # Check if passport number already exists
+            if CustomUser.objects.filter(passport_number=passport_number).exists():
+                raise forms.ValidationError("This passport number is already registered in the system.")
+        
+        return passport_number
+    
     def clean(self):
+        print("[DEBUG - REFEREE REG] Starting form validation (clean method)")
         cleaned_data = super().clean()
-        # All custom validation removed as requested
+        
+        # Print all form data for debugging
+        print(f"[DEBUG - REFEREE REG] Form data before validation: {self.data}")
+        print(f"[DEBUG - REFEREE REG] Role value in POST data: {self.data.get('role')}")
+        print(f"[DEBUG - REFEREE REG] All form fields: {list(self.fields.keys())}")
+        print(f"[DEBUG - REFEREE REG] Required fields: {[field for field, field_obj in self.fields.items() if field_obj.required]}")
+        
+        # If role is ASSOCIATION_ADMIN, make association required and make organization_type not required
+        role = cleaned_data.get('role') or self.data.get('role')
+        if role == 'ASSOCIATION_ADMIN':
+            print("[DEBUG - REFEREE REG] Role is ASSOCIATION_ADMIN, adjusting requirements")
+            
+            # For referee association admins
+            self.fields['association'].required = True
+            self.fields['organization_type'].required = False
+            
+            # Remove any errors for organization_type since it's not required for this role
+            if 'organization_type' in self._errors:
+                del self._errors['organization_type']
+                
+            # Make sure the association field is validated
+            if not cleaned_data.get('association'):
+                self.add_error('association', 'Association is required for Referee Association Administrators')
+                
+            print(f"[DEBUG - REFEREE REG] After adjustment - Required fields: {[field for field, field_obj in self.fields.items() if field_obj.required]}")
+        
+        # Document type validation
+        id_document_type = cleaned_data.get('id_document_type')
+        id_number = cleaned_data.get('id_number')
+        passport_number = cleaned_data.get('passport_number')
+        
+        if id_document_type == 'ID' and not id_number:
+            self.add_error('id_number', 'SA ID Number is required when ID is selected as document type.')
+        elif id_document_type == 'PP' and not passport_number:
+            self.add_error('passport_number', 'Passport Number is required when Passport is selected as document type.')
+        
+        # Password confirmation validation
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+        
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', 'Passwords do not match.')
+        
+        # Debug validation errors
+        if self._errors:
+            print(f"[DEBUG - REFEREE REG] Form validation errors: {self._errors}")
+        else:
+            print("[DEBUG - REFEREE REG] Form validation passed, no errors")
+            
+        # Debug association field
+        if 'association' in cleaned_data:
+            print(f"[DEBUG - REFEREE REG] Association in cleaned_data: {cleaned_data.get('association')}")
+        else:
+            print("[DEBUG - REFEREE REG] Association NOT in cleaned_data")
+        
         return cleaned_data
 
     def save(self, commit=True):
+        print("[DEBUG - REFEREE REG] Starting form save method")
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         role = self.cleaned_data['role']
         user.role = role
+        print(f"[DEBUG - REFEREE REG] User role set to: {role}")
 
-        org_type = self.cleaned_data.get('organization_type')
         # Clear all org fields first
         user.national_federation = None
         user.province = None
         user.region = None
         user.local_federation = None
         user.club = None
-
-        if org_type:
-            level = org_type.level
-            # Assign only the relevant organization field(s) based on org type level
-            if level == 'NATIONAL':
-                user.national_federation = self.cleaned_data.get('national_federation')
-            elif level == 'PROVINCE':
+        
+        # Special handling for referee association admins
+        if role == 'ASSOCIATION_ADMIN':
+            # For referee association admins, we prioritize the association field
+            # and don't populate club-related fields
+            print("[DEBUG - REFEREE REG] Special handling for ASSOCIATION_ADMIN role")
+            
+            # Make sure organization type is properly set to ASSOCIATION level
+            from .models import OrganizationType
+            try:
+                # Try to get an organization type with ASSOCIATION level
+                association_type = OrganizationType.objects.filter(
+                    level='ASSOCIATION'
+                ).first()
+                
+                # If not found, create one
+                if not association_type:
+                    association_type = OrganizationType.objects.create(
+                        name="Referee Association",
+                        level="ASSOCIATION",
+                        requires_approval=True,
+                        is_active=True
+                    )
+                    print(f"[DEBUG - REFEREE REG] Created new organization type: {association_type}")
+                
+                user.organization_type = association_type
+                print(f"[DEBUG - REFEREE REG] Set organization type to: {association_type}")
+                
+                # Try to set the association to SAFRA if no specific association is selected
+                if not self.cleaned_data.get('association'):
+                    try:
+                        from geography.models import Association
+                        # Try to get SAFRA with ID 11
+                        safra = Association.objects.filter(id=11).first()
+                        if safra:
+                            print(f"[DEBUG - REFEREE REG] Found SAFRA: {safra.name} (ID: {safra.id})")
+                            self.cleaned_data['association'] = safra
+                            print(f"[DEBUG - REFEREE REG] Set association to SAFRA")
+                    except Exception as e:
+                        print(f"[DEBUG - REFEREE REG] Error setting SAFRA as association: {e}")
+            except Exception as e:
+                print(f"[DEBUG - REFEREE REG] Error setting organization type: {e}")
+                
+            # We can still set province and region if available, but they're secondary
+            if self.cleaned_data.get('province'):
                 user.province = self.cleaned_data.get('province')
-            elif level == 'REGION':
+                print(f"[DEBUG - REFEREE REG] Setting province: {user.province}")
+                
+            if self.cleaned_data.get('region'):
                 user.region = self.cleaned_data.get('region')
-                user.province = self.cleaned_data.get('province')
-            elif level == 'LFA':
-                user.local_federation = self.cleaned_data.get('local_federation')
-                user.region = self.cleaned_data.get('region')
-                user.province = self.cleaned_data.get('province')
-            elif level == 'CLUB':
-                user.club = self.cleaned_data.get('club')
-                user.local_federation = self.cleaned_data.get('local_federation')
-                user.region = self.cleaned_data.get('region')
-                user.province = self.cleaned_data.get('province')
-
-        # If a club admin is registering a player, inherit club info
-        admin_user = self.initial.get('admin_user')
-        if admin_user and role == 'PLAYER':
-            user.club = admin_user.club
-            user.province = admin_user.province
-            user.region = admin_user.region
-            user.local_federation = admin_user.local_federation
-            user.national_federation = admin_user.national_federation
-
-        # Only set region if present in cleaned_data
-        if self.cleaned_data.get('region'):
-            user.region = self.cleaned_data.get('region')
-            print(f"[DEBUG] Assigned region: {user.region} (pk={getattr(user.region, 'pk', None)})")
+                print(f"[DEBUG - REFEREE REG] Setting region: {user.region}")
+                
+            # Always set SAFA as national federation for referee association admins
+            try:
+                from geography.models import NationalFederation
+                # Try to get SAFA by name (case insensitive)
+                safa = NationalFederation.objects.filter(name__icontains='South African Football').first()
+                if not safa:
+                    # Fallback to getting the first national federation if available
+                    safa = NationalFederation.objects.first()
+                
+                if safa:
+                    user.national_federation = safa
+                    print(f"[DEBUG - REFEREE REG] Setting national federation to: {safa}")
+                else:
+                    # Create SAFA if it doesn't exist
+                    safa = NationalFederation.objects.create(
+                        name="South African Football Association",
+                        acronym="SAFA",
+                        country_id=1  # Assuming South Africa has ID 1
+                    )
+                    user.national_federation = safa
+                    print(f"[DEBUG - REFEREE REG] Created and set national federation to: {safa}")
+            except Exception as e:
+                print(f"[DEBUG - REFEREE REG] Error setting SAFA national federation: {e}")
         else:
-            print("[DEBUG] No region assigned in form data!")
-        if self.cleaned_data.get('province'):
-            user.province = self.cleaned_data.get('province')
-        if self.cleaned_data.get('local_federation'):
-            user.local_federation = self.cleaned_data.get('local_federation')
-        if self.cleaned_data.get('club'):
-            user.club = self.cleaned_data.get('club')
+            # Standard organization type handling for non-referee roles
+            org_type = self.cleaned_data.get('organization_type')
+            if org_type:
+                level = org_type.level
+                # Assign only the relevant organization field(s) based on org type level
+                if level == 'NATIONAL':
+                    user.national_federation = self.cleaned_data.get('national_federation')
+                elif level == 'PROVINCE':
+                    user.province = self.cleaned_data.get('province')
+                elif level == 'REGION':
+                    user.region = self.cleaned_data.get('region')
+                    user.province = self.cleaned_data.get('province')
+                elif level == 'LFA':
+                    user.local_federation = self.cleaned_data.get('local_federation')
+                    user.region = self.cleaned_data.get('region')
+                    user.province = self.cleaned_data.get('province')
+                elif level == 'CLUB':
+                    user.club = self.cleaned_data.get('club')
+                    user.local_federation = self.cleaned_data.get('local_federation')
+                    user.region = self.cleaned_data.get('region')
+                    user.province = self.cleaned_data.get('province')
+
+            # If a club admin is registering a player, inherit club info
+            admin_user = self.initial.get('admin_user')
+            if admin_user and role == 'PLAYER':
+                user.club = admin_user.club
+                user.province = admin_user.province
+                user.region = admin_user.region
+                user.local_federation = admin_user.local_federation
+                user.national_federation = admin_user.national_federation
+
+            # Only set region if present in cleaned_data for non-referee roles
+            if self.cleaned_data.get('region'):
+                user.region = self.cleaned_data.get('region')
+                print(f"[DEBUG] Assigned region: {user.region} (pk={getattr(user.region, 'pk', None)})")
+            else:
+                print("[DEBUG] No region assigned in form data!")
+            if self.cleaned_data.get('province'):
+                user.province = self.cleaned_data.get('province')
+            if self.cleaned_data.get('local_federation'):
+                user.local_federation = self.cleaned_data.get('local_federation')
+            if self.cleaned_data.get('club'):
+                user.club = self.cleaned_data.get('club')
+        
+        # Debug association data
+        print(f"[DEBUG - REFEREE REG] Association in form data: {self.cleaned_data.get('association')}")
+        print(f"[DEBUG - REFEREE REG] All form cleaned data keys: {list(self.cleaned_data.keys())}")
+        
+        # Save the association from the form data, ensure it's always checked
+        association_id = self.cleaned_data.get('association') or self.data.get('association')
+        if association_id:
+            from geography.models import Association, NationalFederation
+            try:
+                # Get the association
+                if isinstance(association_id, Association):
+                    user.association = association_id
+                else:
+                    user.association = Association.objects.get(pk=association_id)
+                
+                print(f"[DEBUG - REFEREE REG] Association set to: {user.association}")
+                
+                # If the association doesn't have a national federation, set it to SAFA
+                if not user.association.national_federation:
+                    # Get or create SAFA
+                    safa = NationalFederation.objects.filter(
+                        name__icontains="South African Football").first()
+                    
+                    if not safa:
+                        safa = NationalFederation.objects.create(
+                            name="South African Football Association",
+                            acronym="SAFA",
+                            country_id=1  # Assuming South Africa has ID 1
+                        )
+                    
+                    # Set the association's national federation to SAFA and save it
+                    user.association.national_federation = safa
+                    user.association.save()
+                    print(f"[DEBUG - REFEREE REG] Updated association's national federation to: {safa}")
+                
+                # Make sure the user's national federation matches the association's
+                user.national_federation = user.association.national_federation
+                print(f"[DEBUG - REFEREE REG] Set user's national federation to match association: {user.national_federation}")
+                
+            except Exception as e:
+                print(f"[DEBUG - REFEREE REG] Error setting association: {e}")
+        else:
+            print("[DEBUG - REFEREE REG] No association selected in form, trying to set to SAFRA (ID: 11)")
+            # If no association is selected and the role is ASSOCIATION_ADMIN, try to set SAFRA as default
+            if role == 'ASSOCIATION_ADMIN':
+                try:
+                    from geography.models import Association, NationalFederation
+                    # Try to get SAFRA with ID 11
+                    safra_assoc = Association.objects.filter(id=11).first()
+                    if safra_assoc:
+                        print(f"[DEBUG - REFEREE REG] Found SAFRA: {safra_assoc.name} (ID: {safra_assoc.id})")
+                        user.association = safra_assoc
+                        
+                        # Make sure the user's national federation matches the association's
+                        if safra_assoc.national_federation:
+                            user.national_federation = safra_assoc.national_federation
+                        print(f"[DEBUG - REFEREE REG] Set default SAFRA as association: {user.association}")
+                    else:
+                        print("[DEBUG - REFEREE REG] SAFRA association with ID 11 not found")
+                except Exception as e:
+                    print(f"[DEBUG - REFEREE REG] Error setting SAFRA as default association: {e}")
 
         if role in ['ADMIN_NATIONAL', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'CLUB_ADMIN']:
             user.is_staff = True
@@ -539,6 +817,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         if commit:
             user.save()
             print(f"[DEBUG] User saved with region: {user.region} (pk={getattr(user.region, 'pk', None)})")
+            print(f"[DEBUG - REFEREE REG] User successfully saved: {user.email}, association: {user.association}")
         return user
 
 # Create alias for backward compatibility 
@@ -1172,10 +1451,38 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make gender and email hidden fields
-        self.fields['gender'].widget = forms.HiddenInput()
-        self.fields['email'].widget = forms.HiddenInput()
+        # Configure gender field with proper display and options
+        self.fields['gender'].widget = forms.Select(choices=[('M', 'Male'), ('F', 'Female')], attrs={'class': 'form-select'})
         self.fields['email'].required = False  # Will be auto-generated
+        
+        # Add email field with improved styling
+        self.fields['email'].widget = forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter email or leave blank for auto-generation',
+            'autocomplete': 'email',
+            'data-validation-email': 'true'
+        })
+        
+        # Configure phone number field and validation
+        self.fields['phone_number'] = forms.CharField(
+            max_length=20, 
+            required=False,
+            label="Mobile Number",
+            help_text="Enter South African mobile number (optional)",
+            widget=forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': '+27xx xxx xxxx or 0xx xxx xxxx',
+                'pattern': '(\\+27|0)\\d{9}',
+                'data-validation-phone': 'true'
+            })
+        )
+        
+        # Make date of birth a date picker and readonly when ID is selected (will be extracted from ID)
+        self.fields['date_of_birth'].widget = forms.DateInput(attrs={
+            'type': 'date', 
+            'class': 'form-control',
+            'readonly': 'readonly'
+        })
         
         # Name validation
         self.fields['first_name'].widget.attrs.update({
@@ -1218,18 +1525,31 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
         self.fields['position'].help_text = "Select the official's role or position in the association"
         self.fields['position'].required = True
         
+        # Add a field to select the official's primary referee association
+        from geography.models import Association
+        self.fields['primary_association'] = forms.ModelChoiceField(
+            queryset=Association.objects.all(),  # Remove is_active filter as it doesn't exist in the model
+            required=True,
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            help_text="Select the referee association for this official"
+        )
+        # Prepopulate on edit
+        if self.instance and self.instance.primary_association_id:
+            self.initial['primary_association'] = self.instance.primary_association_id
+
     class Meta:
         model = Official
         fields = [
             'first_name', 'last_name',
             'id_document_type', 'id_number', 'passport_number',
-            'gender', 'date_of_birth', 'email',
+            'gender', 'date_of_birth', 'email', 'phone_number',
             'position', 'certification_number', 'certification_document',
             'certification_expiry_date', 'referee_level',
             'safa_id', 'fifa_id',
             'profile_picture', 'id_document',
             'popi_consent',
-        ]
+            'primary_association',  # Primary referee association
+         ]
 
     # Keep server-side validation for names, ID/passport uniqueness, etc.
     def clean_first_name(self):

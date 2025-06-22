@@ -153,6 +153,7 @@ class OrganizationType(models.Model):
             ('PROVINCE', 'Province'),
             ('REGION', 'Region'),
             ('LFA', 'Local Football Association'),
+            ('ASSOCIATION', 'Association'),
             ('CLUB', 'Club'),
         ]
     )
@@ -747,6 +748,12 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 'region': self.region.name if self.region else None,
                 'province': self.province.name if self.province else None
             }
+        elif self.role == 'ASSOCIATION_ADMIN' and self.association:
+            return {
+                'type': 'Association',
+                'name': self.association.name,
+                'level': 'Association Level'
+            }
         elif self.role == 'CLUB_ADMIN' and self.club:
             return {
                 'type': 'Club',
@@ -755,6 +762,13 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 'lfa': self.local_federation.name if self.local_federation else None,
                 'region': self.region.name if self.region else None,
                 'province': self.province.name if self.province else None
+            }
+        # Check for association even if not association admin
+        elif self.association:
+            return {
+                'type': 'Association',
+                'name': self.association.name,
+                'level': 'Association Level'
             }
         # Fallback: show region/province if set, even if org is not
         if self.region:

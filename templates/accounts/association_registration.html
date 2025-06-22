@@ -35,12 +35,26 @@
         <div class="card-body">
             <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
+                <!-- Hidden input for role to ensure it's submitted in the form -->
+                <input type="hidden" name="role" id="id_role" value="ASSOCIATION_ADMIN">
                 
                 {% if form.non_field_errors %}
                 <div class="alert alert-danger">
                     <ul class="mb-0">
                         {% for error in form.non_field_errors %}
                             <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if messages %}
+                <div class="alert alert-info">
+                    <ul class="mb-0">
+                        {% for message in messages %}
+                            {% if "success" in message.tags %}
+                            <li>{{ message }}</li>
+                            {% endif %}
                         {% endfor %}
                     </ul>
                 </div>
@@ -95,7 +109,7 @@
                 <div class="form-section">
                     <h4 class="form-section-title">Identification</h4>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group mb-3">
                                 <label for="{{ form.id_document_type.id_for_label }}">ID Document Type</label>
                                 {{ form.id_document_type }}
@@ -104,12 +118,21 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4 sa-id-field">
                             <div class="form-group mb-3">
-                                <label for="{{ form.id_number.id_for_label }}">ID Number</label>
+                                <label for="{{ form.id_number.id_for_label }}">SA ID Number</label>
                                 {{ form.id_number }}
                                 {% if form.id_number.errors %}
                                 <div class="text-danger">{{ form.id_number.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4 passport-field" style="display: none;">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.passport_number.id_for_label }}">Passport Number</label>
+                                {{ form.passport_number }}
+                                {% if form.passport_number.errors %}
+                                <div class="text-danger">{{ form.passport_number.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -132,36 +155,7 @@
                 <div class="form-section">
                     <h4 class="form-section-title">Association Information</h4>
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label for="{{ form.province.id_for_label }}">Province</label>
-                                {{ form.province }}
-                                {% if form.province.errors %}
-                                <div class="text-danger">{{ form.province.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label for="{{ form.region.id_for_label }}">Region</label>
-                                {{ form.region }}
-                                {% if form.region.errors %}
-                                <div class="text-danger">{{ form.region.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label for="{{ form.local_federation.id_for_label }}">Local Football Association</label>
-                                {{ form.local_federation }}
-                                {% if form.local_federation.errors %}
-                                <div class="text-danger">{{ form.local_federation.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="form-group mb-3">
                                 <label for="{{ form.association.id_for_label }}">Referee Association</label>
                                 {{ form.association }}
@@ -231,106 +225,72 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Province, Region, LFA dynamic dropdowns
-        const provinceSelect = document.getElementById('id_province');
-        const regionSelect = document.getElementById('id_region');
-        const lfaSelect = document.getElementById('id_local_federation');
-        const associationSelect = document.getElementById('id_association');
+        // No need for Province/Region/LFA selection - using direct association selection
 
-        // Disable selects initially
-        regionSelect.disabled = true;
-        lfaSelect.disabled = true;
-        associationSelect.disabled = true;
-
-        // When province changes, update regions
-        provinceSelect.addEventListener('change', function() {
-            const provinceId = provinceSelect.value;
-            regionSelect.innerHTML = '<option value="">Select a region</option>';
-            regionSelect.disabled = !provinceId;
-            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
-            lfaSelect.disabled = true;
-            associationSelect.innerHTML = '<option value="">Select an association</option>';
-            associationSelect.disabled = true;
-
-            if (provinceId) {
-                fetch(`/accounts/api/regions/?province=${provinceId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(region => {
-                            const option = document.createElement('option');
-                            option.value = region.id;
-                            option.textContent = region.name;
-                            regionSelect.appendChild(option);
-                        });
-                    });
-            }
-        });
-
-        // When region changes, update LFAs
-        regionSelect.addEventListener('change', function() {
-            const regionId = regionSelect.value;
-            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
-            lfaSelect.disabled = !regionId;
-            associationSelect.innerHTML = '<option value="">Select an association</option>';
-            associationSelect.disabled = true;
-
-            if (regionId) {
-                fetch(`/accounts/api/lfas/?region=${regionId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(lfa => {
-                            const option = document.createElement('option');
-                            option.value = lfa.id;
-                            option.textContent = lfa.name;
-                            lfaSelect.appendChild(option);
-                        });
-                    });
-            }
-        });
-
-        // When LFA changes, update associations
-        lfaSelect.addEventListener('change', function() {
-            const lfaId = lfaSelect.value;
-            associationSelect.innerHTML = '<option value="">Select an association</option>';
-            associationSelect.disabled = !lfaId;
-
-            if (lfaId) {
-                // Assuming there's an API to get associations by LFA
-                fetch(`/geography/api/associations/?lfa=${lfaId}&type=referee`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(association => {
-                            const option = document.createElement('option');
-                            option.value = association.id;
-                            option.textContent = association.name;
-                            associationSelect.appendChild(option);
-                        });
-                    });
-            }
-        });
-
-        // ID Document Type field handling
+        // Document Type field handling - only allow SA ID or Passport
         const idDocTypeSelect = document.getElementById('id_id_document_type');
         const idNumberField = document.getElementById('id_id_number');
-
-        idDocTypeSelect.addEventListener('change', function() {
+        const passportField = document.getElementById('id_passport_number');
+        const dateOfBirthField = document.getElementById('id_date_of_birth');
+        const saIdField = document.querySelector('.sa-id-field');
+        const passportFieldDiv = document.querySelector('.passport-field');
+        
+        // Disable date of birth field - it will be calculated from ID number
+        dateOfBirthField.disabled = true;
+        dateOfBirthField.setAttribute('readonly', 'readonly');
+        
+        // Function to handle document type changes
+        function toggleIdDocFields() {
             const selectedType = idDocTypeSelect.value;
             
-            // Update label and placeholder based on document type
             if (selectedType === 'PP') {
-                idNumberField.placeholder = 'Enter passport number';
-                idNumberField.labels[0].textContent = 'Passport Number';
+                // Show passport field, hide ID field
+                saIdField.style.display = 'none';
+                passportFieldDiv.style.display = 'block';
+                // Clear SA ID number and enable DOB
+                idNumberField.value = '';
+                dateOfBirthField.disabled = false;
+                dateOfBirthField.removeAttribute('readonly');
+                
             } else if (selectedType === 'ID') {
-                idNumberField.placeholder = 'Enter ID number (13 digits)';
-                idNumberField.labels[0].textContent = 'ID Number';
-            } else if (selectedType === 'DL') {
-                idNumberField.placeholder = 'Enter driver license number';
-                idNumberField.labels[0].textContent = 'Driver License Number';
-            } else {
-                idNumberField.placeholder = 'Enter document number';
-                idNumberField.labels[0].textContent = 'Document Number';
+                // Show SA ID field, hide passport field
+                saIdField.style.display = 'block';
+                passportFieldDiv.style.display = 'none';
+                // Clear passport number and disable DOB (will be extracted from ID)
+                passportField.value = '';
+                dateOfBirthField.disabled = true;
+                dateOfBirthField.setAttribute('readonly', 'readonly');
+            }
+        }
+        
+        // Calculate date of birth from SA ID number
+        idNumberField.addEventListener('input', function() {
+            if (idDocTypeSelect.value === 'ID') {
+                const idNumber = idNumberField.value;
+                if (idNumber.length >= 6) {
+                    // Extract date from ID: yymmdd is the first 6 digits
+                    let year = idNumber.substring(0, 2);
+                    const month = idNumber.substring(2, 4);
+                    const day = idNumber.substring(4, 6);
+                    
+                    // Determine century - SA ID numbers starting with 0-2 are assumed to be 2000+
+                    // though most adults would be 1900+
+                    if (parseInt(year) < 50) { // Adjust this threshold as needed
+                        year = '20' + year;
+                    } else {
+                        year = '19' + year;
+                    }
+                    
+                    // Format date as YYYY-MM-DD for the input
+                    const formattedDate = `${year}-${month}-${day}`;
+                    dateOfBirthField.value = formattedDate;
+                }
             }
         });
+        
+        // Set initial state and add change event
+        toggleIdDocFields();
+        idDocTypeSelect.addEventListener('change', toggleIdDocFields);
     });
 </script>
 {% endblock %}

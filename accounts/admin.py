@@ -166,7 +166,7 @@ class CustomUserAdmin(UserAdmin):
     
     list_filter = [
         'role', 'employment_status', 'popi_act_consent', 'membership_status', 'club_membership_verified',
-        'is_active', 'is_staff', 'date_joined', 'organization_type'
+        'is_active', 'is_staff', 'date_joined', 'organization_type', 'association'
     ]
     
     search_fields = ['email', 'first_name', 'last_name', 'id_number', 'safa_id']
@@ -194,7 +194,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': (
                 'role', 'employment_status', 'position', 
                 'organization_type',
-                'national_federation', 'province', 'region', 'local_federation', 'club',
+                'national_federation', 'province', 'region', 'local_federation', 'association', 'club',
                 'club_membership_number', 'club_membership_verified'
             )
         }),
@@ -300,7 +300,7 @@ class CustomUserAdmin(UserAdmin):
     generate_safa_ids.short_description = "Generate SAFA IDs for selected users"
 
     def get_organization(self, obj):
-        """Display organization based on role, including Region Admins"""
+        """Display organization based on role, including Region Admins and Association Admins"""
         try:
             if obj.role == 'ADMIN_NATIONAL':
                 if obj.national_federation:
@@ -322,6 +322,13 @@ class CustomUserAdmin(UserAdmin):
                 if obj.club:
                     return f"Club: {obj.club.name}"
                 return "Club: Not Set"
+            elif obj.role == 'ASSOCIATION_ADMIN':
+                if obj.association:
+                    return f"Association: {obj.association.name}"
+                return "Association: Not Set"
+            # Also display association for any user that has an association set
+            elif obj.association:
+                return f"Association: {obj.association.name}"
             return "Not Assigned"
         except Exception as e:
             return f"Error: {str(e)}"

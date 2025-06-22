@@ -125,6 +125,7 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Association selection -->
                                 <div class="card mb-4">
                                     <div class="card-header bg-light">
                                         <h4 class="mb-0">IDs</h4>
@@ -137,6 +138,19 @@
                             </div>
                         </div>
                         
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">Referee Association</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ official_form.primary_association|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Documents Section -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">

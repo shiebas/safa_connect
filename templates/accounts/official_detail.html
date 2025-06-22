@@ -2,8 +2,7 @@
 
 {% block title %}{{ official.get_full_name }} - Official Details{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
+{% block content %}<div class="container mt-4">
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
@@ -72,10 +71,19 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <strong>Club:</strong> {{ official.club.name }}
+                            <strong>Club:</strong> {{ official.club.name|default:"Not applicable" }}
                         </div>
                         <div class="col-md-6 mb-3">
                             <strong>Position:</strong> {{ official.position.title }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Organization Type:</strong> {{ official.organization_type.name|default:"Not set" }} ({{ official.organization_type.level|default:"" }})
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Status:</strong> {{ official.get_status_display }}
                         </div>
                     </div>
                     
@@ -84,20 +92,59 @@
                             <strong>Registration Date:</strong> {{ official.registration_date }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <strong>Status:</strong> {{ official.get_status_display }}
+                            {% if official.local_federation %}
+                            <strong>Local Football Association:</strong> {{ official.local_federation.name }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Primary Association:</strong>
+                            {% if official.primary_association %}
+                                {% if official.primary_association.id == 11 %}
+                                    SAFA Referee Association (SAFRA)
+                                {% else %}
+                                    {{ official.primary_association.name }}
+                                {% endif %}
+                            {% elif official.user and official.user.association %}
+                                {% if official.user.association.id == 11 %}
+                                    SAFA Referee Association (SAFRA)
+                                {% else %}
+                                    {{ official.user.association.name }}
+                                {% endif %}
+                            {% else %}
+                                Not assigned
+                            {% endif %}
                         </div>
                     </div>
                     
-                    {% if associations %}
+                    {% if associations or official.associations.all %}
                         <div class="mt-4">
                             <h6>Associated Organizations</h6>
                             <ul class="list-group">
+                                {% if official.primary_association %}
+                                    <li class="list-group-item">
+                                        {{ official.primary_association.name }}
+                                        <span class="badge bg-primary">Primary Association</span>
+                                    </li>
+                                {% endif %}
+                                
                                 {% for association in associations %}
                                     <li class="list-group-item">
                                         {{ association.name }}
                                         <span class="badge bg-secondary">{{ association.type }}</span>
                                     </li>
                                 {% endfor %}
+                                
+                                {% if not associations %}
+                                    {% for association in official.associations.all %}
+                                        <li class="list-group-item">
+                                            {{ association.name }}
+                                            <span class="badge bg-secondary">{{ association.type|default:"Association" }}</span>
+                                        </li>
+                                    {% endfor %}
+                                {% endif %}
                             </ul>
                         </div>
                     {% endif %}

@@ -1,29 +1,625 @@
 {% extends 'base.html' %}
-{% block title %}Supporter Registration{% endblock %}
+{% load static %}
+{% block title %}Supporter Registration - SAFA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .supporter-hero {
+        background: linear-gradient(135deg, var(--safa-green), var(--safa-dark));
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 40px;
+    }
+    
+    .registration-card {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 40px;
+    }
+    
+    .social-login-section {
+        background: #f8f9fa;
+        padding: 30px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .social-btn {
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+        display: inline-block;
+        min-width: 200px;
+        text-align: center;
+    }
+    
+    .social-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .form-section {
+        padding: 40px;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--safa-green);
+        box-shadow: 0 0 0 0.2rem rgba(0, 102, 51, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--safa-dark);
+        margin-bottom: 8px;
+    }
+    
+    .required-field::after {
+        content: ' *';
+        color: #dc3545;
+    }
+    
+    .btn-safa-lg {
+        background: linear-gradient(135deg, var(--safa-green), var(--safa-dark));
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-safa-lg:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 102, 51, 0.3);
+        color: white;
+    }
+    
+    .membership-info {
+        background: #e8f5e8;
+        border-left: 4px solid var(--safa-green);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .family-highlight {
+        background: linear-gradient(135deg, #f8f9ff, #e8f4fd);
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+    
+    .membership-select-wrapper {
+        position: relative;
+    }
+    
+    .location-detector {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .location-detector:hover {
+        background: linear-gradient(135deg, #138496, #117a8b);
+        transform: translateY(-1px);
+    }
+    
+    .location-detector:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .location-status {
+        margin-top: 8px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        display: none;
+    }
+    
+    .location-status.success {
+        background: #d1edff;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+        display: block;
+    }
+    
+    .location-status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        display: block;
+    }
+    
+    .location-status.loading {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+        display: block;
+    }
+    
+    .location-info {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 10px;
+        font-size: 13px;
+    }
+    
+    .divider {
+        text-align: center;
+        margin: 30px 0;
+        position: relative;
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #dee2e6;
+    }
+    
+    .divider span {
+        background: white;
+        padding: 0 20px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2>Register as a Supporter</h2>
-  <div class="mb-3">
-    <a href="/accounts/social/login/google-oauth2/" class="btn btn-outline-danger me-2">
-      <i class="fab fa-google"></i> Register with Google
-    </a>
-    <a href="/accounts/social/login/facebook/" class="btn btn-outline-primary me-2">
-      <i class="fab fa-facebook"></i> Register with Facebook
-    </a>
-    <a href="/accounts/social/login/instagram/" class="btn btn-outline-warning me-2">
-      <i class="fab fa-instagram"></i> Register with Instagram
-    </a>
-    <a href="/accounts/social/login/twitter/" class="btn btn-outline-info me-2">
-      <i class="fab fa-x-twitter"></i> Register with X (Twitter)
-    </a>
-    <a href="/accounts/social/login/tiktok/" class="btn btn-outline-dark">
-      <i class="fab fa-tiktok"></i> Register with TikTok
-    </a>
-  </div>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Register</button>
-  </form>
+<!-- Hero Section -->
+<div class="supporter-hero">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-heart text-danger me-3"></i>
+                    Join the SAFA Family
+                </h1>
+                <p class="lead mb-0">
+                    Register as an official SAFA supporter and get exclusive access to matches, 
+                    merchandise, and connect with your favorite clubs across South Africa.
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="registration-card">
+                <!-- Social Login Section -->
+                <div class="social-login-section">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-bolt me-2"></i>Quick Registration
+                    </h4>
+                    <p class="text-center text-muted mb-4">Register instantly with your social media account</p>
+                    
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <a href="/accounts/social/login/google-oauth2/" class="social-btn btn btn-outline-danger w-100">
+                                <i class="fab fa-google me-2"></i> Continue with Google
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/accounts/social/login/facebook/" class="social-btn btn btn-outline-primary w-100">
+                                <i class="fab fa-facebook me-2"></i> Continue with Facebook
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/accounts/social/login/instagram/" class="social-btn btn btn-outline-warning w-100">
+                                <i class="fab fa-instagram me-2"></i> Continue with Instagram
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/accounts/social/login/twitter/" class="social-btn btn btn-outline-info w-100">
+                                <i class="fab fa-x-twitter me-2"></i> Continue with X
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="/accounts/social/login/tiktok/" class="social-btn btn btn-outline-dark">
+                            <i class="fab fa-tiktok me-2"></i> Continue with TikTok
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="divider">
+                    <span>or complete the form below</span>
+                </div>
+
+                <!-- Form Section -->
+                <div class="form-section">
+                    <div class="membership-info">
+                        <h5 class="text-safa mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Membership Benefits
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary"><i class="fas fa-user me-1"></i> Individual Packages</h6>
+                                <ul class="small mb-3">
+                                    <li><strong>Premium (R150):</strong> Exclusive content, discounts, and priority booking</li>
+                                    <li><strong>VIP (R300):</strong> All premium benefits plus VIP event access and meet & greets</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-success"><i class="fas fa-users me-1"></i> Family Packages</h6>
+                                <ul class="small mb-0">
+                                    <li><strong>Family Basic (R450):</strong> Premium benefits for up to 4 family members</li>
+                                    <li><strong>Family Premium (R900):</strong> VIP benefits for up to 4 family members</li>
+                                    <li><strong>Family VIP (R1500):</strong> Ultimate package with exclusive family events</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                All prices include 15% VAT. Payment due within 30 days of registration.
+                            </small>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Favorite Club -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.favorite_club.id_for_label }}" class="form-label">
+                                        <i class="fas fa-heart me-2 text-danger"></i>{{ form.favorite_club.label }}
+                                    </label>
+                                    {{ form.favorite_club }}
+                                    {% if form.favorite_club.help_text %}
+                                        <small class="form-text text-muted">{{ form.favorite_club.help_text }}</small>
+                                    {% endif %}
+                                    {% if form.favorite_club.errors %}
+                                        <div class="text-danger small mt-1">{{ form.favorite_club.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Membership Type -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.membership_type.id_for_label }}" class="form-label required-field">
+                                        <i class="fas fa-crown me-2 text-warning"></i>{{ form.membership_type.label }}
+                                    </label>
+                                    <div class="membership-select-wrapper">
+                                        {{ form.membership_type }}
+                                    </div>
+                                    {% if form.membership_type.help_text %}
+                                        <small class="form-text text-muted">{{ form.membership_type.help_text }}</small>
+                                    {% endif %}
+                                    <div class="family-highlight mt-2">
+                                        <small class="text-primary">
+                                            <i class="fas fa-users me-1"></i>
+                                            <strong>Family packages include benefits for up to 4 family members!</strong>
+                                        </small>
+                                    </div>
+                                    {% if form.membership_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.membership_type.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- ID Number -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.id_number.id_for_label }}" class="form-label">
+                                        <i class="fas fa-id-card me-2"></i>{{ form.id_number.label }}
+                                    </label>
+                                    {{ form.id_number }}
+                                    {% if form.id_number.help_text %}
+                                        <small class="form-text text-muted">{{ form.id_number.help_text }}</small>
+                                    {% endif %}
+                                    {% if form.id_number.errors %}
+                                        <div class="text-danger small mt-1">{{ form.id_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Date of Birth -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>{{ form.date_of_birth.label }}
+                                    </label>
+                                    {{ form.date_of_birth }}
+                                    {% if form.date_of_birth.help_text %}
+                                        <small class="form-text text-muted">{{ form.date_of_birth.help_text }}</small>
+                                    {% endif %}
+                                    {% if form.date_of_birth.errors %}
+                                        <div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ID Document -->
+                        <div class="form-group">
+                            <label for="{{ form.id_document.id_for_label }}" class="form-label">
+                                <i class="fas fa-file-upload me-2"></i>{{ form.id_document.label }}
+                            </label>
+                            {{ form.id_document }}
+                            {% if form.id_document.help_text %}
+                                <small class="form-text text-muted">{{ form.id_document.help_text }}</small>
+                            {% endif %}
+                            {% if form.id_document.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_document.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Address -->
+                        <div class="form-group">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>{{ form.address.label }}
+                            </label>
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" id="detectLocationBtn" class="location-detector">
+                                    <i class="fas fa-location-arrow me-1"></i>
+                                    Detect My Location
+                                </button>
+                                <button type="button" id="clearLocationBtn" class="btn btn-outline-secondary btn-sm" style="display: none;">
+                                    <i class="fas fa-times me-1"></i>Clear
+                                </button>
+                            </div>
+                            {{ form.address }}
+                            <div id="locationStatus" class="location-status"></div>
+                            <div class="location-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Privacy Notice:</strong> Your location will be used to suggest nearby clubs and improve your experience. 
+                                Location data is stored securely and never shared without your consent.
+                            </div>
+                            {% if form.address.help_text %}
+                                <small class="form-text text-muted">{{ form.address.help_text }}</small>
+                            {% endif %}
+                            {% if form.address.errors %}
+                                <div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Hidden geolocation fields -->
+                        {{ form.latitude }}
+                        {{ form.longitude }}
+                        {{ form.location_city }}
+                        {{ form.location_province }}
+                        {{ form.location_country }}
+                        {{ form.location_accuracy }}
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-safa-lg">
+                                <i class="fas fa-user-plus me-2"></i>Complete Registration
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                By registering, you agree to SAFA's terms and conditions and privacy policy.
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const membershipSelect = document.querySelector('select[name="membership_type"]');
+    const familyHighlight = document.querySelector('.family-highlight');
+    
+    // Membership type functionality
+    if (membershipSelect && familyHighlight) {
+        membershipSelect.addEventListener('change', function() {
+            const selectedValue = this.value;
+            
+            if (selectedValue.startsWith('FAMILY')) {
+                familyHighlight.style.display = 'block';
+                familyHighlight.classList.add('animate__animated', 'animate__pulse');                                // Update the family highlight text based on selection
+                                const familyText = familyHighlight.querySelector('strong');
+                                switch(selectedValue) {
+                                    case 'FAMILY_BASIC':
+                                        familyText.innerHTML = 'Family Basic (R450): Premium benefits for up to 4 family members!';
+                                        break;
+                                    case 'FAMILY_PREMIUM':
+                                        familyText.innerHTML = 'Family Premium (R900): VIP benefits for up to 4 family members!';
+                                        break;
+                                    case 'FAMILY_VIP':
+                                        familyText.innerHTML = 'Family VIP (R1500): Ultimate package with exclusive family events for up to 4 members!';
+                                        break;
+                                }
+            } else {
+                familyHighlight.style.display = 'block';
+                const familyText = familyHighlight.querySelector('strong');
+                switch(selectedValue) {
+                    case 'PREMIUM':
+                        familyText.innerHTML = 'Premium Membership (R150): Individual supporter benefits!';
+                        break;
+                    case 'VIP':
+                        familyText.innerHTML = 'VIP Membership (R300): Premium individual benefits plus VIP access!';
+                        break;
+                    default:
+                        familyText.innerHTML = 'Family packages include benefits for up to 4 family members!';
+                }
+            }
+        });
+    }
+    
+    // Geolocation functionality
+    const detectLocationBtn = document.getElementById('detectLocationBtn');
+    const clearLocationBtn = document.getElementById('clearLocationBtn');
+    const locationStatus = document.getElementById('locationStatus');
+    const addressField = document.querySelector('textarea[name="address"]');
+    
+    // Geolocation detection
+    if (detectLocationBtn) {
+        detectLocationBtn.addEventListener('click', function() {
+            if (!navigator.geolocation) {
+                showLocationStatus('error', 'Geolocation is not supported by this browser.');
+                return;
+            }
+            
+            detectLocationBtn.disabled = true;
+            detectLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Detecting...';
+            showLocationStatus('loading', 'Getting your location...');
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    // Store coordinates in hidden fields
+                    document.querySelector('input[name="latitude"]').value = lat;
+                    document.querySelector('input[name="longitude"]').value = lng;
+                    document.querySelector('input[name="location_accuracy"]').value = accuracy;
+                    
+                    // Reverse geocode to get address
+                    reverseGeocode(lat, lng, accuracy);
+                },
+                function(error) {
+                    let errorMessage = 'Unable to get your location. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += 'Please enable location permissions and try again.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += 'Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += 'Location request timed out.';
+                            break;
+                        default:
+                            errorMessage += 'An unknown error occurred.';
+                            break;
+                    }
+                    showLocationStatus('error', errorMessage);
+                    resetLocationButton();
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000 // 5 minutes
+                }
+            );
+        });
+    }
+    
+    // Clear location data
+    if (clearLocationBtn) {
+        clearLocationBtn.addEventListener('click', function() {
+            // Clear all location fields
+            document.querySelector('input[name="latitude"]').value = '';
+            document.querySelector('input[name="longitude"]').value = '';
+            document.querySelector('input[name="location_city"]').value = '';
+            document.querySelector('input[name="location_province"]').value = '';
+            document.querySelector('input[name="location_country"]').value = '';
+            document.querySelector('input[name="location_accuracy"]').value = '';
+            
+            // Clear address field
+            if (addressField) {
+                addressField.value = '';
+            }
+            
+            // Hide status and clear button
+            locationStatus.style.display = 'none';
+            clearLocationBtn.style.display = 'none';
+            
+            // Reset detect button
+            resetLocationButton();
+        });
+    }
+    
+    function reverseGeocode(lat, lng, accuracy) {
+        // Using a simple reverse geocoding service (you might want to use a more robust service)
+        const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`;
+        
+        fetch(geocodeUrl)
+            .then(response => response.json())
+            .then(data => {
+                // Extract location information
+                const city = data.city || data.locality || '';
+                const province = data.principalSubdivision || '';
+                const country = data.countryName || '';
+                
+                // Store in hidden fields
+                document.querySelector('input[name="location_city"]').value = city;
+                document.querySelector('input[name="location_province"]').value = province;
+                document.querySelector('input[name="location_country"]').value = country;
+                
+                // Update address field if empty
+                if (addressField && !addressField.value.trim()) {
+                    let address = '';
+                    if (city) address += city;
+                    if (province) address += (address ? ', ' : '') + province;
+                    if (country) address += (address ? ', ' : '') + country;
+                    addressField.value = address;
+                }
+                
+                // Show success message
+                const accuracyText = accuracy < 100 ? 'High accuracy' : accuracy < 1000 ? 'Medium accuracy' : 'Low accuracy';
+                showLocationStatus('success', 
+                    `Location detected successfully! ${city ? city + ', ' : ''}${province} (${accuracyText})`
+                );
+                
+                // Show clear button
+                clearLocationBtn.style.display = 'inline-block';
+                resetLocationButton();
+            })
+            .catch(error => {
+                console.error('Geocoding error:', error);
+                showLocationStatus('success', 
+                    `Location coordinates captured (${lat.toFixed(6)}, ${lng.toFixed(6)}) but address lookup failed. Please enter your address manually.`
+                );
+                clearLocationBtn.style.display = 'inline-block';
+                resetLocationButton();
+            });
+    }
+    
+    function showLocationStatus(type, message) {
+        locationStatus.className = `location-status ${type}`;
+        locationStatus.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'spinner fa-spin'} me-2"></i>${message}`;
+        locationStatus.style.display = 'block';
+    }
+    
+    function resetLocationButton() {
+        detectLocationBtn.disabled = false;
+        detectLocationBtn.innerHTML = '<i class="fas fa-location-arrow me-1"></i>Detect My Location';
+    }
+});
+</script>
 {% endblock %}

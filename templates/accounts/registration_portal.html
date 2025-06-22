@@ -14,52 +14,23 @@
                 <div class="card-body">
                     <div class="row justify-content-center">
                         <!-- System Admin -->
-                        <div class="col-md-8 mb-3">
+                        <div class="col-md-8 mb-5">
                             <div class="card h-100">
                                 <div class="card-body text-center">
                                     <h5 class="card-title">SAFA System Administrator</h5>
-                                    <a href="{% url 'accounts:national_registration' %}" class="btn btn-primary">Register as SAFA System Administrator</a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Provincial Administrator -->
-                        <div class="col-md-8 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Provincial Administrator</h5>
-                                    <a href="{% url 'accounts:province_registration' %}" class="btn btn-success">Register as Provincial Administrator</a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Regional Administrator -->
-                        <div class="col-md-8 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Regional Administrator</h5>
-                                    <a href="{% url 'accounts:lfa_registration' %}?role=ADMIN_REGION" class="btn btn-info">Register as Regional Administrator</a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- LFA Administrator -->
-                        <div class="col-md-8 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Local Football Association Administrator</h5>
-                                    <a href="{% url 'accounts:lfa_registration' %}" class="btn btn-warning">Register as LFA Administrator</a>
+                                    <p class="text-muted">Register as an administrator for the SAFA system</p>
+                                    <a href="{% url 'accounts:national_registration' %}" class="btn btn-primary btn-lg">Register as SAFA System Administrator</a>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Association Administrator (for referees) -->
-                        <div class="col-md-8 mb-3">
+                        <div class="col-md-8 mb-5">
                             <div class="card h-100">
                                 <div class="card-body text-center">
                                     <h5 class="card-title">Referee Association Administrator</h5>
-                                    <p class="text-muted">Register to manage referees at Provincial, Regional, or LFA level</p>
-                                    <a href="{% url 'accounts:association_registration' %}" class="btn btn-danger">Register as Association Administrator</a>
+                                    <p class="text-muted">Register to manage referees for your association</p>
+                                    <a href="{% url 'accounts:association_registration' %}" class="btn btn-danger btn-lg">Register as Referee Association Administrator</a>
                                 </div>
                             </div>
                         </div>

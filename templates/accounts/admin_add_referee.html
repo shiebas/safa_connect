@@ -1,125 +1,423 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
 
 {% block title %}Register Referee{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+    /* Main form styling */
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+        margin-bottom: 0.4rem;
+    }
+    .form-control, .form-select {
+        border-radius: 0.75rem;
+        padding: 0.8rem 1rem;
+        border: 1px solid rgba(0,0,0,0.08);
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #006400;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0,100,0,0.15);
+        transform: translateY(-1px);
+    }
+    
+    /* Custom styling for modern inputs */
+    .input-group-text {
+        background-color: rgba(0,100,0,0.08);
+        border: 1px solid rgba(0,0,0,0.08);
+        color: #006400;
+        border-radius: 0.75rem 0 0 0.75rem;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+    }
+    .input-group .form-control {
+        border-radius: 0 0.75rem 0.75rem 0;
+    }
+    
+    /* Add subtle animation on input interaction */
+    .form-control::placeholder {
+        color: #aaa;
+        opacity: 1;
+        transition: opacity 0.2s ease;
+    }
+    .form-control:focus::placeholder {
+        opacity: 0.5;
+    }
+    
+    /* Card styling */
+    .card {
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        border: none;
+        overflow: hidden; /* Ensures the glow effect doesn't overflow */
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 15px 35px rgba(0, 100, 0, 0.15);
+    }
+    .card-header {
+        border-radius: 0.75rem 0.75rem 0 0 !important;
+        background: linear-gradient(135deg, #006400, #00a000);
+        padding: 1.2rem;
+        border-bottom: 4px solid rgba(255,255,255,0.2);
+    }
+    
+    /* Section headers */
+    .section-header {
+        background-color: #f8f9fa;
+        padding: 12px 18px;
+        margin-bottom: 20px;
+        border-radius: 0.5rem;
+        border-left: 4px solid #006400;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+    }
+    .section-header:hover {
+        background-color: #edf3ed;
+        transform: translateX(3px);
+    }
+    .section-header h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+    .section-header i {
+        margin-right: 10px;
+        color: #006400;
+    }
+    
+    /* Buttons */
+    .btn-primary {
+        background-color: #006400;
+        border-color: #006400;
+        box-shadow: 0 4px 6px rgba(0, 100, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        background-color: #004d00;
+        border-color: #004d00;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 100, 0, 0.15);
+    }
+    .btn-outline-light {
+        box-shadow: 0 2px 5px rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-outline-light:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Required fields and tooltips */
+    .required-field::after {
+        content: '*';
+        color: #dc3545;
+        margin-left: 5px;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    .form-tip {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus + .form-tip,
+    .form-select:focus + .form-tip {
+        color: #006400;
+    }
+    
+    /* Input groups */
+    .input-group-text {
+        background-color: #f8f9fa;
+        color: #006400;
+        border-color: #ced4da;
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+    
+    /* Form check styling */
+    .form-check-input:checked {
+        background-color: #006400;
+        border-color: #006400;
+    }
+    
+    /* Alert styling */
+    .alert {
+        border-radius: 0.5rem;
+        border: none;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    .alert-info {
+        background-color: #e8f4fb;
+        color: #0c5460;
+    }
+    
+    /* Ensure consistent appearance for all input boxes and dropdowns */
+    input[type="text"], input[type="email"], input[type="date"], input[type="file"], select {
+        border-radius: 0.75rem;
+        padding: 0.8rem 1rem;
+        border: 1px solid rgba(0,0,0,0.08);
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus, input[type="email"]:focus, input[type="date"]:focus, input[type="file"]:focus, select:focus {
+        border-color: #006400;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0,100,0,0.15);
+        transform: translateY(-1px);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .card {
+            border-radius: 0.5rem;
+        }
+        .section-header {
+            padding: 10px 15px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-10">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Register a New Referee</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0"><i class="bi bi-person-badge me-2"></i>Register a New Referee</h3>
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     {% if messages %}
-                    <div class="alert alert-info" role="alert">
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
                         {% for message in messages %}
                         {{ message }}
                         {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                     {% endif %}
 
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" id="referee-registration-form">
                         {% csrf_token %}
                         
-                        <div class="alert alert-info" role="alert">
-                            <p class="mb-0">
-                                <i class="bi bi-info-circle-fill me-2"></i>
-                                This referee will be associated with your organization automatically.
-                            </p>
+                        <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info bg-opacity-25 p-3 rounded-circle me-3">
+                                    <i class="bi bi-info-circle-fill fs-3" style="color: #0c5460;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="alert-heading mb-1">Registration Information</h5>
+                                    <p class="mb-0">
+                                        This referee will be registered with SAFA Referee Association automatically.
+                                        <br>Fields marked with <span class="text-danger fw-bold">*</span> are required.
+                                        <br><small class="text-muted">The form will automatically extract date of birth and gender from SA ID numbers.</small>
+                                        <br><small class="text-muted">Email will be auto-generated if left blank. Mobile number is now optional.</small>
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                         
-                        <h5 class="mb-3 border-bottom pb-2">Personal Information</h5>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ official_form.name.id_for_label }}" class="form-label">First Name*</label>
-                                {{ official_form.name }}
-                                <div class="text-danger small">{{ official_form.name.errors }}</div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ official_form.middle_name.id_for_label }}" class="form-label">Middle Name</label>
-                                {{ official_form.middle_name }}
-                                <div class="text-danger small">{{ official_form.middle_name.errors }}</div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ official_form.surname.id_for_label }}" class="form-label">Last Name*</label>
-                                {{ official_form.surname }}
-                                <div class="text-danger small">{{ official_form.surname.errors }}</div>
-                            </div>
+                        <div class="section-header mb-4">
+                            <h5 class="mb-0"><i class="bi bi-person-vcard me-2"></i>Personal Information</h5>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ official_form.id_number.id_for_label }}" class="form-label">ID Number*</label>
-                                {{ official_form.id_number }}
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ official_form.first_name.id_for_label }}" class="form-label required-field">First Name</label>
+                                {{ official_form.first_name }}
+                                <div class="form-tip">Enter the referee's legal first name</div>
+                                <div class="text-danger small">{{ official_form.first_name.errors }}</div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ official_form.last_name.id_for_label }}" class="form-label required-field">Last Name</label>
+                                {{ official_form.last_name }}
+                                <div class="form-tip">Enter the referee's legal surname</div>
+                                <div class="text-danger small">{{ official_form.last_name.errors }}</div>
+                            </div>
+                            <input type="hidden" name="middle_name" id="{{ official_form.middle_name.id_for_label }}" value="">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <label for="{{ official_form.id_document_type.id_for_label }}" class="form-label required-field">Document Type</label>
+                                {{ official_form.id_document_type }}
+                                <div class="form-tip">Select the appropriate identification type</div>
+                                <div class="text-danger small">{{ official_form.id_document_type.errors }}</div>
+                            </div>
+                            <div class="col-md-4 mb-4 sa-id-field">
+                                <label for="{{ official_form.id_number.id_for_label }}" class="form-label required-field">SA ID Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                                    {{ official_form.id_number }}
+                                </div>
+                                <div class="form-tip">13-digit South African ID number</div>
+                                <div id="id-validation-message" class="mt-1 small"></div>
                                 <div class="text-danger small">{{ official_form.id_number.errors }}</div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ official_form.date_of_birth.id_for_label }}" class="form-label">Date of Birth*</label>
+                            <div class="col-md-4 mb-4 passport-field" style="display: none;">
+                                <label for="{{ official_form.passport_number.id_for_label }}" class="form-label required-field">Passport Number</label>
+                                {{ official_form.passport_number }}
+                                <div class="form-tip">Enter valid passport number</div>
+                                <div class="text-danger small">{{ official_form.passport_number.errors }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <label for="{{ official_form.date_of_birth.id_for_label }}" class="form-label required-field">Date of Birth</label>
                                 {{ official_form.date_of_birth }}
+                                <div class="form-tip">Will be auto-filled from ID number if provided</div>
                                 <div class="text-danger small">{{ official_form.date_of_birth.errors }}</div>
                             </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ official_form.gender.id_for_label }}" class="form-label">Gender*</label>
+                            <div class="col-md-4 mb-4">
+                                <label for="{{ official_form.gender.id_for_label }}" class="form-label required-field">Gender</label>
                                 {{ official_form.gender }}
+                                <div class="form-tip">Will be auto-filled from ID number if provided</div>
                                 <div class="text-danger small">{{ official_form.gender.errors }}</div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ official_form.mobile_number.id_for_label }}" class="form-label">Mobile Number*</label>
-                                {{ official_form.mobile_number }}
-                                <div class="text-danger small">{{ official_form.mobile_number.errors }}</div>
+                            <div class="col-md-4 mb-4">
+                                <label for="{{ official_form.phone_number.id_for_label }}" class="form-label">Mobile Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                    {{ official_form.phone_number }}
+                                </div>
+                                <div class="form-tip">Optional. Format: 0761234567 or +27761234567</div>
+                                <div id="network-info" class="form-tip text-primary"></div>
+                                <div class="text-danger small">{{ official_form.phone_number.errors }}</div>
+                                <div id="mobile-validation-message" class="mt-1 small"></div>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="{{ official_form.email.id_for_label }}" class="form-label">Email Address*</label>
-                                {{ official_form.email }}
+                            <div class="col-md-12 mb-4">
+                                <label for="{{ official_form.email.id_for_label }}" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    {{ official_form.email }}
+                                </div>
+                                <div class="form-tip">Optional. Leave blank for auto-generated referee email</div>
+                                <div id="auto-email-notice" class="form-tip text-primary"></div>
+                                <div id="email-validation-message" class="mt-1 small"></div>
                                 <div class="text-danger small">{{ official_form.email.errors }}</div>
                             </div>
                         </div>
                         
-                        <h5 class="mb-3 mt-4 border-bottom pb-2">Referee Certification</h5>
+                        <div class="section-header my-4">
+                            <h5 class="mb-0"><i class="bi bi-award me-2"></i>Referee Certification</h5>
+                        </div>
+                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ official_form.referee_level.id_for_label }}" class="form-label">Referee Level*</label>
-                                {{ official_form.referee_level }}
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ official_form.referee_level.id_for_label }}" class="form-label required-field">Referee Level</label>
+                                {{ official_form.referee_level|add_class:"form-select" }}
+                                <div class="form-tip">Select the referee's current certification level</div>
                                 <div class="text-danger small">{{ official_form.referee_level.errors }}</div>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label for="{{ official_form.certification_number.id_for_label }}" class="form-label">Certification Number</label>
-                                {{ official_form.certification_number }}
+                                {{ official_form.certification_number|add_class:"form-control" }}
+                                <div class="form-tip">If available, enter the referee's certification ID</div>
                                 <div class="text-danger small">{{ official_form.certification_number.errors }}</div>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label for="{{ official_form.certification_document.id_for_label }}" class="form-label">Certification Document</label>
-                                {{ official_form.certification_document }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-file-earmark-pdf"></i></span>
+                                    {{ official_form.certification_document|add_class:"form-control" }}
+                                </div>
+                                <div class="form-tip">Upload PDF, JPG, or PNG files (max 5MB)</div>
                                 <div class="text-danger small">{{ official_form.certification_document.errors }}</div>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label for="{{ official_form.certification_expiry_date.id_for_label }}" class="form-label">Certification Expiry Date</label>
-                                {{ official_form.certification_expiry_date }}
+                                {{ official_form.certification_expiry_date|add_class:"form-control" }}
+                                <div class="form-tip">When re-certification will be required</div>
                                 <div class="text-danger small">{{ official_form.certification_expiry_date.errors }}</div>
                             </div>
                         </div>
                         
+                        <div class="section-header my-4">
+                            <h5 class="mb-0"><i class="bi bi-building me-2"></i>Association Details</h5>
+                        </div>
+                        
                         <div class="row">
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-12 mb-4">
+                                <label class="form-label">Primary Association</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-building-check"></i></span>
+                                    <input type="text" class="form-control" value="SAFA Referee Association" readonly>
+                                </div>
+                                <div class="form-tip">This referee will be automatically registered with SAFA Referee Association</div>
+                                <input type="hidden" name="primary_association" id="{{ official_form.primary_association.id_for_label }}" value="11">
+                            </div>
+                        </div>
+                        
+                        <div class="section-header my-4">
+                            <h5 class="mb-0"><i class="bi bi-camera me-2"></i>Profile Photo</h5>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-4">
                                 <label for="{{ official_form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
-                                {{ official_form.profile_picture }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                    {{ official_form.profile_picture|add_class:"form-control" }}
+                                </div>
+                                <div class="form-tip">Upload a clear headshot photo (JPG, PNG format, max 5MB)</div>
                                 <div class="text-danger small">{{ official_form.profile_picture.errors }}</div>
                             </div>
                         </div>
                         
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary">Register Referee</button>
-                            <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        <div class="section-header my-4">
+                            <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Consent & Agreement</h5>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input type="checkbox" class="form-check-input" id="{{ official_form.popi_consent.id_for_label }}" name="{{ official_form.popi_consent.html_name }}" {% if official_form.popi_consent.value %}checked{% endif %} required>
+                            <label class="form-check-label" for="{{ official_form.popi_consent.id_for_label }}">
+                                I confirm that I have the referee's permission to register them and consent to SAFA processing this information in accordance with the Protection of Personal Information Act (POPI Act)
+                            </label>
+                            <div class="text-danger small">{{ official_form.popi_consent.errors }}</div>
+                        </div>
+                        
+                        <div class="section-header my-4">
+                            <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Complete Registration</h5>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="bi bi-x-circle me-2"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-person-plus-fill me-2"></i>Register Referee
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <p class="text-muted small">
+                                <i class="bi bi-shield-check me-1"></i> 
+                                All information submitted is securely stored and protected according to SAFA data policies.
+                            </p>
                         </div>
                     </form>
                 </div>
@@ -127,4 +425,152 @@
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<!-- Include the SA ID validation script -->
+<script src="{% static 'js/sa_id_validation.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const docTypeField = document.getElementById('id_id_document_type');
+    const saIdField = document.querySelector('.sa-id-field');
+    const passportField = document.querySelector('.passport-field');
+    const dobField = document.getElementById('{{ official_form.date_of_birth.id_for_label }}');
+
+    function toggleDocumentFields() {
+        const selectedType = docTypeField.value;
+        // console.log('Selected doc type:', selectedType); // You can keep this for debugging
+        if (selectedType === 'ID') { // <-- match your actual value
+            if (saIdField) saIdField.style.display = 'block';
+            if (passportField) passportField.style.display = 'none';
+            if (dobField) dobField.readOnly = true;
+        } else if (selectedType === 'PP') {
+            if (saIdField) saIdField.style.display = 'none';
+            if (passportField) passportField.style.display = 'block';
+            if (dobField) dobField.readOnly = false;
+        } else {
+            if (saIdField) saIdField.style.display = 'none';
+            if (passportField) passportField.style.display = 'none';
+            if (dobField) dobField.readOnly = true;
+        }
+    }
+
+    if (docTypeField) {
+        docTypeField.addEventListener('change', toggleDocumentFields);
+        toggleDocumentFields(); // Initialize on page load
+    }
+});
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const idNumberField = document.getElementById('{{ official_form.id_number.id_for_label }}');
+        const idValidationMessage = document.getElementById('id-validation-message');
+
+        function validateIDNumber() {
+            const idNumber = idNumberField.value;
+            const validationResult = validateSAIDNumber(idNumber);
+
+            if (validationResult.isValid) {
+                idValidationMessage.textContent = '';
+                idValidationMessage.classList.remove('text-danger');
+                idValidationMessage.classList.add('text-success');
+                idValidationMessage.textContent = `Valid ID. DOB: ${formatDateYMD(validationResult.dateOfBirth)}, Gender: ${validationResult.gender}, Citizenship: ${validationResult.citizenship}`;
+            } else {
+                idValidationMessage.textContent = '';
+                idValidationMessage.classList.remove('text-success');
+                idValidationMessage.classList.add('text-danger');
+                idValidationMessage.textContent = validationResult.errorMessage;
+            }
+        }
+
+        // Add event listener for ID number field
+        idNumberField.addEventListener('input', validateIDNumber);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailField = document.getElementById('{{ official_form.email.id_for_label }}');
+        const emailValidationMessage = document.getElementById('email-validation-message');
+        const autoEmailNotice = document.getElementById('auto-email-notice');
+
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Add event listener for email field
+        emailField.addEventListener('input', function() {
+            const email = emailField.value;
+            if (!email) {
+                autoEmailNotice.textContent = 'Email will be auto-generated if left blank';
+                emailValidationMessage.textContent = '';
+                emailValidationMessage.classList.remove('text-danger');
+                emailValidationMessage.classList.add('text-primary');
+            } else if (!validateEmail(email)) {
+                emailValidationMessage.textContent = 'Invalid email format';
+                emailValidationMessage.classList.remove('text-primary');
+                emailValidationMessage.classList.add('text-danger');
+            } else {
+                emailValidationMessage.textContent = '';
+                emailValidationMessage.classList.remove('text-danger');
+                emailValidationMessage.classList.add('text-primary');
+            }
+        });
+
+        const mobileField = document.getElementById('{{ official_form.phone_number.id_for_label }}');
+        const mobileValidationMessage = document.getElementById('mobile-validation-message');
+
+        // Restore original event listener for mobile field
+        mobileField.addEventListener('input', function() {
+            const mobile = mobileField.value;
+            if (!mobile) {
+                mobileValidationMessage.textContent = '';
+                mobileValidationMessage.classList.remove('text-danger');
+                mobileValidationMessage.classList.add('text-primary');
+            } else if (!validateMobileNumber(mobile)) {
+                mobileValidationMessage.textContent = 'Invalid mobile number format';
+                mobileValidationMessage.classList.remove('text-primary');
+                mobileValidationMessage.classList.add('text-danger');
+            } else {
+                mobileValidationMessage.textContent = '';
+                mobileValidationMessage.classList.remove('text-danger');
+                mobileValidationMessage.classList.add('text-primary');
+            }
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstNameField = document.getElementById('{{ official_form.first_name.id_for_label }}');
+        const lastNameField = document.getElementById('{{ official_form.last_name.id_for_label }}');
+
+        function validateNameInput(event) {
+            const input = event.target;
+            const nameRegex = /^[A-Za-z]+$/;
+
+            if (!nameRegex.test(input.value)) {
+                input.value = input.value.replace(/[^A-Za-z]/g, '');
+            }
+        }
+
+        firstNameField.addEventListener('input', validateNameInput);
+        lastNameField.addEventListener('input', validateNameInput);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileField = document.getElementById('{{ official_form.phone_number.id_for_label }}');
+
+        function validateMobileInput(event) {
+            const input = event.target;
+            const mobileRegex = /^[+\d]*$/;
+
+            if (!mobileRegex.test(input.value)) {
+                input.value = input.value.replace(/[^+\d]/g, '');
+            }
+        }
+
+        mobileField.addEventListener('input', validateMobileInput);
+    });
+</script>
+{% endblock %}
 {% endblock %}

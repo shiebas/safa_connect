@@ -143,6 +143,41 @@
                                 {% endif %}
                             </div>
                             
+                            <div class="small text-muted mb-2">
+                                {% if official.organization_type %}
+                                <i class="bi bi-building"></i> {{ official.organization_type.name }} ({{ official.organization_type.level }})
+                                {% else %}
+                                <i class="bi bi-building"></i> Organization: Not set
+                                {% endif %}
+                            </div>
+                            
+                            <div class="small text-muted mb-2">
+                                <i class="bi bi-diagram-3"></i> 
+                                {% if official.primary_association %}
+                                    {% if official.primary_association.id == 11 %}
+                                        Assoc: SAFA Referee Association (SAFRA)
+                                    {% else %}
+                                        Assoc: {{ official.primary_association.name }}
+                                    {% endif %}
+                                {% elif official.user and official.user.association %}
+                                    {% if official.user.association.id == 11 %}
+                                        Assoc: SAFA Referee Association (SAFRA)
+                                    {% else %}
+                                        Assoc: {{ official.user.association.name }}
+                                    {% endif %}
+                                {% elif official.associations.all|length > 0 %}
+                                    {% with first_assoc=official.associations.all.0 %}
+                                        {% if first_assoc.id == 11 %}
+                                            Assoc: SAFA Referee Association (SAFRA)
+                                        {% else %}
+                                            Assoc: {{ first_assoc.name }}
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    No Association
+                                {% endif %}
+                            </div>
+                            
                             <div class="mb-1">
                                 <span class="badge {% if official.is_approved %}bg-success{% else %}bg-warning text-dark{% endif %} me-1">
                                     {% if official.is_approved %}Approved{% else %}Pending Approval{% endif %}
@@ -160,16 +195,16 @@
                             </div>
                             
                             <div class="mt-2">
-                                <a href="#" class="btn btn-sm btn-outline-primary me-1">View Details</a>
+                                <a href="{% url 'accounts:official_detail' official.id %}" class="btn btn-sm btn-outline-primary me-1">View Details</a>
                                 {% if user.role == 'CLUB_ADMIN' and not official.is_approved %}
-                                <a href="#" class="btn btn-sm btn-outline-success">Edit</a>
+                                <a href="{% url 'accounts:edit_official' official.id %}" class="btn btn-sm btn-outline-success">Edit</a>
                                 {% endif %}
                                 
                                 {% if user.role == 'ADMIN_LOCAL_FED' or user.role == 'ADMIN_REGION' or user.role == 'ADMIN_PROVINCE' or user.role == 'ADMIN_NATIONAL' or user.is_superuser %}
                                 {% if not official.is_approved %}
-                                <a href="#" class="btn btn-sm btn-outline-success">Approve</a>
+                                <a href="{% url 'accounts:approve_official' official.id %}" class="btn btn-sm btn-outline-success">Approve</a>
                                 {% else %}
-                                <a href="#" class="btn btn-sm btn-outline-danger">Unapprove</a>
+                                <a href="{% url 'accounts:unapprove_official' official.id %}" class="btn btn-sm btn-outline-danger">Unapprove</a>
                                 {% endif %}
                                 {% endif %}
                             </div>

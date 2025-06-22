@@ -64,6 +64,96 @@ except (ImportError, AttributeError, NameError) as e:
     logger.warning(f"Error checking PyMuPDF availability: {e}")
     PYMUPDF_AVAILABLE = False
 
+def validate_sa_id_number(id_number):
+    """
+    Validates a South African ID number using the Luhn algorithm.
+    
+    Args:
+        id_number (str): 13-digit South African ID number.
+        
+    Returns:
+        dict: {
+            'is_valid': bool,
+            'error_message': str or None,
+            'citizenship': str or None,
+            'gender': str or None,
+            'date_of_birth': datetime.date or None
+        }
+    """
+    result = {
+        'is_valid': False,
+        'error_message': None,
+        'citizenship': None,
+        'gender': None,
+        'date_of_birth': None
+    }
+    
+    # Basic validation
+    if not id_number:
+        result['error_message'] = "ID number is required"
+        return result
+    
+    if not isinstance(id_number, str) or not id_number.isdigit():
+        result['error_message'] = "ID number must contain only digits"
+        return result
+    
+    if len(id_number) != 13:
+        result['error_message'] = "ID number must be exactly 13 digits"
+        return result
+    
+    # Extract components
+    try:
+        # Extract and validate birth date
+        year = int(id_number[:2])
+        month = int(id_number[2:4])
+        day = int(id_number[4:6])
+        
+        # Determine century
+        current_year = datetime.date.today().year % 100
+        full_year = 1900 + year if year > current_year else 2000 + year
+        
+        try:
+            dob = datetime.date(full_year, month, day)
+            result['date_of_birth'] = dob
+        except ValueError:
+            result['error_message'] = "ID number contains invalid birth date"
+            return result
+        
+        # Extract gender
+        gender_digits = int(id_number[6:10])
+        gender = "Male" if gender_digits >= 5000 else "Female"
+        gender_code = "M" if gender_digits >= 5000 else "F"
+        result['gender'] = gender_code
+        
+        # Extract citizenship
+        citizenship_digit = int(id_number[10])
+        result['citizenship'] = "SA Citizen" if citizenship_digit == 0 else "Permanent Resident"
+        
+        # Luhn algorithm validation
+        digits = [int(d) for d in id_number]
+        checksum = 0
+        
+        for i in range(len(digits)):
+            digit = digits[i]
+            # Every second digit from right to left is doubled
+            if (len(digits) - i) % 2 == 0:
+                digit *= 2
+                if digit > 9:
+                    digit -= 9
+            checksum += digit
+        
+        # If checksum is divisible by 10, the ID is valid
+        if checksum % 10 == 0:
+            result['is_valid'] = True
+        else:
+            result['error_message'] = "ID number checksum is invalid"
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error validating SA ID number: {str(e)}")
+        result['error_message'] = f"Error validating ID number: {str(e)}"
+        return result
+
 def extract_sa_id_dob_gender(id_number):
     """
     Extracts date of birth and gender from a South African ID number.
