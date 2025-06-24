@@ -1,0 +1,23 @@
+section,row,seat_number,price_tier,base_price,is_wheelchair_accessible,has_restricted_view,notes
+VIP,1,1,VIP,800.00,false,false,VIP Section Row 1
+VIP,1,2,VIP,800.00,false,false,VIP Section Row 1
+VIP,1,3,VIP,800.00,true,false,VIP Section Row 1 - Wheelchair Accessible
+VIP,2,1,VIP,750.00,false,false,VIP Section Row 2
+VIP,2,2,VIP,750.00,false,false,VIP Section Row 2
+PREMIUM,1,1,PREMIUM,500.00,false,false,Premium Section
+PREMIUM,1,2,PREMIUM,500.00,false,false,Premium Section
+PREMIUM,1,3,PREMIUM,500.00,false,false,Premium Section
+PREMIUM,2,1,PREMIUM,450.00,false,false,Premium Section Row 2
+PREMIUM,2,2,PREMIUM,450.00,true,false,Premium Section Row 2 - Wheelchair Accessible
+A,1,1,STANDARD,300.00,false,false,Standard Section A Row 1
+A,1,2,STANDARD,300.00,false,false,Standard Section A Row 1
+A,1,3,STANDARD,300.00,false,false,Standard Section A Row 1
+A,2,1,STANDARD,280.00,false,false,Standard Section A Row 2
+A,2,2,STANDARD,280.00,false,false,Standard Section A Row 2
+B,1,1,STANDARD,300.00,false,false,Standard Section B Row 1
+B,1,2,STANDARD,300.00,false,false,Standard Section B Row 1
+B,2,1,STANDARD,280.00,false,true,Standard Section B Row 2 - Restricted View
+B,2,2,STANDARD,250.00,false,true,Standard Section B Row 2 - Restricted View
+STUDENT,1,1,STUDENT,150.00,false,false,Student Section
+STUDENT,1,2,STUDENT,150.00,false,false,Student Section
+STUDENT,1,3,STUDENT,150.00,true,false,Student Section - Wheelchair Accessible

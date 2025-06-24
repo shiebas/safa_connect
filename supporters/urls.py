@@ -11,5 +11,7 @@ router.register(r'supporterprofiles', SupporterProfileViewSet)
 urlpatterns = [
     path('register/', views.register_supporter, name='register'),
     path('profile/', views.supporter_profile, name='profile'),
+    path('preferences/edit/', views.edit_preferences, name='edit_preferences'),
+    path('preferences/setup/', views.preferences_setup, name='preferences_setup'),
     path('api/', include(router.urls)),
 ]

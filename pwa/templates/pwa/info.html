@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Install SAFA App{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <img src="{% static 'images/safa-logo.png' %}" alt="SAFA Logo" class="mb-3" style="max-width: 100px;">
+                <h1 class="display-5">Install SAFA Global App</h1>
+                <p class="lead text-muted">Get the full desktop and mobile experience</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-desktop fa-3x text-primary mb-3"></i>
+                                <h4>Desktop App</h4>
+                            </div>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Works offline for rural areas
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Native desktop integration
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Automatic background sync
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    System notifications
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    No browser tabs needed
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
+                                <h4>Mobile App</h4>
+                            </div>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Installs like native app
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Touch-optimized interface
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Offline form filling
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Home screen shortcut
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Push notifications
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                {% if not is_installed %}
+                    <div id="install-section">
+                        <button id="install-button" class="btn btn-primary btn-lg px-5 py-3 d-none">
+                            <i class="fas fa-download me-2"></i>
+                            Install SAFA Global App
+                        </button>
+                        
+                        <div id="manual-install" class="mt-4">
+                            <h5>Manual Installation Instructions</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-chrome fa-2x text-primary mb-2"></i>
+                                            <h6>Chrome/Edge</h6>
+                                            <small>Look for install icon in address bar or use browser menu</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-firefox fa-2x text-orange mb-2"></i>
+                                            <h6>Firefox</h6>
+                                            <small>Use "Install" option in page menu</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-safari fa-2x text-info mb-2"></i>
+                                            <h6>Safari</h6>
+                                            <small>Use "Add to Home Screen" in share menu</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        SAFA Global app is already installed!
+                    </div>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>
+                        Open App
+                    </a>
+                {% endif %}
+            </div>
+            
+            <div class="mt-5">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-question-circle me-2"></i>
+                            Frequently Asked Questions
+                        </h5>
+                        
+                        <div class="accordion" id="faqAccordion">
+                            <div class="accordion-item">
+                                <h6 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                        Is this safe to install?
+                                    </button>
+                                </h6>
+                                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Yes, this is the official SAFA Global app. It's a Progressive Web App (PWA) that provides enhanced functionality while maintaining the same security as the website.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h6 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                        Will it work offline?
+                                    </button>
+                                </h6>
+                                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Yes! You can fill forms, browse cached content, and update your profile offline. Everything syncs automatically when you reconnect.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h6 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                        How do I update the app?
+                                    </button>
+                                </h6>
+                                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        The app updates automatically when you're online. You'll get a notification when new features are available.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PWA Install Script -->
+<script>
+let deferredPrompt;
+const installButton = document.getElementById('install-button');
+
+// Listen for the beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('PWA install prompt available');
+    
+    // Prevent the mini-infobar from appearing
+    e.preventDefault();
+    
+    // Save the event for later use
+    deferredPrompt = e;
+    
+    // Show the install button
+    installButton.classList.remove('d-none');
+});
+
+// Handle install button click
+installButton.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+        console.log('PWA install prompt not available');
+        return;
+    }
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user's response
+    const result = await deferredPrompt.userChoice;
+    
+    if (result.outcome === 'accepted') {
+        console.log('PWA installation accepted');
+        
+        // Track installation
+        fetch('/pwa/install/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                platform: navigator.platform,
+                browser: navigator.userAgent.split(' ').pop(),
+                device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'MOBILE' : 'DESKTOP',
+                install_source: 'BANNER'
+            })
+        });
+        
+        // Hide install section
+        document.getElementById('install-section').innerHTML = `
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                SAFA Global app installed successfully!
+            </div>
+            <p class="text-muted">You can now find it in your applications menu or desktop.</p>
+        `;
+    } else {
+        console.log('PWA installation declined');
+    }
+    
+    // Clear the prompt
+    deferredPrompt = null;
+});
+
+// Check if already installed
+window.addEventListener('appinstalled', () => {
+    console.log('PWA was installed');
+    installButton.classList.add('d-none');
+    
+    // Show success message
+    document.getElementById('install-section').innerHTML = `
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>
+            SAFA Global app installed successfully!
+        </div>
+    `;
+});
+
+// Show different instructions based on browser
+document.addEventListener('DOMContentLoaded', function() {
+    const userAgent = navigator.userAgent;
+    const manualInstall = document.getElementById('manual-install');
+    
+    if (userAgent.includes('Chrome') || userAgent.includes('Edg')) {
+        // Chrome/Edge specific instructions
+    } else if (userAgent.includes('Firefox')) {
+        // Firefox specific instructions
+    } else if (userAgent.includes('Safari')) {
+        // Safari specific instructions
+    }
+});
+</script>
+{% endblock %}

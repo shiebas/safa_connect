@@ -1,0 +1,749 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load merchandise_tags %}
+
+{% block title %}SAFA Official Store - Premium Football Merchandise{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 80px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="footballPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23footballPattern)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Product Cards */
+    .product-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        height: 100%;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+    
+    .product-image {
+        position: relative;
+        overflow: hidden;
+        height: 250px;
+        background: #f8f9fa; /* Fallback background */
+    }
+    
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .product-card:hover .product-image img {
+        transform: scale(1.05);
+    }
+    
+    .product-badge {
+        position: absolute;
+        left: 10px;
+        z-index: 3;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        min-width: 50px;
+        text-align: center;
+    }
+    
+    .product-badge.secondary {
+        top: 45px; /* Position second badge below the first */
+    }
+    
+    .product-badge.new-badge {
+        background: #28a745;
+        color: white;
+    }
+    
+    .product-badge.featured-badge {
+        background: #ffc107;
+        color: #000;
+        font-weight: 700;
+    }
+    
+    .product-badge.discount {
+        background: #dc3545;
+        color: white;
+    }
+    
+    /* Badge stacking positions */
+    .product-badge.first {
+        top: 10px;
+    }
+    
+    .product-badge.second {
+        top: 45px;
+    }
+    
+    .product-badge.third {
+        top: 80px;
+    }
+    
+    .product-card .card-body {
+        padding: 20px;
+        position: relative;
+        z-index: 1; /* Ensure content is above any background elements */
+    }
+    
+    .product-card .card-title {
+        margin-bottom: 10px;
+        line-height: 1.3;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .product-card .card-title a {
+        color: #333 !important;
+        text-decoration: none;
+    }
+    
+    .product-card .card-title a:hover {
+        color: #006633 !important;
+    }
+    
+    .price-section {
+        margin-top: 15px;
+    }
+    
+    .wishlist-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 3;
+    }
+    
+    .wishlist-btn:hover {
+        background: #dc3545;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .price-section {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0;
+    }
+    
+    .current-price {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    
+    .original-price {
+        text-decoration: line-through;
+        color: #6c757d;
+        font-size: 1rem;
+    }
+    
+    .discount-badge {
+        background: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    /* Category Cards */
+    .category-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        height: 200px;
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+    
+    .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .category-card:hover::before {
+        background: rgba(0,0,0,0.1);
+    }
+    
+    .category-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .category-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+    
+    /* Section Headings */
+    .section-heading {
+        text-align: center;
+        margin: 60px 0 40px;
+        position: relative;
+    }
+    
+    .section-heading h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+    
+    .section-heading::after {
+        content: '';
+        display: block;
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        margin: 20px auto;
+        border-radius: 2px;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+        margin: 80px 0 0;
+        text-align: center;
+    }
+    
+    .cta-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .cta-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        color: #764ba2;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 40px 0;
+        }
+        
+        .hero-section h1 {
+            font-size: 2rem;
+        }
+        
+        .section-heading h2 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 hero-content">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="bi bi-shield-fill-check me-3"></i>
+                    Official SAFA Store
+                </h1>
+                <p class="lead mb-4">
+                    Premium South African Football Association merchandise. Support Bafana Bafana with authentic jerseys, accessories, and collectibles.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'merchandise:product_list' %}" class="btn btn-light btn-lg">
+                        <i class="bi bi-bag-heart me-2"></i>Shop Now
+                    </a>
+                    <a href="#featured-categories" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-grid me-2"></i>Browse Categories
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="bi bi-trophy-fill" style="font-size: 8rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Categories -->
+<section id="featured-categories" class="py-5">
+    <div class="container">
+        <div class="section-heading">
+            <h2>Shop by Category</h2>
+            <p class="text-muted">Discover our premium collection of SAFA merchandise</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for category in featured_categories %}
+            <div class="col-lg-4 col-md-6">
+                <a href="{% url 'merchandise:category_products' category.slug %}" class="text-decoration-none">
+                    <div class="card category-card">
+                        <div class="category-content">
+                            <div class="category-icon">
+                                {% if 'jersey' in category.name|lower %}
+                                    <i class="bi bi-person-arms-up"></i>
+                                {% elif 'accessory' in category.name|lower %}
+                                    <i class="bi bi-bag"></i>
+                                {% elif 'equipment' in category.name|lower %}
+                                    <i class="bi bi-gear"></i>
+                                {% elif 'collectible' in category.name|lower %}
+                                    <i class="bi bi-trophy"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            </div>
+                            <h4 class="fw-bold">{{ category.name }}</h4>
+                            <p class="mb-0">{{ category.description|truncatechars:80 }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="section-heading">
+            <h2>Featured Products</h2>
+            <p class="text-muted">Our most popular SAFA merchandise</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in featured_products %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card product-card">
+                    <div class="product-image">
+                        {% if product.main_image %}
+                            <img src="{{ product.main_image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{{ product|product_image_or_placeholder:'280x220' }}" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                        
+                        <!-- Product Badges with proper stacking -->
+                        {% if product.is_on_sale %}
+                            <span class="badge bg-danger product-badge discount first">
+                                -{{ product.discount_percentage }}%
+                            </span>
+                            {% if product.is_featured %}
+                                <span class="badge bg-warning product-badge featured-badge second">
+                                    <i class="bi bi-star-fill"></i> Featured
+                                </span>
+                                {% if product|is_new_product %}
+                                    <span class="badge bg-success product-badge new-badge third">
+                                        <i class="bi bi-lightning-fill"></i> New
+                                    </span>
+                                {% endif %}
+                            {% elif product|is_new_product %}
+                                <span class="badge bg-success product-badge new-badge second">
+                                    <i class="bi bi-lightning-fill"></i> New
+                                </span>
+                            {% endif %}
+                        {% elif product.is_featured %}
+                            <span class="badge bg-warning product-badge featured-badge first">
+                                <i class="bi bi-star-fill"></i> Featured
+                            </span>
+                            {% if product|is_new_product %}
+                                <span class="badge bg-success product-badge new-badge second">
+                                    <i class="bi bi-lightning-fill"></i> New
+                                </span>
+                            {% endif %}
+                        {% elif product|is_new_product %}
+                            <span class="badge bg-success product-badge new-badge first">
+                                <i class="bi bi-lightning-fill"></i> New
+                            </span>
+                        {% endif %}
+                        
+                        <button class="wishlist-btn" onclick="toggleWishlist('{{ product.id }}')">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'merchandise:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        <p class="text-muted small">{{ product.short_description|truncatechars:80 }}</p>
+                        
+                        <div class="price-section">
+                            <span class="current-price">R{{ product.current_price }}</span>
+                            {% if product.is_on_sale %}
+                                <span class="original-price">R{{ product.price }}</span>
+                                <span class="discount-badge">-{{ product.discount_percentage }}%</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-primary flex-fill" onclick="addToCart('{{ product.id }}')">
+                                <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                            </button>
+                            <a href="{% url 'merchandise:product_detail' product.slug %}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{% url 'merchandise:product_list' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-grid me-2"></i>View All Products
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- New Arrivals -->
+<section class="py-5">
+    <div class="container">
+        <div class="section-heading">
+            <h2>New Arrivals</h2>
+            <p class="text-muted">Latest additions to our SAFA collection</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in new_arrivals %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card product-card">
+                    <div class="product-image">
+                        {% if product.main_image %}
+                            <img src="{{ product.main_image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{{ product|product_image_or_placeholder:'280x220' }}" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                        
+                        <!-- Product Badges with proper stacking -->
+                        {% if product.is_on_sale %}
+                            <span class="badge bg-danger product-badge discount first">
+                                -{{ product.discount_percentage }}%
+                            </span>
+                            {% if product.is_featured %}
+                                <span class="badge bg-warning product-badge featured-badge second">
+                                    <i class="bi bi-star-fill"></i> Featured
+                                </span>
+                                <span class="badge bg-success product-badge new-badge third">
+                                    <i class="bi bi-lightning-fill"></i> New
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success product-badge new-badge second">
+                                    <i class="bi bi-lightning-fill"></i> New
+                                </span>
+                            {% endif %}
+                        {% elif product.is_featured %}
+                            <span class="badge bg-warning product-badge featured-badge first">
+                                <i class="bi bi-star-fill"></i> Featured
+                            </span>
+                            <span class="badge bg-success product-badge new-badge second">
+                                <i class="bi bi-lightning-fill"></i> New
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success product-badge new-badge first">
+                                <i class="bi bi-lightning-fill"></i> New
+                            </span>
+                        {% endif %}
+                        
+                        <button class="wishlist-btn" onclick="toggleWishlist('{{ product.id }}')">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'merchandise:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        <p class="text-muted small">{{ product.short_description|truncatechars:80 }}</p>
+                        
+                        <div class="price-section">
+                            <span class="current-price">R{{ product.current_price }}</span>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-primary flex-fill" onclick="addToCart('{{ product.id }}')">
+                                <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                            </button>
+                            <a href="{% url 'merchandise:product_detail' product.slug %}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- On Sale Section -->
+{% if on_sale %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="section-heading">
+            <h2><i class="bi bi-fire text-danger"></i> Special Offers</h2>
+            <p class="text-muted">Limited time deals on SAFA merchandise</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in on_sale %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card product-card">
+                    <div class="product-image">
+                        {% if product.main_image %}
+                            <img src="{{ product.main_image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{{ product|product_image_or_placeholder:'280x220' }}" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                        
+                        <!-- Product Badges with proper stacking -->
+                        <span class="badge bg-danger product-badge discount first">
+                            -{{ product.discount_percentage }}% OFF
+                        </span>
+                        {% if product.is_featured %}
+                            <span class="badge bg-warning product-badge featured-badge second">
+                                <i class="bi bi-star-fill"></i> Featured
+                            </span>
+                            {% if product|is_new_product %}
+                                <span class="badge bg-success product-badge new-badge third">
+                                    <i class="bi bi-lightning-fill"></i> New
+                                </span>
+                            {% endif %}
+                        {% elif product|is_new_product %}
+                            <span class="badge bg-success product-badge new-badge second">
+                                <i class="bi bi-lightning-fill"></i> New
+                            </span>
+                        {% endif %}
+                        
+                        <button class="wishlist-btn" onclick="toggleWishlist('{{ product.id }}')">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'merchandise:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        <p class="text-muted small">{{ product.short_description|truncatechars:80 }}</p>
+                        
+                        <div class="price-section">
+                            <span class="current-price">R{{ product.current_price }}</span>
+                            <span class="original-price">R{{ product.price }}</span>
+                            <span class="discount-badge">-{{ product.discount_percentage }}%</span>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-primary flex-fill" onclick="addToCart('{{ product.id }}')">
+                                <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                            </button>
+                            <a href="{% url 'merchandise:product_detail' product.slug %}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="fw-bold mb-4">Join the SAFA Family</h2>
+                <p class="lead mb-4">
+                    Get exclusive access to limited edition merchandise, early product launches, and special supporter discounts.
+                </p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{% url 'supporters:register' %}" class="cta-btn">
+                        <i class="bi bi-person-plus me-2"></i>Become a Supporter
+                    </a>
+                    <a href="{% url 'merchandise:product_list' %}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-shop me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add to Cart functionality
+function addToCart(productId) {
+    if (!{{ request.user.is_authenticated|yesno:"true,false" }}) {
+        alert('Please log in to add items to cart');
+        window.location.href = '{% url "accounts:login" %}';
+        return;
+    }
+    
+    fetch('{% url "merchandise:add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `product_id=${productId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showNotification(data.message, 'success');
+            // Update cart count if available
+            updateCartCount(data.cart_total_items);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Failed to add product to cart', 'error');
+    });
+}
+
+// Toggle Wishlist functionality
+function toggleWishlist(productId) {
+    if (!{{ request.user.is_authenticated|yesno:"true,false" }}) {
+        alert('Please log in to manage your wishlist');
+        window.location.href = '{% url "accounts:login" %}';
+        return;
+    }
+    
+    fetch('{% url "merchandise:toggle_wishlist" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `product_id=${productId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            // Update wishlist icon
+            const btn = event.target.closest('.wishlist-btn');
+            const icon = btn.querySelector('i');
+            if (data.in_wishlist) {
+                icon.className = 'bi bi-heart-fill';
+                btn.style.color = '#dc3545';
+            } else {
+                icon.className = 'bi bi-heart';
+                btn.style.color = '';
+            }
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Failed to update wishlist', 'error');
+    });
+}
+
+// Utility functions
+function showNotification(message, type) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+
+function updateCartCount(count) {
+    const cartBadge = document.querySelector('.cart-count');
+    if (cartBadge) {
+        cartBadge.textContent = count;
+    }
+}
+</script>
+{% endblock %}

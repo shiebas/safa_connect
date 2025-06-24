@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load supporter_extras %}
 {% block title %}Supporter Registration - SAFA{% endblock %}
 
 {% block extra_css %}
@@ -104,91 +105,87 @@
         margin-top: 10px;
     }
     
-    .membership-select-wrapper {
-        position: relative;
+    .preferences-section {
+        border-top: 2px solid #e9ecef;
+        padding-top: 25px;
+        margin-top: 25px;
     }
     
-    .location-detector {
-        background: linear-gradient(135deg, #17a2b8, #138496);
-        border: none;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        cursor: pointer;
+    .preferences-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid #e9ecef;
     }
     
-    .location-detector:hover {
-        background: linear-gradient(135deg, #138496, #117a8b);
-        transform: translateY(-1px);
+    .preferences-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
     }
     
-    .location-detector:disabled {
-        background: #6c757d;
-        cursor: not-allowed;
-        transform: none;
-    }
-    
-    .location-status {
-        margin-top: 8px;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        display: none;
-    }
-    
-    .location-status.success {
-        background: #d1edff;
-        color: #0c5460;
-        border: 1px solid #bee5eb;
-        display: block;
-    }
-    
-    .location-status.error {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-        display: block;
-    }
-    
-    .location-status.loading {
-        background: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
-        display: block;
-    }
-    
-    .location-info {
-        background: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 12px;
-        border-radius: 6px;
-        margin-top: 10px;
-        font-size: 13px;
-    }
-    
-    .divider {
-        text-align: center;
-        margin: 30px 0;
-        position: relative;
-    }
-    
-    .divider::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: #dee2e6;
-    }
-    
-    .divider span {
+    .preference-category {
         background: white;
-        padding: 0 20px;
-        color: #6c757d;
-        font-weight: 500;
+        border-radius: 8px;
+        padding: 15px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .category-title {
+        color: var(--safa-dark);
+        font-weight: 600;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e9ecef;
+        font-size: 0.9rem;
+    }
+    
+    .preferences-options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .preference-item {
+        margin-bottom: 5px;
+    }
+    
+    .preference-item .form-check {
+        margin-bottom: 0;
+    }
+    
+    .preference-item .form-check-label {
+        font-size: 0.85rem;
+        line-height: 1.3;
+        margin-bottom: 0;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--safa-green);
+        border-color: var(--safa-green);
+    }
+    
+    .preferences-toggle-section {
+        background: #e8f5e8;
+        border-radius: 8px;
+        padding: 15px;
+        border-left: 4px solid var(--safa-green);
+    }
+    
+    @media (max-width: 768px) {
+        .preferences-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .preference-category {
+            padding: 12px;
+        }
+        
+        .preferences-card {
+            padding: 20px 15px;
+        }
     }
 </style>
 {% endblock %}
@@ -419,6 +416,70 @@
                         {{ form.location_country }}
                         {{ form.location_accuracy }}
 
+                        <!-- Preferences Section -->
+                        <div class="form-group mt-4">
+                            <div class="preferences-toggle-section">
+                                <div class="form-check">
+                                    {{ form.setup_preferences }}
+                                    <label for="{{ form.setup_preferences.id_for_label }}" class="form-check-label fw-bold">
+                                        <i class="fas fa-bell me-2 text-warning"></i>{{ form.setup_preferences.label }}
+                                    </label>
+                                </div>
+                                {% if form.setup_preferences.help_text %}
+                                    <small class="form-text text-muted ms-4">{{ form.setup_preferences.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            
+                            <div id="preferencesSection" class="preferences-section mt-3" style="display: none;">
+                                <div class="preferences-card">
+                                    <h5 class="text-center mb-4">
+                                        <i class="fas fa-cog me-2"></i>Customize Your SAFA Experience
+                                    </h5>
+                                    <p class="text-center text-muted mb-4">
+                                        Select the topics you're interested in to receive personalized updates and offers.
+                                    </p>
+                                    
+                                    <div class="preferences-grid">
+                                        {% for category, fields in preferences_form.field_categories.items %}
+                                            <div class="preference-category">
+                                                <h6 class="category-title">
+                                                    <i class="fas fa-{% if 'Ticket' in category %}ticket-alt{% elif 'Merch' in category %}tshirt{% elif 'Travel' in category %}plane{% elif 'Digital' in category %}play{% elif 'Community' in category %}users{% elif 'Food' in category %}utensils{% elif 'Financial' in category %}credit-card{% elif 'Communication' in category %}envelope{% else %}star{% endif %} me-2"></i>
+                                                    {{ category }}
+                                                </h6>
+                                                <div class="preferences-options">
+                                                    {% for field_name in fields %}
+                                                        {% with field=preferences_form|lookup:field_name %}
+                                                            <div class="preference-item">
+                                                                {% if field.field.widget|class_name == 'Select' %}
+                                                                    <label for="{{ field.id_for_label }}" class="form-label small">{{ field.label }}</label>
+                                                                    {{ field }}
+                                                                {% else %}
+                                                                    <div class="form-check">
+                                                                        {{ field }}
+                                                                        <label for="{{ field.id_for_label }}" class="form-check-label small">
+                                                                            {{ field.label }}
+                                                                        </label>
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="mt-3 p-3 bg-light rounded">
+                                        <small class="text-muted">
+                                            <i class="fas fa-shield-alt me-2"></i>
+                                            <strong>Privacy Note:</strong> Your preferences help us provide relevant content. 
+                                            You can update these settings anytime from your profile, and we never share your data without consent.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="text-center mt-4">
                             <button type="submit" class="btn btn-safa-lg">
                                 <i class="fas fa-user-plus me-2"></i>Complete Registration
@@ -441,6 +502,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     const membershipSelect = document.querySelector('select[name="membership_type"]');
     const familyHighlight = document.querySelector('.family-highlight');
+    const preferencesToggle = document.querySelector('input[name="setup_preferences"]');
+    const preferencesSection = document.getElementById('preferencesSection');
+    
+    // Preferences toggle functionality
+    if (preferencesToggle && preferencesSection) {
+        // Show/hide preferences section based on checkbox
+        preferencesToggle.addEventListener('change', function() {
+            if (this.checked) {
+                preferencesSection.style.display = 'block';
+                preferencesSection.classList.add('animate__animated', 'animate__fadeIn');
+            } else {
+                preferencesSection.style.display = 'none';
+            }
+        });
+        
+        // Initial state - show if checked by default
+        if (preferencesToggle.checked) {
+            preferencesSection.style.display = 'block';
+        }
+    }
     
     // Membership type functionality
     if (membershipSelect && familyHighlight) {

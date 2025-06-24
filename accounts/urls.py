@@ -1,5 +1,6 @@
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.http import HttpResponse
 from .views import (
     WorkingLoginView, working_home, register, 
     check_username, user_qr_code, profile_view, 
@@ -16,10 +17,29 @@ from .views import (
     edit_player, club_invoices, player_statistics, official_list,
     official_detail, add_official_certification, approve_official, unapprove_official, manage_official_associations
 )
+from .document_views import document_access_dashboard, document_access_report, document_access_api, protected_document_view
 from .views_mcp import MCPUserListView
 from .api_auth import APILoginView
 from .views_admin_referees import admin_add_referee
 from rest_framework import routers
+
+# Simple test view function
+def test_document_download(request):
+    """Simple test view for document protection system"""
+    html_content = """
+    <html>
+    <head><title>Test Document Protection</title></head>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>SAFA Document Protection System Test</h2>
+        <p>Click the link below to test document download protection:</p>
+        <p><a href="/media/test_document.txt" style="background: #006633; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Download Test Document</a></p>
+        <p><small>This will trigger the document protection middleware and log the access.</small></p>
+        <hr>
+        <p><a href="/accounts/dashboard/">← Back to Dashboard</a></p>
+    </body>
+    </html>
+    """
+    return HttpResponse(html_content)
 
 app_name = 'accounts'
 
@@ -74,6 +94,14 @@ urlpatterns = [
     path('officials/<int:official_id>/unapprove/', unapprove_official, name='unapprove_official'),
     path('officials/<int:official_id>/manage-associations/', manage_official_associations, name='manage_official_associations'),
     path('admin/add-referee/', admin_add_referee, name='admin_add_referee'),
+    
+    # Document Protection & Access Tracking
+    path('document-access/dashboard/', document_access_dashboard, name='document_access_dashboard'),
+    path('document-access/api/', document_access_api, name='document_access_api'),
+    path('document-access/report/', document_access_report, name='document_access_report'),
+    path('protected-document/<str:document_id>/', protected_document_view, name='protected_document'),
+    path('test-download/', test_document_download, name='test_download'),
+    
     # --- API endpoints below ---
     path('api/regions/', api_regions, name='api_regions'),
     path('api/clubs/', api_clubs, name='api_clubs'),
@@ -81,5 +109,4 @@ urlpatterns = [
     path('api/mcp/users/', MCPUserListView.as_view(), name='mcp_user_list'),
     path('api/', include(router.urls)),
     path('api/login/', APILoginView.as_view(), name='api_login'),
-    # Add other paths as needed
 ]

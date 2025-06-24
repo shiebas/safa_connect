@@ -1,5 +1,24 @@
 # SAFA Invoice System: Quick Reference Guide
 
+## Invoice Types & Formats
+
+| Type | Format | Example | Purpose |
+|------|--------|---------|---------|
+| Player | PLR-YYYYMMDD-XXXXXX | PLR-20250622-000001 | Player registrations |
+| Supporter | SUP-YYYYMMDD-XXXXXX | SUP-20250622-000001 | Supporter memberships |
+| Official | OFF-YYYYMMDD-XXXXXX | OFF-20250622-000001 | Referee/coach registrations |
+| Transfer | TRF-YYYYMMDD-XXXXXX | TRF-20250622-000001 | Player transfers |
+
+## Supporter Membership Pricing (including 15% VAT)
+
+| Membership Type | Base Price | VAT | Total |
+|----------------|------------|-----|-------|
+| Premium Individual | R150.00 | R22.50 | **R172.50** |
+| VIP Individual | R300.00 | R45.00 | **R345.00** |
+| Family Basic | R450.00 | R67.50 | **R517.50** |
+| Family Premium | R900.00 | R135.00 | **R1,035.00** |
+| Family VIP | R1,500.00 | R225.00 | **R1,725.00** |
+
 ## Common Tasks
 
 ### Viewing Invoices

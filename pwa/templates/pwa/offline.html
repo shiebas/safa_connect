@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SAFA Global - Offline{% endblock %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="text-center">
+        <div class="mb-4">
+            <img src="{% static 'images/safa-logo.png' %}" alt="SAFA Logo" class="mb-3" style="max-width: 120px;">
+            <h1 class="display-4 text-muted">You're Offline</h1>
+        </div>
+        
+        <div class="card shadow-lg mx-auto" style="max-width: 500px;">
+            <div class="card-body p-5">
+                <div class="mb-4">
+                    <i class="fas fa-wifi-slash fa-3x text-warning mb-3"></i>
+                    <h3 class="card-title">No Internet Connection</h3>
+                    <p class="text-muted">
+                        You're currently offline, but you can still use many features of SAFA Global.
+                    </p>
+                </div>
+                
+                <div class="row text-start">
+                    <div class="col-md-6">
+                        <h5 class="text-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i>Available Offline
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-user-plus text-success me-2"></i>
+                                Fill registration forms
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-id-card text-success me-2"></i>
+                                View cached membership info
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-store text-success me-2"></i>
+                                Browse merchandise catalog
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-user-edit text-success me-2"></i>
+                                Update profile information
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5 class="text-warning mb-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Requires Internet
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-credit-card text-warning me-2"></i>
+                                Payment processing
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-sync text-warning me-2"></i>
+                                Data synchronization
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-download text-warning me-2"></i>
+                                File downloads
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-bell text-warning me-2"></i>
+                                Real-time notifications
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-info bg-opacity-10 rounded">
+                    <h6 class="text-info mb-2">
+                        <i class="fas fa-info-circle me-2"></i>Offline Mode Active
+                    </h6>
+                    <p class="small mb-0">
+                        Your work will be saved locally and automatically synced when you reconnect to the internet.
+                    </p>
+                </div>
+                
+                <div class="mt-4">
+                    <button class="btn btn-primary me-3" onclick="location.reload()">
+                        <i class="fas fa-sync me-2"></i>Try Again
+                    </button>
+                    <a href="/" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-2"></i>Go Home
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <small class="text-muted">
+                <i class="fas fa-shield-alt me-1"></i>
+                Your data is secure and will sync automatically when connection is restored.
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Connection status indicator -->
+<div id="connection-status" class="position-fixed top-0 start-50 translate-middle-x" style="z-index: 9999;">
+    <div class="alert alert-success alert-dismissible fade show d-none" id="online-alert">
+        <i class="fas fa-wifi me-2"></i>
+        Connection restored! Syncing your data...
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monitor connection status
+    function updateConnectionStatus() {
+        const isOnline = navigator.onLine;
+        const onlineAlert = document.getElementById('online-alert');
+        
+        if (isOnline && !onlineAlert.classList.contains('show')) {
+            onlineAlert.classList.remove('d-none');
+            onlineAlert.classList.add('show');
+            
+            // Trigger sync if service worker is available
+            if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                navigator.serviceWorker.ready.then(registration => {
+                    return registration.sync.register('sync-forms');
+                }).catch(err => {
+                    console.log('Background sync registration failed:', err);
+                });
+            }
+            
+            // Auto-reload after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        }
+    }
+    
+    // Listen for connection changes
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    
+    // Check initial status
+    updateConnectionStatus();
+});
+</script>
+{% endblock %}

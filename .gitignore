@@ -38,3 +38,51 @@ media/
 .vscode/
 *.swp
 *.swo
+
+# Mobile app development (React Native/Expo)
+mobile/
+SafaCardApp/
+*.apk
+*.ipa
+*.aab
+
+# Node.js and npm (for mobile development)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Expo
+.expo/
+.expo-shared/
+expo-env.d.ts
+web-build/
+
+# React Native
+.metro-health-check*
+.haste_cache
+*.hprof
+metro.config.js.bak
+
+# iOS
+*.xcodeproj/
+*.xcworkspace/
+ios/Pods/
+ios/build/
+*.dSYM.zip
+*.dSYM
+ios/Podfile.lock
+DerivedData/
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/key.properties
+*.keystore
+!debug.keystore
+android/.cxx/
+android/app/release/

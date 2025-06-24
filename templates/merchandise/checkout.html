@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load merchandise_tags %}
+
+{% block title %}Checkout - SAFA Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-section {
+        padding: 40px 0;
+        background: #f8f9fa;
+    }
+    
+    .checkout-header {
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+    }
+    
+    .checkout-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .checkout-form {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .order-summary {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        position: sticky;
+        top: 20px;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #006633;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 12px 15px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #006633;
+        box-shadow: 0 0 0 0.2rem rgba(0, 102, 51, 0.25);
+    }
+    
+    .order-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .order-item:last-child {
+        border-bottom: none;
+    }
+    
+    .item-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-right: 15px;
+    }
+    
+    .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .item-details {
+        flex: 1;
+    }
+    
+    .item-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .item-variant {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    
+    .item-quantity {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .item-price {
+        font-weight: 600;
+        color: #006633;
+        font-size: 1.1rem;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .summary-row.total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #006633;
+        border-top: 2px solid #006633;
+        border-bottom: none;
+        padding-top: 15px;
+        margin-top: 10px;
+    }
+    
+    .btn-place-order {
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-place-order:hover {
+        background: linear-gradient(135deg, #004d26, #003319);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,102,51,0.3);
+    }
+    
+    .security-info {
+        background: #e8f5e8;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .security-info i {
+        color: #006633;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        .checkout-container {
+            padding: 0 15px;
+        }
+        
+        .checkout-form,
+        .order-summary {
+            padding: 20px;
+        }
+        
+        .order-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .item-image {
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1><i class="fas fa-shopping-cart me-2"></i>Checkout</h1>
+                <p class="lead mb-0">Complete your order</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="checkout-section">
+    <div class="container checkout-container">
+        <form method="post" class="checkout-form-container">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="checkout-form">
+                        <h3 class="section-title">
+                            <i class="fas fa-truck me-2"></i>Shipping Information
+                        </h3>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label" for="shipping_name">Full Name *</label>
+                                    <input type="text" class="form-control" id="shipping_name" name="shipping_name" 
+                                           value="{{ user.get_full_name }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label" for="shipping_address_line1">Address Line 1 *</label>
+                                    <input type="text" class="form-control" id="shipping_address_line1" 
+                                           name="shipping_address_line1" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label" for="shipping_address_line2">Address Line 2</label>
+                                    <input type="text" class="form-control" id="shipping_address_line2" 
+                                           name="shipping_address_line2">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label" for="shipping_city">City *</label>
+                                    <input type="text" class="form-control" id="shipping_city" 
+                                           name="shipping_city" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label" for="shipping_province">Province *</label>
+                                    <select class="form-control" id="shipping_province" name="shipping_province" required>
+                                        <option value="">Select Province</option>
+                                        <option value="Eastern Cape">Eastern Cape</option>
+                                        <option value="Free State">Free State</option>
+                                        <option value="Gauteng">Gauteng</option>
+                                        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                        <option value="Limpopo">Limpopo</option>
+                                        <option value="Mpumalanga">Mpumalanga</option>
+                                        <option value="Northern Cape">Northern Cape</option>
+                                        <option value="North West">North West</option>
+                                        <option value="Western Cape">Western Cape</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label" for="shipping_postal_code">Postal Code *</label>
+                                    <input type="text" class="form-control" id="shipping_postal_code" 
+                                           name="shipping_postal_code" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label" for="shipping_phone">Phone Number</label>
+                                    <input type="tel" class="form-control" id="shipping_phone" 
+                                           name="shipping_phone">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="order_notes">Order Notes (Optional)</label>
+                            <textarea class="form-control" id="order_notes" name="order_notes" rows="3" 
+                                      placeholder="Any special instructions for your order..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="order-summary">
+                        <h3 class="section-title">
+                            <i class="fas fa-receipt me-2"></i>Order Summary
+                        </h3>
+                        
+                        <div class="order-items">
+                            {% for item in cart.items.all %}
+                            <div class="order-item">
+                                <div class="item-image">
+                                    {% if item.product.main_image %}
+                                        <img src="{{ item.product.main_image.url }}" 
+                                             alt="{{ item.product.name }}">
+                                    {% elif item.product.images.first %}
+                                        <img src="{{ item.product.images.first.image.url }}" 
+                                             alt="{{ item.product.name }}">
+                                    {% else %}
+                                        <img src="{{ item.product|product_image_or_placeholder:'80x80' }}" 
+                                             alt="{{ item.product.name }}">
+                                    {% endif %}
+                                </div>
+                                <div class="item-details">
+                                    <div class="item-name">{{ item.product.name }}</div>
+                                    {% if item.variant %}
+                                        <div class="item-variant">{{ item.variant.name }}</div>
+                                    {% endif %}
+                                    <div class="item-quantity">Qty: {{ item.quantity }}</div>
+                                </div>
+                                <div class="item-price">R{{ item.total_price }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="summary-totals">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span>R{{ subtotal }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping:</span>
+                                <span>R{{ shipping_cost }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>VAT (15%):</span>
+                                <span>R{{ tax_amount }}</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <span>R{{ total }}</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-place-order">
+                            <i class="fas fa-credit-card me-2"></i>Place Order
+                        </button>
+                        
+                        <div class="security-info">
+                            <i class="fas fa-shield-lock d-block"></i>
+                            <small>Your payment information is secure and encrypted</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.checkout-form-container');
+    const placeOrderBtn = document.querySelector('.btn-place-order');
+    
+    form.addEventListener('submit', function(e) {
+        // Disable button to prevent double submission
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    });
+    
+    // Auto-format phone number
+    const phoneInput = document.getElementById('shipping_phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value.length <= 3) {
+                    value = value;
+                } else if (value.length <= 6) {
+                    value = value.substring(0, 3) + ' ' + value.substring(3);
+                } else {
+                    value = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6, 10);
+                }
+            }
+            e.target.value = value;
+        });
+    }
+});
+</script>
+{% endblock %}

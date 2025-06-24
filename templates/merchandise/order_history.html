@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load merchandise_tags %}
+
+{% block title %}Order History - SAFA Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-history-section {
+        padding: 40px 0;
+        background: #f8f9fa;
+    }
+    
+    .order-history-header {
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+    }
+    
+    .order-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .order-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+    
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .order-number {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #006633;
+    }
+    
+    .order-date {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .order-status {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-PENDING {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-CONFIRMED {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-PROCESSING {
+        background: #cce7ff;
+        color: #004085;
+    }
+    
+    .status-SHIPPED {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .status-DELIVERED {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-CANCELLED {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .order-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .order-item-preview {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .order-item-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .items-count {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: rgba(0, 102, 51, 0.9);
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 0 8px 0 8px;
+    }
+    
+    .order-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+    }
+    
+    .order-total {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #006633;
+    }
+    
+    .order-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-view-order {
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view-order:hover {
+        background: linear-gradient(135deg, #004d26, #003319);
+        color: white;
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+    
+    .btn-reorder {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-reorder:hover {
+        background: #e9ecef;
+        color: #495057;
+        text-decoration: none;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state p {
+        color: #6c757d;
+        margin-bottom: 30px;
+    }
+    
+    .btn-start-shopping {
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-start-shopping:hover {
+        background: linear-gradient(135deg, #004d26, #003319);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,102,51,0.3);
+        text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+        .order-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .order-summary {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .order-actions {
+            width: 100%;
+        }
+        
+        .btn-view-order,
+        .btn-reorder {
+            flex: 1;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-history-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1><i class="fas fa-history me-2"></i>Order History</h1>
+                <p class="lead mb-0">Track all your SAFA Store purchases</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="order-history-section">
+    <div class="container">
+        {% if orders %}
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="order-header">
+                    <div>
+                        <div class="order-number">Order #{{ order.order_number }}</div>
+                        <div class="order-date">Placed on {{ order.created_at|date:"F j, Y" }}</div>
+                    </div>
+                    <div>
+                        <span class="order-status status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="order-items">
+                    {% for item in order.items.all|slice:":4" %}
+                    <div class="order-item-preview">
+                        {% if item.product.main_image %}
+                            <img src="{{ item.product.main_image.url }}" 
+                                 alt="{{ item.product_name }}">
+                        {% elif item.product.images.first %}
+                            <img src="{{ item.product.images.first.image.url }}" 
+                                 alt="{{ item.product_name }}">
+                        {% else %}
+                            <img src="{{ item.product|product_image_or_placeholder:'60x60' }}" 
+                                 alt="{{ item.product_name }}">
+                        {% endif %}
+                        {% if forloop.last and order.items.count > 4 %}
+                            <div class="items-count">+{{ order.items.count|add:"-4" }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-summary">
+                    <div class="order-total">R{{ order.total_amount }}</div>
+                    <div class="order-actions">
+                        <a href="{% url 'merchandise:order_detail' order.order_number %}" 
+                           class="btn-view-order">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </a>
+                        {% if order.status == 'DELIVERED' %}
+                        <a href="#" class="btn-reorder" onclick="reorderItems('{{ order.order_number }}')">
+                            <i class="fas fa-redo me-1"></i>Reorder
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination if needed -->
+            {% comment %}
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Order history pagination">
+                    <ul class="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endcomment %}
+            
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h3>No Orders Yet</h3>
+                <p>You haven't placed any orders yet. Start shopping for official SAFA merchandise!</p>
+                <a href="{% url 'merchandise:store_home' %}" class="btn-start-shopping">
+                    <i class="fas fa-shopping-cart me-2"></i>Start Shopping
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function reorderItems(orderNumber) {
+    // This would typically make an AJAX call to add all items from the previous order to cart
+    // For now, we'll show a simple alert and redirect to the store
+    alert('Reorder functionality coming soon! Redirecting to store...');
+    window.location.href = "{% url 'merchandise:store_home' %}";
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some nice animations
+    const orderCards = document.querySelectorAll('.order-card');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+            }
+        });
+    });
+    
+    orderCards.forEach((card) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}

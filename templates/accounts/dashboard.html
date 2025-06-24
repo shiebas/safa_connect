@@ -4,6 +4,150 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center">Welcome, {{ user.get_full_name|default:user.email }}</h2>
     <div class="row justify-content-center">
+        {% if user.is_superuser or user.role == "ADMIN_SYSTEM" or user.role == "ADMIN_COUNTRY" or user.role == "ADMIN_FEDERATION" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-shield-lock display-4 text-danger"></i>
+                        <h5 class="card-title mt-3">Document Access Monitor</h5>
+                        <p class="card-text">Monitor document downloads and access activity across the system.</p>
+                        <a href="{% url 'accounts:document_access_dashboard' %}" class="btn btn-outline-danger">View Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% if user.is_superuser %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-gear-fill display-4 text-secondary"></i>
+                        <h5 class="card-title mt-3">Django Admin</h5>
+                        <p class="card-text">Access the full Django administration interface.</p>
+                        <a href="/admin/" class="btn btn-outline-secondary">Admin Panel</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill display-4 text-info"></i>
+                        <h5 class="card-title mt-3">User Management</h5>
+                        <p class="card-text">Manage user accounts and permissions.</p>
+                        <a href="/admin/accounts/customuser/" class="btn btn-outline-info">Manage Users</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-building display-4 text-success"></i>
+                        <h5 class="card-title mt-3">Geography Management</h5>
+                        <p class="card-text">Manage provinces, regions, LFAs, and clubs.</p>
+                        <a href="{% url 'geography:provinces' %}" class="btn btn-outline-success">View Geography</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-check display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Club Admin Approvals</h5>
+                        <p class="card-text">Review and approve pending club administrator registrations.</p>
+                        <a href="{% url 'accounts:lfa_admin_approvals' %}" class="btn btn-outline-primary">View Approvals</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-credit-card display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Membership Cards</h5>
+                        <p class="card-text">Manage digital membership card system.</p>
+                        <a href="{% url 'membership_cards:dashboard' %}" class="btn btn-outline-warning">Card Dashboard</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-lock display-4 text-danger"></i>
+                        <h5 class="card-title mt-3">Test Document Protection</h5>
+                        <p class="card-text">Test the document watermarking and tracking system.</p>
+                        <a href="{% url 'accounts:test_download' %}" class="btn btn-outline-danger">Test System</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-trophy display-4 text-success"></i>
+                        <h5 class="card-title mt-3">League Management</h5>
+                        <p class="card-text">Manage competitions, teams, and fixtures.</p>
+                        <a href="{% url 'league_management:dashboard' %}" class="btn btn-outline-success">League Dashboard</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-whistle display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Add Referee</h5>
+                        <p class="card-text">Register new referees and officials.</p>
+                        <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-outline-warning">Add Referee</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-vcard display-4 text-info"></i>
+                        <h5 class="card-title mt-3">View Officials</h5>
+                        <p class="card-text">View and manage registered officials.</p>
+                        <a href="{% url 'accounts:official_list' %}" class="btn btn-outline-info">View Officials</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-ticket-perforated display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">International Ticketing</h5>
+                        <p class="card-text">Manage international match tickets, stadiums, and supporters.</p>
+                        <a href="{% url 'events:dashboard' %}" class="btn btn-outline-primary">Events Dashboard</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill display-4 text-info"></i>
+                        <h5 class="card-title mt-3">Supporters Management</h5>
+                        <p class="card-text">Manage supporter registrations, preferences, and profiles.</p>
+                        <a href="/admin/supporters/" class="btn btn-outline-info">Manage Supporters</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-stadium display-4 text-success"></i>
+                        <h5 class="card-title mt-3">Stadiums & Venues</h5>
+                        <p class="card-text">Manage stadiums, seat maps, and venue information.</p>
+                        <a href="/admin/events/stadium/" class="btn btn-outline-success">Manage Stadiums</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-graph-up display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">Analytics Dashboard</h5>
+                        <p class="card-text">View comprehensive analytics across all SAFA systems.</p>
+                        <a href="{% url 'superuser_dashboard' %}" class="btn btn-outline-warning">View Analytics</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
         {% if user.role == "ADMIN_PROVINCE" %}
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm h-100">

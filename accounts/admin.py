@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 # Update imports to include new models
-from .models import CustomUser, ModelWithLogo, RegistrationType, Position, OrganizationType, LFAAdministrator
+from .models import CustomUser, ModelWithLogo, RegistrationType, Position, OrganizationType, LFAAdministrator, DocumentAccessLog
 
 # Import directly from geography models
 try:
@@ -412,3 +412,82 @@ class MembershipAdmin(admin.ModelAdmin):
 
 # admin.site.register(Membership, MembershipAdmin)
 """
+
+@admin.register(DocumentAccessLog)
+class DocumentAccessLogAdmin(admin.ModelAdmin):
+    """Admin interface for Document Access Logs"""
+    list_display = [
+        'access_time', 'user', 'document_name', 'document_owner', 'action', 
+        'document_type', 'formatted_file_size', 'watermarked', 'success', 'ip_address'
+    ]
+    list_filter = [
+        'action', 'document_type', 'watermarked', 'success', 'access_time',
+        'user__role'
+    ]
+    search_fields = [
+        'user__email', 'user__first_name', 'user__last_name', 
+        'document_name', 'document_owner', 'ip_address'
+    ]
+    readonly_fields = [
+        'user', 'document_type', 'document_name', 'document_owner', 
+        'action', 'access_time', 'ip_address', 'user_agent', 'file_size',
+        'watermarked', 'success', 'notes'
+    ]
+    ordering = ['-access_time']
+    date_hierarchy = 'access_time'
+    
+    fieldsets = (
+        ('Document Access Information', {
+            'fields': ('user', 'document_type', 'document_name', 'document_owner', 'action')
+        }),
+        ('Access Details', {
+            'fields': ('access_time', 'ip_address', 'user_agent', 'file_size')
+        }),
+        ('Security', {
+            'fields': ('watermarked', 'success', 'notes')
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        """Prevent manual creation of access logs"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Make logs read-only"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Allow deletion only for superusers"""
+        return request.user.is_superuser
+    
+    def get_queryset(self, request):
+        """Filter logs based on user role"""
+        qs = super().get_queryset(request)
+        
+        if request.user.is_superuser:
+            return qs
+        
+        # Club admins can only see logs for their club's documents
+        if request.user.role == 'CLUB_ADMIN' and request.user.club:
+            return qs.filter(user__club=request.user.club)
+        
+        # LFA admins can see logs for their LFA
+        if request.user.role == 'ADMIN_LOCAL_FED' and request.user.local_federation:
+            return qs.filter(user__local_federation=request.user.local_federation)
+        
+        # Regional admins can see logs for their region
+        if request.user.role == 'ADMIN_REGION' and request.user.region:
+            return qs.filter(user__region=request.user.region)
+        
+        # Provincial admins can see logs for their province
+        if request.user.role == 'ADMIN_PROVINCE' and request.user.province:
+            return qs.filter(user__province=request.user.province)
+        
+        # National admins can see all logs
+        if request.user.role == 'ADMIN_COUNTRY':
+            return qs
+        
+        # Default: no access
+        return qs.none()
+
+# admin.site.register(Membership, MembershipAdmin)

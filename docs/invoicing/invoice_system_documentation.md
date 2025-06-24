@@ -2,19 +2,58 @@
 
 ## Overview
 
-The SAFA Global Invoice System provides comprehensive functionality for tracking payments related to player registrations, transfers, and other financial transactions. The system allows club administrators to generate invoices during player registration, track payment statuses, and generate reports on outstanding balances.
+The SAFA Global Invoice System provides comprehensive functionality for tracking payments related to player registrations, transfers, supporter memberships, and other financial transactions. The system automatically generates invoices for various registration types, tracks payment statuses, and generates reports on outstanding balances.
 
 This documentation serves as a training guide for administrators and staff who will be using the invoice system.
 
+**Note**: For detailed information about the Supporter Invoice System, see the dedicated [Supporter Invoice System Documentation](supporter_invoice_system.md).
+
 ## Table of Contents
 
-1. [Core Components](#core-components)
-2. [Invoice Generation Process](#invoice-generation-process)
-3. [Payment Tracking](#payment-tracking)
-4. [Reporting](#reporting)
-5. [Administrative Tasks](#administrative-tasks)
-6. [Troubleshooting](#troubleshooting)
-7. [API Integration](#api-integration)
+1. [System Overview](#system-overview)
+2. [Core Components](#core-components)
+3. [Invoice Types](#invoice-types)
+4. [Invoice Generation Process](#invoice-generation-process)
+5. [Payment Tracking](#payment-tracking)
+6. [Reporting](#reporting)
+7. [Administrative Tasks](#administrative-tasks)
+8. [Troubleshooting](#troubleshooting)
+9. [API Integration](#api-integration)
+
+## System Overview
+
+The SAFA Invoice System handles multiple types of registrations and payments:
+
+- **Player Registrations**: Junior and Senior player membership fees
+- **Official Registrations**: Referee and coach certification fees  
+- **Supporter Memberships**: Individual and family supporter packages
+- **Transfers**: Player transfer fees between clubs
+- **Renewals**: Annual membership renewals
+- **Other**: Miscellaneous fees and charges
+
+## Invoice Types
+
+### 1. Player Registration Invoices
+- **Format**: `PLR-YYYYMMDD-XXXXXX`
+- **Scope**: Junior and Senior player registrations
+- **Integration**: Automatic during player registration process
+
+### 2. Supporter Registration Invoices
+- **Format**: `SUP-YYYYMMDD-XXXXXX`
+- **Scope**: All supporter membership tiers
+- **Integration**: Automatic during supporter registration
+- **Special Features**: Geolocation integration, family packages
+- **Pricing**: R150 - R1,500 (plus 15% VAT)
+
+### 3. Official Registration Invoices
+- **Format**: `OFF-YYYYMMDD-XXXXXX`
+- **Scope**: Referee and coach registrations
+- **Integration**: Manual and automatic generation
+
+### 4. Transfer Invoices
+- **Format**: `TRF-YYYYMMDD-XXXXXX`
+- **Scope**: Player transfers between clubs
+- **Integration**: Generated during transfer process
 
 ## Core Components
 

@@ -1,7 +1,71 @@
 from django import forms
-from .models import SupporterProfile
+from .models import SupporterProfile, SupporterPreferences
+
+class SupporterPreferencesForm(forms.ModelForm):
+    """Form for supporter preferences matrix"""
+    class Meta:
+        model = SupporterPreferences
+        exclude = ['created_at', 'updated_at']
+        widgets = {
+            'communication_frequency': forms.Select(
+                attrs={'class': 'form-select'}
+            ),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Group fields by category for better display
+        self.field_categories = {
+            'Tickets & Events': [
+                'discount_tickets', 'vip_experiences', 'international_matches', 
+                'local_matches', 'youth_matches'
+            ],
+            'Merchandise & Retail': [
+                'official_jerseys', 'casual_clothing', 'limited_editions', 'seasonal_sales'
+            ],
+            'Travel & Hospitality': [
+                'match_travel_packages', 'accommodation_deals', 'transport_offers', 'international_tours'
+            ],
+            'Digital & Media': [
+                'exclusive_content', 'player_interviews', 'live_streaming', 'podcasts_videos'
+            ],
+            'Community & Events': [
+                'community_events', 'coaching_clinics', 'player_meetups', 'charity_initiatives'
+            ],
+            'Food & Beverage': [
+                'stadium_dining', 'partner_restaurant_deals', 'catering_packages'
+            ],
+            'Financial Services': [
+                'insurance_products', 'banking_offers', 'investment_opportunities'
+            ],
+            'Communication Preferences': [
+                'email_notifications', 'sms_alerts', 'push_notifications', 'whatsapp_updates',
+                'communication_frequency'
+            ],
+            'Special Interests': [
+                'youth_development', 'womens_football', 'disability_football', 
+                'referee_programs', 'coaching_development'
+            ]
+        }
+        
+        # Add CSS classes to all fields
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({'class': 'form-check-input'})
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({'class': 'form-select'})
 
 class SupporterRegistrationForm(forms.ModelForm):
+    # Add preferences selection
+    setup_preferences = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Set up my marketing preferences now",
+        help_text="You can customize what updates you'd like to receive from SAFA",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
     class Meta:
         model = SupporterProfile
         fields = [

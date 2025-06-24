@@ -57,6 +57,9 @@ INSTALLED_APPS = [
     'league_management',  # Competition management system
     # 'tools',  # REMOVED - functionality moved to other apps
     'supporters',
+    'events.apps.EventsConfig',  # International events & ticketing
+    'merchandise.apps.MerchandiseConfig',  # SAFA merchandise store
+    'pwa.apps.PwaConfig',  # Progressive Web App functionality
 ]
 
 MIDDLEWARE = [
@@ -72,6 +75,7 @@ MIDDLEWARE = [
 #    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
     'accounts.middleware.AdminFormErrorMiddleware',
+    'accounts.middleware.DocumentAccessMiddleware',  # Document tracking and watermarking
 ]
 
 ROOT_URLCONF = 'safa_global.urls'

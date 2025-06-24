@@ -13,9 +13,10 @@ def admin_add_referee(request):
     Universal view for all admin levels (Provincial, Regional, LFA, Association)
     to register referees.
     """
-    # Check if user has appropriate role
+    # Check if user has appropriate role (including superusers)
     allowed_roles = ['ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'ASSOCIATION_ADMIN']
-    if request.user.role not in allowed_roles:
+    if not (request.user.is_superuser or request.user.is_staff or 
+            (hasattr(request.user, 'role') and request.user.role in allowed_roles)):
         messages.error(request, "You don't have permission to register referees.")
         return redirect('accounts:dashboard')
     

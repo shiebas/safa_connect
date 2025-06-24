@@ -1,0 +1,575 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load merchandise_tags %}
+
+{% block title %}My Wishlist - SAFA Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wishlist-section {
+        padding: 40px 0;
+        background: #f8f9fa;
+        min-height: 60vh;
+    }
+    
+    .wishlist-header {
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+    }
+    
+    .wishlist-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        padding: 0 15px;
+    }
+    
+    .wishlist-item {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .wishlist-item:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        transform: translateY(-5px);
+    }
+    
+    .item-image {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .wishlist-item:hover .item-image img {
+        transform: scale(1.05);
+    }
+    
+    .remove-wishlist {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #dc3545;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .remove-wishlist:hover {
+        background: #dc3545;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .item-content {
+        padding: 20px;
+    }
+    
+    .item-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    
+    .item-category {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    .item-price {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .current-price {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #006633;
+    }
+    
+    .original-price {
+        font-size: 1rem;
+        color: #6c757d;
+        text-decoration: line-through;
+    }
+    
+    .sale-badge {
+        background: #dc3545;
+        color: white;
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .item-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-add-to-cart {
+        flex: 1;
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-add-to-cart:hover {
+        background: linear-gradient(135deg, #004d26, #003319);
+        transform: translateY(-1px);
+    }
+    
+    .btn-view-product {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view-product:hover {
+        background: #e9ecef;
+        color: #495057;
+        text-decoration: none;
+    }
+    
+    .empty-wishlist {
+        text-align: center;
+        padding: 80px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .empty-wishlist-icon {
+        font-size: 5rem;
+        color: #dee2e6;
+        margin-bottom: 25px;
+    }
+    
+    .empty-wishlist h3 {
+        color: #6c757d;
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+    }
+    
+    .empty-wishlist p {
+        color: #6c757d;
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+    }
+    
+    .btn-browse-products {
+        background: linear-gradient(135deg, #006633, #004d26);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-browse-products:hover {
+        background: linear-gradient(135deg, #004d26, #003319);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,102,51,0.3);
+        text-decoration: none;
+    }
+    
+    .wishlist-stats {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .stats-item {
+        text-align: center;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #006633;
+    }
+    
+    .stats-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    @media (max-width: 768px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .wishlist-stats {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .stats-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    }
+    
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
+    
+    .toast {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        border: none;
+    }
+    
+    .toast-success {
+        border-left: 4px solid #28a745;
+    }
+    
+    .toast-error {
+        border-left: 4px solid #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1><i class="fas fa-heart me-2"></i>My Wishlist</h1>
+                <p class="lead mb-0">Your favorite SAFA merchandise</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="wishlist-section">
+    <div class="container wishlist-container">
+        {% if wishlist.products.exists %}
+            <!-- Wishlist Stats -->
+            <div class="wishlist-stats">
+                <div class="stats-item">
+                    <div class="stats-number">{{ wishlist.products.count }}</div>
+                    <div class="stats-label">Items in Wishlist</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-number">R{{ wishlist.total_value|floatformat:0 }}</div>
+                    <div class="stats-label">Total Value</div>
+                </div>
+                <div class="stats-item">
+                    <button class="btn btn-outline-primary" onclick="addAllToCart()">
+                        <i class="fas fa-cart-plus me-1"></i>Add All to Cart
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Wishlist Items -->
+            <div class="wishlist-grid">
+                {% for product in wishlist.products.all %}
+                <div class="wishlist-item" data-product-id="{{ product.id }}">
+                    <div class="item-image">
+                        {% if product.main_image %}
+                            <img src="{{ product.main_image.url }}" 
+                                 alt="{{ product.name }}">
+                        {% elif product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" 
+                                 alt="{{ product.name }}">
+                        {% else %}
+                            <img src="{{ product|product_image_or_placeholder:'240x240' }}" 
+                                 alt="{{ product.name }}">
+                        {% endif %}
+                        
+                        <button class="remove-wishlist" onclick="removeFromWishlist({{ product.id }})" 
+                                title="Remove from wishlist">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="item-content">
+                        <div class="item-name">{{ product.name }}</div>
+                        <div class="item-category">{{ product.category.name }}</div>
+                        
+                        <div class="item-price">
+                            {% if product.sale_price %}
+                                <span class="current-price">R{{ product.sale_price }}</span>
+                                <span class="original-price">R{{ product.price }}</span>
+                                <span class="sale-badge">SALE</span>
+                            {% else %}
+                                <span class="current-price">R{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="item-actions">
+                            <button class="btn-add-to-cart" onclick="addToCart({{ product.id }})">
+                                <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                            </button>
+                            <a href="{% url 'merchandise:product_detail' product.slug %}" 
+                               class="btn-view-product">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+        {% else %}
+            <div class="empty-wishlist">
+                <div class="empty-wishlist-icon">
+                    <i class="fas fa-heart-broken"></i>
+                </div>
+                <h3>Your Wishlist is Empty</h3>
+                <p>Save your favorite SAFA merchandise to your wishlist for easy access later!</p>
+                <a href="{% url 'merchandise:store_home' %}" class="btn-browse-products">
+                    <i class="fas fa-shopping-bag me-2"></i>Browse Products
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Toast Container for Notifications -->
+<div class="toast-container">
+    <div id="wishlist-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-heart me-2 text-danger"></i>
+            <strong class="me-auto">Wishlist</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toast-message">
+            <!-- Dynamic message content -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Show toast notification
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('wishlist-toast');
+    const toastMessage = document.getElementById('toast-message');
+    
+    toastMessage.textContent = message;
+    toast.className = `toast toast-${type}`;
+    
+    const bootstrapToast = new bootstrap.Toast(toast);
+    bootstrapToast.show();
+}
+
+// Remove product from wishlist
+function removeFromWishlist(productId) {
+    fetch("{% url 'merchandise:toggle_wishlist' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+        },
+        body: `product_id=${productId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the item from the page
+            const item = document.querySelector(`[data-product-id="${productId}"]`);
+            item.style.opacity = '0';
+            item.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                item.remove();
+                
+                // Check if wishlist is now empty
+                const remainingItems = document.querySelectorAll('.wishlist-item');
+                if (remainingItems.length === 0) {
+                    location.reload(); // Reload to show empty state
+                } else {
+                    // Update stats
+                    updateWishlistStats();
+                }
+            }, 300);
+            
+            showToast(data.message, 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to update wishlist', 'error');
+    });
+}
+
+// Add product to cart
+function addToCart(productId) {
+    fetch("{% url 'merchandise:add_to_cart' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+        },
+        body: `product_id=${productId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Product added to cart!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to add to cart', 'error');
+    });
+}
+
+// Add all wishlist items to cart
+function addAllToCart() {
+    const productIds = Array.from(document.querySelectorAll('.wishlist-item'))
+        .map(item => item.dataset.productId);
+    
+    let addedCount = 0;
+    let failedCount = 0;
+    
+    productIds.forEach(productId => {
+        fetch("{% url 'merchandise:add_to_cart' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: `product_id=${productId}&quantity=1`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addedCount++;
+            } else {
+                failedCount++;
+            }
+            
+            // Show final message when all requests are complete
+            if (addedCount + failedCount === productIds.length) {
+                if (addedCount > 0 && failedCount === 0) {
+                    showToast(`All ${addedCount} items added to cart!`, 'success');
+                } else if (addedCount > 0 && failedCount > 0) {
+                    showToast(`${addedCount} items added to cart, ${failedCount} failed`, 'warning');
+                } else {
+                    showToast('Failed to add items to cart', 'error');
+                }
+            }
+        })
+        .catch(error => {
+            failedCount++;
+            console.error('Error:', error);
+        });
+    });
+}
+
+// Update wishlist stats (placeholder function)
+function updateWishlistStats() {
+    const remainingItems = document.querySelectorAll('.wishlist-item').length;
+    const statsNumber = document.querySelector('.stats-number');
+    if (statsNumber) {
+        statsNumber.textContent = remainingItems;
+    }
+}
+
+// Initialize page animations
+document.addEventListener('DOMContentLoaded', function() {
+    const wishlistItems = document.querySelectorAll('.wishlist-item');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+            }
+        });
+    });
+    
+    wishlistItems.forEach((item) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(item);
+    });
+});
+</script>
+{% endblock %}

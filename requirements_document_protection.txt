@@ -1,0 +1,4 @@
+# Additional dependencies for document watermarking and protection
+Pillow>=9.0.0
+PyPDF2>=3.0.0
+reportlab>=3.6.0

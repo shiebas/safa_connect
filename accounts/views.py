@@ -679,24 +679,28 @@ def ajax_check_fifa_id(request):
 @login_required
 def player_approval_list(request):
     """View for club admins and higher-level admins to view and approve players"""
-    if not hasattr(request.user, 'role') or request.user.role not in ['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN']:
+    if not (request.user.is_superuser or request.user.is_staff or 
+            (hasattr(request.user, 'role') and request.user.role in ['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN'])):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('accounts:dashboard')
     
     # Get players related to the admin's scope
     player_registrations = []
     
+    # For superusers and staff, show all players
+    if request.user.is_superuser or request.user.is_staff:
+        player_registrations = PlayerClubRegistration.objects.all().select_related('player', 'club')
     # For club admins, show only their club's players
-    if request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
+    elif hasattr(request.user, 'role') and request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
         player_registrations = PlayerClubRegistration.objects.filter(club=request.user.club).select_related('player', 'club')
     
     # For LFA admins, show players in clubs under their LFA
-    elif request.user.role == 'LFA_ADMIN' and hasattr(request.user, 'lfa') and request.user.lfa:
+    elif hasattr(request.user, 'role') and request.user.role == 'LFA_ADMIN' and hasattr(request.user, 'lfa') and request.user.lfa:
         clubs = Club.objects.filter(local_football_association=request.user.lfa)
         player_registrations = PlayerClubRegistration.objects.filter(club__in=clubs).select_related('player', 'club')
     
     # For higher level admins, show players based on their jurisdiction
-    elif request.user.role in ['REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN']:
+    elif hasattr(request.user, 'role') and request.user.role in ['REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN']:
         # Get all players or filter by region/province as appropriate
         if request.user.role == 'REGION_ADMIN' and hasattr(request.user, 'region') and request.user.region:
             lfas = LocalFootballAssociation.objects.filter(region=request.user.region)
@@ -1022,57 +1026,83 @@ def club_invoices(request):
     
     if is_association:
         # Association admin viewing invoices
-        if not hasattr(request.user, 'role') or request.user.role != 'ASSOCIATION_ADMIN':
+        if not (request.user.is_superuser or request.user.is_staff or 
+                (hasattr(request.user, 'role') and request.user.role == 'ASSOCIATION_ADMIN')):
             messages.error(request, 'You do not have permission to access this page.')
             return redirect('accounts:dashboard')
         
-        if not hasattr(request.user, 'association') or not request.user.association:
+        if not (request.user.is_superuser or request.user.is_staff) and (not hasattr(request.user, 'association') or not request.user.association):
             messages.error(request, 'Your profile is not linked to an association.')
             return redirect('accounts:dashboard')
         
-        # Get all invoices for this association
-        association = request.user.association
-        
-        # Filter by status if provided
-        status = request.GET.get('status')
-        if status:
-            invoices = Invoice.objects.filter(
-                association=association,
-                status=status
-            ).select_related('official')
+        # Get all invoices for this association (or all for superusers)
+        if request.user.is_superuser or request.user.is_staff:
+            # Superusers can see all association invoices
+            status = request.GET.get('status')
+            if status:
+                invoices = Invoice.objects.filter(
+                    association__isnull=False,
+                    status=status
+                ).select_related('official', 'association')
+            else:
+                invoices = Invoice.objects.filter(
+                    association__isnull=False
+                ).select_related('official', 'association')
+            entity = None  # No specific entity for superusers
         else:
-            invoices = Invoice.objects.filter(
-                association=association
-            ).select_related('official')
-            
-        entity = association
+            association = request.user.association
+            # Filter by status if provided
+            status = request.GET.get('status')
+            if status:
+                invoices = Invoice.objects.filter(
+                    association=association,
+                    status=status
+                ).select_related('official')
+            else:
+                invoices = Invoice.objects.filter(
+                    association=association
+                ).select_related('official')
+            entity = association
         template = 'accounts/association_invoices.html'
     else:
         # Club admin viewing invoices
-        if not hasattr(request.user, 'role') or request.user.role != 'CLUB_ADMIN':
+        if not (request.user.is_superuser or request.user.is_staff or 
+                (hasattr(request.user, 'role') and request.user.role == 'CLUB_ADMIN')):
             messages.error(request, 'You do not have permission to access this page.')
             return redirect('accounts:dashboard')
         
-        if not hasattr(request.user, 'club') or not request.user.club:
+        if not (request.user.is_superuser or request.user.is_staff) and (not hasattr(request.user, 'club') or not request.user.club):
             messages.error(request, 'Your profile is not linked to a club.')
             return redirect('accounts:dashboard')
         
-        # Get all invoices for this club
-        club = request.user.club
-        
-        # Filter by status if provided
-        status = request.GET.get('status')
-        if status:
-            invoices = Invoice.objects.filter(
-                club=club,
-                status=status
-            ).select_related('player')
+        # Get all invoices for this club (or all for superusers)
+        if request.user.is_superuser or request.user.is_staff:
+            # Superusers can see all club invoices
+            status = request.GET.get('status')
+            if status:
+                invoices = Invoice.objects.filter(
+                    club__isnull=False,
+                    status=status
+                ).select_related('player', 'club')
+            else:
+                invoices = Invoice.objects.filter(
+                    club__isnull=False
+                ).select_related('player', 'club')
+            entity = None  # No specific entity for superusers
         else:
-            invoices = Invoice.objects.filter(
-                club=club
-            ).select_related('player')
-        
-        entity = club
+            club = request.user.club
+            # Filter by status if provided
+            status = request.GET.get('status')
+            if status:
+                invoices = Invoice.objects.filter(
+                    club=club,
+                    status=status
+                ).select_related('player')
+            else:
+                invoices = Invoice.objects.filter(
+                    club=club
+                ).select_related('player')
+            entity = club
         template = 'accounts/club_invoices.html'
     
     # Calculate summary statistics

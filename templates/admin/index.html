@@ -1,0 +1,43 @@
+{% extends "admin/index.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .dashboard-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        color: white;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-decoration: none;
+        display: block;
+        transition: transform 0.2s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        color: white;
+        text-decoration: none;
+    }
+    .dashboard-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <a href="{% url 'superuser_dashboard' %}" class="dashboard-card">
+            <div class="text-center">
+                <i class="bi bi-speedometer2 dashboard-icon"></i>
+                <h4>🚀 SAFA Global - Superuser Dashboard</h4>
+                <p class="mb-0">Comprehensive overview of events, supporters, invoices, and system metrics</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %}

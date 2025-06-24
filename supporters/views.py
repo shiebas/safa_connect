@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
 from datetime import timedelta
-from .forms import SupporterRegistrationForm
-from .models import SupporterProfile
+from .forms import SupporterRegistrationForm, SupporterPreferencesForm
+from .models import SupporterProfile, SupporterPreferences
 from accounts.models import CustomUser
 from membership.models.invoice import Invoice
 from membership.models import Member
@@ -98,13 +98,20 @@ def register_supporter(request):
     
     if request.method == 'POST':
         form = SupporterRegistrationForm(request.POST, request.FILES)
-        if form.is_valid():
+        preferences_form = SupporterPreferencesForm(request.POST) if request.POST.get('setup_preferences') else None
+        
+        if form.is_valid() and (preferences_form is None or preferences_form.is_valid()):
             supporter = form.save(commit=False)
             supporter.user = user
             
             # Set location timestamp if coordinates were provided
             if supporter.latitude and supporter.longitude:
                 supporter.location_timestamp = timezone.now()
+            
+            # Create preferences if form was submitted
+            if preferences_form:
+                preferences = preferences_form.save()
+                supporter.preferences = preferences
             
             supporter.save()
             
@@ -124,9 +131,11 @@ def register_supporter(request):
             return redirect('supporters:profile')
     else:
         form = SupporterRegistrationForm()
+        preferences_form = SupporterPreferencesForm()
     
     return render(request, 'supporters/register.html', {
         'form': form,
+        'preferences_form': preferences_form,
         'membership_pricing': MEMBERSHIP_PRICING
     })
 
@@ -134,6 +143,62 @@ def register_supporter(request):
 def supporter_profile(request):
     profile = request.user.supporterprofile
     return render(request, 'supporters/profile.html', {'profile': profile})
+
+@login_required
+def edit_preferences(request):
+    """Allow supporters to update their preferences"""
+    try:
+        profile = request.user.supporterprofile
+        preferences = profile.preferences
+        if not preferences:
+            preferences = SupporterPreferences.objects.create()
+            profile.preferences = preferences
+            profile.save()
+    except SupporterProfile.DoesNotExist:
+        messages.error(request, 'You need to complete your supporter registration first.')
+        return redirect('supporters:register')
+    
+    if request.method == 'POST':
+        form = SupporterPreferencesForm(request.POST, instance=preferences)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your preferences have been updated successfully!')
+            return redirect('supporters:profile')
+    else:
+        form = SupporterPreferencesForm(instance=preferences)
+    
+    return render(request, 'supporters/edit_preferences.html', {
+        'form': form,
+        'profile': profile
+    })
+
+@login_required
+def preferences_setup(request):
+    """Standalone preferences setup for existing supporters"""
+    try:
+        profile = request.user.supporterprofile
+        preferences = profile.preferences
+        if not preferences:
+            preferences = SupporterPreferences.objects.create()
+            profile.preferences = preferences
+            profile.save()
+    except SupporterProfile.DoesNotExist:
+        messages.error(request, 'You need to complete your supporter registration first.')
+        return redirect('supporters:register')
+    
+    if request.method == 'POST':
+        form = SupporterPreferencesForm(request.POST, instance=preferences)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your preferences have been set up successfully!')
+            return redirect('supporters:profile')
+    else:
+        form = SupporterPreferencesForm(instance=preferences)
+    
+    return render(request, 'supporters/preferences_setup.html', {
+        'form': form,
+        'profile': profile
+    })
 
 class SupporterProfileViewSet(viewsets.ModelViewSet):
     queryset = SupporterProfile.objects.all()

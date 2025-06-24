@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load supporter_extras %}
+
+{% block title %}Setup Preferences - SAFA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .setup-hero {
+        background: linear-gradient(135deg, var(--safa-green), var(--safa-dark));
+        color: white;
+        padding: 80px 0;
+        margin-bottom: 40px;
+    }
+    
+    .setup-card {
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-bottom: 40px;
+        background: white;
+    }
+    
+    .setup-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 40px;
+        text-align: center;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .setup-body {
+        padding: 40px;
+    }
+    
+    .preferences-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .preference-category {
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        border-radius: 15px;
+        padding: 25px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .preference-category:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .category-title {
+        color: var(--safa-dark);
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--safa-green);
+        font-size: 1.1rem;
+        text-align: center;
+    }
+    
+    .preferences-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .preference-item {
+        margin-bottom: 0;
+    }
+    
+    .preference-item .form-check {
+        margin-bottom: 0;
+        padding-left: 1.8rem;
+        position: relative;
+    }
+    
+    .preference-item .form-check-input {
+        margin-top: 0.3rem;
+        transform: scale(1.1);
+    }
+    
+    .preference-item .form-check-label {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 0;
+        color: #495057;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+    
+    .preference-item .form-check-label:hover {
+        color: var(--safa-green);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--safa-green);
+        border-color: var(--safa-green);
+    }
+    
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(0, 102, 51, 0.25);
+    }
+    
+    .form-select {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 10px 15px;
+        font-weight: 500;
+    }
+    
+    .form-select:focus {
+        border-color: var(--safa-green);
+        box-shadow: 0 0 0 0.25rem rgba(0, 102, 51, 0.25);
+    }
+    
+    .btn-complete-setup {
+        background: linear-gradient(135deg, var(--safa-green), var(--safa-dark));
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .btn-complete-setup:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 102, 51, 0.4);
+        color: white;
+    }
+    
+    .welcome-section {
+        background: linear-gradient(135deg, #e8f5e8, #d4edda);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-left: 5px solid var(--safa-green);
+        text-align: center;
+    }
+    
+    .quick-select-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    
+    .quick-select-btn {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        color: var(--safa-dark);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .quick-select-btn:hover {
+        background: var(--safa-green);
+        color: white;
+        border-color: var(--safa-green);
+    }
+    
+    @media (max-width: 768px) {
+        .preferences-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .preference-category {
+            padding: 20px;
+        }
+        
+        .setup-body, .setup-header {
+            padding: 25px;
+        }
+        
+        .setup-hero {
+            padding: 60px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="setup-hero">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="display-3 fw-bold mb-4">
+                    <i class="fas fa-magic me-3"></i>
+                    Welcome to SAFA!
+                </h1>
+                <p class="lead mb-0 fs-4">
+                    Let's personalize your experience by setting up your preferences.
+                    This helps us provide you with the most relevant updates and offers.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="setup-card">
+                <div class="setup-header">
+                    <h3 class="text-safa mb-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                        {{ profile.user.get_full_name }}
+                    </h3>
+                    <p class="text-muted mb-0 fs-5">{{ profile.get_membership_type_display }} Member</p>
+                </div>
+                
+                <div class="setup-body">
+                    <div class="welcome-section">
+                        <h4 class="text-safa mb-3">
+                            <i class="fas fa-heart me-2"></i>
+                            Choose What Interests You
+                        </h4>
+                        <p class="mb-3">
+                            Select the topics you're passionate about to receive personalized updates, 
+                            exclusive offers, and relevant content from SAFA.
+                        </p>
+                        <div class="quick-select-buttons">
+                            <button type="button" class="quick-select-btn" onclick="selectCategory('tickets')">
+                                <i class="fas fa-ticket-alt me-1"></i>Match Tickets
+                            </button>
+                            <button type="button" class="quick-select-btn" onclick="selectCategory('merchandise')">
+                                <i class="fas fa-tshirt me-1"></i>Merchandise
+                            </button>
+                            <button type="button" class="quick-select-btn" onclick="selectCategory('travel')">
+                                <i class="fas fa-plane me-1"></i>Travel Deals
+                            </button>
+                            <button type="button" class="quick-select-btn" onclick="selectCategory('digital')">
+                                <i class="fas fa-play me-1"></i>Digital Content
+                            </button>
+                            <button type="button" class="quick-select-btn" onclick="selectAll()">
+                                <i class="fas fa-check-double me-1"></i>Select All
+                            </button>
+                            <button type="button" class="quick-select-btn" onclick="clearAll()">
+                                <i class="fas fa-times me-1"></i>Clear All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="preferences-grid">
+                            {% for category, fields in form.field_categories.items %}
+                                <div class="preference-category">
+                                    <h6 class="category-title">
+                                        <i class="fas fa-{% if 'Ticket' in category %}ticket-alt{% elif 'Merch' in category %}tshirt{% elif 'Travel' in category %}plane{% elif 'Digital' in category %}play{% elif 'Community' in category %}users{% elif 'Food' in category %}utensils{% elif 'Financial' in category %}credit-card{% elif 'Communication' in category %}envelope{% else %}star{% endif %} me-2"></i>
+                                        {{ category }}
+                                    </h6>
+                                    <div class="preferences-options">
+                                        {% for field_name in fields %}
+                                            {% with field=form|lookup:field_name %}
+                                                {% if field %}
+                                                    <div class="preference-item">
+                                                        {% if field.field.widget|class_name == 'Select' %}
+                                                            <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                                                            {{ field }}
+                                                        {% else %}
+                                                            <div class="form-check">
+                                                                {{ field }}
+                                                                <label for="{{ field.id_for_label }}" class="form-check-label">
+                                                                    {{ field.label }}
+                                                                </label>
+                                                            </div>
+                                                        {% endif %}
+                                                        {% if field.errors %}
+                                                            <div class="text-danger small">{{ field.errors.0 }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="text-center mt-5">
+                            <button type="submit" class="btn btn-complete-setup btn-lg">
+                                <i class="fas fa-rocket me-2"></i>Complete Setup
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 p-4 bg-light rounded-3">
+                            <div class="row text-center">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary">
+                                        <i class="fas fa-shield-alt me-2"></i>Privacy Protected
+                                    </h6>
+                                    <small class="text-muted">Your data is secure and never shared without consent</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-success">
+                                        <i class="fas fa-edit me-2"></i>Always Changeable
+                                    </h6>
+                                    <small class="text-muted">Update your preferences anytime from your profile</small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick selection functions
+    window.selectCategory = function(category) {
+        const categoryMappings = {
+            'tickets': ['discount_tickets', 'vip_experiences', 'international_matches', 'local_matches', 'youth_matches'],
+            'merchandise': ['official_jerseys', 'casual_clothing', 'limited_editions', 'seasonal_sales'],
+            'travel': ['match_travel_packages', 'accommodation_deals', 'transport_offers', 'international_tours'],
+            'digital': ['exclusive_content', 'player_interviews', 'live_streaming', 'podcasts_videos']
+        };
+        
+        const fields = categoryMappings[category] || [];
+        fields.forEach(fieldName => {
+            const checkbox = document.querySelector(`input[name="${fieldName}"]`);
+            if (checkbox && checkbox.type === 'checkbox') {
+                checkbox.checked = true;
+            }
+        });
+    };
+    
+    window.selectAll = function() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.name !== 'csrfmiddlewaretoken') {
+                checkbox.checked = true;
+            }
+        });
+    };
+    
+    window.clearAll = function() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.name !== 'csrfmiddlewaretoken') {
+                checkbox.checked = false;
+            }
+        });
+    };
+});
+</script>
+{% endblock %}

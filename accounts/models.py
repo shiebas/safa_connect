@@ -925,5 +925,61 @@ class LFAAdministrator(models.Model):
         return f"{self.user.email} - {self.lfa.name}"
 
 
+class DocumentAccessLog(models.Model):
+    """Track all document downloads and access"""
+    DOCUMENT_TYPES = [
+        ('player_id', 'Player ID Document'),
+        ('player_passport', 'Player Passport'),
+        ('player_sa_passport', 'Player SA Passport'),
+        ('player_profile', 'Player Profile Picture'),
+        ('official_id', 'Official ID Document'),
+        ('official_passport', 'Official Passport'),
+        ('official_cert', 'Official Certification'),
+        ('club_document', 'Club Document'),
+        ('other', 'Other Document'),
+    ]
+    
+    ACTION_TYPES = [
+        ('view', 'Viewed'),
+        ('download', 'Downloaded'),
+        ('print', 'Printed'),
+    ]
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, help_text="User who accessed the document")
+    document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPES)
+    document_name = models.CharField(max_length=255, help_text="Original document filename")
+    document_owner = models.CharField(max_length=255, help_text="Person/entity the document belongs to")
+    action = models.CharField(max_length=10, choices=ACTION_TYPES, default='view')
+    access_time = models.DateTimeField(default=timezone.now)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    file_size = models.PositiveIntegerField(null=True, blank=True, help_text="File size in bytes")
+    watermarked = models.BooleanField(default=False, help_text="Whether document was watermarked")
+    success = models.BooleanField(default=True, help_text="Whether access was successful")
+    notes = models.TextField(blank=True, help_text="Additional notes about the access")
+    
+    class Meta:
+        db_table = 'document_access_log'
+        ordering = ['-access_time']
+        verbose_name = 'Document Access Log'
+        verbose_name_plural = 'Document Access Logs'
+    
+    def __str__(self):
+        return f"{self.user.get_full_name()} {self.action} {self.document_name} at {self.access_time}"
+    
+    @property
+    def formatted_file_size(self):
+        """Return human readable file size"""
+        if not self.file_size:
+            return "Unknown"
+        
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024.0:
+                return f"{size:.1f} {unit}"
+            size /= 1024.0
+        return f"{size:.1f} TB"
+
+
 
 
