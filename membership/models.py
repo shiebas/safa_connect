@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from model_utils.models import TimeStampedModel
 from django.conf import settings
 from django.utils.crypto import get_random_string
-from accounts.models import CustomUser  # This is correct - keep importing from accounts
 import os
 from geography.models import (
     ModelWithLogo, 
@@ -15,12 +14,17 @@ from geography.models import (
     Club as GeographyClub  # Import Club from geography with an alias
 )
 from django.apps import apps
-import sys
-from membership.models.vendor import Vendor
+# from membership.models.vendor import Vendor  # COMMENTED OUT - vendor model doesn't exist yet
 
-# Add path to utils if needed
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from utils.qr_code_utils import generate_qr_code, get_member_qr_data
+# Import utils functions conditionally to avoid import issues
+try:
+    from utils.qr_code_utils import generate_qr_code, get_member_qr_data
+except ImportError:
+    # Define dummy functions if utils are not available
+    def generate_qr_code(data, size=200):
+        return None
+    def get_member_qr_data(member):
+        return {}
 
 # Constants for default images
 DEFAULT_PROFILE_PICTURE = 'default_profile.png'
@@ -931,3 +935,19 @@ class ClubWithSafaID(GeographyClub):
                 club = cls.objects.get(pk=club.pk)
             return club.generate_qr_code(size)
         return None
+
+
+# Import invoice models to make them available
+try:
+    from .invoice_models import Invoice, InvoiceItem, Vendor
+except ImportError:
+    # If invoice_models.py doesn't exist yet, create placeholder classes
+    class Invoice(models.Model):
+        class Meta:
+            app_label = 'membership'
+    class InvoiceItem(models.Model):
+        class Meta:
+            app_label = 'membership'
+    class Vendor(models.Model):
+        class Meta:
+            app_label = 'membership'

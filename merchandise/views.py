@@ -17,30 +17,9 @@ from supporters.models import SupporterProfile
 
 
 def store_home(request):
-    """SAFA merchandise store homepage"""
-    featured_categories = ProductCategory.objects.filter(
-        is_featured=True, is_active=True
-    ).order_by('display_order')[:6]
-    
-    featured_products = Product.objects.filter(
-        is_featured=True, status='ACTIVE'
-    ).order_by('-created_at')[:8]
-    
-    new_arrivals = Product.objects.filter(
-        status='ACTIVE'
-    ).order_by('-created_at')[:6]
-    
-    on_sale = Product.objects.filter(
-        status='ACTIVE', sale_price__isnull=False
-    ).order_by('-created_at')[:6]
-    
-    context = {
-        'featured_categories': featured_categories,
-        'featured_products': featured_products,
-        'new_arrivals': new_arrivals,
-        'on_sale': on_sale,
-    }
-    return render(request, 'merchandise/store_home.html', context)
+    """Redirect to product listing page"""
+    from django.shortcuts import redirect
+    return redirect('merchandise:product_list')
 
 
 def product_list(request, category_slug=None):

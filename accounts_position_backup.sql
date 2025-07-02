@@ -1,2 +1,0 @@
-INSERT INTO "table"(id,title,description,level,employment_type,is_active,requires_approval,created_at,created_by_id,levels) VALUES(1,'President','','level','MEMBER',1,1,'2025-06-19 21:01:47.306777',1,'NATIONAL,PROVINCE,REGION,LFA,CLUB');
-INSERT INTO "table"(id,title,description,level,employment_type,is_active,requires_approval,created_at,created_by_id,levels) VALUES(3,'Club Chairperson','','level','MEMBER',1,1,'2025-06-19 21:02:37.328487',1,'NATIONAL,PROVINCE,REGION,LFA,CLUB');

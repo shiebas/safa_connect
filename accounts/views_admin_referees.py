@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .forms import AssociationOfficialRegistrationForm
 from .models import CustomUser, Position
-from membership.models.main import Official  # Corrected import path for Official model
+from membership.models import Official  # Import Official model
 from geography.models import Association, LocalFootballAssociation, Region, Province
 
 @login_required

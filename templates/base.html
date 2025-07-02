@@ -55,6 +55,16 @@
             background-color: var(--safa-dark);
             color: white;
         }
+        
+        .footer-safa a {
+            color: #e9ecef !important;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-safa a:hover {
+            color: var(--safa-gold) !important;
+            text-decoration: underline !important;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -294,11 +304,33 @@
     <footer class="footer-safa mt-5 py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <h5><i class="fas fa-futbol me-2"></i>SAFA Global Admin</h5>
-                    <p class="mb-0">South African Football Association Registration System</p>
+                    <p class="mb-2">South African Football Association Registration System</p>
+                    <p class="mb-0">
+                        <small class="text-light">
+                            Powered by <strong>LS SPECIAL PROJECTS PTY LTD</strong> t/a <strong>ESJ Sports Solutions</strong>
+                        </small>
+                    </p>
                 </div>
-                <div class="col-md-6 text-md-end">
+                <div class="col-md-4 text-md-end">
+                    <div class="mb-2">
+                        <small>
+                            <a href="/legal/terms/" class="text-light text-decoration-none me-2">Terms & Conditions</a> |
+                            <a href="/legal/privacy/" class="text-light text-decoration-none me-2 ms-2">Privacy Policy</a>
+                        </small>
+                    </div>
+                    <div class="mb-2">
+                        <small>
+                            <a href="/legal/cookies/" class="text-light text-decoration-none me-2">Cookie Policy</a> |
+                            <a href="/legal/paia/" class="text-light text-decoration-none me-2 ms-2">PAIA Act</a>
+                        </small>
+                    </div>
+                    <div class="mb-2">
+                        <small>
+                            <a href="/legal/refund/" class="text-light text-decoration-none">Refund Policy</a>
+                        </small>
+                    </div>
                     <p class="mb-0">
                         <small>&copy; 2025 SAFA. All rights reserved.</small>
                     </p>

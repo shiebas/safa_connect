@@ -187,55 +187,6 @@
         font-weight: bold;
     }
     
-    /* Category Cards */
-    .category-card {
-        border: none;
-        border-radius: 20px;
-        overflow: hidden;
-        position: relative;
-        height: 200px;
-        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        transition: all 0.3s ease;
-    }
-    
-    .category-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-    }
-    
-    .category-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
-    }
-    
-    .category-card:hover::before {
-        background: rgba(0,0,0,0.1);
-    }
-    
-    .category-content {
-        position: relative;
-        z-index: 2;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .category-icon {
-        font-size: 3rem;
-        margin-bottom: 15px;
-    }
-    
     /* Section Headings */
     .section-heading {
         text-align: center;
@@ -320,9 +271,6 @@
                     <a href="{% url 'merchandise:product_list' %}" class="btn btn-light btn-lg">
                         <i class="bi bi-bag-heart me-2"></i>Shop Now
                     </a>
-                    <a href="#featured-categories" class="btn btn-outline-light btn-lg">
-                        <i class="bi bi-grid me-2"></i>Browse Categories
-                    </a>
                 </div>
             </div>
             <div class="col-lg-4 text-center">
@@ -331,45 +279,6 @@
         </div>
     </div>
 </section>
-
-<!-- Featured Categories -->
-<section id="featured-categories" class="py-5">
-    <div class="container">
-        <div class="section-heading">
-            <h2>Shop by Category</h2>
-            <p class="text-muted">Discover our premium collection of SAFA merchandise</p>
-        </div>
-        
-        <div class="row g-4">
-            {% for category in featured_categories %}
-            <div class="col-lg-4 col-md-6">
-                <a href="{% url 'merchandise:category_products' category.slug %}" class="text-decoration-none">
-                    <div class="card category-card">
-                        <div class="category-content">
-                            <div class="category-icon">
-                                {% if 'jersey' in category.name|lower %}
-                                    <i class="bi bi-person-arms-up"></i>
-                                {% elif 'accessory' in category.name|lower %}
-                                    <i class="bi bi-bag"></i>
-                                {% elif 'equipment' in category.name|lower %}
-                                    <i class="bi bi-gear"></i>
-                                {% elif 'collectible' in category.name|lower %}
-                                    <i class="bi bi-trophy"></i>
-                                {% else %}
-                                    <i class="bi bi-star"></i>
-                                {% endif %}
-                            </div>
-                            <h4 class="fw-bold">{{ category.name }}</h4>
-                            <p class="mb-0">{{ category.description|truncatechars:80 }}</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-
 <!-- Featured Products -->
 <section class="py-5 bg-light">
     <div class="container">

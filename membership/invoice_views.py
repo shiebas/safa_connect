@@ -25,7 +25,7 @@ except ImportError:
 from datetime import timedelta, date
 from decimal import Decimal
 
-from membership.models.invoice import Invoice, InvoiceItem
+from membership.invoice_models import Invoice, InvoiceItem
 from membership.models import Player, PlayerClubRegistration
 from geography.models import Club, LocalFootballAssociation, Region, Province
 

@@ -8,8 +8,7 @@ from django.utils import timezone
 import datetime
 from .forms import EmailAuthenticationForm, NationalUserRegistrationForm, UniversalRegistrationForm, ClubAdminPlayerRegistrationForm, PlayerClubRegistrationOnlyForm, PlayerUpdateForm, PlayerClubRegistrationUpdateForm, PlayerUpdateForm, ClubAdminOfficialRegistrationForm, AssociationOfficialRegistrationForm, OfficialCertificationForm
 from .models import CustomUser
-from membership.models import Membership, Player, PlayerClubRegistration
-from membership.models.main import Official
+from membership.models import Membership, Player, PlayerClubRegistration, Official
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
@@ -722,7 +721,7 @@ def player_approval_list(request):
     approval_status = request.GET.get('status', 'pending')
     
     # Import here to avoid circular imports
-    from membership.models.invoice import Invoice
+    from membership.invoice_models import Invoice
     
     # Use a dictionary to ensure each player only appears once
     unique_players = {}
@@ -853,7 +852,7 @@ def approve_player(request, player_id):
         missing_requirements.append("Passport document")
     
     # Check if the player has any unpaid invoices
-    from membership.models.invoice import Invoice
+    from membership.invoice_models import Invoice
     pending_invoices = Invoice.objects.filter(
         player=player,
         status__in=['PENDING', 'OVERDUE'],
@@ -1019,7 +1018,7 @@ def edit_player(request, player_id):
 def club_invoices(request):
     """View to show outstanding and all invoices for a club or association"""
     # Import here to avoid circular imports
-    from membership.models.invoice import Invoice
+    from membership.invoice_models import Invoice
     
     # Check permission based on user role
     is_association = request.GET.get('association') == 'true'
@@ -1564,7 +1563,7 @@ def club_admin_add_official(request):
             # If this is a referee with a level, create a certification record
             referee_level = official_form.cleaned_data.get('referee_level')
             if referee_level and "referee" in position_title:
-                from membership.models.main import OfficialCertification
+                from membership.models import OfficialCertification
                 
                 # Create certification record
                 certification = OfficialCertification(
@@ -1763,7 +1762,7 @@ def official_detail(request, official_id):
             print(f"[DEBUG - OFFICIAL DETAIL] Error setting SAFRA as primary_association: {e}")
     
     # Get invoices
-    from membership.models.invoice import Invoice
+    from membership.invoice_models import Invoice
     invoices = Invoice.objects.filter(official=official)
     
     # Check if user can approve official
@@ -1915,7 +1914,7 @@ def approve_official(request, official_id):
         return redirect('accounts:dashboard')
     
     # Check if the official has any unpaid invoices
-    from membership.models.invoice import Invoice
+    from membership.invoice_models import Invoice
     unpaid_invoices = Invoice.objects.filter(official=official, status__in=['PENDING', 'OVERDUE'])
     
     if unpaid_invoices.exists():
@@ -2128,7 +2127,7 @@ def association_admin_add_official(request):
             # If this is a referee with a level, create a certification record
             referee_level = official_form.cleaned_data.get('referee_level')
             if referee_level and "referee" in position_title:
-                from membership.models.main import OfficialCertification
+                from membership.models import OfficialCertification
                 
                 # Create certification record
                 certification = OfficialCertification(

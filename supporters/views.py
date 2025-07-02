@@ -6,7 +6,7 @@ from datetime import timedelta
 from .forms import SupporterRegistrationForm, SupporterPreferencesForm
 from .models import SupporterProfile, SupporterPreferences
 from accounts.models import CustomUser
-from membership.models.invoice import Invoice
+from membership.invoice_models import Invoice
 from membership.models import Member
 from geography.models import Club
 from rest_framework import viewsets
@@ -87,16 +87,24 @@ def create_supporter_invoice(supporter_profile):
         print(f"Error creating invoice: {e}")
         return None
 
-@login_required
 def register_supporter(request):
-    user = request.user
-    try:
-        profile = user.supporterprofile
-        return redirect('supporters:profile')
-    except SupporterProfile.DoesNotExist:
-        pass
+    # Allow both authenticated and unauthenticated users
+    if request.user.is_authenticated:
+        user = request.user
+        try:
+            profile = user.supporterprofile
+            return redirect('supporters:profile')
+        except SupporterProfile.DoesNotExist:
+            pass
+    else:
+        user = None
     
     if request.method == 'POST':
+        # Only process form if user is authenticated
+        if not user:
+            messages.error(request, 'Please log in first to complete your supporter registration.')
+            return redirect('accounts:login')
+            
         form = SupporterRegistrationForm(request.POST, request.FILES)
         preferences_form = SupporterPreferencesForm(request.POST) if request.POST.get('setup_preferences') else None
         
@@ -136,7 +144,8 @@ def register_supporter(request):
     return render(request, 'supporters/register.html', {
         'form': form,
         'preferences_form': preferences_form,
-        'membership_pricing': MEMBERSHIP_PRICING
+        'membership_pricing': MEMBERSHIP_PRICING,
+        'user_authenticated': request.user.is_authenticated
     })
 
 @login_required

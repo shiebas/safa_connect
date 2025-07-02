@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db.models import Q, F
 from datetime import timedelta
-from membership.models.invoice import Invoice
+from membership.invoice_models import Invoice
 
 class Command(BaseCommand):
     help = 'Update invoice statuses for overdue payments'

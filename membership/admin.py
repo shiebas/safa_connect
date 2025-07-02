@@ -7,10 +7,10 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db import models
-# Use relative imports to get the models directly from models.py file
-from .models import Member, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
-# Import from the invoice module within the models package
-from .models.invoice import Invoice, InvoiceItem, Vendor
+# Import models directly from the models.py file 
+from membership.models import Member, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
+# Import Invoice models
+from .invoice_models import Invoice, InvoiceItem, Vendor
 
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
@@ -262,23 +262,19 @@ class VendorAdmin(admin.ModelAdmin):
             'fields': ('name', 'email', 'phone', 'address', 'is_active')
         }),
         ('Logo', {
-            'fields': ('logo', 'logo_preview'),
-        }),
-        ('Timestamps', {
-            'fields': ('created', 'modified'),
+            'fields': ('logo', 'logo_preview')
         }),
     )
 
     def logo_thumbnail(self, obj):
         if obj.logo:
-            return format_html('<img src="{}" width="40" height="40" style="object-fit:contain;" />', obj.logo.url)
-        return "-"
+            return format_html('<img src="{}" width="30" height="30" style="border-radius: 50%;" />', obj.logo.url)
+        return "No logo"
     logo_thumbnail.short_description = 'Logo'
-    logo_thumbnail.allow_tags = True
 
     def logo_preview(self, obj):
         if obj.logo:
-            return format_html('<img src="{}" width="120" style="object-fit:contain;" />', obj.logo.url)
+            return format_html('<img src="{}" width="200" height="200" style="max-width: 200px;" />', obj.logo.url)
         return "No logo uploaded."
     logo_preview.short_description = 'Logo Preview'
     logo_preview.allow_tags = True
@@ -293,85 +289,22 @@ class InvoiceAdmin(admin.ModelAdmin):
     autocomplete_fields = ['player', 'club', 'issued_by', 'vendor']
     date_hierarchy = 'issue_date'
     readonly_fields = ('invoice_number', 'uuid', 'is_paid', 'is_overdue', 'get_payment_instructions')
-    inlines = []
-    fieldsets = (
-        (None, {
-            'fields': (
-                'invoice_number', 'uuid', 'status', 'invoice_type', 'amount', 'tax_amount', 'payment_method', 'notes',
-                'player', 'club', 'vendor', 'issued_by',
-                'issue_date', 'due_date', 'payment_date',
-            )
-        }),
-        ('Advanced', {
-            'classes': ('collapse',),
-            'fields': ('content_type', 'object_id', 'get_payment_instructions'),
-        }),
-    )
-    change_list_template = 'admin/membership/invoice_change_list.html'
+    inlines = [InvoiceItemInline]
+    actions = ['mark_selected_paid', 'mark_selected_overdue']
 
     def get_payment_instructions(self, obj):
         return obj.get_payment_instructions()
     get_payment_instructions.short_description = 'Payment Instructions'
-    actions = ['mark_selected_paid', 'mark_selected_overdue', 'export_selected', 'export_selected_pdf', 'send_invoice_reminders']
-
-    def export_selected_pdf(self, request, queryset):
-        from django.template.loader import render_to_string
-        from weasyprint import HTML
-        import tempfile
-        invoices = list(queryset)
-        html_string = render_to_string('admin/membership/invoices_export_pdf.html', {'invoices': invoices})
-        with tempfile.NamedTemporaryFile(delete=True, suffix='.pdf') as output:
-            HTML(string=html_string).write_pdf(output.name)
-            output.seek(0)
-            response = HttpResponse(output.read(), content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="invoices_export.pdf"'
-            return response
-    export_selected_pdf.short_description = "Export selected invoices as PDF"
-
-    def changelist_view(self, request, extra_context=None):
-        response = super().changelist_view(request, extra_context=extra_context)
-        try:
-            qs = self.get_queryset(request)
-            summary = response.context_data.get('dashboard_summary', {})
-            if not summary:
-                summary = {
-                    'total': qs.count(),
-                    'paid': qs.filter(status='PAID').count(),
-                    'pending': qs.filter(status='PENDING').count(),
-                    'overdue': qs.filter(status='OVERDUE').count(),
-                    'total_amount': qs.aggregate(total=models.Sum('amount'))['total'] or 0,
-                    'paid_amount': qs.filter(status='PAID').aggregate(total=models.Sum('amount'))['total'] or 0,
-                    'pending_amount': qs.filter(status='PENDING').aggregate(total=models.Sum('amount'))['total'] or 0,
-                    'overdue_amount': qs.filter(status='OVERDUE').aggregate(total=models.Sum('amount'))['total'] or 0,
-                }
-            response.context_data['dashboard_summary'] = summary
-        except Exception:
-            pass
-        return response
 
     def mark_selected_paid(self, request, queryset):
-        """Bulk action: Mark selected invoices as paid and activate player if registration."""
+        """Bulk action: Mark selected invoices as paid."""
         paid_count = 0
-        activated_count = 0
         for invoice in queryset:
             if invoice.status != 'PAID':
                 invoice.mark_as_paid()
                 paid_count += 1
-                # Activate player and registration if registration invoice
-                if invoice.invoice_type == 'REGISTRATION':
-                    try:
-                        reg = invoice.player.club_registrations.get(club=invoice.club)
-                        if reg.status != 'ACTIVE':
-                            reg.status = 'ACTIVE'
-                            reg.save()
-                        if invoice.player.status != 'ACTIVE':
-                            invoice.player.status = 'ACTIVE'
-                            invoice.player.save()
-                        activated_count += 1
-                    except Exception:
-                        pass
-        self.message_user(request, f"{paid_count} invoice(s) marked as paid. {activated_count} player(s) activated.")
-    mark_selected_paid.short_description = "Mark selected invoices as paid and activate players"
+        self.message_user(request, f"{paid_count} invoice(s) marked as paid.")
+    mark_selected_paid.short_description = "Mark selected invoices as paid"
 
     def mark_selected_overdue(self, request, queryset):
         """Bulk action: Mark selected invoices as overdue."""
@@ -379,50 +312,13 @@ class InvoiceAdmin(admin.ModelAdmin):
         self.message_user(request, f"{overdue_count} invoice(s) marked as overdue.")
     mark_selected_overdue.short_description = "Mark selected invoices as overdue"
 
-    def export_selected(self, request, queryset):
-        import csv
-        from django.http import HttpResponse
-        fieldnames = [
-            'invoice_number', 'player', 'club', 'vendor', 'amount', 'status', 'issue_date', 'due_date', 'payment_date'
-        ]
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="invoices_export.csv"'
-        writer = csv.writer(response)
-        writer.writerow(fieldnames)
-        for invoice in queryset:
-            writer.writerow([
-                invoice.invoice_number,
-                invoice.player.get_full_name() if invoice.player else '',
-                invoice.club.name if invoice.club else '',
-                invoice.vendor.name if invoice.vendor else '',
-                invoice.amount,
-                invoice.status,
-                invoice.issue_date,
-                invoice.due_date,
-                invoice.payment_date,
-            ])
-        return response
-    export_selected.short_description = "Export selected invoices as CSV"
-
-    def send_invoice_reminders(self, request, queryset):
-        from django.core.mail import send_mail
-        count = 0
-        for invoice in queryset:
-            if invoice.player and invoice.player.email:
-                send_mail(
-                    subject=_('Payment Reminder: Invoice #{0}').format(invoice.invoice_number),
-                    message=_('You have an outstanding invoice (#{0}) for R{1}. Please log in to the system to view and settle your balance.').format(invoice.invoice_number, invoice.amount),
-                    from_email='noreply@safaglobal.org',
-                    recipient_list=[invoice.player.email],
-                    fail_silently=True,
-                )
-                count += 1
-        self.message_user(request, _(f"Sent payment reminders for {count} invoice(s)."))
-    send_invoice_reminders.short_description = _('Send payment reminder email to selected invoices')
-
 @admin.register(InvoiceItem)
 class InvoiceItemAdmin(admin.ModelAdmin):
     list_display = ('invoice', 'description', 'quantity', 'unit_price', 'sub_total')
     search_fields = ('invoice__invoice_number', 'description')
     autocomplete_fields = ['invoice']
     readonly_fields = ('sub_total',)
+    
+    def sub_total(self, obj):
+        return f"R{obj.sub_total:.2f}"
+    sub_total.short_description = "Sub Total"

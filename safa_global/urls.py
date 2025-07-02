@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from .dashboard_views import superuser_dashboard
+from .dashboard_views import superuser_dashboard  # Re-enabled - Invoice model is fixed
 
 # Update admin site title, header, and index title
 admin.site.site_header = "SAFA Administration"
@@ -13,7 +13,7 @@ admin.site.index_title = "Welcome to SAFA Administration Portal"
 
 
 urlpatterns = [
-    path('admin/dashboard/', superuser_dashboard, name='superuser_dashboard'),
+    path('admin/dashboard/', superuser_dashboard, name='superuser_dashboard'),  # Re-enabled - Invoice model is fixed
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('geography/', include(('geography.urls', 'geography'), namespace='geography')),
@@ -24,6 +24,7 @@ urlpatterns = [
     path('events/', include('events.urls', namespace='events')),
     path('store/', include('merchandise.urls', namespace='merchandise')),
     path('pwa/', include('pwa.urls', namespace='pwa')),
+    path('legal/', include('legal.urls', namespace='legal')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),  # Add home page instead
 ]
 

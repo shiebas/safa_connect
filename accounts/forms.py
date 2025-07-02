@@ -11,7 +11,7 @@ from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder
 
 from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation
-from membership.models.main import Player, Official, OfficialCertification
+from membership.models import Player, Official, OfficialCertification
 from .utils import extract_sa_id_dob_gender
 
 class EmailAuthenticationForm(AuthenticationForm):

@@ -5,7 +5,7 @@ from django.utils import timezone
 from datetime import timedelta
 from events.models import Stadium, InternationalMatch, Ticket, TicketGroup
 from supporters.models import SupporterProfile
-from membership.models.invoice import Invoice
+from membership.invoice_models import Invoice
 from membership.models import Member, Player
 from geography.models import Club
 from accounts.models import CustomUser

@@ -16,7 +16,7 @@ from .serializers import (
     TicketSerializer, TicketGroupSerializer
 )
 from supporters.models import SupporterProfile
-from membership.models.invoice import Invoice
+from membership.invoice_models import Invoice
 from membership.models import Member
 from geography.models import Club
 

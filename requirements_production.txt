@@ -1,0 +1,161 @@
+# ================================================================
+# SAFA Global Management System - Production Requirements
+# Combined from all requirement files for deployment
+# Last Updated: June 2025
+# ================================================================
+
+# ================================================================
+# CORE DJANGO FRAMEWORK
+# ================================================================
+Django>=4.2.0,<5.0.0
+djangorestframework>=3.14.0
+django-cors-headers>=4.3.1
+django-debug-toolbar>=4.2.0
+django-extensions>=3.2.3
+
+# ================================================================
+# DATABASE & ORM
+# ================================================================
+dj-database-url>=3.0.0
+psycopg>=3.2.9
+psycopg2-binary>=2.9.10
+django-model-utils>=4.3.1
+django-modelcluster>=6.1
+
+# ================================================================
+# AUTHENTICATION & SECURITY
+# ================================================================
+django-allauth>=0.57.0
+django-cors-headers>=4.3.1
+djangorestframework-authtoken
+cryptography>=45.0.0
+PyJWT>=2.10.1
+python3-openid>=3.2.0
+oauthlib>=3.2.2
+requests-oauthlib>=2.0.0
+
+# ================================================================
+# FORMS & UI COMPONENTS
+# ================================================================
+django-crispy-forms>=2.0
+crispy-bootstrap5>=0.7
+django-widget-tweaks>=1.5.0
+django-permissionedforms>=0.1
+django-filter>=23.3
+laces>=0.1.0
+
+# ================================================================
+# FILE HANDLING & MEDIA
+# ================================================================
+Pillow>=10.0.1
+django-storages>=1.14.2
+defusedxml>=0.7.1
+
+# ================================================================
+# PDF & DOCUMENT PROCESSING
+# ================================================================
+reportlab>=4.4.1
+PyPDF2>=3.0.0
+pydyf>=0.11.0
+pyphen>=0.17.2
+fonttools>=4.58.2
+pypng>=0.20220715.0
+cssselect2>=0.8.0
+
+# ================================================================
+# QR CODES & DIGITAL INTEGRATION
+# ================================================================
+qrcode>=7.4.2
+
+# ================================================================
+# GOOGLE WALLET & API INTEGRATION
+# ================================================================
+google-auth>=2.10.0
+google-api-python-client>=2.50.0
+google-auth-oauthlib>=1.0.0
+
+# ================================================================
+# WEB SERVER & DEPLOYMENT
+# ================================================================
+gunicorn>=21.2.0
+python-decouple>=3.8
+python-dotenv>=1.1.0
+
+# ================================================================
+# UTILITIES & HELPERS
+# ================================================================
+requests>=2.32.3
+pytz>=2025.2
+sqlparse>=0.5.3
+packaging>=25.0
+idna>=3.10
+pycparser>=2.22
+
+# ================================================================
+# DEVELOPMENT & CODE QUALITY (Optional - for development)
+# ================================================================
+# Uncomment these for development environment
+# black>=23.0.0
+# flake8>=6.0.0
+# django-stubs-ext>=4.2.5
+
+# ================================================================
+# SYSTEM DEPENDENCIES
+# ================================================================
+# These are typically installed via system package manager
+# but included for completeness
+setuptools>=80.9.0
+pip>=25.1.1
+
+# ================================================================
+# ADDITIONAL OPTIONAL DEPENDENCIES
+# ================================================================
+# Uncomment these if using specific features:
+# 
+# For advanced task management:
+# django-tasks>=0.1.1
+# 
+# For Redis caching:
+# redis>=4.0.0
+# django-redis>=5.0.0
+# 
+# For email handling:
+# django-anymail>=10.0.0
+# 
+# For API documentation:
+# drf-spectacular>=0.26.0
+# 
+# For monitoring:
+# sentry-sdk>=1.0.0
+# 
+# For static file compression:
+# django-compressor>=4.0.0
+
+# ================================================================
+# NOTES FOR DEPLOYMENT
+# ================================================================
+# 1. Install system dependencies first:
+#    sudo apt-get update
+#    sudo apt-get install python3-dev postgresql-client libpq-dev
+#
+# 2. Create virtual environment:
+#    python3 -m venv venv
+#    source venv/bin/activate
+#
+# 3. Install requirements:
+#    pip install -r requirements_production.txt
+#
+# 4. Set environment variables:
+#    DEBUG=False
+#    SECRET_KEY=your-secret-key
+#    DATABASE_URL=your-database-url
+#    ALLOWED_HOSTS=your-domain.com
+#
+# 5. Run migrations and collect static:
+#    python manage.py migrate
+#    python manage.py collectstatic
+#    python manage.py createsuperuser
+#
+# 6. Start with gunicorn:
+#    gunicorn safa_global.wsgi:application
+# ================================================================

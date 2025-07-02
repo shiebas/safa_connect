@@ -1,5 +1,10 @@
 from django.urls import path, include
 from . import views
+from .card_views import (
+    my_digital_card, download_my_card, card_preview_image,
+    admin_card_management, admin_generate_card, admin_bulk_generate_cards,
+    admin_card_preview, card_verification
+)
 from rest_framework import routers
 from .views import DigitalCardViewSet
 
@@ -9,7 +14,21 @@ router = routers.DefaultRouter()
 router.register(r'digitalcards', DigitalCardViewSet)
 
 urlpatterns = [
-    path('my-card/', views.my_digital_card, name='my_card'),
+    # User card access
+    path('my-card/', my_digital_card, name='my_card'),
+    path('download/<str:format_type>/', download_my_card, name='download_my_card'),
+    path('preview-image/', card_preview_image, name='card_preview_image'),
+    
+    # Admin management
+    path('admin/', admin_card_management, name='admin_management'),
+    path('admin/generate/<int:member_id>/', admin_generate_card, name='admin_generate_card'),
+    path('admin/bulk-generate/', admin_bulk_generate_cards, name='admin_bulk_generate'),
+    path('admin/preview/<int:member_id>/', admin_card_preview, name='admin_card_preview'),
+    
+    # Card verification
+    path('verify/<str:safa_id>/', card_verification, name='card_verification'),
+    
+    # Legacy URLs (kept for backward compatibility)
     path('qr-code/', views.card_qr_code, name='qr_code'),
     path('verify/', views.verify_qr_code, name='verify_qr'),
     path('download/', views.download_card, name='download_card'),

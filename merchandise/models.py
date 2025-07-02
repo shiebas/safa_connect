@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from supporters.models import SupporterProfile
-from membership.models.invoice import Invoice
+from membership.invoice_models import Invoice
 import uuid
 from decimal import Decimal
 

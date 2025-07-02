@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cookie Policy - SAFA Global Administration{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-safa text-white">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-cookie-bite me-2"></i>
+                        Cookie Policy
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Last Updated:</strong> June 26, 2025
+                    </div>
+
+                    <h3>1. What Are Cookies</h3>
+                    <p>Cookies are small text files that are placed on your computer or mobile device when you visit our website. They are widely used to make websites work more efficiently and provide information to website owners.</p>
+
+                    <h3>2. How We Use Cookies</h3>
+                    <p><strong>LS SPECIAL PROJECTS PTY LTD</strong> trading as <strong>ESJ Sports Solutions</strong> uses cookies on the SAFA Global Management System for various purposes:</p>
+
+                    <h4>2.1 Essential Cookies</h4>
+                    <p>These cookies are necessary for the website to function properly:</p>
+                    <ul>
+                        <li><strong>Session Cookies:</strong> Maintain your login session</li>
+                        <li><strong>CSRF Protection:</strong> Prevent cross-site request forgery attacks</li>
+                        <li><strong>Authentication:</strong> Remember your login status</li>
+                        <li><strong>Shopping Cart:</strong> Maintain items in your cart</li>
+                    </ul>
+
+                    <h4>2.2 Functional Cookies</h4>
+                    <p>These cookies enhance functionality and personalization:</p>
+                    <ul>
+                        <li><strong>Language Preferences:</strong> Remember your language settings</li>
+                        <li><strong>Theme Settings:</strong> Store your display preferences</li>
+                        <li><strong>PWA Installation:</strong> Track if you've installed the Progressive Web App</li>
+                        <li><strong>Form Data:</strong> Remember form inputs for convenience</li>
+                    </ul>
+
+                    <h4>2.3 Analytics Cookies</h4>
+                    <p>These cookies help us understand how visitors use our website:</p>
+                    <ul>
+                        <li><strong>Usage Statistics:</strong> Track page views and user interactions</li>
+                        <li><strong>Performance Monitoring:</strong> Identify technical issues</li>
+                        <li><strong>Feature Usage:</strong> Understand which features are popular</li>
+                    </ul>
+
+                    <h3>3. Types of Cookies We Use</h3>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Cookie Name</th>
+                                    <th>Purpose</th>
+                                    <th>Duration</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>sessionid</td>
+                                    <td>Maintains user login session</td>
+                                    <td>Session</td>
+                                    <td>Essential</td>
+                                </tr>
+                                <tr>
+                                    <td>csrftoken</td>
+                                    <td>CSRF protection</td>
+                                    <td>1 year</td>
+                                    <td>Essential</td>
+                                </tr>
+                                <tr>
+                                    <td>pwa-install-banner-shown</td>
+                                    <td>Tracks PWA install banner dismissal</td>
+                                    <td>Persistent</td>
+                                    <td>Functional</td>
+                                </tr>
+                                <tr>
+                                    <td>cart_data</td>
+                                    <td>Stores shopping cart contents</td>
+                                    <td>7 days</td>
+                                    <td>Functional</td>
+                                </tr>
+                                <tr>
+                                    <td>user_preferences</td>
+                                    <td>Stores user display preferences</td>
+                                    <td>1 year</td>
+                                    <td>Functional</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>4. Third-Party Cookies</h3>
+                    <p>We may also use third-party services that set cookies:</p>
+                    <ul>
+                        <li><strong>Bootstrap CDN:</strong> For styling and functionality</li>
+                        <li><strong>Font Awesome:</strong> For icons and fonts</li>
+                        <li><strong>Google Wallet:</strong> For digital card integration (if enabled)</li>
+                    </ul>
+
+                    <h3>5. PWA and Local Storage</h3>
+                    <p>Our Progressive Web App uses additional storage methods:</p>
+                    <ul>
+                        <li><strong>Local Storage:</strong> Caches data for offline functionality</li>
+                        <li><strong>Service Worker Cache:</strong> Stores resources for offline use</li>
+                        <li><strong>IndexedDB:</strong> Stores structured data for offline access</li>
+                    </ul>
+
+                    <h3>6. Managing Cookies</h3>
+                    
+                    <h4>6.1 Browser Settings</h4>
+                    <p>You can control cookies through your browser settings:</p>
+                    <ul>
+                        <li><strong>Chrome:</strong> Settings > Privacy and Security > Cookies</li>
+                        <li><strong>Firefox:</strong> Settings > Privacy & Security > Cookies</li>
+                        <li><strong>Safari:</strong> Preferences > Privacy > Cookies</li>
+                        <li><strong>Edge:</strong> Settings > Privacy > Cookies</li>
+                    </ul>
+
+                    <h4>6.2 Cookie Preferences</h4>
+                    <div class="alert alert-warning">
+                        <h5>⚠️ Important Notice</h5>
+                        <p>Disabling essential cookies may prevent certain features from working properly, including:</p>
+                        <ul>
+                            <li>User login and authentication</li>
+                            <li>Shopping cart functionality</li>
+                            <li>Form submissions</li>
+                            <li>PWA installation</li>
+                        </ul>
+                    </div>
+
+                    <h3>7. Cookie Consent</h3>
+                    <p>By continuing to use our website, you consent to our use of cookies as described in this policy. You can withdraw consent at any time by modifying your browser settings.</p>
+
+                    <h3>8. Updates to This Policy</h3>
+                    <p>We may update this Cookie Policy from time to time. Any changes will be posted on this page with an updated "Last Updated" date.</p>
+
+                    <h3>9. Contact Information</h3>
+                    <p>If you have questions about our use of cookies, please contact us:</p>
+                    <div class="alert alert-light">
+                        <strong>LS SPECIAL PROJECTS PTY LTD</strong><br>
+                        Trading as: ESJ Sports Solutions<br>
+                        Email: <a href="mailto:privacy@safaglobaladmin.co.za">privacy@safaglobaladmin.co.za</a><br>
+                        
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button class="btn btn-outline-secondary" onclick="window.history.back()">
+                            <i class="fas fa-arrow-left me-2"></i>Go Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

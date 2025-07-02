@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'events.apps.EventsConfig',  # International events & ticketing
     'merchandise.apps.MerchandiseConfig',  # SAFA merchandise store
     'pwa.apps.PwaConfig',  # Progressive Web App functionality
+    'legal.apps.LegalConfig',  # Legal pages (Terms, Privacy, etc.)
 ]
 
 MIDDLEWARE = [

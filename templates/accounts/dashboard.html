@@ -62,8 +62,8 @@
                     <div class="card-body text-center">
                         <i class="bi bi-credit-card display-4 text-warning"></i>
                         <h5 class="card-title mt-3">Membership Cards</h5>
-                        <p class="card-text">Manage digital membership card system.</p>
-                        <a href="{% url 'membership_cards:dashboard' %}" class="btn btn-outline-warning">Card Dashboard</a>
+                        <p class="card-text">Manage digital membership card system and bulk generation.</p>
+                        <a href="{% url 'membership_cards:admin_management' %}" class="btn btn-outline-warning">Card Management</a>
                     </div>
                 </div>
             </div>
@@ -365,6 +365,18 @@
                 </div>
             </div>
         {% endif %}
+        
+        <!-- Digital Membership Card - Available to all users -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-credit-card-2-front display-4 text-success"></i>
+                    <h5 class="card-title mt-3">My Membership Card</h5>
+                    <p class="card-text">Access your digital SAFA membership card for mobile or print.</p>
+                    <a href="{% url 'membership_cards:my_card' %}" class="btn btn-outline-success">View My Card</a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <!-- Optionally include Bootstrap Icons CDN if not already present -->

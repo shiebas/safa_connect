@@ -1,0 +1,532 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+
+{% block title %}SAFA Card Management{% endblock %}
+
+{% block extrahead %}
+<style>
+    .card-management {
+        padding: 20px;
+    }
+    
+    .stats-row {
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+    }
+    
+    .stat-card.success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    }
+    
+    .stat-card.warning {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .member-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .table-header {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .bulk-actions {
+        background: #e9ecef;
+        padding: 10px 20px;
+        border-bottom: 1px solid #dee2e6;
+        display: none;
+    }
+    
+    .bulk-actions.active {
+        display: block;
+    }
+    
+    .member-row {
+        padding: 15px 20px;
+        border-bottom: 1px solid #f1f3f4;
+        transition: background-color 0.2s ease;
+    }
+    
+    .member-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .member-row:last-child {
+        border-bottom: none;
+    }
+    
+    .member-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .member-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .member-details h6 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .member-details small {
+        color: #6c757d;
+    }
+    
+    .member-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-card {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-card:hover {
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+    
+    .btn-preview {
+        background: #17a2b8;
+        color: white;
+    }
+    
+    .btn-preview:hover {
+        background: #138496;
+        color: white;
+    }
+    
+    .btn-mobile {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-mobile:hover {
+        background: #218838;
+        color: white;
+    }
+    
+    .btn-print {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-print:hover {
+        background: #c82333;
+        color: white;
+    }
+    
+    .search-form {
+        margin-bottom: 20px;
+    }
+    
+    .pagination-wrapper {
+        padding: 20px;
+        text-align: center;
+        background: #f8f9fa;
+    }
+    
+    .no-members {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+    
+    .section-divider {
+        margin: 40px 0;
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card-management">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>SAFA Card Management</h1>
+        <div>
+            <span class="badge bg-primary">Total: {{ total_with_ids|add:total_without_ids }}</span>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="row stats-row">
+        <div class="col-md-4">
+            <div class="stat-card success">
+                <div class="stat-number">{{ total_with_ids }}</div>
+                <div>Cards Available</div>
+                <small>Members with SAFA IDs</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card warning">
+                <div class="stat-number">{{ total_without_ids }}</div>
+                <div>Pending Cards</div>
+                <small>Members without SAFA IDs</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_with_ids|add:total_without_ids }}</div>
+                <div>Total Members</div>
+                <small>All registered members</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Form -->
+    <form method="GET" class="search-form">
+        <div class="row">
+            <div class="col-md-8">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Search by name, email, or SAFA ID..." 
+                       value="{{ search_query }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                {% if search_query %}
+                    <a href="{% url 'membership_cards:admin_management' %}" class="btn btn-outline-secondary">Clear</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+    
+    <!-- Members with SAFA IDs (Cards Available) -->
+    <div class="member-table">
+        <div class="table-header">
+            <h5 class="mb-0">
+                <i class="bi bi-check-circle text-success"></i>
+                Members with Cards Available ({{ total_with_ids }})
+            </h5>
+        </div>
+        
+        <!-- Bulk Actions -->
+        <div class="bulk-actions" id="bulkActions">
+            <form method="POST" action="{% url 'membership_cards:admin_bulk_generate' %}" id="bulkForm">
+                {% csrf_token %}
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <span id="selectedCount">0</span> member(s) selected
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <select name="format" class="form-select d-inline-block w-auto me-2">
+                            <option value="mobile">Mobile PNG</option>
+                            <option value="print">Print PDF</option>
+                            <option value="digital">High-Res PNG</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-download"></i> Bulk Generate
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSelection()">
+                            Clear Selection
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        {% if members_with_ids %}
+            {% for member in members_with_ids %}
+                <div class="member-row">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            <input type="checkbox" class="form-check-input member-checkbox" 
+                                   value="{{ member.id }}" onchange="updateBulkActions()">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="member-info">
+                                <div class="member-avatar">
+                                    {{ member.first_name.0|upper }}{{ member.last_name.0|upper }}
+                                </div>
+                                <div class="member-details">
+                                    <h6>{{ member.get_full_name }}</h6>
+                                    <small>{{ member.email }} | SAFA ID: {{ member.safa_id }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <span class="badge bg-success">{{ member.status }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="member-actions">
+                                <button class="btn-card btn-preview" onclick="previewCard({{ member.id }})">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <a href="{% url 'membership_cards:admin_generate_card' member.id %}?format=mobile" 
+                                   class="btn-card btn-mobile">
+                                    <i class="bi bi-phone"></i> Mobile
+                                </a>
+                                <a href="{% url 'membership_cards:admin_generate_card' member.id %}?format=print" 
+                                   class="btn-card btn-print">
+                                    <i class="bi bi-printer"></i> PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Pagination for members with IDs -->
+            {% if members_with_ids.has_other_pages %}
+                <div class="pagination-wrapper">
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            {% if members_with_ids.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_with_ids={{ members_with_ids.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in members_with_ids.paginator.page_range %}
+                                {% if members_with_ids.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page_with_ids={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if members_with_ids.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_with_ids={{ members_with_ids.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-members">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="mt-3">No members with SAFA IDs found</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+    
+    <!-- Members without SAFA IDs (Pending Cards) -->
+    <div class="member-table">
+        <div class="table-header">
+            <h5 class="mb-0">
+                <i class="bi bi-exclamation-triangle text-warning"></i>
+                Members Pending SAFA ID Assignment ({{ total_without_ids }})
+            </h5>
+        </div>
+        
+        {% if members_without_ids %}
+            {% for member in members_without_ids %}
+                <div class="member-row">
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <div class="member-info">
+                                <div class="member-avatar" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+                                    {{ member.first_name.0|upper }}{{ member.last_name.0|upper }}
+                                </div>
+                                <div class="member-details">
+                                    <h6>{{ member.get_full_name }}</h6>
+                                    <small>{{ member.email }} | <span class="text-warning">No SAFA ID</span></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <span class="badge bg-secondary">{{ member.status }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="member-actions">
+                                <a href="/admin/membership/member/{{ member.id }}/change/" 
+                                   class="btn-card" style="background: #6c757d; color: white;">
+                                    <i class="bi bi-pencil"></i> Edit Member
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Pagination for members without IDs -->
+            {% if members_without_ids.has_other_pages %}
+                <div class="pagination-wrapper">
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            {% if members_without_ids.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_without_ids={{ members_without_ids.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in members_without_ids.paginator.page_range %}
+                                {% if members_without_ids.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page_without_ids={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if members_without_ids.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_without_ids={{ members_without_ids.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-members">
+                <i class="bi bi-check-circle fs-1 text-success"></i>
+                <p class="mt-3">All members have SAFA IDs assigned!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Card Preview Modal -->
+<div class="modal fade" id="cardPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Card Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="previewLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating card preview...</p>
+                </div>
+                <img id="previewImage" class="img-fluid" style="display: none; border-radius: 10px;" />
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.member-checkbox:checked');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    const bulkForm = document.getElementById('bulkForm');
+    
+    selectedCount.textContent = checkboxes.length;
+    
+    if (checkboxes.length > 0) {
+        bulkActions.classList.add('active');
+        
+        // Clear existing hidden inputs
+        bulkForm.querySelectorAll('input[name="member_ids"]').forEach(input => input.remove());
+        
+        // Add selected member IDs
+        checkboxes.forEach(checkbox => {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'member_ids';
+            hiddenInput.value = checkbox.value;
+            bulkForm.appendChild(hiddenInput);
+        });
+    } else {
+        bulkActions.classList.remove('active');
+    }
+}
+
+function clearSelection() {
+    document.querySelectorAll('.member-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateBulkActions();
+}
+
+function previewCard(memberId) {
+    const modal = new bootstrap.Modal(document.getElementById('cardPreviewModal'));
+    const previewLoading = document.getElementById('previewLoading');
+    const previewImage = document.getElementById('previewImage');
+    
+    // Reset modal state
+    previewLoading.style.display = 'block';
+    previewImage.style.display = 'none';
+    
+    // Show modal
+    modal.show();
+    
+    // Load card preview
+    previewImage.onload = function() {
+        previewLoading.style.display = 'none';
+        previewImage.style.display = 'block';
+    };
+    
+    previewImage.onerror = function() {
+        previewLoading.innerHTML = `
+            <div class="text-danger">
+                <i class="bi bi-exclamation-triangle fs-2"></i>
+                <p class="mt-2">Unable to load card preview</p>
+            </div>
+        `;
+    };
+    
+    // Set image source
+    previewImage.src = `/membership-cards/admin/preview/${memberId}/`;
+}
+
+// Initialize tooltips if Bootstrap is available
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+</script>
+{% endblock %}
