@@ -11,6 +11,7 @@ from django.db import models
 from membership.models import Member, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
 # Import Invoice models
 from .invoice_models import Invoice, InvoiceItem, Vendor
+from .models import MembershipApplication
 
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
@@ -322,3 +323,58 @@ class InvoiceItemAdmin(admin.ModelAdmin):
     def sub_total(self, obj):
         return f"R{obj.sub_total:.2f}"
     sub_total.short_description = "Sub Total"
+
+@admin.register(MembershipApplication)
+class MembershipApplicationAdmin(admin.ModelAdmin):
+    list_display = (
+        'member', 'get_first_name', 'get_last_name', 'get_email', 'get_phone_number',
+        'get_id_number', 'get_passport_number', 'club', 'status', 'submitted_at', 'reviewed_by', 'reviewed_at'
+    )
+    list_filter = ('status', 'club', 'submitted_at')
+    search_fields = (
+        'member__first_name', 'member__last_name', 'member__id_number', 'club__name', 'member__email'
+    )
+    readonly_fields = ('signature', 'submitted_at', 'reviewed_by', 'reviewed_at')
+    actions = ['approve_applications', 'reject_applications']
+
+    def get_first_name(self, obj):
+        return obj.member.first_name if obj.member else ''
+    get_first_name.short_description = 'First Name'
+
+    def get_last_name(self, obj):
+        return obj.member.last_name if obj.member else ''
+    get_last_name.short_description = 'Last Name'
+
+    def get_email(self, obj):
+        return obj.member.email if obj.member else ''
+    get_email.short_description = 'Email'
+
+    def get_phone_number(self, obj):
+        return obj.member.phone_number if obj.member else ''
+    get_phone_number.short_description = 'Phone Number'
+
+    def get_id_number(self, obj):
+        return obj.member.id_number if obj.member else ''
+    get_id_number.short_description = 'ID Number'
+
+    def get_passport_number(self, obj):
+        return obj.member.passport_number if obj.member else ''
+    get_passport_number.short_description = 'Passport Number'
+
+    def approve_applications(self, request, queryset):
+        for app in queryset:
+            if request.user.is_superuser or getattr(request.user, 'role', None) == 'NATIONAL_ADMINISTRATOR':
+                app.status = 'APPROVED'
+                app.reviewed_by = request.user
+                app.reviewed_at = timezone.now()
+                app.save()
+    approve_applications.short_description = "Approve selected applications"
+
+    def reject_applications(self, request, queryset):
+        for app in queryset:
+            if request.user.is_superuser or getattr(request.user, 'role', None) == 'NATIONAL_ADMINISTRATOR':
+                app.status = 'REJECTED'
+                app.reviewed_by = request.user
+                app.reviewed_at = timezone.now()
+                app.save()
+    reject_applications.short_description = "Reject selected applications"

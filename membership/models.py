@@ -216,7 +216,7 @@ class Member(models.Model):
         
         # Validate and save
         self.clean()
-        super().save(*args, **kwargs)
+        super
 
     def generate_safa_id(self):
         """Generate a unique 5-character uppercase alphanumeric code"""
@@ -951,3 +951,21 @@ except ImportError:
     class Vendor(models.Model):
         class Meta:
             app_label = 'membership'
+
+class MembershipApplication(models.Model):
+    member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='applications', null=True, blank=True)
+    club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE, related_name='membership_applications')
+    signature = models.ImageField(upload_to='signatures/')
+    date_signed = models.DateField()
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_applications')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Application: {self.member} to {self.club} ({self.status})"

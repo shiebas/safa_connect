@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SAFA Global Administration{% endblock %}</title>
+    <title>{% block title %}SAFA Administration{% endblock %}</title>
     
     <!-- SAFA Favicon from file -->
     <link rel="icon" type="image/x-icon" href="{% static 'images/default_logo.png' %}">
@@ -16,7 +16,7 @@
     <meta name="theme-color" content="#006633">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="SAFA Global">
+    <meta name="apple-mobile-web-app-title" content="SAFA Membership Registration">
     <link rel="apple-touch-icon" href="{% static 'images/safa-logo-192.png' %}">
     
     
@@ -75,7 +75,7 @@
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="{% static 'images/safa_logo_small.png' %}" alt="SAFA Logo" style="height: 30px; width: 30px;" class="me-2">
-                <strong>SAFA Global Admin</strong>
+                <!--<strong>SAFA Registration</strong>-->
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -172,6 +172,9 @@
                                     <li><a class="dropdown-item" href="/admin/accounts/customuser/">
                                         <i class="fas fa-user-cog me-2"></i>User Accounts
                                     </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'membership:membership_application' %}">
+                                        <i class="fas fa-user-plus me-2"></i>Register Member
+                                    </a></li>
                                 </ul>
                             </li>
                             {% if user.is_superuser or user.role == 'ADMIN_LOCAL_FED' %}
@@ -258,16 +261,16 @@
                                 <i class="fas fa-sign-in-alt me-1"></i>Login
                             </a>
                         </li>
-                        <li class="nav-item">
+                       <!-- <li class="nav-item">
                             <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:registration_portal' %}" style="background-color: rgba(255,215,0,0.9); border-radius: 6px; margin-right: 8px; color: #004422 !important; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">
                                 <i class="fas fa-user-plus me-1"></i>Register
                             </a>
-                        </li>
-                        <li class="nav-item">
+                        </li>-->
+                       <!-- <li class="nav-item">
                             <a class="nav-link fw-bold px-3 py-2" href="{% url 'supporters:register' %}" style="background-color: rgba(255,105,180,0.9); border-radius: 6px; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
                                 <i class="fas fa-heart me-1"></i>Register Supporter
                             </a>
-                        </li>
+                        </li>-->
                     {% endif %}
                 </ul>
             </div>
@@ -305,7 +308,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-8">
-                    <h5><i class="fas fa-futbol me-2"></i>SAFA Global Admin</h5>
+                    
                     <p class="mb-2">South African Football Association Registration System</p>
                     <p class="mb-0">
                         <small class="text-light">

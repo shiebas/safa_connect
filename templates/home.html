@@ -1,19 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}SAFA Global Admin - Home{% endblock %}
+{% block title %}SAFA Registration - Home{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row">
         <div class="col-lg-8 mx-auto text-center">
-            <h1 class="display-4" style="color: var(--safa-dark);">
-                <i class="fas fa-futbol me-3" style="color: var(--safa-gold);"></i>
-                Welcome to SAFA Global Administration
-            </h1>
-            <p class="lead text-muted">
-                South African Football Association Registration & League Management System
-            </p>
+           
             
             {% if user.is_authenticated %}
                 <div class="row mt-5">
@@ -86,11 +80,19 @@
                     {% endif %}
                 </div>
             {% else %}
-                <div class="mt-5">
-                    <p class="text-muted">Please use the navigation bar above to login or register for SAFA services.</p>
-                </div>
+              
             {% endif %}
         </div>
     </div>
+
+    {% if not user.is_authenticated %}
+    <div class="row justify-content-center mt-4">
+      <div class="col-md-8 text-center mb-4">
+        <a href="{% url 'membership:membership_application' %}">
+          <img src="{% static 'images/joinsafa.png' %}" alt="Join SAFA - Player & Officials Registration" class="img-fluid" style="max-width: 100%; height: auto; border: none; box-shadow: none;">
+        </a>
+      </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

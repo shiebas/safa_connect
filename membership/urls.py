@@ -71,5 +71,6 @@ urlpatterns = [
     path('reports/outstanding-balance/', invoice_views.OutstandingReportView.as_view(), name='outstanding_report'),
     path('reports/outstanding-balance/export/<str:format>/', outstanding_report.export_outstanding_report, name='export_outstanding_report'),
     path('reports/payment-reminders/<str:entity_type>/<int:entity_id>/', views.send_payment_reminder, name='send_payment_reminder'),
+    path('membership-application/', views.membership_application, name='membership_application'),
     path('api/', include(router.urls)),
 ]

@@ -7,9 +7,9 @@ from django.utils import timezone
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView, View
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .models import Member, Player, Membership
+from .models import Member, Player, Membership, MembershipApplication
 from geography.models import Club, Province, Region, LocalFootballAssociation  # Import Club from geography
-from .forms import MemberForm, PlayerForm, ClubForm
+from .forms import MemberForm, PlayerForm, ClubForm, MembershipApplicationForm
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect
 from rest_framework import viewsets
@@ -312,3 +312,100 @@ def send_payment_reminder(request, entity_type, entity_id):
 class MemberViewSet(viewsets.ModelViewSet):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
+
+def membership_application(request):
+    from django.core.files.base import ContentFile
+    import base64
+    from .models import Member
+    from geography.models import Club, Province, Region, LocalFootballAssociation  # Add other FK models if needed
+
+    if request.method == 'POST':
+        form = MembershipApplicationForm(request.POST, request.FILES)
+        if form.is_valid():
+            cd = form.cleaned_data
+            # Try to find existing member by ID number or email
+            member = None
+            if cd.get('id_number'):
+                member = Member.objects.filter(id_number=cd['id_number']).first()
+            if not member and cd.get('email'):
+                member = Member.objects.filter(email=cd['email']).first()
+            # Prepare member_data for non-FK fields only
+            member_fields = [
+                'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth', 'gender', 'id_number',
+                'passport_number', 'street_address', 'suburb', 'city', 'postal_code', 'emergency_contact',
+                'emergency_phone', 'medical_notes'
+            ]
+            member_data = {field: cd.get(field) for field in member_fields}
+            # Handle ForeignKey fields separately
+            club_obj = None
+            club_val = cd.get('club')
+            if club_val:
+                if isinstance(club_val, Club):
+                    club_obj = club_val
+                else:
+                    try:
+                        club_obj = Club.objects.get(pk=club_val)
+                    except Exception:
+                        club_obj = None
+            country_obj = None
+            country_val = cd.get('country')
+            if country_val and hasattr(Member, 'country'):
+                try:
+                    # Replace with your actual Country model if needed
+                    from geography.models import Country
+                    country_obj = Country.objects.get(pk=country_val)
+                except Exception:
+                    country_obj = None
+            state_obj = None
+            state_val = cd.get('state')
+            if state_val and hasattr(Member, 'state'):
+                try:
+                    # Replace with your actual State/Province model if needed
+                    state_obj = Province.objects.get(pk=state_val)
+                except Exception:
+                    state_obj = None
+            # ...add similar logic for other FK fields if present...
+            if member:
+                for field, value in member_data.items():
+                    setattr(member, field, value)
+                if request.FILES.get('profile_picture'):
+                    member.profile_picture = request.FILES['profile_picture']
+            else:
+                member = Member(**member_data)
+                if request.FILES.get('profile_picture'):
+                    member.profile_picture = request.FILES['profile_picture']
+            # Assign FK fields after instance creation
+            member.club = club_obj
+            if hasattr(member, 'country'):
+                member.country = country_obj
+            if hasattr(member, 'state'):
+                member.state = state_obj
+            member.save()  # Save or update member after all fields set
+            # Now create the MembershipApplication object manually
+            app = MembershipApplication()
+            app.member = member  # Only assign after member is saved
+            app.club = club_obj
+            app.popi_consent = cd.get('popi_consent', False)
+            # Handle signature image (base64)
+            signature_data = cd.get('signature_data')
+            if signature_data:
+                format, imgstr = signature_data.split(';base64,')
+                ext = format.split('/')[-1]
+                app.signature.save(
+                    f'signature_{member.id_number}.{ext}',
+                    ContentFile(base64.b64decode(imgstr)),
+                    save=False
+                )
+            # Save ID document if uploaded
+            if request.FILES.get('id_document'):
+                app.id_document = request.FILES['id_document']
+            app.save()
+            return redirect('success_page')
+        else:
+            # Show form errors as messages for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        form = MembershipApplicationForm()
+    return render(request, 'membership/membership_application.html', {'form': form})

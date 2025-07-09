@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="container mt-5 mb-5">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white text-center">
+      <h2 class="mb-0">SAFA Membership Application</h2>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <!-- First Name -->
+        <div class="mb-3">
+          <label for="id_first_name" class="form-label">First Name*</label>
+          {{ form.first_name|add_class:'form-control' }}
+          <div class="form-text">Only letters, at least 3 characters</div>
+          {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+        </div>
+        <!-- Last Name -->
+        <div class="mb-3">
+          <label for="id_last_name" class="form-label">Last Name*</label>
+          {{ form.last_name|add_class:'form-control' }}
+          <div class="form-text">Only letters, at least 3 characters</div>
+          {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+        </div>
+        <!-- Phone Number (optional) -->
+        <div class="mb-3">
+          <label for="id_phone_number" class="form-label">Phone Number</label>
+          {{ form.phone_number|add_class:'form-control' }}
+          <div class="form-text">Optional: Enter a valid phone number for contact.</div>
+          {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
+        </div>
+        <!-- ID Document Type -->
+        <div class="mb-3">
+          <label for="id_id_document_type" class="form-label">Id document type*</label>
+          {{ form.id_document_type|add_class:'form-select' }}
+          <div class="form-text">Type of identification document (SA ID or Passport)</div>
+          {% if form.id_document_type.errors %}<div class="text-danger small">{{ form.id_document_type.errors }}</div>{% endif %}
+        </div>
+        <!-- ID Number -->
+        <div class="mb-3" id="id_number_group">
+          <label for="id_id_number" class="form-label">ID Number</label>
+          {{ form.id_number|add_class:'form-control' }}
+          <div class="form-text">13-digit South African ID number</div>
+          {% if form.id_number.errors %}<div class="text-danger small">{{ form.id_number.errors }}</div>{% endif %}
+        </div>
+        <!-- Passport Number -->
+        <div class="mb-3" id="passport_number_group" style="display:none;">
+          <label for="id_passport_number" class="form-label">Passport Number</label>
+          {{ form.passport_number|add_class:'form-control' }}
+          <div class="form-text">If using a passport, enter the number here.</div>
+          {% if form.passport_number.errors %}<div class="text-danger small">{{ form.passport_number.errors }}</div>{% endif %}
+        </div>
+        <!-- Passport Checkbox -->
+        <div class="form-check mb-3">
+          {{ form.has_sa_passport|add_class:'form-check-input' }}
+          <label class="form-check-label" for="id_has_sa_passport">Player has South African Passport (Optional)</label>
+          <div class="form-text">Optional: Check if member has a South African passport (for record purposes only)</div>
+          {% if form.has_sa_passport.errors %}<div class="text-danger small">{{ form.has_sa_passport.errors }}</div>{% endif %}
+        </div>
+        <!-- SAFA ID -->
+        <div class="mb-3">
+          <label for="id_safa_id" class="form-label">SAFA ID</label>
+          {{ form.safa_id|add_class:'form-control' }}
+          <div class="form-text">If the member already has a SAFA ID, enter it here. Otherwise, leave blank and it will be auto-generated.</div>
+          {% if form.safa_id.errors %}<div class="text-danger small">{{ form.safa_id.errors }}</div>{% endif %}
+        </div>
+        <!-- FIFA ID -->
+        <div class="mb-3">
+          <label for="id_fifa_id" class="form-label">FIFA ID</label>
+          {{ form.fifa_id|add_class:'form-control' }}
+          <div class="form-text">If the member has a FIFA ID, enter it here. Otherwise, leave blank.</div>
+          {% if form.fifa_id.errors %}<div class="text-danger small">{{ form.fifa_id.errors }}</div>{% endif %}
+        </div>
+        <!-- SA Passport Number -->
+        <div class="mb-3">
+          <label for="id_sa_passport_number" class="form-label">SA Passport Number (Optional)</label>
+          {{ form.sa_passport_number|add_class:'form-control' }}
+          <div class="form-text">Optional: Enter the South African passport number for record-keeping purposes</div>
+          {% if form.sa_passport_number.errors %}<div class="text-danger small">{{ form.sa_passport_number.errors }}</div>{% endif %}
+        </div>
+        <!-- SA Passport Document -->
+        <div class="mb-3">
+          <label for="id_sa_passport_document" class="form-label">SA Passport Document (Optional)</label>
+          {{ form.sa_passport_document|add_class:'form-control' }}
+          <div class="form-text">Optional: Upload a copy of the SA passport (PDF or image)</div>
+          {% if form.sa_passport_document.errors %}<div class="text-danger small">{{ form.sa_passport_document.errors }}</div>{% endif %}
+        </div>
+        <!-- SA Passport Expiry Date -->
+        <div class="mb-3">
+          <label for="id_sa_passport_expiry_date" class="form-label">SA Passport Expiry Date (Optional)</label>
+          {{ form.sa_passport_expiry_date|add_class:'form-control' }}
+          <div class="form-text">Optional: Enter the expiry date of the SA passport</div>
+          {% if form.sa_passport_expiry_date.errors %}<div class="text-danger small">{{ form.sa_passport_expiry_date.errors }}</div>{% endif %}
+        </div>
+        <!-- Profile Picture -->
+        <div class="mb-3">
+          <label for="id_profile_picture" class="form-label">Profile Picture</label>
+          {{ form.profile_picture|add_class:'form-control' }}
+          <div class="form-text">Upload a clear, recent photo (required for card approval)</div>
+          {% if form.profile_picture.errors %}<div class="text-danger small">{{ form.profile_picture.errors }}</div>{% endif %}
+        </div>
+        <!-- ID Document Upload -->
+        <div class="mb-3">
+          <label for="id_id_document" class="form-label">ID/Passport Document</label>
+          {{ form.id_document|add_class:'form-control' }}
+          <div class="form-text">Upload a copy of the SA ID or passport (required for approval)</div>
+          {% if form.id_document.errors %}<div class="text-danger small">{{ form.id_document.errors }}</div>{% endif %}
+        </div>
+        <!-- POPI Consent -->
+        <div class="form-check mb-3">
+          {{ form.popi_consent|add_class:'form-check-input' }}
+          <label class="form-check-label" for="id_popi_consent">POPI Consent</label>
+          <div class="form-text">Required for juniors (under 18)</div>
+          {% if form.popi_consent.errors %}<div class="text-danger small">{{ form.popi_consent.errors }}</div>{% endif %}
+        </div>
+        <!-- Signature -->
+        <div class="mb-3">
+          <label for="signature-pad" class="form-label">Signature (use your finger, stylus, or mouse):</label>
+          <canvas id="signature-pad" width="400" height="150" style="border:1px solid #000;"></canvas>
+          {{ form.signature_data }}
+          <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="clearSignature()">Clear</button>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Submit Application</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+<script>
+  var canvas = document.getElementById('signature-pad');
+  var signaturePad = new SignaturePad(canvas);
+
+  function clearSignature() {
+    signaturePad.clear();
+  }
+
+  // Show/hide ID/Passport fields
+  function toggleIdPassportFields() {
+    var docType = document.getElementById('id_id_document_type').value;
+    var idGroup = document.getElementById('id_number_group');
+    var passportGroup = document.getElementById('passport_number_group');
+    if (docType === 'PP') {
+      idGroup.style.display = 'none';
+      passportGroup.style.display = '';
+    } else {
+      idGroup.style.display = '';
+      passportGroup.style.display = 'none';
+    }
+  }
+  document.getElementById('id_id_document_type').addEventListener('change', toggleIdPassportFields);
+  window.addEventListener('DOMContentLoaded', toggleIdPassportFields);
+
+  document.querySelector('form').addEventListener('submit', function(e) {
+    if (!signaturePad.isEmpty()) {
+      document.getElementById('id_signature_data').value = signaturePad.toDataURL();
+    }
+  });
+</script>
+{% endblock %}

@@ -11,8 +11,9 @@ class PDFDocumentAdmin(admin.ModelAdmin):
 
     def file_size_display(self, obj):
         """Display file size in a human-readable format"""
-        # Convert bytes to KB, MB, etc.
         size_bytes = obj.file_size
+        if size_bytes is None:
+            return "Unknown"
         for unit in ['B', 'KB', 'MB', 'GB']:
             if size_bytes < 1024.0 or unit == 'GB':
                 break
