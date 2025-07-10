@@ -8,22 +8,22 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db import models
 # Import models directly from the models.py file 
-from membership.models import Member, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
+from membership.models import Member, JuniorMember, ClubRegistration, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
 # Import Invoice models
 from .invoice_models import Invoice, InvoiceItem, Vendor
 from .models import MembershipApplication
 
-@admin.register(Member)
-class MemberAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'email', 'role', 'status', 'club')
+# Legacy MemberAdmin - keeping for reference but not registering
+class LegacyMemberAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email', 'status')
     search_fields = ('first_name', 'last_name', 'email', 'safa_id')
-    list_filter = ('role', 'status', 'club')
-    autocomplete_fields = ['club']
+    list_filter = ('status',)
+    # Note: club is now handled through ClubRegistration
 
     # Remove duplicate list_display, search_fields, list_filter
-    list_display = ('get_full_name', 'email', 'safa_id', 'role', 'status', 'has_qr_code')
+    list_display = ('get_full_name', 'email', 'safa_id', 'status', 'has_qr_code')
     search_fields = ('first_name', 'last_name', 'email', 'safa_id')
-    list_filter = ('role', 'status', 'gender')
+    list_filter = ('status', 'gender')
     fieldsets = (
         (None, {
             'fields': ('first_name', 'last_name', 'email', 'phone_number', 'date_of_birth')
@@ -32,10 +32,7 @@ class MemberAdmin(admin.ModelAdmin):
             'fields': ('safa_id', 'fifa_id', 'id_number', 'gender')
         }),
         (_('Membership Details'), {
-            'fields': ('role', 'status', 'registration_date', 'expiry_date')
-        }),
-        (_('Club Affiliation'), {
-            'fields': ('club',)
+            'fields': ('status',)
         }),
         (_('Address'), {
             'fields': ('street_address', 'suburb', 'city', 'state', 'postal_code', 'country'),
@@ -168,7 +165,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 # Register other models with similar enhancements
 @admin.register(Player)
-class PlayerAdmin(MemberAdmin):
+class PlayerAdmin(LegacyMemberAdmin):
     list_display = ('get_full_name', 'email', 'safa_id', 'status', 'has_active_club')
     list_filter = ('status', 'gender')
     
@@ -199,8 +196,130 @@ class PlayerClubRegistrationAdmin(admin.ModelAdmin):
 admin.site.register(TransferAppeal)
 admin.site.register(Membership)
 
+
+# New admin classes for refactored membership system
+class NewMemberAdmin(admin.ModelAdmin):
+    """Admin for the new two-tier membership system"""
+    list_display = ('safa_id', 'get_full_name', 'email', 'member_type', 'status', 'created')
+    list_filter = ('status', 'member_type', 'province', 'created')
+    search_fields = ('safa_id', 'first_name', 'last_name', 'email')
+    actions = ['approve_selected', 'reject_selected', 'send_welcome_emails']
+    
+    fieldsets = (
+        (None, {
+            'fields': ('first_name', 'last_name', 'email', 'phone_number', 'date_of_birth', 'member_type')
+        }),
+        (_('Identification'), {
+            'fields': ('safa_id', 'id_number', 'passport_number', 'gender')
+        }),
+        (_('Status & Approval'), {
+            'fields': ('status', 'approved_by', 'approved_date', 'rejection_reason')
+        }),
+        (_('Geography'), {
+            'fields': ('province', 'region', 'lfa'),
+            'classes': ('collapse',),
+        }),
+        (_('Address'), {
+            'fields': ('street_address', 'suburb', 'city', 'state', 'postal_code', 'country'),
+            'classes': ('collapse',),
+        }),
+        (_('Emergency Contact'), {
+            'fields': ('emergency_contact', 'emergency_phone', 'medical_notes'),
+            'classes': ('collapse',),
+        }),
+        (_('Documents'), {
+            'fields': ('profile_picture', 'id_document'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    readonly_fields = ('safa_id', 'approved_by', 'approved_date')
+    
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+    get_full_name.short_description = _('Name')
+    
+    def approve_selected(self, request, queryset):
+        """Approve selected members"""
+        count = 0
+        for member in queryset.filter(status='PENDING'):
+            member.approve_membership(request.user)
+            count += 1
+        self.message_user(request, _('Approved {} members').format(count))
+    approve_selected.short_description = _('Approve selected members')
+    
+    def reject_selected(self, request, queryset):
+        """Reject selected members"""
+        count = 0
+        for member in queryset.filter(status='PENDING'):
+            member.reject_membership(request.user, "Bulk rejection")
+            count += 1
+        self.message_user(request, _('Rejected {} members').format(count))
+    reject_selected.short_description = _('Reject selected members')
+    
+    def send_welcome_emails(self, request, queryset):
+        """Send welcome emails to approved members"""
+        from .membership_registration_views import send_welcome_email
+        count = 0
+        for member in queryset.filter(status='ACTIVE'):
+            if member.email:
+                send_welcome_email(member)
+                count += 1
+        self.message_user(request, _('Sent welcome emails to {} members').format(count))
+    send_welcome_emails.short_description = _('Send welcome emails')
+
+
+@admin.register(JuniorMember)
+class JuniorMemberAdmin(NewMemberAdmin):
+    """Admin for junior members with guardian information"""
+    list_display = ('safa_id', 'get_full_name', 'email', 'age', 'status', 'guardian_name')
+    
+    fieldsets = NewMemberAdmin.fieldsets + (
+        (_('Guardian Information'), {
+            'fields': ('guardian_name', 'guardian_email', 'guardian_phone', 'school')
+        }),
+    )
+    
+    def age(self, obj):
+        return obj.age
+    age.short_description = _('Age')
+
+
+@admin.register(ClubRegistration)
+class ClubRegistrationAdmin(admin.ModelAdmin):
+    """Admin for club registrations (step 2 of two-tier system)"""
+    list_display = ('member', 'club', 'status', 'registration_date', 'position')
+    list_filter = ('status', 'registration_date', 'club')
+    search_fields = ('member__first_name', 'member__last_name', 'club__name')
+    
+    fieldsets = (
+        (None, {
+            'fields': ('member', 'club', 'status', 'registration_date')
+        }),
+        (_('Playing Details'), {
+            'fields': ('position', 'jersey_number'),
+            'classes': ('collapse',),
+        }),
+        (_('Notes'), {
+            'fields': ('notes',),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    def get_queryset(self, request):
+        """Only show registrations for approved members"""
+        return super().get_queryset(request).select_related('member', 'club')
+
+
+# Register the new Member admin - handle potential existing registration
+try:
+    admin.site.unregister(Member)
+except admin.sites.NotRegistered:
+    pass
+admin.site.register(Member, NewMemberAdmin)
+
 @admin.register(Official)
-class OfficialAdmin(MemberAdmin):
+class OfficialAdmin(LegacyMemberAdmin):
     list_display = ('get_full_name', 'email', 'safa_id', 'position', 'primary_association', 'status', 'is_approved')
     list_filter = ('status', 'is_approved', 'referee_level', 'primary_association')
     search_fields = ('first_name', 'last_name', 'email', 'safa_id', 'certification_number')

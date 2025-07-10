@@ -16,22 +16,29 @@
         <!-- First Name -->
         <div class="mb-3">
           <label for="id_first_name" class="form-label">First Name*</label>
-          {{ form.first_name|add_class:'form-control' }}
+          <input type="text" name="first_name" id="id_first_name" class="form-control" 
+                 pattern="[A-Za-z]{3,}" minlength="3" maxlength="50" 
+                 oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')" required>
           <div class="form-text">Only letters, at least 3 characters</div>
           {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
         </div>
         <!-- Last Name -->
         <div class="mb-3">
           <label for="id_last_name" class="form-label">Last Name*</label>
-          {{ form.last_name|add_class:'form-control' }}
+          <input type="text" name="last_name" id="id_last_name" class="form-control" 
+                 pattern="[A-Za-z]{3,}" minlength="3" maxlength="50" 
+                 oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')" required>
           <div class="form-text">Only letters, at least 3 characters</div>
           {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
         </div>
         <!-- Phone Number (optional) -->
         <div class="mb-3">
           <label for="id_phone_number" class="form-label">Phone Number</label>
-          {{ form.phone_number|add_class:'form-control' }}
-          <div class="form-text">Optional: Enter a valid phone number for contact.</div>
+          <input type="tel" name="phone_number" id="id_phone_number" class="form-control" 
+                 pattern="^[+]?[0-9]{10,15}$" inputmode="tel" 
+                 oninput="this.value = this.value.replace(/[^+0-9]/g, '')" 
+                 placeholder="e.g., +27123456789 (optional)">
+          <div class="form-text">Optional: Enter a valid phone number (numbers and + only).</div>
           {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
         </div>
         <!-- ID Document Type -->
@@ -44,16 +51,52 @@
         <!-- ID Number -->
         <div class="mb-3" id="id_number_group">
           <label for="id_id_number" class="form-label">ID Number</label>
-          {{ form.id_number|add_class:'form-control' }}
+          <input type="text" name="id_number" id="id_id_number" class="form-control" 
+                 pattern="\d{13}" minlength="13" maxlength="13" 
+                 oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                 placeholder="Enter 13-digit ID number">
           <div class="form-text">13-digit South African ID number</div>
+          <div id="id-validation-feedback" class="form-text"></div>
           {% if form.id_number.errors %}<div class="text-danger small">{{ form.id_number.errors }}</div>{% endif %}
         </div>
+        
         <!-- Passport Number -->
         <div class="mb-3" id="passport_number_group" style="display:none;">
           <label for="id_passport_number" class="form-label">Passport Number</label>
-          {{ form.passport_number|add_class:'form-control' }}
+          <input type="text" name="passport_number" id="id_passport_number" class="form-control" 
+                 placeholder="Enter passport number">
           <div class="form-text">If using a passport, enter the number here.</div>
           {% if form.passport_number.errors %}<div class="text-danger small">{{ form.passport_number.errors }}</div>{% endif %}
+        </div>
+        
+        <!-- Auto-extracted DOB and Gender (hidden fields for ID users) -->
+        <div class="row" id="extracted-info" style="display:none;">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Date of Birth (from ID)</label>
+            <input type="text" id="extracted_dob" class="form-control" readonly>
+            <input type="hidden" name="date_of_birth" id="hidden_dob">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Gender (from ID)</label>
+            <input type="text" id="extracted_gender" class="form-control" readonly>
+            <input type="hidden" name="gender" id="hidden_gender">
+          </div>
+        </div>
+        
+        <!-- Manual DOB and Gender (for passport users) -->
+        <div class="row" id="manual-info" style="display:none;">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Date of Birth</label>
+            <input type="date" name="date_of_birth_manual" id="manual_dob" class="form-control">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Gender</label>
+            <select name="gender_manual" id="manual_gender" class="form-control">
+              <option value="">Select gender</option>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+            </select>
+          </div>
         </div>
         <!-- Passport Checkbox -->
         <div class="form-check mb-3">
@@ -62,18 +105,31 @@
           <div class="form-text">Optional: Check if member has a South African passport (for record purposes only)</div>
           {% if form.has_sa_passport.errors %}<div class="text-danger small">{{ form.has_sa_passport.errors }}</div>{% endif %}
         </div>
-        <!-- SAFA ID -->
+        <!-- SAFA ID and FIFA ID Toggles -->
         <div class="mb-3">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="has_safa_id" name="has_safa_id">
+            <label class="form-check-label" for="has_safa_id">I have a SAFA ID</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="has_fifa_id" name="has_fifa_id">
+            <label class="form-check-label" for="has_fifa_id">I have a FIFA ID</label>
+          </div>
+        </div>
+        
+        <!-- SAFA ID -->
+        <div class="mb-3" id="safa_id_group" style="display:none;">
           <label for="id_safa_id" class="form-label">SAFA ID</label>
           {{ form.safa_id|add_class:'form-control' }}
-          <div class="form-text">If the member already has a SAFA ID, enter it here. Otherwise, leave blank and it will be auto-generated.</div>
+          <div class="form-text">Enter your existing SAFA ID (5-character alphanumeric code)</div>
           {% if form.safa_id.errors %}<div class="text-danger small">{{ form.safa_id.errors }}</div>{% endif %}
         </div>
+        
         <!-- FIFA ID -->
-        <div class="mb-3">
+        <div class="mb-3" id="fifa_id_group" style="display:none;">
           <label for="id_fifa_id" class="form-label">FIFA ID</label>
           {{ form.fifa_id|add_class:'form-control' }}
-          <div class="form-text">If the member has a FIFA ID, enter it here. Otherwise, leave blank.</div>
+          <div class="form-text">Enter your existing FIFA ID (7-digit number)</div>
           {% if form.fifa_id.errors %}<div class="text-danger small">{{ form.fifa_id.errors }}</div>{% endif %}
         </div>
         <!-- SA Passport Number -->
@@ -139,21 +195,114 @@
     signaturePad.clear();
   }
 
-  // Show/hide ID/Passport fields
-  function toggleIdPassportFields() {
-    var docType = document.getElementById('id_id_document_type').value;
-    var idGroup = document.getElementById('id_number_group');
-    var passportGroup = document.getElementById('passport_number_group');
-    if (docType === 'PP') {
-      idGroup.style.display = 'none';
-      passportGroup.style.display = '';
-    } else {
-      idGroup.style.display = '';
-      passportGroup.style.display = 'none';
+  document.addEventListener('DOMContentLoaded', function() {
+    const docTypeSelect = document.getElementById('id_id_document_type');
+    const saIdContainer = document.getElementById('id_number_group');
+    const passportContainer = document.getElementById('passport_number_group');
+    const dobGenderReadonlyRow = document.getElementById('extracted-info');
+    const dobGenderManualRow = document.getElementById('manual-info');
+    const idNumberInput = document.getElementById('id_id_number');
+    const dobReadonlyInput = document.getElementById('extracted_dob');
+    const dobHiddenInput = document.getElementById('hidden_dob');
+    const genderReadonlyInput = document.getElementById('extracted_gender');
+    const genderHiddenInput = document.getElementById('hidden_gender');
+    const validationMessage = document.getElementById('id-validation-feedback');
+
+    function toggleFields() {
+        const selectedValue = docTypeSelect.value;
+        
+        saIdContainer.style.display = 'none';
+        passportContainer.style.display = 'none';
+        dobGenderReadonlyRow.style.display = 'none';
+        dobGenderManualRow.style.display = 'none';
+
+        if (selectedValue === 'ID') {
+            saIdContainer.style.display = 'block';
+            dobGenderReadonlyRow.style.display = 'flex';
+        } else if (selectedValue === 'PP') {
+            passportContainer.style.display = 'block';
+            dobGenderManualRow.style.display = 'flex';
+        }
     }
-  }
-  document.getElementById('id_id_document_type').addEventListener('change', toggleIdPassportFields);
-  window.addEventListener('DOMContentLoaded', toggleIdPassportFields);
+
+    function validateSAID(idNumber) {
+        if (!idNumber || idNumber.length !== 13 || !/^\d+$/.test(idNumber)) {
+            return { isValid: false, message: "ID number must be 13 digits" };
+        }
+
+        const year = idNumber.substring(0, 2);
+        const month = idNumber.substring(2, 4);
+        const day = idNumber.substring(4, 6);
+
+        const currentYear = new Date().getFullYear() % 100;
+        const fullYear = parseInt(year) > currentYear ? 1900 + parseInt(year) : 2000 + parseInt(year);
+
+        const birthDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+        if (
+            birthDate.getFullYear() !== fullYear || 
+            birthDate.getMonth() + 1 !== parseInt(month) || 
+            birthDate.getDate() !== parseInt(day)
+        ) {
+            return { isValid: false, message: "ID contains invalid date" };
+        }
+
+        const genderDigits = parseInt(idNumber.substring(6, 10));
+        const gender = genderDigits >= 5000 ? 'M' : 'F';
+        const genderText = gender === 'M' ? 'Male' : 'Female';
+
+        return {
+            isValid: true,
+            message: "Valid ID number",
+            dateOfBirth: birthDate.toISOString().split('T')[0],
+            gender: gender,
+            genderText: genderText
+        };
+    }
+
+    toggleFields();
+    docTypeSelect.addEventListener('change', toggleFields);
+
+    if (idNumberInput) {
+      idNumberInput.addEventListener('input', function() {
+          if (docTypeSelect && docTypeSelect.value === 'ID') {
+              const result = validateSAID(this.value);
+
+              validationMessage.textContent = result.message;
+              validationMessage.className = result.isValid ? "form-text text-success" : "form-text text-danger";
+
+              if (result.isValid) {
+                  dobReadonlyInput.value = result.dateOfBirth;
+                  dobHiddenInput.value = result.dateOfBirth;
+                  genderReadonlyInput.value = result.genderText;
+                  genderHiddenInput.value = result.gender;
+              } else {
+                  dobReadonlyInput.value = '';
+                  dobHiddenInput.value = '';
+                  genderReadonlyInput.value = '';
+                  genderHiddenInput.value = '';
+              }
+          }
+      });
+    }
+
+    // SAFA and FIFA ID fields toggle
+    var hasSafaIdCheckbox = document.getElementById('has_safa_id');
+    var hasFifaIdCheckbox = document.getElementById('has_fifa_id');
+    var safaIdGroup = document.getElementById('safa_id_group');
+    var fifaIdGroup = document.getElementById('fifa_id_group');
+
+    if (hasSafaIdCheckbox) {
+      hasSafaIdCheckbox.addEventListener('change', function() {
+        safaIdGroup.style.display = this.checked ? '' : 'none';
+      });
+    }
+
+    if (hasFifaIdCheckbox) {
+      hasFifaIdCheckbox.addEventListener('change', function() {
+        fifaIdGroup.style.display = this.checked ? '' : 'none';
+      });
+    }
+  });
 
   document.querySelector('form').addEventListener('submit', function(e) {
     if (!signaturePad.isEmpty()) {

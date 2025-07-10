@@ -1,310 +1,288 @@
-# views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, TemplateView
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.urls import reverse_lazy, reverse
-from django.http import JsonResponse
+from django.utils.translation import gettext as _
 from django.utils import timezone
-from django.utils.crypto import get_random_string
-from django.core.exceptions import PermissionDenied
-from django.db import transaction
-from .models import CustomUser, Membership, Club
-from .forms import PlayerRegistrationForm, PaymentSelectionForm
-from .constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.http import JsonResponse
+from django.views.generic import TemplateView
+from django.conf import settings
+
+from .models import Member, JuniorMember, ClubRegistration
+from .forms import MembershipApplicationForm, ClubRegistrationForm
+from geography.models import Club
 
 
-class ClubAdminRequiredMixin(LoginRequiredMixin):
-    """Mixin to ensure user is a club admin"""
-    
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-        
-        # Check if user has CLUB_ADMIN role or is admin
-        if request.user.role not in ['CLUB_ADMIN', 'ADMIN', 'ADMIN_COUNTRY']:
-            raise PermissionDenied("You must be a club administrator to register players.")
-        
-        # Get the user's club membership
-        try:
-            self.user_club_membership = Membership.objects.get(
-                user=request.user,
-                membership_type='club',
-                is_active=True,
-                club__isnull=False
-            )
-            self.user_club = self.user_club_membership.club
-        except Membership.DoesNotExist:
-            raise PermissionDenied("You must be associated with a club to register players.")
-        
-        return super().dispatch(request, *args, **kwargs)
-
-
-class PlayerRegistrationView(ClubAdminRequiredMixin, CreateView):
-    """Step 1: Player personal details registration"""
-    model = CustomUser
-    form_class = PlayerRegistrationForm
-    template_name = 'registration/player_registration.html'
-    
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['club'] = self.user_club
-        return kwargs
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['club'] = self.user_club
-        context['step'] = 1
-        return context
-    
-    def form_valid(self, form):
-        # Don't save yet, store in session for next step
-        player_data = form.cleaned_data
-        
-        # Store player data in session
-        self.request.session['player_data'] = {
-            'name': player_data['name'],
-            'surname': player_data['surname'],
-            'middle_name': player_data.get('middle_name', ''),
-            'email': player_data['email'],
-            'date_of_birth': player_data['date_of_birth'].isoformat(),
-            'gender': player_data['gender'],
-            'id_number': player_data.get('id_number', ''),
-            'passport_number': player_data.get('passport_number', ''),
-            'id_document_type': player_data['id_document_type'],
-            'address': player_data.get('address', ''),
-            'postal_address': player_data.get('postal_address', ''),
-            'next_of_kin': player_data.get('next_of_kin', ''),
-            'jersey_number': player_data.get('jersey_number'),
-            'position': player_data.get('position', ''),
-        }
-        
-        return redirect('membership:payment_selection')
-
-
-class PaymentSelectionView(ClubAdminRequiredMixin, TemplateView):
-    """Step 2: Select membership type and payment method"""
-    template_name = 'registration/payment_selection.html'
-    
-    def dispatch(self, request, *args, **kwargs):
-        # Check if player data exists in session
-        if 'player_data' not in request.session:
-            messages.error(request, "Please complete player registration first.")
-            return redirect('membership:player_registration')
-        return super().dispatch(request, *args, **kwargs)
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        from membership.constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
-        context['club'] = self.user_club
-        context['step'] = 2
-        context['junior_fee'] = float(JUNIOR_FEE_ZAR)  # ZAR 100
-        context['senior_fee'] = float(SENIOR_FEE_ZAR)  # ZAR 200
-        return context
-    
-    def post(self, request, *args, **kwargs):
-        membership_type = request.POST.get('membership_type')
-        payment_method = request.POST.get('payment_method')
-        
-        if not membership_type or not payment_method:
-            messages.error(request, "Please select both membership type and payment method.")
-            return self.get(request, *args, **kwargs)
-        
-        if membership_type not in ['JR', 'SR']:
-            messages.error(request, "Invalid membership type selected.")
-            return self.get(request, *args, **kwargs)
-        
-        if payment_method not in ['EFT', 'CARD']:
-            messages.error(request, "Invalid payment method selected.")
-            return self.get(request, *args, **kwargs)
-        
-        # Store payment selection in session
-        from membership.constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR
-        request.session['payment_data'] = {
-            'membership_type': membership_type,
-            'payment_method': payment_method,
-            'fee_amount': float(JUNIOR_FEE_ZAR) if membership_type == 'JR' else float(SENIOR_FEE_ZAR)
-        }
-        
-        return redirect('membership:payment_confirmation')
-
-
-class PaymentConfirmationView(ClubAdminRequiredMixin, TemplateView):
-    """Step 3: Generate payment reference and show payment details"""
-    template_name = 'registration/payment_confirmation.html'
-    
-    def dispatch(self, request, *args, **kwargs):
-        # Check if required data exists in session
-        if 'player_data' not in request.session or 'payment_data' not in request.session:
-            messages.error(request, "Registration data missing. Please start again.")
-            return redirect('membership:player_registration')
-        return super().dispatch(request, *args, **kwargs)
-    
-    def generate_payment_reference(self):
-        """Generate unique payment reference code"""
-        while True:
-            timestamp = str(int(timezone.now().timestamp()))[-6:]
-            random_part = get_random_string(6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            reference = f"PAY-{timestamp}-{random_part}"
+def membership_application(request):
+    """
+    Step 1: Apply for SAFA membership (required before club registration)
+    Everyone must register as a member first, regardless of role
+    """
+    if request.method == 'POST':
+        form = MembershipApplicationForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Create Member FIRST
+            member_data = form.cleaned_data.copy()
+            is_junior = member_data.pop('is_junior', False)
             
-            # Check if reference already exists (you might want to store these in a PaymentReference model)
-            # For now, we'll assume it's unique
-            break
-        return reference
+            # Handle junior-specific data
+            if is_junior:
+                junior_data = {
+                    k: member_data.pop(k) 
+                    for k in ['guardian_name', 'guardian_email', 'guardian_phone', 'school']
+                    if k in member_data
+                }
+            
+            # Remove fields that aren't part of the Member model
+            member_fields = [field.name for field in Member._meta.fields]
+            filtered_data = {k: v for k, v in member_data.items() if k in member_fields}
+            
+            # Create and save base Member
+            member = Member(**filtered_data)
+            member.save()
+            
+            # Create Junior profile if needed
+            if is_junior:
+                junior = JuniorMember.objects.create(
+                    member_ptr=member,
+                    **junior_data
+                )
+                junior.save()
+            
+            # Send for approval
+            send_approval_request(member)
+            
+            messages.success(request, _("Your SAFA membership application has been submitted for review."))
+            return redirect('membership:application_submitted')
+    else:
+        form = MembershipApplicationForm()
+    
+    return render(request, 'membership/membership_application.html', {'form': form})
+
+
+@staff_member_required
+def approve_member(request, member_id):
+    """Approve a member's SAFA registration"""
+    member = get_object_or_404(Member, pk=member_id)
+    
+    if request.method == 'POST':
+        member.approve_membership(request.user)
+        send_welcome_email(member)
+        messages.success(request, f"Membership for {member.get_full_name()} approved successfully")
+        return redirect('membership:membership_dashboard')
+    
+    return render(request, 'membership/admin/approve_member.html', {'member': member})
+
+
+@staff_member_required
+def reject_member(request, member_id):
+    """Reject a member's SAFA registration"""
+    member = get_object_or_404(Member, pk=member_id)
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        member.reject_membership(request.user, reason)
+        send_rejection_email(member, reason)
+        messages.success(request, f"Membership for {member.get_full_name()} rejected")
+        return redirect('membership:membership_dashboard')
+    
+    return render(request, 'membership/admin/reject_member.html', {'member': member})
+
+
+@login_required
+def register_with_club(request, member_id=None):
+    """
+    Step 2: Register with a club (only after SAFA approval)
+    """
+    if member_id:
+        member = get_object_or_404(Member, pk=member_id)
+    else:
+        # Try to find member by email or other identifier
+        # This would need to be implemented based on your authentication system
+        member = None
+    
+    if not member:
+        messages.error(request, "Member not found. Please complete SAFA registration first.")
+        return redirect('membership:membership_application')
+    
+    if member.status != 'ACTIVE':
+        messages.error(request, "Only approved SAFA members can register with clubs")
+        return redirect('membership:member_profile')
+    
+    # Check if already registered with a club
+    if hasattr(member, 'club_registration'):
+        messages.warning(request, "You're already registered with a club")
+        return redirect('membership:member_profile')
+    
+    if request.method == 'POST':
+        form = ClubRegistrationForm(request.POST)
+        if form.is_valid():
+            # Create club registration
+            registration = form.save(commit=False)
+            registration.member = member
+            registration.save()
+            
+            messages.success(request, f"Successfully registered with {registration.club.name}")
+            return redirect('membership:member_profile')
+    else:
+        form = ClubRegistrationForm()
+    
+    return render(request, 'membership/club_registration.html', {
+        'member': member,
+        'form': form
+    })
+
+
+@staff_member_required
+def membership_dashboard(request):
+    """Dashboard for staff to manage membership applications"""
+    pending_members = Member.objects.filter(status='PENDING').order_by('-created')
+    recent_approvals = Member.objects.filter(status='ACTIVE').order_by('-approved_date')[:10]
+    recent_rejections = Member.objects.filter(status='REJECTED').order_by('-modified')[:10]
+    
+    context = {
+        'pending_members': pending_members,
+        'recent_approvals': recent_approvals,
+        'recent_rejections': recent_rejections,
+        'total_pending': pending_members.count(),
+        'total_active': Member.objects.filter(status='ACTIVE').count(),
+    }
+    
+    return render(request, 'membership/admin/membership_dashboard.html', context)
+
+
+class ApplicationSubmittedView(TemplateView):
+    """Confirmation page after submitting membership application"""
+    template_name = 'membership/application_submitted.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['title'] = _("Application Submitted")
+        return context
+
+
+def send_approval_request(member):
+    """Send notification to admins for new membership application"""
+    try:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        admin_emails = [
+            user.email for user in 
+            User.objects.filter(is_staff=True, email__isnull=False)
+            if user.email
+        ]
         
-        # Generate payment reference if not exists
-        if 'payment_reference' not in self.request.session:
-            self.request.session['payment_reference'] = self.generate_payment_reference()
-        
-        player_data = self.request.session['player_data']
-        payment_data = self.request.session['payment_data']
-        
-        context.update({
-            'club': self.user_club,
-            'step': 3,
-            'player_data': player_data,
-            'payment_data': payment_data,
-            'payment_reference': self.request.session['payment_reference'],
-            'membership_type_display': 'Junior' if payment_data['membership_type'] == 'JR' else 'Senior',
+        if admin_emails:
+            subject = f"New SAFA Membership Application: {member.get_full_name()}"
+            message = f"""
+            A new SAFA membership application has been submitted.
+            
+            Name: {member.get_full_name()}
+            Email: {member.email}
+            Member Type: {member.get_member_type_display()}
+            Date of Birth: {member.date_of_birth}
+            SAFA ID: {member.safa_id}
+            
+            Please review and approve/reject this application in the admin dashboard.
+            """
+            
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                admin_emails,
+                fail_silently=True,
+            )
+    except Exception:
+        pass  # Fail silently if email can't be sent
+
+
+def send_welcome_email(member):
+    """Send welcome email to approved member"""
+    if member.email:
+        try:
+            subject = "Welcome to SAFA - Your Membership Has Been Approved"
+            message = f"""
+            Dear {member.first_name},
+            
+            Congratulations! Your SAFA membership application has been approved.
+            
+            Your SAFA ID is: {member.safa_id}
+            
+            Next steps:
+            1. Complete your profile information
+            2. Register with a club or association
+            3. Keep your membership information up to date
+            
+            Welcome to the South African Football Association!
+            
+            Best regards,
+            SAFA Administration
+            """
+            
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [member.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass  # Fail silently
+
+
+def send_rejection_email(member, reason):
+    """Send rejection email to member"""
+    if member.email:
+        try:
+            subject = "SAFA Membership Application Update"
+            message = f"""
+            Dear {member.first_name},
+            
+            Thank you for your interest in SAFA membership. 
+            
+            Unfortunately, your application could not be approved at this time.
+            
+            Reason: {reason}
+            
+            If you have any questions or would like to reapply, please contact us.
+            
+            Best regards,
+            SAFA Administration
+            """
+            
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [member.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass  # Fail silently
+
+
+# API endpoints for AJAX functionality
+def check_member_status(request):
+    """Check if member is approved and can register with clubs"""
+    email = request.GET.get('email')
+    if not email:
+        return JsonResponse({'error': 'Email required'}, status=400)
+    
+    try:
+        member = Member.objects.get(email=email)
+        return JsonResponse({
+            'exists': True,
+            'status': member.status,
+            'approved': member.status == 'ACTIVE',
+            'safa_id': member.safa_id,
+            'member_type': member.member_type,
         })
-        
-        return context
-    
-    def post(self, request, *args, **kwargs):
-        """Process final registration"""
-        if request.POST.get('action') == 'confirm_registration':
-            return self.process_registration()
-        elif request.POST.get('action') == 'proceed_card_payment':
-            return self.process_card_payment()
-        
-        return self.get(request, *args, **kwargs)
-    
-    @transaction.atomic
-    def process_registration(self):
-        """Create the player and membership records"""
-        try:
-            player_data = self.request.session['player_data']
-            payment_data = self.request.session['payment_data']
-            payment_reference = self.request.session['payment_reference']
-            
-            # Create the player user account
-            player = CustomUser.objects.create_user(
-                username=f"{player_data['name'].lower()}.{player_data['surname'].lower()}.{get_random_string(4).lower()}",
-                name=player_data['name'],
-                surname=player_data['surname'],
-                middle_name=player_data.get('middle_name', ''),
-                email=player_data['email'],
-                date_of_birth=player_data['date_of_birth'],
-                gender=player_data['gender'],
-                id_number=player_data.get('id_number', ''),
-                passport_number=player_data.get('passport_number', ''),
-                id_document_type=player_data['id_document_type'],
-                role='PLAYER',
-                country=self.user_club.province.country if self.user_club.province else None,
-                is_active=False,  # Will be activated when payment is confirmed
-                payment_required=True
-            )
-            
-            # Create membership
-            membership = Membership.objects.create(
-                user=player,
-                membership_type='club',
-                club=self.user_club,
-                region=self.user_club.region,
-                local_football_association=self.user_club.local_football_association,
-                start_date=timezone.now().date(),
-                player_category=payment_data['membership_type'],
-                jersey_number=player_data.get('jersey_number'),
-                position=player_data.get('position', ''),
-                address=player_data.get('address', ''),
-                postal_address=player_data.get('postal_address', ''),
-                next_of_kin=player_data.get('next_of_kin', ''),
-                is_active=False,  # Will be activated when payment is confirmed
-                payment_confirmed=False
-            )
-            
-            # Store IDs for success page
-            self.request.session['created_player_id'] = player.id
-            self.request.session['created_membership_id'] = membership.id
-            
-            # Clear registration data but keep payment reference for tracking
-            del self.request.session['player_data']
-            del self.request.session['payment_data']
-            
-            messages.success(self.request, f"Player {player.name} {player.surname} registered successfully!")
-            return redirect('membership:registration_success')
-            
-        except Exception as e:
-            messages.error(self.request, f"Registration failed: {str(e)}")
-            return self.get(self.request)
-    
-    def process_card_payment(self):
-        """Handle card payment redirect"""
-        payment_reference = self.request.session['payment_reference']
-        payment_data = self.request.session['payment_data']
-        
-        # In a real implementation, you would redirect to your payment gateway
-        # For now, we'll simulate the redirect
-        
-        # Store additional data for payment gateway
-        self.request.session['payment_gateway_data'] = {
-            'amount': payment_data['fee_amount'],
-            'reference': payment_reference,
-            'return_url': self.request.build_absolute_uri(reverse('membership:payment_return')),
-            'cancel_url': self.request.build_absolute_uri(reverse('membership:payment_cancel')),
-        }
-        
-        # Simulate redirect to payment gateway
-        messages.info(self.request, f"Redirecting to payment gateway for R{payment_data['fee_amount']}...")
-        
-        # In real implementation:
-        # return redirect(f"https://payment-gateway.com/pay?amount={amount}&ref={reference}")
-        
-        # For now, create the registration and redirect to success
-        return self.process_registration()
-
-
-class RegistrationSuccessView(ClubAdminRequiredMixin, TemplateView):
-    """Final success page showing registration details"""
-    template_name = 'registration/registration_success.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Get created player and membership
-        player_id = self.request.session.get('created_player_id')
-        membership_id = self.request.session.get('created_membership_id')
-        payment_reference = self.request.session.get('payment_reference')
-        
-        if player_id and membership_id:
-            try:
-                player = CustomUser.objects.get(id=player_id)
-                membership = Membership.objects.get(id=membership_id)
-                
-                context.update({
-                    'player': player,
-                    'membership': membership,
-                    'payment_reference': payment_reference,
-                    'club': self.user_club,
-                })
-            except (CustomUser.DoesNotExist, Membership.DoesNotExist):
-                messages.error(self.request, "Registration details not found.")
-        
-        return context
-
-
-# AJAX Views for dynamic form updates
-class GetClubInfoView(ClubAdminRequiredMixin, JsonResponse):
-    """Return club information for form population"""
-    
-    def get(self, request, *args, **kwargs):
-        data = {
-            'club_name': self.user_club.name,
-            'region': self.user_club.region.name if self.user_club.region else '',
-            'lfa': self.user_club.local_football_association.name if self.user_club.local_football_association else '',
-            'province': self.user_club.province.name if self.user_club.province else '',
-        }
-        return JsonResponse(data)
+    except Member.DoesNotExist:
+        return JsonResponse({
+            'exists': False,
+            'message': 'No SAFA membership found with this email'
+        })
+# End of file

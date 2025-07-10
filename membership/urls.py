@@ -1,6 +1,6 @@
 from django.urls import path, include
 from . import views, registration_views, transfer_views, appeal_views, invoice_views
-from . import outstanding_report
+from . import outstanding_report, membership_registration_views
 from .views import MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, MembershipDeleteView
 from rest_framework import routers
 from .views import MemberViewSet
@@ -71,6 +71,17 @@ urlpatterns = [
     path('reports/outstanding-balance/', invoice_views.OutstandingReportView.as_view(), name='outstanding_report'),
     path('reports/outstanding-balance/export/<str:format>/', outstanding_report.export_outstanding_report, name='export_outstanding_report'),
     path('reports/payment-reminders/<str:entity_type>/<int:entity_id>/', views.send_payment_reminder, name='send_payment_reminder'),
-    path('membership-application/', views.membership_application, name='membership_application'),
+    
+    # New Two-Tier Membership System
+    path('apply/', membership_registration_views.membership_application, name='membership_application'),
+    path('apply/submitted/', membership_registration_views.ApplicationSubmittedView.as_view(), name='application_submitted'),
+    path('admin/approve/<int:member_id>/', membership_registration_views.approve_member, name='approve_member'),
+    path('admin/reject/<int:member_id>/', membership_registration_views.reject_member, name='reject_member'),
+    path('admin/dashboard/', membership_registration_views.membership_dashboard, name='membership_dashboard'),
+    path('club-registration/<int:member_id>/', membership_registration_views.register_with_club, name='register_with_club'),
+    path('check-status/', membership_registration_views.check_member_status, name='check_member_status'),
+    
+    # Legacy membership application (keeping for compatibility)
+    path('membership-application/', views.membership_application, name='legacy_membership_application'),
     path('api/', include(router.urls)),
 ]

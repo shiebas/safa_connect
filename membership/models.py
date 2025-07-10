@@ -35,31 +35,20 @@ DEFAULT_LOGO = 'default_logo.png'
 # class Club(TimeStampedModel, ModelWithLogo):
 #     ...
 
-class Member(models.Model):
-    # Add created field to replace TimeStampedModel
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+class Member(TimeStampedModel):
+    MEMBER_TYPES = [
+        ('JUNIOR', 'Junior Member (Under 18)'),
+        ('SENIOR', 'Senior Member (18+)'),
+        ('OFFICIAL', 'Club Official'),
+        ('ADMIN', 'Administrator'),
+    ]
     
     MEMBERSHIP_STATUS = [
+        ('PENDING', 'Pending Approval'),
         ('ACTIVE', 'Active'),
         ('INACTIVE', 'Inactive'),
-        ('PENDING', 'Pending'),
         ('SUSPENDED', 'Suspended'),
-    ]
-
-    ROLE_CHOICES = [
-        ('ADMIN_SYSTEM', 'System Administrator'),
-        ('ADMIN_COUNTRY', 'Country Administrator'),
-        ('ADMIN_FEDERATION', 'Federation Administrator'),
-        ('ADMIN_PROVINCE', 'Provincial Administrator'),
-        ('ADMIN_REGION', 'Regional Administrator'),
-        ('ADMIN_LOCAL_FED', 'Local Federation Administrator'),
-        ('CLUB_ADMIN', 'Club Administrator'),
-        ('STAFF', 'Staff Member'),
-        ('PLAYER', 'Player'),
-        ('COACH', 'Coach'),
-        ('OFFICIAL', 'Official'),
-        ('SUPPORTER', 'Supporter'),
+        ('REJECTED', 'Rejected'),
     ]
 
     GENDER_CHOICES = [
@@ -81,13 +70,12 @@ class Member(models.Model):
                             blank=True, help_text=_("Gender as per ID document"))
 
     # Personal Information
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, 
-                              related_name='member_profile', null=True, blank=True)
     first_name = models.CharField(_("First Name"), max_length=100)
     last_name = models.CharField(_("Last Name"), max_length=100)
     email = models.EmailField(_("Email Address"), unique=True)
     phone_number = models.CharField(_("Phone Number"), max_length=20)
     date_of_birth = models.DateField(_("Date of Birth"))
+    member_type = models.CharField(_("Member Type"), max_length=20, choices=MEMBER_TYPES, default='SENIOR')
 
     # Address Information
     street_address = models.CharField(_("Street Address"), max_length=255, blank=True)
@@ -97,39 +85,27 @@ class Member(models.Model):
     postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True)
     country = models.CharField(_("Country"), max_length=100, blank=True)
 
-    # Organization Information
-    organization_type = models.ForeignKey(
-        'accounts.OrganizationType',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        help_text="Primary organization type this member belongs to"
-    )
-    
-    # Membership Information
-    club = models.ForeignKey(
-        'geography.Club',
-        on_delete=models.PROTECT,
-        related_name='club_members',  # Changed from 'members'
-        null=True,
-        blank=True
-    )
-    role = models.CharField(_("Role"), max_length=20, choices=ROLE_CHOICES, default='PLAYER')
+    # SAFA Membership Information
     status = models.CharField(
         _("Membership Status"),
         max_length=10,
         choices=MEMBERSHIP_STATUS,
         default='PENDING'
     )
-    membership_number = models.CharField(
-        _("Membership Number"),
-        max_length=50,
-        unique=True,
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        null=True
+        related_name='approved_members'
     )
-    registration_date = models.DateField(_("Registration Date"), default=timezone.now)
-    expiry_date = models.DateField(_("Expiry Date"), null=True, blank=True)
+    approved_date = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(_("Rejection Reason"), blank=True)
+    
+    # Geography (for administrative purposes)
+    province = models.ForeignKey('geography.Province', on_delete=models.SET_NULL, null=True, blank=True)
+    region = models.ForeignKey('geography.Region', on_delete=models.SET_NULL, null=True, blank=True)
+    lfa = models.ForeignKey('geography.LocalFootballAssociation', on_delete=models.SET_NULL, null=True, blank=True)
 
     # Images
     profile_picture = models.ImageField(_("Profile Picture"), 
@@ -155,6 +131,39 @@ class Member(models.Model):
         null=True,
         blank=True,
         help_text=_('Upload a scan/photo of the ID or passport')
+    )
+    
+    # Track if a South African citizen also has a valid SA passport
+    has_sa_passport = models.BooleanField(
+        _('Has SA Passport'), 
+        default=False,
+        help_text=_('Whether the SA citizen member also has a valid SA passport for international travel')
+    )
+    
+    # Store the SA passport number for local citizens who have passports
+    sa_passport_number = models.CharField(
+        _('SA Passport Number'), 
+        max_length=25, 
+        blank=True, 
+        null=True,
+        help_text=_('South African passport number for citizens (for international travel)')
+    )
+    
+    # SA passport document
+    sa_passport_document = models.FileField(
+        _('SA Passport Document'), 
+        upload_to='sa_passport_documents/',
+        blank=True, 
+        null=True, 
+        help_text=_('Upload a copy of the SA passport')
+    )
+    
+    # SA passport expiry date
+    sa_passport_expiry_date = models.DateField(
+        _('SA Passport Expiry Date'), 
+        blank=True, 
+        null=True,
+        help_text=_('Expiry date of the South African passport')
     )
 
     class Meta:
@@ -201,22 +210,36 @@ class Member(models.Model):
 
     def clean(self):
         super().clean()
-        # Ensure club admins and staff have a club assigned
-        if self.role in ['CLUB_ADMIN', 'STAFF'] and not self.club:
-            raise ValidationError(_("Club administrators and staff must be assigned to a club."))
-        
         # Validate ID number if provided
         if self.id_number:
             self._validate_id_number()
+        
+        # Auto-detect member type based on age if not set
+        if self.date_of_birth and not self.member_type:
+            age = (timezone.now().date() - self.date_of_birth).days // 365
+            self.member_type = 'JUNIOR' if age < 18 else 'SENIOR'
 
     def save(self, *args, **kwargs):
-        # Generate SAFA ID if not set
+        # Auto-generate SAFA ID
         if not self.safa_id:
             self.generate_safa_id()
         
         # Validate and save
         self.clean()
-        super
+        super().save(*args, **kwargs)
+    
+    def approve_membership(self, approved_by):
+        """Approve the member's SAFA registration"""
+        self.status = 'ACTIVE'
+        self.approved_by = approved_by
+        self.approved_date = timezone.now()
+        self.save()
+        
+    def reject_membership(self, rejected_by, reason):
+        """Reject the member's SAFA registration"""
+        self.status = 'REJECTED'
+        self.rejection_reason = reason
+        self.save()
 
     def generate_safa_id(self):
         """Generate a unique 5-character uppercase alphanumeric code"""
@@ -299,21 +322,69 @@ class Member(models.Model):
         except Exception as e:
             raise ValidationError(_("Invalid ID number: ") + str(e))
 
-    def can_access_club(self, club):
-        """Check if member can access a specific club's data based on role and jurisdiction"""
-        if self.role in ['ADMIN_SYSTEM', 'ADMIN_COUNTRY']:
-            return True  # Full access
-        if self.role == 'ADMIN_FEDERATION' and self.club and club.federation == self.club.federation:
-            return True
-        if self.role == 'ADMIN_PROVINCE' and self.club and club.province == self.club.province:
-            return True
-        if self.role == 'ADMIN_REGION' and self.club and club.region == self.club.region:
-            return True
-        if self.role == 'ADMIN_LOCAL_FED' and self.club and club.federation == self.club.federation:
-            return True
-        if self.role == 'CLUB_ADMIN' and self.club == club:
-            return True
-        return False
+    @property
+    def is_junior(self):
+        """Check if member is under 18"""
+        if self.date_of_birth:
+            age = (timezone.now().date() - self.date_of_birth).days // 365
+            return age < 18
+        return self.member_type == 'JUNIOR'
+    
+    @property
+    def age(self):
+        """Calculate member's age"""
+        if self.date_of_birth:
+            return (timezone.now().date() - self.date_of_birth).days // 365
+        return None
+
+
+class JuniorMember(Member):
+    """Junior members require guardian information"""
+    guardian_name = models.CharField(_("Guardian Name"), max_length=100)
+    guardian_email = models.EmailField(_("Guardian Email"))
+    guardian_phone = models.CharField(_("Guardian Phone"), max_length=20)
+    school = models.CharField(_("School"), max_length=100, blank=True)
+    
+    class Meta:
+        verbose_name = _("Junior Member")
+        verbose_name_plural = _("Junior Members")
+    
+    def clean(self):
+        super().clean()
+        # Force member type to be JUNIOR
+        self.member_type = 'JUNIOR'
+
+
+class ClubRegistration(TimeStampedModel):
+    """Represents a member's registration with a specific club after SAFA approval"""
+    REGISTRATION_STATUS = [
+        ('PENDING', 'Pending'),
+        ('ACTIVE', 'Active'),
+        ('INACTIVE', 'Inactive'),
+        ('SUSPENDED', 'Suspended'),
+    ]
+    
+    member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='club_registration')
+    club = models.ForeignKey('geography.Club', on_delete=models.CASCADE, related_name='member_registrations')
+    registration_date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=REGISTRATION_STATUS, default='PENDING')
+    position = models.CharField(max_length=50, blank=True)  # Player position for athletes
+    jersey_number = models.PositiveIntegerField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    
+    class Meta:
+        verbose_name = _("Club Registration")
+        verbose_name_plural = _("Club Registrations")
+        unique_together = ('member', 'club')
+    
+    def __str__(self):
+        return f"{self.member.get_full_name()} - {self.club.name}"
+    
+    def clean(self):
+        super().clean()
+        # Ensure member is approved before club registration
+        if self.member.status != 'ACTIVE':
+            raise ValidationError(_("Only approved SAFA members can register with clubs"))
 
 class Player(Member):
     """
@@ -323,22 +394,6 @@ class Player(Member):
     # Add approval field
     is_approved = models.BooleanField(_("Approved"), default=False,
                                      help_text=_("Whether the player has been approved by an admin"))
-    
-    # Track if a South African citizen also has a valid SA passport
-    has_sa_passport = models.BooleanField(_("Has SA Passport"), default=False,
-                                        help_text=_("Whether the SA citizen player also has a valid SA passport for international travel"))
-    
-    # Store the SA passport number for local citizens who have passports
-    sa_passport_number = models.CharField(_("SA Passport Number"), max_length=25, blank=True, null=True,
-                                       help_text=_("South African passport number for citizens (for international travel)"))
-    
-    # SA passport document
-    sa_passport_document = models.FileField(_("SA Passport Document"), upload_to='sa_passport_documents/',
-                                         blank=True, null=True, help_text=_("Upload a copy of the SA passport"))
-    
-    # SA passport expiry date
-    sa_passport_expiry_date = models.DateField(_("SA Passport Expiry Date"), blank=True, null=True,
-                                           help_text=_("Expiry date of the South African passport"))
     
     class Meta:
         verbose_name = _("Player")
