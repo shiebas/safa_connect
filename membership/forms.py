@@ -105,17 +105,17 @@ class PlayerForm(AddressFormMixin, forms.ModelForm):
 
 class PlayerRegistrationForm(AddressFormMixin, forms.ModelForm):
     """Form for registering a new player"""
-    
+
     POSITION_CHOICES = [
         ('GK', 'Goalkeeper'),
         ('DF', 'Defender'),
         ('MF', 'Midfielder'),
         ('FW', 'Forward'),
     ]
-    
+
     # Club fields (read-only)
     club_name = forms.CharField(disabled=True, required=False)
-    
+
     # Playing details
     position = forms.ChoiceField(
         choices=POSITION_CHOICES,
@@ -128,7 +128,7 @@ class PlayerRegistrationForm(AddressFormMixin, forms.ModelForm):
         required=False,
         help_text=_("Preferred jersey number (1-99)")
     )
-    
+
     class Meta:
         model = Player
         fields = [
@@ -172,17 +172,17 @@ class PlayerRegistrationForm(AddressFormMixin, forms.ModelForm):
 
 class PaymentSelectionForm(forms.Form):
     """Form for selecting membership type and payment method"""
-    
+
     MEMBERSHIP_CHOICES = [
         ('JR', 'Junior (R100 ZAR)'),
         ('SR', 'Senior (R200 ZAR)'),
     ]
-    
+
     PAYMENT_METHOD_CHOICES = [
         ('EFT', 'EFT/Bank Transfer'),
         ('CARD', 'Credit/Debit Card'),
     ]
-    
+
     membership_type = forms.ChoiceField(
         choices=MEMBERSHIP_CHOICES,
         widget=forms.RadioSelect,
@@ -190,7 +190,7 @@ class PaymentSelectionForm(forms.Form):
         label=_("Membership Type"),
         help_text=_("Select the appropriate membership category")
     )
-    
+
     payment_method = forms.ChoiceField(
         choices=PAYMENT_METHOD_CHOICES,
         widget=forms.RadioSelect,
@@ -201,11 +201,11 @@ class PaymentSelectionForm(forms.Form):
 
 class TransferRequestForm(forms.ModelForm):
     """Form for initiating a player transfer"""
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
-        
+
         # Filter players based on user's club if they're a club admin
         if not self.user.is_superuser:
             member = self.user.member_profile
@@ -214,15 +214,15 @@ class TransferRequestForm(forms.ModelForm):
                     club=member.club,
                     club_registrations__status='ACTIVE'
                 )
-            
+
         # Filter destination clubs to exclude player's current club
         self.fields['to_club'].queryset = Club.objects.all()
-        
+
     def clean(self):
         cleaned_data = super().clean()
         player = cleaned_data.get('player')
         to_club = cleaned_data.get('to_club')
-        
+
         if player and to_club:
             # Check if player's current club matches the user's club
             if not self.user.is_superuser:
@@ -231,26 +231,26 @@ class TransferRequestForm(forms.ModelForm):
                     raise ValidationError(
                         _("You can only initiate transfers for players in your club.")
                     )
-            
+
             # Check if player is already registered with destination club
             if player.club == to_club:
                 raise ValidationError(
                     _("Player is already registered with this club.")
                 )
-            
+
             # Check for existing pending transfers
             pending_transfer = Transfer.objects.filter(
                 player=player,
                 status='PENDING'
             ).first()
-            
+
             if pending_transfer:
                 raise ValidationError(
                     _("Player already has a pending transfer request.")
                 )
-        
+
         return cleaned_data
-    
+
     class Meta:
         model = Transfer
         fields = ['player', 'to_club', 'transfer_fee', 'reason']
@@ -304,7 +304,7 @@ class ClubForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 4}),
             'founding_date': forms.DateInput(attrs={'type': 'date'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Add Bootstrap classes to form fields
@@ -314,21 +314,21 @@ class ClubForm(forms.ModelForm):
 
 class MembershipApplicationForm(forms.ModelForm):
     """Form for applying for SAFA membership (Step 1 of two-tier system)"""
-    
+
     # Junior-specific fields
     is_junior = forms.BooleanField(required=False, label="Under 18 years old")
     guardian_name = forms.CharField(required=False, label="Guardian/Parent Name")
     guardian_email = forms.EmailField(required=False, label="Guardian/Parent Email") 
     guardian_phone = forms.CharField(required=False, label="Guardian/Parent Phone")
     school = forms.CharField(required=False, label="School Name")
-    
+
     # Consent
     popi_consent = forms.BooleanField(
         required=False, 
         label="POPI Act Consent",
         help_text="Required for members under 18 years old"
     )
-    
+
     # Signature data (for digital signature pad)
     signature_data = forms.CharField(
         widget=forms.HiddenInput(),
@@ -357,27 +357,31 @@ class MembershipApplicationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         # Make email required for all members
         self.fields['email'].required = True
         self.fields['phone_number'].required = False  # Make phone number optional
-        self.fields['date_of_birth'].required = True
-        
+        self.fields['date_of_birth'].required = False  # DOB will be extracted from ID
+
         # Configure document type field
         self.fields['id_document_type'].widget.attrs.update({'class': 'form-control'})
-        
+
         # Style form fields
         self.fields['first_name'].widget.attrs.update({
-            'pattern': '[A-Za-z]{3,}', 
+            'pattern': '[A-Za-z\s\-\']{3,}', 
             'minlength': '3', 
-            'title': 'Only letters, at least 3 characters',
-            'class': 'form-control'
+            'title': 'Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters',
+            'class': 'form-control',
+            'oninput': 'this.value = this.value.replace(/[^A-Za-z\s\-\']/g, "")',
+            'onblur': 'validateNameField(this)'
         })
         self.fields['last_name'].widget.attrs.update({
-            'pattern': '[A-Za-z]{3,}', 
+            'pattern': '[A-Za-z\s\-\']{3,}', 
             'minlength': '3', 
-            'title': 'Only letters, at least 3 characters',
-            'class': 'form-control'
+            'title': 'Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters',
+            'class': 'form-control',
+            'oninput': 'this.value = this.value.replace(/[^A-Za-z\s\-\']/g, "")',
+            'onblur': 'validateNameField(this)'
         })
         self.fields['email'].widget.attrs.update({
             'class': 'form-control',
@@ -394,7 +398,7 @@ class MembershipApplicationForm(forms.ModelForm):
             'inputmode': 'tel',
             'oninput': 'this.value = this.value.replace(/[^+0-9]/g, "")'
         })
-        
+
         # Configure SAFA ID and FIFA ID fields
         self.fields['safa_id'].required = False  # Will be auto-generated if not provided
         self.fields['safa_id'].help_text = "If you already have a SAFA ID, enter it here. Otherwise, leave blank and it will be auto-generated."
@@ -404,7 +408,7 @@ class MembershipApplicationForm(forms.ModelForm):
             'placeholder': 'e.g. A12B3',
             'class': 'form-control'
         })
-        
+
         self.fields['fifa_id'].required = False
         self.fields['fifa_id'].help_text = "If you have a FIFA ID, enter it here. Otherwise, leave blank."
         self.fields['fifa_id'].widget.attrs.update({
@@ -413,18 +417,19 @@ class MembershipApplicationForm(forms.ModelForm):
             'placeholder': 'e.g. 1234567',
             'class': 'form-control'
         })
-        
+
         # ID validation
         self.fields['id_number'].widget.attrs.update({
             'pattern': '[0-9]{13}', 
             'inputmode': 'numeric', 
-            'title': 'ID number must be exactly 13 digits',
+            'title': 'ID number must be exactly 13 digits (numbers only)',
             'class': 'form-control',
-            'oninput': 'validateIdField(this)',
+            'oninput': 'this.value = this.value.replace(/[^0-9]/g, "")',
+            'onblur': 'validateIdField(this)',
             'maxlength': '13',
             'minlength': '13'
         })
-        
+
         # Geography fields are optional but helpful for admin
         self.fields['province'].required = False
         self.fields['region'].required = False
@@ -432,14 +437,36 @@ class MembershipApplicationForm(forms.ModelForm):
 
     def clean_first_name(self):
         value = self.cleaned_data.get('first_name', '')
-        if not value.isalpha() or len(value) < 3:
-            raise ValidationError('First name must be at least 3 alphabetic characters.')
+        # Check if name contains at least 3 characters
+        if len(value) < 3:
+            raise ValidationError('First name must be at least 3 characters.')
+
+        # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
+        import re
+        if not re.match(r'^[A-Za-z\s\-\']+$', value):
+            raise ValidationError('First name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
+
+        # Check if name contains any digits
+        if any(char.isdigit() for char in value):
+            raise ValidationError('First name cannot contain numbers.')
+
         return value
 
     def clean_last_name(self):
         value = self.cleaned_data.get('last_name', '')
-        if not value.isalpha() or len(value) < 3:
-            raise ValidationError('Last name must be at least 3 alphabetic characters.')
+        # Check if name contains at least 3 characters
+        if len(value) < 3:
+            raise ValidationError('Last name must be at least 3 characters.')
+
+        # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
+        import re
+        if not re.match(r'^[A-Za-z\s\-\']+$', value):
+            raise ValidationError('Last name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
+
+        # Check if name contains any digits
+        if any(char.isdigit() for char in value):
+            raise ValidationError('Last name cannot contain numbers.')
+
         return value
 
     def clean_phone_number(self):
@@ -451,13 +478,13 @@ class MembershipApplicationForm(forms.ModelForm):
             if not re.match(r'^[+]?[0-9]{10,15}$', phone_number):
                 raise ValidationError('Phone number must contain only digits and optional + sign (10-15 digits)')
         return phone_number
-    
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email and Member.objects.filter(email=email).exists():
             raise ValidationError('A member with this email address already exists.')
         return email
-    
+
     def clean_id_number(self):
         id_number = self.cleaned_data.get('id_number', '').strip()
         if id_number:
@@ -466,7 +493,7 @@ class MembershipApplicationForm(forms.ModelForm):
             # Check for existing member with same ID
             if Member.objects.filter(id_number=id_number).exists():
                 raise ValidationError('A member with this ID number already exists')
-            
+
             # Extract DOB and gender
             id_info = CustomUser.extract_id_info(id_number)
             if not id_info['is_valid']:
@@ -486,57 +513,71 @@ class MembershipApplicationForm(forms.ModelForm):
         # SAFA ID auto-generation will be handled in the save method
         guardian_name = cleaned_data.get('guardian_name')
         guardian_email = cleaned_data.get('guardian_email')
-        
+
         errors = {}
-        
+
         # Either ID number or passport required
         if not id_number and not passport_number:
             errors['id_number'] = 'Either ID number or passport number is required'
             errors['passport_number'] = 'Either ID number or passport number is required'
-        
+        elif id_number and passport_number:
+            # If both are provided, clear any previous errors for these fields
+            if 'id_number' in errors:
+                del errors['id_number']
+            if 'passport_number' in errors:
+                del errors['passport_number']
+
+        # For passport users, DOB and gender are required
+        id_document_type = cleaned_data.get('id_document_type')
+        if id_document_type == 'PP' and passport_number:
+            if not dob:
+                errors['date_of_birth'] = 'Date of birth is required when using passport'
+            if not cleaned_data.get('gender'):
+                errors['gender'] = 'Gender is required when using passport'
+
         # Junior validation
         if dob:
             age = (timezone.now().date() - dob).days // 365
             is_actually_junior = age < 18
-            
+
             if is_actually_junior or is_junior:
                 # Require POPI consent for juniors
                 if not popi_consent:
                     errors['popi_consent'] = 'POPI consent is required for members under 18'
-                
+
                 # Require guardian information for juniors
                 if not guardian_name:
                     errors['guardian_name'] = 'Guardian name is required for members under 18'
                 if not guardian_email:
                     errors['guardian_email'] = 'Guardian email is required for members under 18'
-                
+
                 # Auto-set member type
                 cleaned_data['member_type'] = 'JUNIOR'
             else:
                 cleaned_data['member_type'] = 'SENIOR'
-        
+
         if errors:
             raise ValidationError(errors)
-        
+
         return cleaned_data
 
 
 class ClubRegistrationForm(forms.ModelForm):
     """Form for registering an approved SAFA member with a club"""
-    
+
     class Meta:
         model = ClubRegistration
         fields = ['club', 'position', 'jersey_number', 'notes']
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['club'].required = True
         self.fields['position'].help_text = "Playing position (for athletes)"
         self.fields['jersey_number'].help_text = "Preferred jersey number (optional)"
-        
+
         # Add styling
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})

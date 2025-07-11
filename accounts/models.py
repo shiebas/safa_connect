@@ -100,21 +100,21 @@ class Position(models.Model):
     created_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_positions')
     requires_approval = models.BooleanField(default=True, help_text="New positions need admin approval")
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['title']
         # No more unique constraints by level since title is unique
-    
+
     def __str__(self):
         return self.title
-        
+
     @property
     def available_levels(self):
         """Return list of levels where this position can be used"""
         if not self.levels:
             return []
         return [level.strip() for level in self.levels.split(',')]
-        
+
     def can_be_used_at_level(self, level):
         """Check if position can be used at the specified level"""
         return level in self.available_levels
@@ -159,10 +159,10 @@ class OrganizationType(models.Model):
     )
     requires_approval = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
-    
+
     def __str__(self):
         return f"{self.name} ({self.level})"
-    
+
     class Meta:
         ordering = ['level']
 
@@ -170,7 +170,7 @@ class OrganizationType(models.Model):
 class CustomUser(AbstractUser, ModelWithLogo):
     # Remove the username field
     username = None
-    
+
     # Required fields
     email = models.EmailField(_('email address'), unique=True)
     registration_type = models.ForeignKey(
@@ -244,7 +244,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         null=True, 
         blank=True
     )
-    
+
     # Registration
     registration_date = models.DateField(default=timezone.now)
 
@@ -284,7 +284,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         verbose_name=_('Membership Fee (ZAR)'),
         help_text=_('Amount paid for membership in ZAR (South African Rand)')
     )
-    
+
     # Card Delivery Preferences
     card_delivery_preference = models.CharField(
         max_length=20,
@@ -325,7 +325,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         blank=True,
         help_text=_("User's position within SAFA structure")
     )
-    
+
     # Add club membership verification for Members
     club_membership_verified = models.BooleanField(
         default=False,
@@ -336,7 +336,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         blank=True,
         help_text=_("Club membership number for verification")
     )
-    
+
     # Add supporting club for supporters - fix the string reference
     supporting_club = models.ForeignKey(
         'geography.Club',
@@ -364,7 +364,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         related_name='federation_users',
         help_text="National federation this user belongs to"
     )
-    
+
     province = models.ForeignKey(
         'geography.Province',
         on_delete=models.SET_NULL,
@@ -372,7 +372,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         blank=True,
         help_text="Province this user belongs to"
     )
-    
+
     region = models.ForeignKey(
         'geography.Region',
         on_delete=models.SET_NULL,
@@ -380,7 +380,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         blank=True,
         help_text="Region this user belongs to"
     )
-    
+
     local_federation = models.ForeignKey(
         'geography.LocalFootballAssociation',
         on_delete=models.SET_NULL,
@@ -388,7 +388,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         blank=True,
         help_text="Local Football Association this user belongs to"
     )
-    
+
     club = models.ForeignKey(
         'geography.Club',
         on_delete=models.SET_NULL,
@@ -397,7 +397,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         related_name='members',
         help_text="Club this user belongs to (required for political leaders)"
     )
-    
+
     association = models.ForeignKey(
         'geography.Association',
         on_delete=models.SET_NULL,
@@ -406,7 +406,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         related_name='admin_users',
         help_text="Association this user administers (required for association admins)"
     )
-    
+
     # Add organization type to structure registration
     organization_type = models.ForeignKey(
         OrganizationType,
@@ -415,7 +415,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         blank=True,
         help_text="Primary organization type this user belongs to"
     )
-    
+
      # Specify the custom manager
     objects = CustomUserManager()
 
@@ -462,7 +462,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         #     import logging
         #     logger = logging.getLogger(__name__)
         #     logger.warning(f"Could not set SAFA as mother body: {str(e)}")
-        
+
         # Convert empty strings to None to avoid unique constraint issues
         if self.id_number == '':
             self.id_number = None
@@ -470,15 +470,15 @@ class CustomUser(AbstractUser, ModelWithLogo):
             self.passport_number = None
         if self.id_number_other == '':
             self.id_number_other = None
-            
+
         # Set nationality based on document type
         if self.id_document_type in ['ID', 'BC'] and not self.nationality:
             self.nationality = 'ZAF'
-            
+
         # Set birth country to ZAF if not specified and using SA documents
         if self.id_document_type in ['ID', 'BC'] and not self.birth_country:
             self.birth_country = 'ZAF'
-            
+
         # Only validate ID number if it has changed
         if self.id_number and (not self.pk or self._meta.model.objects.get(pk=self.pk).id_number != self.id_number):
             try:
@@ -504,7 +504,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
                     }
                 )
                 self.national_federation = default_federation
-        
+
         # Ensure mother_body is set to SAFAM if not specified
         if not self.mother_body:
             from geography.models import MotherBody
@@ -512,28 +512,28 @@ class CustomUser(AbstractUser, ModelWithLogo):
             if not safam:
                 raise ValidationError("SAFAM does not exist in the MotherBody table.")
             self.mother_body = safam
-        
+
         super().save(*args, **kwargs)
 
     def generate_safa_id(self):
         """Generate 5-digit alphanumeric SAFA ID (A-Z, 0-9)"""
         if self.safa_id:
             return self.safa_id
-        
+
         import string
         import random
-        
+
         # Use only capital letters and digits
         chars = string.ascii_uppercase + string.digits  # A-Z, 0-9
-        
+
         # Generate 5-character alphanumeric ID
         while True:
             safa_id = ''.join(random.choices(chars, k=5))
-            
+
             # Ensure uniqueness - fixed to use CustomUser instead of User
             if not CustomUser.objects.filter(safa_id=safa_id).exists():
                 break
-        
+
         self.safa_id = safa_id
         return safa_id
 
@@ -597,18 +597,34 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 result['error'] = "ID number citizenship digit (11) must be 0 or 1."
                 return result
 
-            # Validate checksum (Luhn algorithm)
-            total = 0
-            for i in range(len(id_number) - 1):
-                digit = int(id_number[i])
-                if i % 2 == 0:
-                    total += digit
-                else:
-                    # For odd positions, double the digit and sum the digits of the result
-                    doubled = digit * 2
-                    total += doubled if doubled < 10 else (doubled - 9)
+            # Validate checksum (Luhn algorithm for South African ID)
+            # For South African IDs, the algorithm is:
+            # 1. Add all digits in odd positions (1st, 3rd, 5th, etc.)
+            # 2. Concatenate all digits in even positions (2nd, 4th, 6th, etc.)
+            # 3. Multiply the result of step 2 by 2
+            # 4. Add the digits of the result from step 3
+            # 5. Add the result from step 4 to the result from step 1
+            # 6. The check digit is (10 - (result % 10)) % 10
 
+            odd_sum = 0
+            even_digits = ""
+
+            # Remember that positions are 0-indexed in code but 1-indexed in the algorithm description
+            for i in range(len(id_number) - 1):  # Exclude the check digit
+                digit = int(id_number[i])
+                if i % 2 == 0:  # Even position in 0-indexed (odd in 1-indexed)
+                    odd_sum += digit
+                else:  # Odd position in 0-indexed (even in 1-indexed)
+                    even_digits += str(digit)
+
+            # Double the even digits as a single number and sum its digits
+            doubled_even = int(even_digits) * 2 if even_digits else 0
+            even_sum = sum(int(digit) for digit in str(doubled_even))
+
+            # Calculate the total and check digit
+            total = odd_sum + even_sum
             check_digit = (10 - (total % 10)) % 10
+
             if check_digit != int(id_number[-1]):
                 result['error'] = f"ID number has an invalid checksum digit. Expected {check_digit}, got {id_number[-1]}."
                 return result
@@ -660,29 +676,29 @@ class CustomUser(AbstractUser, ModelWithLogo):
         """Make ID validation more robust to prevent admin errors"""
         if not self.id_number:
             return
-            
+
         try:
             # Your existing validation code
             id_number = self.id_number.replace(' ', '').replace('-', '')
             country_code = getattr(self, 'country_code', 'ZAF')
-            
+
             # Extract and validate ID information
             id_info = self.extract_id_info(id_number, country_code)
-            
+
             if not id_info['is_valid']:
                 # Log error but don't raise exception in admin context
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.warning(f"ID validation warning: {id_info['error']}")
                 return
-                
+
             # Set values as before but don't raise exceptions
             if not self.date_of_birth and id_info['date_of_birth']:
                 self.date_of_birth = id_info['date_of_birth']
-                
+
             if not self.gender and id_info['gender']:
                 self.gender = id_info['gender']
-                
+
             self.id_number = id_number
         except Exception as e:
             # Log any unexpected errors but allow admin to function
@@ -696,7 +712,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"
         return self.email
-    
+
     def __str__(self):
         return self.get_full_name()
 
@@ -788,7 +804,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             'name': None,
             'level': 'No Level'
         }
-    
+
     def get_province_name(self):
         """Get province name from province_id"""
         if self.province_id:
@@ -799,7 +815,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             except:
                 pass
         return "Not Set"
-    
+
     def get_region_name(self):
         """Get region name from region FK directly if possible, fallback to region_id lookup."""
         if self.region and hasattr(self.region, 'name') and self.region.name:
@@ -812,7 +828,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             except Exception:
                 pass
         return "Not Set"
-    
+
     def get_lfa_name(self):
         """Get LFA name from local_federation_id"""
         if self.local_federation_id:
@@ -823,7 +839,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             except:
                 pass
         return "Not Set"
-    
+
     def get_club_name(self):
         """Get club name from club_id"""
         if self.club_id:
@@ -834,7 +850,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             except:
                 pass
         return "Not Set"
-    
+
     @property
     def is_id_valid(self):
         """Check if the provided ID number is valid"""
@@ -842,7 +858,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             id_info = self.extract_id_info(self.id_number)
             return id_info.get('is_valid', False)
         return False
-    
+
     @property
     def is_profile_complete(self):
         """Check if user profile is complete for compliance"""
@@ -852,12 +868,12 @@ class CustomUser(AbstractUser, ModelWithLogo):
             self.popi_act_consent,
         ]
         return all(required_items)
-    
+
     def get_compliance_score(self):
         """Get compliance percentage"""
         total_items = 4  # profile_photo, id_document, popi_consent, id_valid
         completed_items = 0
-        
+
         if self.profile_photo:
             completed_items += 1
         if self.id_document:
@@ -866,7 +882,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             completed_items += 1
         if self.is_id_valid:
             completed_items += 1
-            
+
         return int((completed_items / total_items) * 100)
 
     # Add mother body/federation field that defaults to SAFAM
@@ -938,13 +954,13 @@ class DocumentAccessLog(models.Model):
         ('club_document', 'Club Document'),
         ('other', 'Other Document'),
     ]
-    
+
     ACTION_TYPES = [
         ('view', 'Viewed'),
         ('download', 'Downloaded'),
         ('print', 'Printed'),
     ]
-    
+
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, help_text="User who accessed the document")
     document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPES)
     document_name = models.CharField(max_length=255, help_text="Original document filename")
@@ -957,29 +973,25 @@ class DocumentAccessLog(models.Model):
     watermarked = models.BooleanField(default=False, help_text="Whether document was watermarked")
     success = models.BooleanField(default=True, help_text="Whether access was successful")
     notes = models.TextField(blank=True, help_text="Additional notes about the access")
-    
+
     class Meta:
         db_table = 'document_access_log'
         ordering = ['-access_time']
         verbose_name = 'Document Access Log'
         verbose_name_plural = 'Document Access Logs'
-    
+
     def __str__(self):
         return f"{self.user.get_full_name()} {self.action} {self.document_name} at {self.access_time}"
-    
+
     @property
     def formatted_file_size(self):
         """Return human readable file size"""
         if not self.file_size:
             return "Unknown"
-        
+
         size = self.file_size
         for unit in ['B', 'KB', 'MB', 'GB']:
             if size < 1024.0:
                 return f"{size:.1f} {unit}"
             size /= 1024.0
         return f"{size:.1f} TB"
-
-
-
-
