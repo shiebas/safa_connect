@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Senior Membership Application{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'membership/css/membership.css' %}" rel="stylesheet">
+<script src="{% static 'membership/js/safa_global_validator.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Senior Membership Application</h3>
+                    <p class="mb-0">For members 18 years and older</p>
+                </div>
+                <div class="card-body">
+                    <form id="senior-membership-form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Personal Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="first_name">First Name *</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="last_name">Last Name *</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Age verification for seniors -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="date_of_birth">Date of Birth *</label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="email">Email *</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'membership:registration_selector' %}" class="btn btn-secondary me-md-2">
+                                Back to Selection
+                            </a>
+                            <button type="submit" class="btn btn-primary">Submit Application</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/safa_global_validator.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('senior-membership-form');
+    const dobInput = document.getElementById('date_of_birth');
+
+    dobInput.addEventListener('change', function() {
+        const birthDate = new Date(this.value);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+
+        if (age < 18) {
+            alert('Senior membership requires age 18 or older');
+            this.value = '';
+            return;
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (typeof SafaGlobalValidator !== 'undefined') {
+            const validator = new SafaGlobalValidator();
+            if (validator.validateForm(form)) {
+                this.submit();
+            }
+        } else {
+            this.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

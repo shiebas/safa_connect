@@ -1,9 +1,10 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import Member, Membership, Player, Transfer, TransferAppeal, MembershipApplication, ClubRegistration
-from geography.models import Club, LocalFootballAssociation
-from phonenumber_field.formfields import PhoneNumberField
+from .models import Member, Membership, Player, Transfer, TransferAppeal, MembershipApplication, ClubRegistration, JuniorMember
+from geography.models import Club, LocalFootballAssociation, Province, Region
+# Assuming phonenumber_field is installed and CustomUser has extract_id_info
+# from phonenumber_field.formfields import PhoneNumberField
 from accounts.models import CustomUser
 import re
 import datetime
@@ -17,7 +18,7 @@ class AddressFormMixin:
 
     def add_address_fieldset(self):
         """Group address fields and add any custom widgets"""
-        address_fields = ['street_address', 'suburb', 'city', 
+        address_fields = ['street_address', 'suburb', 'city',
                          'state', 'postal_code', 'country']
         for field in address_fields:
             if field in self.fields:
@@ -31,19 +32,19 @@ class MemberForm(AddressFormMixin, forms.ModelForm):
         model = Member
         fields = [
             # Personal Information
-            'first_name', 'last_name', 'email', 'phone_number', 
+            'first_name', 'last_name', 'email', 'phone_number',
             'date_of_birth', 'member_type',
             # Identification
             'id_number', 'passport_number', 'gender',
             # Address Information
-            'street_address', 'suburb', 'city', 'state', 
+            'street_address', 'suburb', 'city', 'state',
             'postal_code', 'country',
             # Membership Information
             'status',
             # Geography
             'province', 'region', 'lfa',
             # Images
-            'profile_picture',  
+            'profile_picture',
             # Emergency Contact
             'emergency_contact', 'emergency_phone', 'medical_notes'
         ]
@@ -290,8 +291,8 @@ class ClubForm(forms.ModelForm):
     class Meta:
         model = Club
         fields = [
-            'name', 
-            'code', 
+            'name',
+            'code',
             'localfootballassociation',  # Instead of local_football_association
             'founding_date',             # Instead of founded_year
             'website',
@@ -318,13 +319,13 @@ class MembershipApplicationForm(forms.ModelForm):
     # Junior-specific fields
     is_junior = forms.BooleanField(required=False, label="Under 18 years old")
     guardian_name = forms.CharField(required=False, label="Guardian/Parent Name")
-    guardian_email = forms.EmailField(required=False, label="Guardian/Parent Email") 
+    guardian_email = forms.EmailField(required=False, label="Guardian/Parent Email")
     guardian_phone = forms.CharField(required=False, label="Guardian/Parent Phone")
     school = forms.CharField(required=False, label="School Name")
 
     # Consent
     popi_consent = forms.BooleanField(
-        required=False, 
+        required=False,
         label="POPI Act Consent",
         help_text="Required for members under 18 years old"
     )
@@ -368,16 +369,16 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Style form fields
         self.fields['first_name'].widget.attrs.update({
-            'pattern': '[A-Za-z\s\-\']{3,}', 
-            'minlength': '3', 
+            'pattern': '[A-Za-z\s\-\']{3,}',
+            'minlength': '3',
             'title': 'Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters',
             'class': 'form-control',
             'oninput': 'this.value = this.value.replace(/[^A-Za-z\s\-\']/g, "")',
             'onblur': 'validateNameField(this)'
         })
         self.fields['last_name'].widget.attrs.update({
-            'pattern': '[A-Za-z\s\-\']{3,}', 
-            'minlength': '3', 
+            'pattern': '[A-Za-z\s\-\']{3,}',
+            'minlength': '3',
             'title': 'Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters',
             'class': 'form-control',
             'oninput': 'this.value = this.value.replace(/[^A-Za-z\s\-\']/g, "")',
@@ -420,8 +421,8 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # ID validation
         self.fields['id_number'].widget.attrs.update({
-            'pattern': '[0-9]{13}', 
-            'inputmode': 'numeric', 
+            'pattern': '[0-9]{13}',
+            'inputmode': 'numeric',
             'title': 'ID number must be exactly 13 digits (numbers only)',
             'class': 'form-control',
             'oninput': 'this.value = this.value.replace(/[^0-9]/g, "")',

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView, View
@@ -203,14 +203,14 @@ class PaymentReturnView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         # Get payment reference from request
         payment_ref = request.GET.get('reference', '')
-        
+
         # TODO: Process the payment confirmation
         # Implement payment verification logic here
         # Update relevant invoice or payment records
-        
+
         messages.success(request, _("Payment processed successfully."))
         return HttpResponseRedirect(reverse_lazy('membership:registration_success'))
-        
+
     def post(self, request, *args, **kwargs):
         # Handle POST callbacks from payment processor
         # Similar logic as GET but for POST data
@@ -221,7 +221,7 @@ class PaymentCancelView(LoginRequiredMixin, TemplateView):
     Handle cancelled payments from payment processor.
     """
     template_name = 'membership/payment_cancel.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _("Payment Cancelled")
@@ -237,7 +237,7 @@ class ProcessCardPaymentView(LoginRequiredMixin, View):
     def post(self, request, uuid, *args, **kwargs):
         # Logic for initiating card payment process
         # TODO: Implement integration with payment processor
-        
+
         # Placeholder - redirect to payment gateway
         return HttpResponseRedirect(reverse_lazy('membership:payment_return'))
 
@@ -245,14 +245,14 @@ class ProcessCardPaymentView(LoginRequiredMixin, View):
 def send_payment_reminder(request, entity_type, entity_id):
     """
     Send payment reminder to a club or player based on entity_type.
-    
+
     Args:
         entity_type: 'club' or 'player'
         entity_id: ID of the club or player to send reminder to
     """
     from django.core.mail import send_mail
     from .models.invoice import Invoice
-    
+
     success = False
     if entity_type == 'club':
         club = get_object_or_404(Club, pk=entity_id)
@@ -260,10 +260,10 @@ def send_payment_reminder(request, entity_type, entity_id):
         if invoices.exists():
             # Get club admin email
             admin_emails = list(Member.objects.filter(
-                club=club, 
+                club=club,
                 role='CLUB_ADMIN'
             ).values_list('email', flat=True))
-            
+
             if admin_emails:
                 total_due = sum(invoice.amount for invoice in invoices)
                 # Send email to club administrators
@@ -275,11 +275,11 @@ def send_payment_reminder(request, entity_type, entity_id):
                     admin_emails,
                     fail_silently=False,
                 )
-                
+
     elif entity_type == 'player':
         player = get_object_or_404(Player, pk=entity_id)
         invoices = Invoice.objects.filter(player=player, status__in=['PENDING', 'OVERDUE'])
-        
+
         if invoices.exists() and player.email:
             total_due = sum(invoice.amount for invoice in invoices)
             # Send email to player
@@ -291,21 +291,21 @@ def send_payment_reminder(request, entity_type, entity_id):
                 [player.email],
                 fail_silently=False,
             )
-    
+
     if success:
         messages.success(
-            request, 
+            request,
             _("Payment reminder sent successfully to {0} {1}").format(
-                entity_type, 
+                entity_type,
                 Club.objects.get(pk=entity_id).name if entity_type == 'club' else Player.objects.get(pk=entity_id).get_full_name()
             )
         )
     else:
         messages.error(
-            request, 
+            request,
             _("Could not send payment reminder. Please check if the recipient has a valid email address.")
         )
-    
+
     # Redirect to the referring page if available
     return redirect(request.META.get('HTTP_REFERER', reverse_lazy('membership:outstanding_report')))
 
@@ -409,3 +409,20 @@ def membership_application(request):
     else:
         form = MembershipApplicationForm()
     return render(request, 'membership/membership_application.html', {'form': form})
+
+def verify_view(request):
+    return render(request, 'templates/membership/verify.html')
+
+
+def registration_selector(request):
+    """View to select registration type"""
+    return render(request, 'membership/registration_selector.html')
+
+
+def senior_registration(request):
+    """Senior membership registration"""
+    if request.method == 'POST':
+        messages.success(request, 'Senior membership application submitted successfully!')
+        return redirect('membership:registration_selector')
+
+    return render(request, 'membership/senior_registration.html')

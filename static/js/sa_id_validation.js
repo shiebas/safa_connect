@@ -68,30 +68,41 @@ function validateSAIDNumber(idNumber) {
         const citizenshipDigit = parseInt(idNumber.charAt(10));
         result.citizenship = citizenshipDigit === 0 ? "SA Citizen" : "Permanent Resident";
 
-        // Luhn algorithm validation
-        let checksum = 0;
-        let alternate = false;
+        // Luhn algorithm validation for South African ID
+        // Using the standard algorithm for SA IDs:
+        // 1. Add all digits in odd positions (1st, 3rd, 5th, etc.)
+        // 2. Concatenate all digits in even positions (2nd, 4th, 6th, etc.)
+        // 3. Multiply the result of step 2 by 2
+        // 4. Add the digits of the result from step 3
+        // 5. Add the result from step 4 to the result from step 1
+        // 6. The check digit is (10 - (result % 10)) % 10
 
-        // Process digits from right to left
-        for (let i = idNumber.length - 1; i >= 0; i--) {
-            let digit = parseInt(idNumber.charAt(i));
-            
-            if (alternate) {
-                digit *= 2;
-                if (digit > 9) {
-                    digit -= 9;
-                }
+        let oddSum = 0;
+        let evenDigits = "";
+
+        // Process all digits except the check digit
+        for (let i = 0; i < idNumber.length - 1; i++) {
+            const digit = parseInt(idNumber.charAt(i));
+            if (i % 2 === 0) {  // Odd position (1-indexed)
+                oddSum += digit;
+            } else {  // Even position (1-indexed)
+                evenDigits += digit;
             }
-            
-            checksum += digit;
-            alternate = !alternate;
         }
 
-        // If checksum is divisible by 10, the ID is valid
-        if (checksum % 10 === 0) {
+        // Double the even digits as a single number and sum its digits
+        const doubledEven = parseInt(evenDigits) * 2;
+        const evenSum = doubledEven.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+
+        // Calculate the total and check digit
+        const total = oddSum + evenSum;
+        const checkDigit = (10 - (total % 10)) % 10;
+
+        // Compare with the actual check digit
+        if (checkDigit === parseInt(idNumber.charAt(12))) {
             result.isValid = true;
         } else {
-            result.errorMessage = "ID number checksum is invalid";
+            result.errorMessage = "ID number has an invalid checksum digit.";
         }
 
         return result;
@@ -109,10 +120,10 @@ function validateSAIDNumber(idNumber) {
  */
 function formatDateYMD(date) {
     if (!date) return '';
-    
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
 }

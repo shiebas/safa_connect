@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+ {% load static %}
+
+{% block title %}Junior Membership Application{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'membership/css/membership.css' %}" rel="stylesheet">
+<script src="{% static 'membership/js/safa_global_validator.js' %}"></script>
+{% endblock %}
+
+ {% block content %}
+<div class="container mt-4">
+ <div class="row justify-content-center">
+  <div class="col-md-10">
+   <div class="card">
+    <div class="card-header">
+     <h3>Junior Membership Application</h3>
+     <p class="mb-0">For members under 18 years old. Must be registered by a club administrator.</p>
+    </div>
+    <div class="card-body">
+     <form id="junior-membership-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Personal Information (Junior) -->
+      <div class="card mb-4">
+       <div class="card-header">
+        <h5>Junior's Personal Information</h5>
+       </div>
+       <div class="card-body">
+        <div class="row">
+         <div class="col-md-6">
+          <div class="form-group mb-3">
+           <label for="first_name" class="form-label">First Name *</label>
+           <input type="text" class="form-control" id="first_name" name="first_name" required>
+           <div class="invalid-feedback"></div>
+          </div>
+         </div>
+         <div class="col-md-6">
+          <div class="form-group mb-3">
+           <label for="last_name" class="form-label">Last Name *</label>
+           <input type="text" class="form-control" id="last_name" name="last_name" required>
+           <div class="invalid-feedback"></div>
+          </div>
+         </div>
+        </div>
+
+        <div class="row">
+         <div class="col-md-6">
+          <div class="form-group mb-3">
+           <label for="date_of_birth" class="form-label">Date of Birth *</label>
+           <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+           <div class="invalid-feedback"></div>
+           <div id="age-info" class="form-text"></div>
+          </div>
+         </div>
+         <div class="col-md-6">
+          <div class="form-group mb-3">
+           <label for="gender" class="form-label">Gender *</label>
+           <select class="form-control" id="gender" name="gender" required>
+            <option value="">Select Gender</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="O">Other</option>
+           </select>
+           <div class="invalid-feedback"></div>
+          </div>
+         </div>
+        </div>
+
+        <div class="form-group mb-3">
+         <label for="school" class="form-label">School (Optional)</label>
+         <input type="text" class="form-control" id="school" name="school">
+        </div>
+       </div>
+      </div>
+
+      <!-- Guardian Information Section -->
+      <div class="card mb-4">
+       <div class="card-header">
+        <h5>Guardian Information</h5>
+       </div>
+       <div class="card-body">
+        <div class="form-group mb-3">
+         <label for="guardian_name" class="form-label">Guardian Full Name *</label>
+         <input type="text" class="form-control" id="guardian_name" name="guardian_name" required>
+         <div class="invalid-feedback"></div>
+        </div>
+        <div class="row">
+         <div class="col-md-6">
+          <div class="form-group mb-3">
+           <label for="guardian_email" class="form-label">Guardian Email *</label>
+           <input type="email" class="form-control" id="guardian_email" name="guardian_email" required>
+           <div class="invalid-feedback"></div>
+          </div>
+         </div>
+         <div class="col-md-6">
+          <div class="form-group mb-3">
+           <label for="guardian_phone" class="form-label">Guardian Phone Number *</label>
+           <input type="tel" class="form-control" id="guardian_phone" name="guardian_phone" required>
+           <div class="invalid-feedback"></div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+       <a href="{% url 'membership:registration_selector' %}" class="btn btn-secondary me-md-2">
+        Back to Selection
+       </a>
+       <button type="submit" class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+        Submit Junior Application
+       </button>
+      </div>
+     </form>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+{% endblock %}
+
+ {% block extra_js %}
+ <script src="{% static 'js/safa_global_validator.js' %}"></script>
+ <script>
+ document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('junior-membership-form');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const spinner = submitButton.querySelector('.spinner-border');
+
+  let validator;
+  if (typeof SafaGlobalValidator !== 'undefined') {
+   validator = new SafaGlobalValidator();
+   console.log('SAFA Global Validator initialized for junior form');
+  } else {
+   console.warn('SAFA Global Validator not found, using basic validation for junior form');
+   validator = {
+    validateForm: function (form) {
+     return validateFormBasic(form);
+    }
+   };
+  }
+
+  const dobInput = document.getElementById('date_of_birth');
+
+  dobInput.addEventListener('change', function () {
+   const birthDate = new Date(this.value);
+   const today = new Date();
+   let age = today.getFullYear() - birthDate.getFullYear();
+
+   const monthDiff = today.getMonth() - birthDate.getMonth();
+
+   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+   }
+
+   let ageInfo = document.getElementById('age-info');
+   if (!ageInfo) {
+    ageInfo = document.createElement('div');
+    ageInfo.id = 'age-info';
+    ageInfo.className = 'form-text';
+    dobInput.parentNode.appendChild(ageInfo);
+   }
+
+   if (age >= 18) {
+    ageInfo.innerHTML = `<span class="text-warning">Age: ${age} years - This is a senior age. Please use the <a href="{% url 'membership:senior_registration' %}">Senior Registration</a> form.</span>`;
+    dobInput.setCustomValidity("Junior membership requires age under 18.");
+   } else {
+    ageInfo.innerHTML = `<span class="text-success">Age: ${age} years - Junior membership application</span>`;
+    dobInput.setCustomValidity("");
+   }
+  });
+
+  form.addEventListener('submit', function (e) {
+   e.preventDefault();
+
+   submitButton.disabled = true;
+   spinner.classList.remove('d-none');
+
+   clearValidationErrors();
+
+   let isValid = validator.validateForm(form);
+
+   // Custom validation for junior age
+   const dobValue = dobInput.value;
+   if (dobValue) {
+    const birthDate = new Date(dobValue);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+     age--;
+    }
+    if (age >= 18) {
+     showFieldError('date_of_birth', 'Junior membership requires age under 18. Please use the Senior Registration form.');
+     isValid = false;
+    }
+   }
+
+   if (isValid) {
+    this.submit();
+   } else {
+    resetSubmitButton();
+   }
+  });
+
+  function resetSubmitButton() {
+   submitButton.disabled = false;
+   spinner.classList.add('d-none');
+  }
+
+  function clearValidationErrors() {
+   const errorElements = form.querySelectorAll('.invalid-feedback');
+   errorElements.forEach(element => {
+    element.textContent = '';
+   });
+   const invalidInputs = form.querySelectorAll('.is-invalid');
+   invalidInputs.forEach(input => {
+    input.classList.remove('is-invalid');
+   });
+  }
+
+  function showFieldError(fieldName, message) {
+   const field = form.querySelector(`[name="${fieldName}"]`);
+   if (field) {
+    field.classList.add('is-invalid');
+    const feedback = field.parentNode.querySelector('.invalid-feedback');
+    if (feedback) {
+     feedback.textContent = message;
+    }
+   }
+  }
+
+  function validateFormBasic(form) {
+   const requiredFields = form.querySelectorAll('[required]');
+   let isValid = true;
+   requiredFields.forEach(field => {
+    if (!field.value.trim()) {
+     showFieldError(field.name, 'This field is required');
+     isValid = false;
+    }
+   });
+   return isValid;
+  }
+ });
+ </script>
+ {% endblock %}

@@ -7,9 +7,9 @@ from django.conf import settings
 from django.utils.crypto import get_random_string
 import os
 from geography.models import (
-    ModelWithLogo, 
-    Province, 
-    Region, 
+    ModelWithLogo,
+    Province,
+    Region,
     LocalFootballAssociation,
     Club as GeographyClub  # Import Club from geography with an alias
 )
@@ -42,7 +42,7 @@ class Member(TimeStampedModel):
         ('OFFICIAL', 'Club Official'),
         ('ADMIN', 'Administrator'),
     ]
-    
+
     MEMBERSHIP_STATUS = [
         ('PENDING', 'Pending Approval'),
         ('ACTIVE', 'Active'),
@@ -57,22 +57,22 @@ class Member(TimeStampedModel):
     ]
 
     # Identification Fields
-    safa_id = models.CharField(_("SAFA ID"), max_length=5, unique=True, 
+    safa_id = models.CharField(_("SAFA ID"), max_length=5, unique=True,
                              blank=True, null=True,
                              help_text=_("5-digit unique SAFA identification number"))
-    fifa_id = models.CharField(_("FIFA ID"), max_length=7, unique=True, 
+    fifa_id = models.CharField(_("FIFA ID"), max_length=7, unique=True,
                              blank=True, null=True,
                              help_text=_("7-digit unique FIFA identification number"))
     id_number = models.CharField(_("ID Number"), max_length=13, blank=True,
                                help_text=_("13-digit South African ID number"))
     passport_number = models.CharField(_('Passport Number'), max_length=25, blank=True, null=True, help_text=_('Passport number for non-citizens'))
-    gender = models.CharField(_("Gender"), max_length=1, choices=GENDER_CHOICES, 
+    gender = models.CharField(_("Gender"), max_length=1, choices=GENDER_CHOICES,
                             blank=True, help_text=_("Gender as per ID document"))
 
     # Personal Information
     first_name = models.CharField(_("First Name"), max_length=100)
     last_name = models.CharField(_("Last Name"), max_length=100)
-    email = models.EmailField(_("Email Address"), unique=True)
+    email = models.EmailField(_("Email Address"))
     phone_number = models.CharField(_("Phone Number"), max_length=20)
     date_of_birth = models.DateField(_("Date of Birth"))
     member_type = models.CharField(_("Member Type"), max_length=20, choices=MEMBER_TYPES, default='SENIOR')
@@ -101,21 +101,36 @@ class Member(TimeStampedModel):
     )
     approved_date = models.DateTimeField(null=True, blank=True)
     rejection_reason = models.TextField(_("Rejection Reason"), blank=True)
-    
+
+    # Registration tracking
+    registered_by_admin = models.BooleanField(
+        _("Registered by Admin"),
+        default=False,
+        help_text=_("Whether this member was registered by a club administrator")
+    )
+    registering_admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='registered_members',
+        help_text=_("The club administrator who registered this member")
+    )
+
     # Geography (for administrative purposes)
     province = models.ForeignKey('geography.Province', on_delete=models.SET_NULL, null=True, blank=True)
     region = models.ForeignKey('geography.Region', on_delete=models.SET_NULL, null=True, blank=True)
     lfa = models.ForeignKey('geography.LocalFootballAssociation', on_delete=models.SET_NULL, null=True, blank=True)
 
     # Images
-    profile_picture = models.ImageField(_("Profile Picture"), 
-                                      upload_to='member_profiles/', 
+    profile_picture = models.ImageField(_("Profile Picture"),
+                                      upload_to='member_profiles/',
                                       null=True, blank=True)
 
     # Emergency Contact
-    emergency_contact = models.CharField(_("Emergency Contact"), 
+    emergency_contact = models.CharField(_("Emergency Contact"),
                                       max_length=100, blank=True)
-    emergency_phone = models.CharField(_("Emergency Contact Phone"), 
+    emergency_phone = models.CharField(_("Emergency Contact Phone"),
                                     max_length=20, blank=True)
     medical_notes = models.TextField(_("Medical Notes"), blank=True)
 
@@ -132,36 +147,36 @@ class Member(TimeStampedModel):
         blank=True,
         help_text=_('Upload a scan/photo of the ID or passport')
     )
-    
+
     # Track if a South African citizen also has a valid SA passport
     has_sa_passport = models.BooleanField(
-        _('Has SA Passport'), 
+        _('Has SA Passport'),
         default=False,
         help_text=_('Whether the SA citizen member also has a valid SA passport for international travel')
     )
-    
+
     # Store the SA passport number for local citizens who have passports
     sa_passport_number = models.CharField(
-        _('SA Passport Number'), 
-        max_length=25, 
-        blank=True, 
+        _('SA Passport Number'),
+        max_length=25,
+        blank=True,
         null=True,
         help_text=_('South African passport number for citizens (for international travel)')
     )
-    
+
     # SA passport document
     sa_passport_document = models.FileField(
-        _('SA Passport Document'), 
+        _('SA Passport Document'),
         upload_to='sa_passport_documents/',
-        blank=True, 
-        null=True, 
+        blank=True,
+        null=True,
         help_text=_('Upload a copy of the SA passport')
     )
-    
+
     # SA passport expiry date
     sa_passport_expiry_date = models.DateField(
-        _('SA Passport Expiry Date'), 
-        blank=True, 
+        _('SA Passport Expiry Date'),
+        blank=True,
         null=True,
         help_text=_('Expiry date of the South African passport')
     )
@@ -213,7 +228,7 @@ class Member(TimeStampedModel):
         # Validate ID number if provided
         if self.id_number:
             self._validate_id_number()
-        
+
         # Auto-detect member type based on age if not set
         if self.date_of_birth and not self.member_type:
             age = (timezone.now().date() - self.date_of_birth).days // 365
@@ -223,18 +238,18 @@ class Member(TimeStampedModel):
         # Auto-generate SAFA ID
         if not self.safa_id:
             self.generate_safa_id()
-        
+
         # Validate and save
         self.clean()
         super().save(*args, **kwargs)
-    
+
     def approve_membership(self, approved_by):
         """Approve the member's SAFA registration"""
         self.status = 'ACTIVE'
         self.approved_by = approved_by
         self.approved_date = timezone.now()
         self.save()
-        
+
     def reject_membership(self, rejected_by, reason):
         """Reject the member's SAFA registration"""
         self.status = 'REJECTED'
@@ -244,7 +259,7 @@ class Member(TimeStampedModel):
     def generate_safa_id(self):
         """Generate a unique 5-character uppercase alphanumeric code"""
         while True:
-            code = get_random_string(length=5, 
+            code = get_random_string(length=5,
                                    allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
             if not Member.objects.filter(safa_id=code).exists():
                 self.safa_id = code
@@ -254,18 +269,18 @@ class Member(TimeStampedModel):
         """Generate QR code for member identification"""
         qr_data = get_member_qr_data(self)
         return generate_qr_code(qr_data, size)
-    
+
     @property
     def qr_code(self):
         """Return QR code for member identification"""
         return self.generate_qr_code()
-        
+
     @property
     def membership_card_ready(self):
         """Check if member is ready for membership card generation"""
         return (
             self.safa_id and
-            self.status == 'ACTIVE' and 
+            self.status == 'ACTIVE' and
             self.profile_picture
         )
 
@@ -289,7 +304,7 @@ class Member(TimeStampedModel):
 
             # Validate date
             birth_date = timezone.datetime(full_year, int(month), int(day)).date()
-            
+
             # Update date_of_birth if it doesn't match ID number
             if self.date_of_birth != birth_date:
                 self.date_of_birth = birth_date
@@ -297,7 +312,7 @@ class Member(TimeStampedModel):
             # Extract and validate gender
             gender_digit = int(id_number[6:10])
             id_gender = 'M' if gender_digit >= 5000 else 'F'
-            
+
             # Update gender if it doesn't match ID number
             if self.gender and self.gender != id_gender:
                 raise ValidationError(_("ID number gender doesn't match the selected gender."))
@@ -329,7 +344,7 @@ class Member(TimeStampedModel):
             age = (timezone.now().date() - self.date_of_birth).days // 365
             return age < 18
         return self.member_type == 'JUNIOR'
-    
+
     @property
     def age(self):
         """Calculate member's age"""
@@ -344,15 +359,72 @@ class JuniorMember(Member):
     guardian_email = models.EmailField(_("Guardian Email"))
     guardian_phone = models.CharField(_("Guardian Phone"), max_length=20)
     school = models.CharField(_("School"), max_length=100, blank=True)
-    
+
     class Meta:
         verbose_name = _("Junior Member")
         verbose_name_plural = _("Junior Members")
-    
+
     def clean(self):
         super().clean()
         # Force member type to be JUNIOR
         self.member_type = 'JUNIOR'
+
+    def convert_to_senior(self):
+        """
+        Convert a junior member to a senior member when they turn 18.
+        This preserves all the member data but removes the junior-specific information.
+        """
+        if not self.is_junior:
+            # Create a new Member instance with the same data
+            senior_member = Member.objects.get(pk=self.pk)
+            senior_member.member_type = 'SENIOR'
+            senior_member.save()
+
+            # Delete the JuniorMember instance but keep the base Member
+            JuniorMember.objects.filter(pk=self.pk).delete()
+
+            return senior_member
+        return self
+
+    @classmethod
+    def check_for_age_transitions(cls):
+        """
+        Check for junior members who have turned 18 and should be converted to senior members.
+        This method can be run as a scheduled task.
+        """
+        today = timezone.now().date()
+        junior_members = cls.objects.all()
+
+        for junior in junior_members:
+            if not junior.is_junior:  # They've turned 18
+                junior.convert_to_senior()
+
+                # Send notification email about the transition
+                try:
+                    subject = "SAFA Membership Update - Senior Status"
+                    message = f"""
+                    Dear {junior.first_name},
+
+                    Congratulations! As you have now turned 18, your SAFA membership has been
+                    automatically updated from Junior to Senior status.
+
+                    Your SAFA ID remains: {junior.safa_id}
+
+                    Please log in to update any personal information if needed.
+
+                    Best regards,
+                    SAFA Administration
+                    """
+
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [junior.email],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass  # Fail silently if email can't be sent
 
 
 class ClubRegistration(TimeStampedModel):
@@ -363,7 +435,7 @@ class ClubRegistration(TimeStampedModel):
         ('INACTIVE', 'Inactive'),
         ('SUSPENDED', 'Suspended'),
     ]
-    
+
     member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='club_registration')
     club = models.ForeignKey('geography.Club', on_delete=models.CASCADE, related_name='member_registrations')
     registration_date = models.DateField(default=timezone.now)
@@ -371,15 +443,15 @@ class ClubRegistration(TimeStampedModel):
     position = models.CharField(max_length=50, blank=True)  # Player position for athletes
     jersey_number = models.PositiveIntegerField(null=True, blank=True)
     notes = models.TextField(blank=True)
-    
+
     class Meta:
         verbose_name = _("Club Registration")
         verbose_name_plural = _("Club Registrations")
         unique_together = ('member', 'club')
-    
+
     def __str__(self):
         return f"{self.member.get_full_name()} - {self.club.name}"
-    
+
     def clean(self):
         super().clean()
         # Ensure member is approved before club registration
@@ -394,7 +466,7 @@ class Player(Member):
     # Add approval field
     is_approved = models.BooleanField(_("Approved"), default=False,
                                      help_text=_("Whether the player has been approved by an admin"))
-    
+
     class Meta:
         verbose_name = _("Player")
         verbose_name_plural = _("Players")
@@ -419,23 +491,23 @@ class Official(Member):
     # Add approval field
     is_approved = models.BooleanField(_("Approved"), default=False,
                                      help_text=_("Whether the official has been approved by an admin"))
-    
+
     # Position in the club or association
-    position = models.ForeignKey('accounts.Position', on_delete=models.PROTECT, 
+    position = models.ForeignKey('accounts.Position', on_delete=models.PROTECT,
                                 related_name='officials',
                                 help_text=_("Official's position or role in the club/association"))
-    
+
     # Certification information
     certification_number = models.CharField(_("Certification Number"), max_length=50, blank=True, null=True,
                                           help_text=_("Certification or license number if applicable"))
-    
+
     certification_document = models.FileField(_("Certification Document"), upload_to='certification_documents/',
-                                           blank=True, null=True, 
+                                           blank=True, null=True,
                                            help_text=_("Upload proof of certification or qualification"))
-    
+
     certification_expiry_date = models.DateField(_("Certification Expiry Date"), blank=True, null=True,
                                               help_text=_("Expiry date of the certification or license"))
-    
+
     # For referees
     referee_level = models.CharField(_("Referee Level"), max_length=20, blank=True, null=True,
                                   choices=[
@@ -446,7 +518,7 @@ class Official(Member):
                                       ('INTERNATIONAL', 'International'),
                                   ],
                                   help_text=_("Level of referee qualification if applicable"))
-    
+
     # Primary association (foreign key)
     primary_association = models.ForeignKey(
         'geography.Association',
@@ -456,14 +528,14 @@ class Official(Member):
         null=True,
         help_text=_("Primary association this official belongs to")
     )
-    
+
     # Link to referee associations (many-to-many)
     associations = models.ManyToManyField(
-        'geography.Association', 
+        'geography.Association',
         related_name='member_officials',
         blank=True,
         help_text=_("Referee or coaching associations this official belongs to"))
-    
+
     class Meta:
         verbose_name = _("Official")
         verbose_name_plural = _("Officials")
@@ -480,23 +552,23 @@ class Official(Member):
     def save(self, *args, **kwargs):
         # Force role to be OFFICIAL before saving
         self.role = 'OFFICIAL'
-        
+
         # Sync associations between CustomUser and Official
         if hasattr(self, 'user') and self.user:
             # If user has an association but official doesn't have a primary, set it
             if self.user.association and not self.primary_association:
                 self.primary_association = self.user.association
                 print(f"[DEBUG - OFFICIAL SAVE] Setting primary_association from user: {self.user.association}")
-            
+
             # If official has a primary association but user doesn't have one, set it
             elif self.primary_association and not self.user.association:
                 self.user.association = self.primary_association
                 self.user.save(update_fields=['association'])
                 print(f"[DEBUG - OFFICIAL SAVE] Setting user.association from primary: {self.primary_association}")
-        
+
         # Now save the official
         super().save(*args, **kwargs)
-        
+
         # Add primary association to associations M2M if it exists and isn't already there
         if self.primary_association:
             if not self.associations.filter(id=self.primary_association.id).exists():
@@ -527,58 +599,58 @@ class OfficialCertification(TimeStampedModel):
     official = models.ForeignKey(Official, on_delete=models.CASCADE,
                               related_name='certifications',
                               help_text=_("The official who holds this certification"))
-    
+
     certification_type = models.CharField(_("Certification Type"), max_length=20,
                                        choices=CERTIFICATION_TYPES,
                                        help_text=_("Type of certification"))
-    
-    level = models.CharField(_("Level"), max_length=20, 
+
+    level = models.CharField(_("Level"), max_length=20,
                           choices=LEVEL_CHOICES,
                           help_text=_("Level or grade of the certification"))
-    
+
     name = models.CharField(_("Certification Name"), max_length=100,
                          help_text=_("Name of the specific certification or qualification"))
-    
+
     issuing_body = models.CharField(_("Issuing Organization"), max_length=100,
                                  help_text=_("Organization that issued this certification"))
-    
+
     certification_number = models.CharField(_("Certification Number"), max_length=50,
                                          blank=True, null=True,
                                          help_text=_("Unique identifier for this certification"))
-    
+
     obtained_date = models.DateField(_("Date Obtained"),
                                   help_text=_("When the certification was first obtained"))
-    
+
     expiry_date = models.DateField(_("Expiry Date"),
-                                blank=True, null=True, 
+                                blank=True, null=True,
                                 help_text=_("When the certification expires (if applicable)"))
-    
-    document = models.FileField(_("Certificate Document"), 
+
+    document = models.FileField(_("Certificate Document"),
                              upload_to='certification_documents/history/',
                              blank=True, null=True,
                              help_text=_("Upload proof of certification"))
-    
+
     notes = models.TextField(_("Notes"), blank=True,
                           help_text=_("Additional information about this certification"))
-    
+
     is_verified = models.BooleanField(_("Verified"), default=False,
                                    help_text=_("Whether this certification has been verified by an administrator"))
-    
+
     class Meta:
         verbose_name = _("Official Certification")
         verbose_name_plural = _("Official Certifications")
         ordering = ['-obtained_date']
-    
+
     def __str__(self):
         return f"{self.official.get_full_name()} - {self.name} ({self.level})"
-    
+
     @property
     def is_active(self):
         """Check if certification is currently active based on expiry date"""
         if not self.expiry_date:
             return True  # Certifications without expiry dates are considered active
         return self.expiry_date >= timezone.now().date()
-    
+
     @property
     def validity_status(self):
         """Return the validity status of the certification"""
@@ -606,27 +678,27 @@ class PlayerClubRegistration(TimeStampedModel):
         ('TRANSFERRED', 'Transferred'),
     ]
 
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, 
+    player = models.ForeignKey(Player, on_delete=models.CASCADE,
                              related_name='club_registrations')
     club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
                            related_name='player_registrations')
     # Registration Details
     registration_date = models.DateField(_("Registration Date"), default=timezone.now)
-    status = models.CharField(_("Status"), max_length=20, 
+    status = models.CharField(_("Status"), max_length=20,
                             choices=STATUS_CHOICES, default='INACTIVE')
     expiry_date = models.DateField(_("Registration Expiry"), null=True, blank=True)
-    
+
     # Playing Details
-    position = models.CharField(_("Position"), max_length=2, 
+    position = models.CharField(_("Position"), max_length=2,
                               choices=POSITION_CHOICES, blank=True)
-    jersey_number = models.PositiveIntegerField(_("Jersey Number"), 
+    jersey_number = models.PositiveIntegerField(_("Jersey Number"),
                                               blank=True, null=True)
     # Physical Attributes
-    height = models.DecimalField(_("Height (cm)"), max_digits=5, 
+    height = models.DecimalField(_("Height (cm)"), max_digits=5,
                                decimal_places=2, blank=True, null=True)
-    weight = models.DecimalField(_("Weight (kg)"), max_digits=5, 
+    weight = models.DecimalField(_("Weight (kg)"), max_digits=5,
                                decimal_places=2, blank=True, null=True)
-    
+
     # Additional Information
     notes = models.TextField(_("Notes"), blank=True)
 
@@ -668,23 +740,23 @@ class Transfer(TimeStampedModel):
         ('CANCELLED', 'Cancelled'),
     ]
 
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, 
+    player = models.ForeignKey(Player, on_delete=models.CASCADE,
                              related_name='transfers')
     from_club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
                                 related_name='transfers_out')
     to_club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
                               related_name='transfers_in')
-    
+
     # Transfer Details
     request_date = models.DateField(_("Request Date"), default=timezone.now)
     effective_date = models.DateField(_("Effective Date"), null=True, blank=True)
-    status = models.CharField(_("Status"), max_length=20, 
+    status = models.CharField(_("Status"), max_length=20,
                             choices=STATUS_CHOICES, default='PENDING')
-    transfer_fee = models.DecimalField(_("Transfer Fee (ZAR)"), max_digits=10, 
+    transfer_fee = models.DecimalField(_("Transfer Fee (ZAR)"), max_digits=10,
                                      decimal_places=2, default=0,
                                      help_text=_("Transfer fee amount in ZAR (South African Rand)"))
     reason = models.TextField(_("Transfer Reason"), blank=True)
-    
+
     # Approval Details
     approved_by = models.ForeignKey(Member, on_delete=models.SET_NULL,
                                   null=True, blank=True,
@@ -710,7 +782,7 @@ class Transfer(TimeStampedModel):
         super().clean()
         if self.from_club == self.to_club:
             raise ValidationError(_("Cannot transfer player to the same club."))
-        
+
         # Check player's status
         if self.player.status in ['INACTIVE', 'SUSPENDED']:
             raise ValidationError(_(
@@ -723,16 +795,16 @@ class Transfer(TimeStampedModel):
             club=self.from_club,
             status='ACTIVE'
         ).first()
-        
+
         if not current_registration:
             raise ValidationError(_("Player is not actively registered with the source club."))
-        
+
         # Check for pending transfers
         pending_transfer = Transfer.objects.filter(
             player=self.player,
             status='PENDING'
         ).exclude(pk=self.pk).first()
-        
+
         if pending_transfer:
             raise ValidationError(_("Player already has a pending transfer."))
 
@@ -831,12 +903,12 @@ class TransferAppeal(TimeStampedModel):
         related_name='federation_reviewed_appeals'
     )
     federation_review_date = models.DateTimeField(
-        _("Federation Review Date"), 
-        null=True, 
+        _("Federation Review Date"),
+        null=True,
         blank=True
     )
     federation_review_notes = models.TextField(
-        _("Federation Review Notes"), 
+        _("Federation Review Notes"),
         blank=True
     )
     requires_federation_approval = models.BooleanField(
@@ -863,7 +935,7 @@ class TransferAppeal(TimeStampedModel):
         # Only rejected transfers can be appealed
         if self.transfer.status != 'REJECTED':
             raise ValidationError(_("Only rejected transfers can be appealed."))
-        
+
         # Check if appeal already exists
         if (TransferAppeal.objects.filter(transfer=self.transfer)
                                 .exclude(pk=self.pk).exists()):
@@ -936,7 +1008,7 @@ class Membership(models.Model):
 class ClubWithSafaID(GeographyClub):
     """
     Add SAFA ID functionality to clubs from geography app.
-    
+
     This is a proxy model that extends the Club model from geography app
     to add SAFA ID and QR code functionality without modifying the original model's DB table.
     """
@@ -945,30 +1017,30 @@ class ClubWithSafaID(GeographyClub):
         app_label = 'membership'
         verbose_name = _("Club with SAFA ID")
         verbose_name_plural = _("Clubs with SAFA ID")
-    
+
     def generate_safa_id(self):
         """Generate a unique 5-character uppercase alphanumeric code for club"""
         if not self.safa_id:
             while True:
-                code = get_random_string(length=5, 
+                code = get_random_string(length=5,
                                       allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
                 if not GeographyClub.objects.filter(safa_id=code).exists():
                     self.safa_id = code
                     break
             self.save(update_fields=['safa_id'])
         return self.safa_id
-    
+
     def generate_qr_code(self, size=200):
         """Generate QR code for club identification"""
         from utils.qr_code_utils import generate_qr_code, get_club_qr_data
         qr_data = get_club_qr_data(self)
         return generate_qr_code(qr_data, size)
-    
+
     @property
     def qr_code(self):
         """Return QR code for club identification"""
         return self.generate_qr_code()
-    
+
     # The class methods are no longer needed as instance methods now handle this
     # but we'll keep them for backward compatibility
     @classmethod

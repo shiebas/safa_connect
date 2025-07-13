@@ -1,0 +1,132 @@
+{% load static %}
+
+{% block title %}Choose Registration Type{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/membership.css' %}" rel="stylesheet">
+<style>
+.registration-card {
+    transition: transform 0.2s ease-in-out;
+    height: 100%;
+}
+
+.registration-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.feature-list {
+    text-align: left;
+    margin: 20px 0;
+}
+
+.feature-list li {
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.feature-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #28a745;
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="text-center mb-5">
+                <h2>Join SAFA</h2>
+                <p class="lead">Choose your membership type to get started</p>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card registration-card border-primary">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-user-tie fa-3x text-primary"></i>
+                            </div>
+                            <h4 class="card-title">Senior Membership</h4>
+                            <p class="card-text">For members 18 years and older</p>
+
+                            <ul class="feature-list">
+                                <li>Full voting rights</li>
+                                <li>Competition participation</li>
+                                <li>Club leadership eligibility</li>
+                                <li>All club activities access</li>
+                                <li>Event organization rights</li>
+                            </ul>
+
+                            <div class="mt-4">
+                                <a href="{% url 'membership:senior_registration' %}" class="btn btn-primary btn-lg">
+                                    Apply for Senior Membership
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card registration-card border-success">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-child fa-3x text-success"></i>
+                            </div>
+                            <h4 class="card-title">Junior Membership</h4>
+                            <p class="card-text">For members under 18 years old</p>
+
+                            <ul class="feature-list">
+                                <li>Youth development programs</li>
+                                <li>Training and coaching</li>
+                                <li>Junior competitions</li>
+                                <li>Mentorship opportunities</li>
+                                <li>Educational workshops</li>
+                            </ul>
+
+                            <div class="mt-4">
+                                <p class="text-muted mb-3">
+                                    <small><i class="fas fa-info-circle"></i> Junior members must be registered by a club administrator</small>
+                                </p>
+                                <a href="{% url 'membership:junior_registration' %}" class="btn btn-success btn-lg">
+                                    Junior Registration
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-md-12 text-center">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Need Help?</h5>
+                            <p>If you're unsure about which membership type is right for you, please contact us:</p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <i class="fas fa-phone"></i>
+                                    <p>+27 11 123 4567</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="fas fa-envelope"></i>
+                                    <p>info@safa.org.za</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="fas fa-clock"></i>
+                                    <p>Mon-Fri: 8AM-5PM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

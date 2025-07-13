@@ -1,908 +1,330 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load form_filters %}
-{% load widget_tweaks %}
+
+{% block title %}Membership Application{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/membership.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5 mb-5">
-  <div class="card shadow">
-    <div class="card-header bg-primary text-white text-center">
-      <h2 class="mb-0">SAFA Membership Application</h2>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3>SAFA Membership Application</h3>
+                    <p class="mb-0">Please fill out all required fields to complete your application.</p>
+                </div>
+                <div class="card-body">
+                    <form id="membership-application-form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Personal Information Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Personal Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="first_name" class="form-label">First Name *</label>
+                                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="last_name" class="form-label">Last Name *</label>
+                                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="email" class="form-label">Email Address *</label>
+                                            <input type="email" class="form-control" id="email" name="email" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="phone_number" class="form-label">Phone Number *</label>
+                                            <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="date_of_birth" class="form-label">Date of Birth *</label>
+                                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="gender" class="form-label">Gender *</label>
+                                            <select class="form-control" id="gender" name="gender" required>
+                                                <option value="">Select Gender</option>
+                                                <option value="M">Male</option>
+                                                <option value="F">Female</option>
+                                                <option value="O">Other</option>
+                                            </select>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Information Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Address Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="street_address" class="form-label">Street Address *</label>
+                                    <input type="text" class="form-control" id="street_address" name="street_address" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="city" class="form-label">City *</label>
+                                            <input type="text" class="form-control" id="city" name="city" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="postal_code" class="form-label">Postal Code *</label>
+                                            <input type="text" class="form-control" id="postal_code" name="postal_code" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="state" class="form-label">Province/State *</label>
+                                            <input type="text" class="form-control" id="state" name="state" required>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="country" class="form-label">Country *</label>
+                                            <select class="form-control" id="country" name="country" required>
+                                                <option value="">Select Country</option>
+                                                <option value="ZA">South Africa</option>
+                                                <option value="BW">Botswana</option>
+                                                <option value="LS">Lesotho</option>
+                                                <option value="SZ">Eswatini</option>
+                                                <option value="NA">Namibia</option>
+                                            </select>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-secondary me-md-2" onclick="window.history.back()">
+                                Back
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                Submit Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="alert alert-info">
-      <h5><i class="fas fa-info-circle"></i> Registration Process</h5>
-      <p>This is a two-step registration process:</p>
-      <ol>
-        <li><strong>Step 1:</strong> Register with the National Federation (SAFA) - This form</li>
-        <li><strong>Step 2:</strong> After approval, you can register with other Associations and structures</li>
-      </ol>
-      <p>You must complete Step 1 and be approved before proceeding to Step 2.</p>
-    </div>
-    <div class="card-body">
-      <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-        {% csrf_token %}
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-        {% endif %}
-        <!-- First Name and Last Name in one row -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="id_first_name" class="form-label">First Name*</label>
-            <input type="text" name="first_name" id="id_first_name" class="form-control"
-                   pattern="[A-Za-z\s\-']{3,}" minlength="3" maxlength="50"
-                   oninput="this.value = this.value.replace(/[^A-Za-z\s\-']/g, '')"
-                   onblur="validateNameField(this)"
-                   required aria-required="true">
-            <div class="form-text">Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters</div>
-            {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
-          </div>
-          <div class="col-md-6">
-            <label for="id_last_name" class="form-label">Last Name*</label>
-            <input type="text" name="last_name" id="id_last_name" class="form-control"
-                   pattern="[A-Za-z\s\-']{3,}" minlength="3" maxlength="50"
-                   oninput="this.value = this.value.replace(/[^A-Za-z\s\-']/g, '')"
-                   onblur="validateNameField(this)"
-                   required aria-required="true">
-            <div class="form-text">Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters</div>
-            {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
-          </div>
-        </div>
-        <!-- Email Address and Phone Number in one row -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="id_email" class="form-label">Email Address*</label>
-            <input type="email" name="email" id="id_email" class="form-control"
-                   pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-                   oninput="validateEmailField(this)"
-                   onblur="validateEmailField(this)"
-                   required aria-required="true">
-            <div class="form-text">Enter a valid email address</div>
-            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
-          </div>
-          <div class="col-md-6">
-            <label for="id_phone_number" class="form-label">Phone Number</label>
-            <input type="tel" name="phone_number" id="id_phone_number" class="form-control"
-                   pattern="^[+]?[0-9]{10,15}$" inputmode="tel"
-                   oninput="this.value = this.value.replace(/[^+0-9]/g, '')"
-                   placeholder="e.g., +27123456789 (optional)">
-            <div class="form-text">Optional: Enter a valid phone number (numbers and + only).</div>
-            {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
-          </div>
-        </div>
-        <!-- Identification Section -->
-        <div class="card mb-4">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">Identification Information</h5>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6">
-                <!-- ID Document Type -->
-                <div class="mb-3">
-                  <label for="id_id_document_type" class="form-label">Id document type*</label>
-                  {{ form.id_document_type|add_class:'form-select'|attr:"required"|attr:"aria-required:true" }}
-                  <div class="form-text">Type of identification document (SA ID or Passport)</div>
-                  {% if form.id_document_type.errors %}<div class="text-danger small">{{ form.id_document_type.errors }}</div>{% endif %}
-                </div>
-                <!-- ID Number -->
-                <div class="mb-3 id-number-field" id="id_number_group">
-                  <label for="id_id_number" class="form-label">ID Number</label>
-                  <input type="text" name="id_number" id="id_id_number" class="form-control"
-                         pattern="\d{13}" minlength="13" maxlength="13"
-                         oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                         onblur="validateIdField(this)"
-                         inputmode="numeric"
-                         autocomplete="off"
-                         aria-describedby="id-validation-feedback"
-                         aria-required="true"
-                         placeholder="Enter 13-digit ID number">
-                  <div class="form-text">13-digit South African ID number (numbers only)</div>
-                  <div id="id-validation-feedback" class="form-text"></div>
-                  {% if form.id_number.errors %}<div class="text-danger small">{{ form.id_number.errors }}</div>{% endif %}
-                </div>
-
-                <!-- SA Passport Section (for SA citizens) -->
-                <div class="mb-3 sa-passport-section id-number-only" style="display:none;">
-                  <div class="form-check mb-2">
-                    {{ form.has_sa_passport|add_class:'form-check-input' }}
-                    <label class="form-check-label" for="id_has_sa_passport">Player has South African Passport (Optional)</label>
-                    <small class="form-text text-muted">Optional: Check if member has a South African passport (for record purposes only)</small>
-                  </div>
-                  <div class="sa-passport-number-field" style="display:none;">
-                    <label for="id_sa_passport_number" class="form-label">SA Passport Number</label>
-                    {{ form.sa_passport_number|add_class:'form-control' }}
-                    <div class="form-text">Enter the South African passport number</div>
-                    {% if form.sa_passport_number.errors %}<div class="text-danger small">{{ form.sa_passport_number.errors }}</div>{% endif %}
-                  </div>
-                </div>
-
-                <!-- Passport Number (for foreigners) -->
-                <div class="mb-3 passport-field" id="passport_number_group" style="display:none;">
-                  <label for="id_passport_number" class="form-label">Passport Number</label>
-                  <input type="text" name="passport_number" id="id_passport_number" class="form-control"
-                         minlength="5" maxlength="20"
-                         autocomplete="off"
-                         pattern="[A-Za-z0-9]{5,20}"
-                         aria-required="true"
-                         aria-describedby="passport-help"
-                         placeholder="Enter passport number">
-                  <div id="passport-help" class="form-text">If using a passport, enter the number here.</div>
-                  {% if form.passport_number.errors %}<div class="text-danger small">{{ form.passport_number.errors }}</div>{% endif %}
-                </div>
-
-                <!-- Passport Expiry Date (for foreigners) -->
-                <div class="mb-3 passport-field" id="passport_expiry_group" style="display:none;">
-                  <label for="id_passport_expiry_date" class="form-label">Passport Expiry Date</label>
-                  <input type="date" name="passport_expiry_date" id="id_passport_expiry_date" class="form-control"
-                         min="{{ now|date:'Y-m-d' }}"
-                         aria-required="true"
-                         aria-describedby="passport-expiry-help">
-                  <div id="passport-expiry-help" class="form-text">Enter the expiry date of your passport.</div>
-                  {% if form.passport_expiry_date.errors %}<div class="text-danger small">{{ form.passport_expiry_date.errors }}</div>{% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <!-- DOB and Gender fields (always visible but toggled between auto/manual) -->
-                <div class="mb-3">
-                  <div id="div_id_date_of_birth" class="form-group">
-                    <label for="id_date_of_birth">Date of Birth</label>
-                    <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth"
-                           max="{{ now|date:'Y-m-d' }}"
-                           min="1900-01-01"
-                           aria-describedby="date_of_birth_help"
-                           aria-required="true">
-                    <small id="date_of_birth_help" class="form-text text-muted">Auto-populated from ID number or enter manually for passport</small>
-                    <input type="hidden" id="hidden_dob">
-                    {% if form.date_of_birth.errors %}<div class="text-danger small">{{ form.date_of_birth.errors }}</div>{% endif %}
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <div id="div_id_gender" class="form-group">
-                    <label for="id_gender">Gender</label>
-                    <select name="gender" class="form-control" id="id_gender" aria-describedby="gender_help" aria-required="true">
-                      <option value="">---------</option>
-                      <option value="M">Male</option>
-                      <option value="F">Female</option>
-                    </select>
-                    <small id="gender_help" class="form-text text-muted">Auto-populated from ID number or select for passport</small>
-                    <input type="hidden" id="hidden_gender">
-                    {% if form.gender.errors %}<div class="text-danger small">{{ form.gender.errors }}</div>{% endif %}
-                  </div>
-                </div>
-
-                <!-- SA passport document and expiry date (shown when has_sa_passport is checked) -->
-                <div class="mb-3 sa-passport-document-field" style="display:none;">
-                  <label for="id_sa_passport_document" class="form-label">SA Passport Document</label>
-                  {{ form.sa_passport_document|add_class:'form-control' }}
-                  <div class="form-text">Upload a copy of the SA passport (PDF or image)</div>
-                  {% if form.sa_passport_document.errors %}<div class="text-danger small">{{ form.sa_passport_document.errors }}</div>{% endif %}
-                </div>
-                <div class="mb-3 sa-passport-expiry-field" style="display:none;">
-                  <label for="id_sa_passport_expiry_date" class="form-label">SA Passport Expiry Date</label>
-                  <input type="date" name="sa_passport_expiry_date" id="id_sa_passport_expiry_date" class="form-control"
-                         min="{{ now|date:'Y-m-d' }}"
-                         aria-describedby="sa-passport-expiry-help">
-                  <div id="sa-passport-expiry-help" class="form-text">Enter the expiry date of the SA passport</div>
-                  {% if form.sa_passport_expiry_date.errors %}<div class="text-danger small">{{ form.sa_passport_expiry_date.errors }}</div>{% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- SAFA ID and FIFA ID Toggles -->
-        <div class="mb-3">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="has_safa_id" name="has_safa_id" aria-controls="safa_id_group">
-            <label class="form-check-label" for="has_safa_id">I have a SAFA ID</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="has_fifa_id" name="has_fifa_id" aria-controls="fifa_id_group">
-            <label class="form-check-label" for="has_fifa_id">I have a FIFA ID</label>
-          </div>
-        </div>
-
-        <!-- SAFA ID -->
-        <div class="mb-3" id="safa_id_group" style="display:none;">
-          <label for="id_safa_id" class="form-label">SAFA ID</label>
-          {{ form.safa_id|add_class:'form-control'|attr:"pattern:^[A-Z0-9]{5}$"|attr:"minlength:5"|attr:"maxlength:5"|attr:"aria-describedby:safa-id-help" }}
-          <div id="safa-id-help" class="form-text">Enter your existing SAFA ID (5-character alphanumeric code)</div>
-          {% if form.safa_id.errors %}<div class="text-danger small">{{ form.safa_id.errors }}</div>{% endif %}
-        </div>
-
-        <!-- FIFA ID -->
-        <div class="mb-3" id="fifa_id_group" style="display:none;">
-          <label for="id_fifa_id" class="form-label">FIFA ID</label>
-          {{ form.fifa_id|add_class:'form-control'|attr:"pattern:^[0-9]{7}$"|attr:"minlength:7"|attr:"maxlength:7"|attr:"inputmode:numeric"|attr:"aria-describedby:fifa-id-help" }}
-          <div id="fifa-id-help" class="form-text">Enter your existing FIFA ID (7-digit number)</div>
-          {% if form.fifa_id.errors %}<div class="text-danger small">{{ form.fifa_id.errors }}</div>{% endif %}
-        </div>
-        <!-- SA Passport fields are now handled in the identification section -->
-        <!-- Profile Picture -->
-        <div class="mb-3">
-          <label for="id_profile_picture" class="form-label">Profile Picture</label>
-          {{ form.profile_picture|add_class:'form-control'|attr:"required"|attr:"aria-required:true"|attr:"aria-describedby:profile-picture-help"|attr:"accept:image/*" }}
-          <div id="profile-picture-help" class="form-text">Upload a clear, recent photo (required for card approval)</div>
-          {% if form.profile_picture.errors %}<div class="text-danger small">{{ form.profile_picture.errors }}</div>{% endif %}
-        </div>
-        <!-- ID Document Upload -->
-        <div class="mb-3">
-          <label for="id_id_document" class="form-label">ID/Passport Document</label>
-          {{ form.id_document|add_class:'form-control'|attr:"required"|attr:"aria-required:true"|attr:"aria-describedby:id-document-help"|attr:"accept:.pdf,.jpg,.jpeg,.png" }}
-          <div id="id-document-help" class="form-text">Upload a copy of the SA ID or passport (required for approval)</div>
-          {% if form.id_document.errors %}<div class="text-danger small">{{ form.id_document.errors }}</div>{% endif %}
-        </div>
-        <!-- Junior Selection Section -->
-        <div class="card mb-4">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">Junior Information</h5>
-          </div>
-          <div class="card-body">
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="is_junior" name="is_junior">
-              <label class="form-check-label" for="is_junior">This application is for a junior member (under 18)</label>
-            </div>
-            <div id="junior_info_section" style="display:none;">
-              <div class="alert alert-info">
-                <p><i class="fas fa-info-circle"></i> Junior members require additional information and guardian consent.</p>
-              </div>
-              <div class="mb-3">
-                <label for="id_guardian_name" class="form-label">Guardian Full Name*</label>
-                <input type="text" name="guardian_name" id="id_guardian_name" class="form-control"
-                       pattern="[A-Za-z\s\-']{3,}" minlength="3" maxlength="100"
-                       oninput="this.value = this.value.replace(/[^A-Za-z\s\-']/g, '')">
-                <div class="form-text">Full name of parent or legal guardian</div>
-              </div>
-              <div class="mb-3">
-                <label for="id_guardian_contact" class="form-label">Guardian Contact Number*</label>
-                <input type="tel" name="guardian_contact" id="id_guardian_contact" class="form-control"
-                       pattern="^[+]?[0-9]{10,15}$" inputmode="tel"
-                       oninput="this.value = this.value.replace(/[^+0-9]/g, '')">
-                <div class="form-text">Contact number of parent or legal guardian</div>
-              </div>
-              <div class="mb-3">
-                <label for="id_guardian_email" class="form-label">Guardian Email Address*</label>
-                <input type="email" name="guardian_email" id="id_guardian_email" class="form-control"
-                       pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-                       oninput="validateEmailField(this)"
-                       onblur="validateEmailField(this)">
-                <div class="form-text">Email address of parent or legal guardian</div>
-              </div>
-              <div class="mb-3">
-                <label for="id_school_name" class="form-label">School Name</label>
-                <input type="text" name="school_name" id="id_school_name" class="form-control">
-                <div class="form-text">Current school of the junior member</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Junior Selection Section -->
-        <div class="card mb-4">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">Junior Selection</h5>
-          </div>
-          <div class="card-body">
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="is_junior" name="is_junior">
-              <label class="form-check-label" for="is_junior">This application is for a junior member (under 18)</label>
-              <div class="form-text">Check this box if the applicant is under 18 years old</div>
-            </div>
-            <div id="junior_guardian_info" style="display:none;">
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label for="guardian_name" class="form-label">Guardian's Full Name*</label>
-                  <input type="text" name="guardian_name" id="guardian_name" class="form-control">
-                  <div class="form-text">Full name of parent or legal guardian</div>
-                </div>
-                <div class="col-md-6">
-                  <label for="guardian_contact" class="form-label">Guardian's Contact Number*</label>
-                  <input type="tel" name="guardian_contact" id="guardian_contact" class="form-control"
-                         pattern="^[+]?[0-9]{10,15}$" inputmode="tel"
-                         oninput="this.value = this.value.replace(/[^+0-9]/g, '')">
-                  <div class="form-text">Contact number of parent or legal guardian</div>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label for="guardian_email" class="form-label">Guardian's Email Address*</label>
-                <input type="email" name="guardian_email" id="guardian_email" class="form-control"
-                       pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-                       oninput="validateEmailField(this)"
-                       onblur="validateEmailField(this)">
-                <div class="form-text">Email address of parent or legal guardian</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- POPI Consent -->
-        <div class="form-check mb-3">
-          {{ form.popi_consent|add_class:'form-check-input'|attr:"aria-describedby:popi-consent-help" }}
-          <label class="form-check-label" for="id_popi_consent">POPI Consent</label>
-          <div id="popi-consent-help" class="form-text">Required for juniors (under 18)</div>
-          {% if form.popi_consent.errors %}<div class="text-danger small">{{ form.popi_consent.errors }}</div>{% endif %}
-        </div>
-        <!-- Signature Options -->
-        <div class="card mb-4">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">Signature</h5>
-          </div>
-          <div class="card-body">
-            <div class="mb-3">
-              <label class="form-label">Signature Preference:</label>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="signature_type" id="electronic_signature" value="electronic" checked>
-                <label class="form-check-label" for="electronic_signature">
-                  Electronic Signature (sign on screen)
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="signature_type" id="manual_signature" value="manual">
-                <label class="form-check-label" for="manual_signature">
-                  Manual Signature (upload signed form)
-                </label>
-              </div>
-            </div>
-
-            <!-- Electronic Signature Pad (initially hidden, shown on click) -->
-            <div id="electronic_signature_section" style="display:none;">
-              <div class="mb-3">
-                <label for="signature-pad" class="form-label">Signature (use your finger, stylus, or mouse):</label>
-                <canvas id="signature-pad" width="400" height="150" style="border:1px solid #000;" aria-label="Signature pad" role="img"></canvas>
-                {{ form.signature_data|attr:"aria-hidden:true" }}
-                <div id="signature-help" class="form-text">Please sign using your finger, stylus, or mouse</div>
-                <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="clearSignature()" aria-label="Clear signature">Clear</button>
-              </div>
-            </div>
-
-            <!-- Manual Signature Upload (initially hidden) -->
-            <div id="manual_signature_section" style="display:none;">
-              <div class="mb-3">
-                <label for="id_manual_signature" class="form-label">Upload Signed Form</label>
-                <input type="file" name="manual_signature" id="id_manual_signature" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-                <div class="form-text">Upload a scanned copy or photo of your signed form</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Submit Application</button>
-      </form>
-    </div>
-  </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-<script src="{% static 'js/membership_validation.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/safa_global_validator.js' %}"></script>
 <script>
-  var canvas = document.getElementById('signature-pad');
-  var signaturePad = new SignaturePad(canvas);
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('membership-application-form');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const spinner = submitButton.querySelector('.spinner-border');
 
-  function clearSignature() {
-    signaturePad.clear();
-  }
+    // Initialize SAFA global validator
+    let validator;
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const docTypeSelect = document.getElementById('id_id_document_type');
-    const saIdContainer = document.getElementById('id_number_group');
-    const passportContainer = document.getElementById('passport_number_group');
-    const idNumberInput = document.getElementById('id_id_number');
-    const dobHiddenInput = document.getElementById('hidden_dob');
-    const genderHiddenInput = document.getElementById('hidden_gender');
-    const validationMessage = document.getElementById('id-validation-feedback');
-
-    // Junior section elements
-    const isJuniorCheckbox = document.getElementById('is_junior');
-    const juniorGuardianInfo = document.getElementById('junior_guardian_info');
-
-    // Function to toggle junior section
-    function toggleJuniorSection() {
-        if (isJuniorCheckbox.checked) {
-            juniorGuardianInfo.style.display = 'block';
-
-            // Make guardian fields required when junior is selected
-            const guardianFields = juniorGuardianInfo.querySelectorAll('input');
-            guardianFields.forEach(field => {
-                field.required = true;
-                field.setAttribute('aria-required', true);
-            });
-        } else {
-            juniorGuardianInfo.style.display = 'none';
-
-            // Make guardian fields not required
-            const guardianFields = juniorGuardianInfo.querySelectorAll('input');
-            guardianFields.forEach(field => {
-                field.required = false;
-                field.setAttribute('aria-required', false);
-            });
-        }
-    }
-
-    // Signature elements
-    const electronicSignatureRadio = document.getElementById('electronic_signature');
-    const manualSignatureRadio = document.getElementById('manual_signature');
-    const electronicSignatureSection = document.getElementById('electronic_signature_section');
-    const manualSignatureSection = document.getElementById('manual_signature_section');
-
-    // Check if user is on mobile device
-    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    function toggleFields() {
-        const selectedValue = docTypeSelect.value;
-        const idNumberField = document.querySelector('.id-number-field');
-        const passportField = document.querySelector('.passport-field');
-        const saPassportSection = document.querySelector('.sa-passport-section');
-        const saPassportDocumentField = document.querySelector('.sa-passport-document-field');
-        const saPassportExpiryField = document.querySelector('.sa-passport-expiry-field');
-        const dobField = document.getElementById('id_date_of_birth');
-        const genderField = document.getElementById('id_gender');
-        const passportExpiryField = document.getElementById('passport_expiry_group');
-
-        // Store current values of DOB and gender before resetting
-        const currentDob = dobField.value;
-        const currentGender = genderField.value;
-
-        // Reset all fields first
-        document.getElementById('id_id_number').value = '';
-        document.getElementById('id_passport_number').value = '';
-        if (document.getElementById('id_passport_expiry_date')) {
-            document.getElementById('id_passport_expiry_date').value = '';
-        }
-        if (document.getElementById('id_sa_passport_number')) {
-            document.getElementById('id_sa_passport_number').value = '';
-        }
-        if (document.getElementById('id_sa_passport_document')) {
-            document.getElementById('id_sa_passport_document').value = '';
-        }
-        if (document.getElementById('id_sa_passport_expiry_date')) {
-            document.getElementById('id_sa_passport_expiry_date').value = '';
-        }
-
-        // Reset DOB and gender fields
-        dobField.value = '';
-        genderField.value = '';
-
-        // Handle case of ID (South African citizen)
-        if (selectedValue === 'ID') {
-            // Show ID field
-            if (idNumberField) idNumberField.style.display = 'block';
-            // Hide passport fields
-            if (passportField) passportField.style.display = 'none';
-            if (passportExpiryField) passportExpiryField.style.display = 'none';
-            // Show SA passport section for possible SA passport
-            if (saPassportSection) saPassportSection.style.display = 'block';
-
-            // Set required fields
-            document.getElementById('id_id_number').disabled = false;
-            document.getElementById('id_id_number').required = true;
-            document.getElementById('id_passport_number').required = false;
-            document.getElementById('id_passport_number').disabled = true;
-            if (document.getElementById('id_passport_expiry_date')) {
-                document.getElementById('id_passport_expiry_date').required = false;
-                document.getElementById('id_passport_expiry_date').disabled = true;
+    // Check if SafaGlobalValidator is available
+    if (typeof SafaGlobalValidator !== 'undefined') {
+        validator = new SafaGlobalValidator();
+        console.log('SAFA Global Validator initialized');
+    } else {
+        console.warn('SAFA Global Validator not found, using basic validation');
+        validator = {
+            validateForm: function(form) {
+                return validateFormBasic(form);
             }
-
-            // Enable SA passport checkbox for SA citizens
-            document.getElementById('id_has_sa_passport').disabled = false;
-
-            // Auto-populate and disable fields for SA ID
-            dobField.disabled = true;
-            genderField.disabled = true;
-
-            // Initialize the SA passport fields based on checkbox
-            toggleSaPassportField();
-
-        }
-        // Handle case of foreign passport
-        else if (selectedValue === 'PP') {
-            // Hide ID field
-            if (idNumberField) idNumberField.style.display = 'none';
-            // Show passport fields
-            if (passportField) passportField.style.display = 'block';
-            // Show passport expiry field
-            if (passportExpiryField) passportExpiryField.style.display = 'block';
-            // Hide SA passport section (not applicable for foreigners)
-            if (saPassportSection) saPassportSection.style.display = 'none';
-            // Hide SA passport related fields
-            if (saPassportDocumentField) saPassportDocumentField.style.display = 'none';
-            if (saPassportExpiryField) saPassportExpiryField.style.display = 'none';
-
-            // Set required fields
-            document.getElementById('id_id_number').disabled = true;
-            document.getElementById('id_id_number').required = false;
-            document.getElementById('id_passport_number').required = true;
-            document.getElementById('id_passport_number').disabled = false;
-            if (document.getElementById('id_passport_expiry_date')) {
-                document.getElementById('id_passport_expiry_date').required = true;
-                document.getElementById('id_passport_expiry_date').disabled = false;
-            }
-
-            // Disable SA passport fields for foreigners
-            document.getElementById('id_has_sa_passport').disabled = true;
-            document.getElementById('id_has_sa_passport').checked = false;
-            if (document.getElementById('id_sa_passport_number')) {
-                document.getElementById('id_sa_passport_number').disabled = true;
-                document.getElementById('id_sa_passport_number').required = false;
-            }
-            if (document.getElementById('id_sa_passport_document')) {
-                document.getElementById('id_sa_passport_document').disabled = true;
-                document.getElementById('id_sa_passport_document').required = false;
-            }
-            if (document.getElementById('id_sa_passport_expiry_date')) {
-                document.getElementById('id_sa_passport_expiry_date').disabled = true;
-                document.getElementById('id_sa_passport_expiry_date').required = false;
-            }
-
-            // Manual entry for DOB and gender with foreign passport
-            dobField.disabled = false;
-            genderField.disabled = false;
-        }
-        // Default case - nothing selected yet
-        else {
-            if (idNumberField) idNumberField.style.display = 'none';
-            if (passportField) passportField.style.display = 'none';
-            if (passportExpiryField) passportExpiryField.style.display = 'none';
-            if (saPassportSection) saPassportSection.style.display = 'none';
-
-            // Disable DOB and gender fields initially
-            dobField.disabled = true;
-            genderField.disabled = true;
-        }
-
-    }
-
-    // SA Passport toggle for SA citizens
-    function toggleSaPassportField() {
-        const hasSaPassportCheckbox = document.getElementById('id_has_sa_passport');
-        const saPassportNumberField = document.querySelector('.sa-passport-number-field');
-        const saPassportDocumentField = document.querySelector('.sa-passport-document-field');
-        const saPassportExpiryField = document.querySelector('.sa-passport-expiry-field');
-
-        if (hasSaPassportCheckbox) {
-            const isChecked = hasSaPassportCheckbox.checked;
-
-            // Toggle SA passport number field
-            if (saPassportNumberField) {
-                saPassportNumberField.style.display = isChecked ? 'block' : 'none';
-                if (document.getElementById('id_sa_passport_number')) {
-                    document.getElementById('id_sa_passport_number').required = false; // Always optional
-                    document.getElementById('id_sa_passport_number').disabled = !isChecked;
-                    if (!isChecked) document.getElementById('id_sa_passport_number').value = '';
-                }
-            }
-
-            // Toggle SA passport document field
-            if (saPassportDocumentField) {
-                saPassportDocumentField.style.display = isChecked ? 'block' : 'none';
-                if (document.getElementById('id_sa_passport_document')) {
-                    document.getElementById('id_sa_passport_document').required = false; // Always optional
-                    document.getElementById('id_sa_passport_document').disabled = !isChecked;
-                }
-            }
-
-            // Toggle SA passport expiry date field
-            if (saPassportExpiryField) {
-                saPassportExpiryField.style.display = isChecked ? 'block' : 'none';
-                if (document.getElementById('id_sa_passport_expiry_date')) {
-                    document.getElementById('id_sa_passport_expiry_date').required = false; // Always optional
-                    document.getElementById('id_sa_passport_expiry_date').disabled = !isChecked;
-                }
-            }
-        }
-    }
-
-    function validateSAID(idNumber) {
-        if (!idNumber || idNumber.length !== 13 || !/^\d+$/.test(idNumber)) {
-            return { isValid: false, message: "ID number must be 13 digits" };
-        }
-
-        const year = idNumber.substring(0, 2);
-        const month = idNumber.substring(2, 4);
-        const day = idNumber.substring(4, 6);
-
-        // Validate month (1-12)
-        if (parseInt(month) < 1 || parseInt(month) > 12) {
-            return { isValid: false, message: "ID contains invalid month" };
-        }
-
-        // Validate day (1-31, depending on month)
-        const dayNum = parseInt(day);
-        if (dayNum < 1 || dayNum > 31) {
-            return { isValid: false, message: "ID contains invalid day" };
-        }
-
-        // Check days in month
-        const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        const monthNum = parseInt(month);
-
-        // Adjust February for leap years
-        const currentYear = new Date().getFullYear() % 100;
-        const fullYear = parseInt(year) > currentYear ? 1900 + parseInt(year) : 2000 + parseInt(year);
-
-        if (monthNum === 2 && ((fullYear % 4 === 0 && fullYear % 100 !== 0) || fullYear % 400 === 0)) {
-            daysInMonth[2] = 29;
-        }
-
-        if (dayNum > daysInMonth[monthNum]) {
-            return { isValid: false, message: "ID contains invalid day for month" };
-        }
-
-        const birthDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-        if (
-            birthDate.getFullYear() !== fullYear ||
-            birthDate.getMonth() + 1 !== parseInt(month) ||
-            birthDate.getDate() !== parseInt(day)
-        ) {
-            return { isValid: false, message: "ID contains invalid date" };
-        }
-
-        const genderDigits = parseInt(idNumber.substring(6, 10));
-        const gender = genderDigits >= 5000 ? 'M' : 'F';
-        const genderText = gender === 'M' ? 'Male' : 'Female';
-
-        return {
-            isValid: true,
-            message: "Valid ID number",
-            dateOfBirth: birthDate.toISOString().split('T')[0],
-            gender: gender,
-            genderText: genderText
         };
     }
 
+    // Age calculation and validation
+    const dobInput = document.getElementById('date_of_birth');
+    dobInput.addEventListener('change', function() {
+        const birthDate = new Date(this.value);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
 
-    // Function to toggle signature sections
-    function toggleSignatureSections() {
-        if (electronicSignatureRadio.checked) {
-            electronicSignatureSection.style.display = 'block';
-            manualSignatureSection.style.display = 'none';
-            document.getElementById('id_manual_signature').required = false;
-        } else if (manualSignatureRadio.checked) {
-            electronicSignatureSection.style.display = 'none';
-            manualSignatureSection.style.display = 'block';
-            document.getElementById('id_manual_signature').required = true;
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
         }
-    }
 
-    // Initialize fields
-    toggleFields();
+        // Show age information
+        let ageInfo = document.getElementById('age-info');
+        if (!ageInfo) {
+            ageInfo = document.createElement('div');
+            ageInfo.id = 'age-info';
+            ageInfo.className = 'form-text';
+            dobInput.parentNode.appendChild(ageInfo);
+        }
 
-    // Initialize SA passport fields
-    toggleSaPassportField();
-
-    // Initialize junior section
-    toggleJuniorSection();
-
-    // Initialize signature sections based on device
-    if (isMobileDevice) {
-        electronicSignatureRadio.checked = true;
-        manualSignatureRadio.checked = false;
-        // Show electronic signature section immediately on mobile
-        electronicSignatureSection.style.display = 'block';
-    } else {
-        // On desktop, show the electronic signature section by default
-        electronicSignatureSection.style.display = 'block';
-    }
-    toggleSignatureSections();
-
-    // Add event listeners
-    docTypeSelect.addEventListener('change', toggleFields);
-
-    // SA Passport checkbox event listener
-    const hasSaPassportCheckbox = document.getElementById('id_has_sa_passport');
-    if (hasSaPassportCheckbox) {
-        hasSaPassportCheckbox.addEventListener('change', toggleSaPassportField);
-    }
-
-    // Junior checkbox event listener
-    isJuniorCheckbox.addEventListener('change', toggleJuniorSection);
-
-    // Signature radio buttons event listeners
-    electronicSignatureRadio.addEventListener('change', toggleSignatureSections);
-    manualSignatureRadio.addEventListener('change', toggleSignatureSections);
-
-    // Show electronic signature pad when clicked
-    electronicSignatureRadio.addEventListener('click', function() {
-        electronicSignatureSection.style.display = 'block';
+        if (age < 18) {
+            ageInfo.innerHTML = `<span class="text-warning">Age: ${age} years - Junior membership application</span>`;
+        } else {
+            ageInfo.innerHTML = `<span class="text-success">Age: ${age} years - Senior membership application</span>`;
+        }
     });
 
-    // ID number validation and auto-population
-    if (idNumberInput) {
-      idNumberInput.addEventListener('input', function() {
-          if (docTypeSelect && docTypeSelect.value === 'ID') {
-              const result = validateSAID(this.value);
+    // Form validation and submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-              if (validationMessage) {
-                  validationMessage.textContent = result.message;
-                  validationMessage.className = result.isValid ? "form-text text-success" : "form-text text-danger";
-              }
+        // Show loading state
+        submitButton.disabled = true;
+        spinner.classList.remove('d-none');
 
-              if (result.isValid) {
-                  // Set the date of birth field
-                  const dobField = document.getElementById('id_date_of_birth');
-                  if (dobField) {
-                      dobField.value = result.dateOfBirth;
-                  }
+        // Clear previous validation errors
+        clearValidationErrors();
 
-                  // Set the gender field
-                  const genderField = document.getElementById('id_gender');
-                  if (genderField) {
-                      genderField.value = result.gender;
-                  }
+        // Validate form
+        const isValid = validator.validateForm(form);
 
-                  // Also set hidden fields if they exist
-                  if (dobHiddenInput) dobHiddenInput.value = result.dateOfBirth;
-                  if (genderHiddenInput) genderHiddenInput.value = result.gender;
-              } else {
-                  // Clear the fields if ID is invalid
-                  const dobField = document.getElementById('id_date_of_birth');
-                  const genderField = document.getElementById('id_gender');
-
-                  if (dobField) dobField.value = '';
-                  if (genderField) genderField.value = '';
-
-                  // Also clear hidden fields if they exist
-                  if (dobHiddenInput) dobHiddenInput.value = '';
-                  if (genderHiddenInput) genderHiddenInput.value = '';
-              }
-          }
-      });
-
-      // Also validate on blur
-      idNumberInput.addEventListener('blur', function() {
-          if (this.value && this.value.length === 13) {
-              const result = validateSAID(this.value);
-              if (!result.isValid) {
-                  this.setCustomValidity(result.message);
-              } else {
-                  this.setCustomValidity('');
-              }
-          }
-      });
-    }
-
-    // SAFA and FIFA ID fields toggle
-    var hasSafaIdCheckbox = document.getElementById('has_safa_id');
-    var hasFifaIdCheckbox = document.getElementById('has_fifa_id');
-    var safaIdGroup = document.getElementById('safa_id_group');
-    var fifaIdGroup = document.getElementById('fifa_id_group');
-
-    if (hasSafaIdCheckbox) {
-      hasSafaIdCheckbox.addEventListener('change', function() {
-        safaIdGroup.style.display = this.checked ? '' : 'none';
-      });
-    }
-
-    if (hasFifaIdCheckbox) {
-      hasFifaIdCheckbox.addEventListener('change', function() {
-        fifaIdGroup.style.display = this.checked ? '' : 'none';
-      });
-    }
-  });
-
-  document.querySelector('form').addEventListener('submit', function(e) {
-    // Validate email fields
-    const emailField = document.getElementById('id_email');
-    const guardianEmailField = document.getElementById('guardian_email');
-    const guardianEmailField2 = document.getElementById('id_guardian_email');
-    let isValid = true;
-
-    // Validate main email
-    if (emailField) {
-      if (!validateEmailField(emailField)) {
-        isValid = false;
-        emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-
-    // Validate guardian email if junior is selected (first junior section)
-    if (document.getElementById('is_junior') && document.getElementById('is_junior').checked) {
-      // Check first guardian email field
-      if (guardianEmailField && !validateEmailField(guardianEmailField)) {
-        isValid = false;
-        if (isValid) { // Only scroll to this if it's the first error
-          guardianEmailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-
-      // Check second guardian email field
-      if (guardianEmailField2 && !validateEmailField(guardianEmailField2)) {
-        isValid = false;
-        if (isValid) { // Only scroll to this if it's the first error
-          guardianEmailField2.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    }
-
-    // Validate ID number if South African ID is selected
-    const docTypeSelect = document.getElementById('id_id_document_type');
-    const idNumberInput = document.getElementById('id_id_number');
-
-    if (docTypeSelect && docTypeSelect.value === 'ID' && idNumberInput) {
-      // Call validateIdField to update the validation message
-      validateIdField(idNumberInput);
-
-      // Check if ID is valid
-      if (idNumberInput.value) {
-        const result = validateSAID(idNumberInput.value);
-        if (!result.isValid) {
-          isValid = false;
-          if (isValid) { // Only scroll to this if it's the first error
-            idNumberInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }
-      } else {
-        isValid = false;
-        if (isValid) { // Only scroll to this if it's the first error
-          idNumberInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    }
-
-    // Check signature based on selected option
-    if (document.getElementById('electronic_signature').checked) {
-      // Electronic signature selected - check if signature pad is empty
-      if (signaturePad.isEmpty()) {
-        isValid = false;
-        // Create or update error message
-        let signatureError = document.getElementById('signature-error');
-        if (!signatureError) {
-          signatureError = document.createElement('div');
-          signatureError.id = 'signature-error';
-          signatureError.className = 'text-danger small';
-          document.getElementById('signature-help').after(signatureError);
-        }
-        signatureError.textContent = 'Signature is required. Please sign using the pad.';
-        // Scroll to signature pad if it's the first error
         if (isValid) {
-          document.getElementById('signature-pad').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Additional custom validation
+            if (performCustomValidation()) {
+                // Submit the form
+                console.log('Form validation passed, submitting...');
+                form.submit();
+            } else {
+                resetSubmitButton();
+            }
+        } else {
+            console.log('Form validation failed');
+            resetSubmitButton();
         }
-      } else {
-        // Capture signature data
-        const signatureDataField = document.getElementById('id_signature_data');
-        if (signatureDataField) {
-          signatureDataField.value = signaturePad.toDataURL();
-        }
-        // Remove error message if it exists
-        const signatureError = document.getElementById('signature-error');
-        if (signatureError) {
-          signatureError.remove();
-        }
-      }
-    } else if (document.getElementById('manual_signature').checked) {
-      // Manual signature selected - check if file is uploaded
-      const manualSignatureFile = document.getElementById('id_manual_signature');
-      if (!manualSignatureFile.files || manualSignatureFile.files.length === 0) {
-        isValid = false;
-        // Create or update error message
-        let signatureError = document.getElementById('manual-signature-error');
-        if (!signatureError) {
-          signatureError = document.createElement('div');
-          signatureError.id = 'manual-signature-error';
-          signatureError.className = 'text-danger small';
-          manualSignatureFile.after(signatureError);
-        }
-        signatureError.textContent = 'Please upload a signed form.';
-        // Scroll to manual signature upload if it's the first error
-        if (isValid) {
-          manualSignatureFile.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      } else {
-        // Remove error message if it exists
-        const signatureError = document.getElementById('manual-signature-error');
-        if (signatureError) {
-          signatureError.remove();
-        }
-      }
-    }
-
-    // Prevent form submission if validation failed
-    if (!isValid) {
-      e.preventDefault();
-      return false;
-    }
-
-    // Enable all disabled fields before submitting to ensure their values are included
-    const disabledFields = document.querySelectorAll('input:disabled, select:disabled, textarea:disabled');
-    disabledFields.forEach(field => {
-      field.disabled = false;
     });
-  });
+
+    function resetSubmitButton() {
+        submitButton.disabled = false;
+        spinner.classList.add('d-none');
+    }
+
+    function clearValidationErrors() {
+        const errorElements = form.querySelectorAll('.invalid-feedback');
+        errorElements.forEach(element => {
+            element.textContent = '';
+        });
+
+        const invalidInputs = form.querySelectorAll('.is-invalid');
+        invalidInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+    }
+
+    function showFieldError(fieldName, message) {
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('is-invalid');
+            const feedback = field.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = message;
+            }
+        }
+    }
+
+    function performCustomValidation() {
+        let isValid = true;
+
+        // Email validation
+        const email = form.querySelector('[name="email"]').value;
+        if (!isValidEmail(email)) {
+            showFieldError('email', 'Please enter a valid email address');
+            isValid = false;
+        }
+
+        // Phone validation
+        const phone = form.querySelector('[name="phone_number"]').value;
+        if (!isValidPhone(phone)) {
+            showFieldError('phone_number', 'Please enter a valid phone number');
+            isValid = false;
+        }
+
+        // Date of birth validation
+        const dob = form.querySelector('[name="date_of_birth"]').value;
+        if (!isValidDateOfBirth(dob)) {
+            showFieldError('date_of_birth', 'Please enter a valid date of birth');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function validateFormBasic(form) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                showFieldError(field.name, 'This field is required');
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    function isValidPhone(phone) {
+        const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/;
+        return phoneRegex.test(phone);
+    }
+
+    function isValidDateOfBirth(dob) {
+        const birthDate = new Date(dob);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+
+        // Must be at least 5 years old and less than 120 years old
+        return age >= 5 && age <= 120;
+    }
+});
 </script>
 {% endblock %}
