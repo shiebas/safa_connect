@@ -63,7 +63,11 @@ class UniversalRegistrationForm(forms.ModelForm):
     role = forms.ChoiceField(
         choices=[
             ('ADMIN_NATIONAL', 'SAFA System Administrator'),
-            ('ASSOCIATION_ADMIN', 'Referee Association Administrator')
+            ('ASSOCIATION_ADMIN', 'Referee Association Administrator'),
+            ('CLUB_ADMIN', 'Club Administrator'),
+            ('ADMIN_LOCAL_FED', 'Local Football Association Administrator'),
+            ('ADMIN_REGION', 'Region Administrator'),
+            ('ADMIN_PROVINCE', 'Province Administrator')
         ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )
@@ -134,7 +138,7 @@ class UniversalRegistrationForm(forms.ModelForm):
             'province', 'region', 'local_federation', 'club', 'association',
             'id_document_type', 'id_number', 'passport_number', 'id_number_other',
             'date_of_birth', 'gender', 'id_document', 'profile_photo', 
-            'popi_act_consent', 'national_federation', 'age'  # add age
+            'popi_act_consent', 'national_federation', 'mother_body', 'age'
         ]
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
@@ -142,7 +146,7 @@ class UniversalRegistrationForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
         }
     
-    def __init__(self, *args, registration_type=None, **kwargs):
+def __init__(self, *args, registration_type=None, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and hasattr(self.instance, 'age'):
             self.fields['age'].initial = self.instance.age
@@ -198,10 +202,10 @@ class UniversalRegistrationForm(forms.ModelForm):
         print(f"[DEBUG - REFEREE REG] Available associations: {[a.name for a in associations]}")
         
         self.fields['association'] = forms.ModelChoiceField(
-            queryset=associations,
-            required=False, 
+            queryset=Association.objects.all(),
+            required=True,
             widget=forms.Select(attrs={'class': 'form-select'}),
-            help_text="Select a referee association"
+            help_text="Select the referee association for this official"
         )
         
         # Set association required for referee-related roles
@@ -523,7 +527,7 @@ class UniversalRegistrationForm(forms.ModelForm):
             '''),
         )
     
-    def clean_id_number(self):
+def clean_id_number(self):
         """Validate that the ID number is unique"""
         id_number = self.cleaned_data.get('id_number')
         id_document_type = self.cleaned_data.get('id_document_type')
@@ -540,7 +544,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         
         return id_number
     
-    def clean_passport_number(self):
+def clean_passport_number(self):
         """Validate that the passport number is unique"""
         passport_number = self.cleaned_data.get('passport_number')
         id_document_type = self.cleaned_data.get('id_document_type')
@@ -553,7 +557,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         
         return passport_number
     
-    def clean(self):
+def clean(self):
         print("[DEBUG - REFEREE REG] Starting form validation (clean method)")
         cleaned_data = super().clean()
         
@@ -613,7 +617,7 @@ class UniversalRegistrationForm(forms.ModelForm):
         
         return cleaned_data
 
-    def save(self, commit=True):
+def save(self, commit=True):
         print("[DEBUG - REFEREE REG] Starting form save method")
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])

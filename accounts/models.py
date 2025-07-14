@@ -166,7 +166,6 @@ class OrganizationType(models.Model):
     class Meta:
         ordering = ['level']
 
-# Update CustomUser model with improved organization relationships
 class CustomUser(AbstractUser, ModelWithLogo):
     # Remove the username field
     username = None
@@ -416,7 +415,17 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text="Primary organization type this user belongs to"
     )
 
-     # Specify the custom manager
+    # Add mother body/federation field that defaults to SAFAM
+    mother_body = models.ForeignKey(
+        'geography.MotherBody',
+        on_delete=models.SET_NULL,  # Don't allow deletion of SAFAM
+        null=True,
+        blank=True,
+        related_name='custom_users',
+        help_text="The mother body this user belongs to (defaults to SAFAM)"
+    )
+
+    # Specify the custom manager
     objects = CustomUserManager()
 
     # Set email as the USERNAME_FIELD
@@ -426,18 +435,25 @@ class CustomUser(AbstractUser, ModelWithLogo):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+        db_table = 'accounts_customuser'
+        ordering = ['email']
+        verbose_name = 'Custom User'
+        verbose_name_plural = 'Custom Users'
         constraints = [
-            # Ensure ID number is unique when not blank
             models.UniqueConstraint(
-                fields=['id_number'],
-                condition=models.Q(id_number__isnull=False) & ~models.Q(id_number=''),
-                name='unique_id_number_when_not_blank'
+                fields=['id_number'], 
+                name='unique_id_number',
+                condition=models.Q(id_number__isnull=False)
             ),
-            # Add unique constraint for passport numbers
             models.UniqueConstraint(
-                fields=['passport_number'],
-                condition=models.Q(passport_number__isnull=False) & ~models.Q(passport_number=''),
-                name='unique_passport_number_when_not_blank'
+                fields=['passport_number'], 
+                name='unique_passport_number',
+                condition=models.Q(passport_number__isnull=False)
+            ),
+            models.UniqueConstraint(
+                fields=['mother_body'],
+                condition=models.Q(mother_body__isnull=False),
+                name='unique_mother_body_when_not_blank'
             ),
         ]
 
@@ -448,15 +464,9 @@ class CustomUser(AbstractUser, ModelWithLogo):
         # Temporarily commented out until field exists in database
         # try:
         #     if hasattr(self, 'mother_body') and not getattr(self, 'mother_body_id', None):
-        #         from geography.models import NationalFederation
-        #         safa, created = NationalFederation.objects.get_or_create(
-        #             name="South African Football Association",
-        #             defaults={
-        #                 'acronym': 'SAFA',
-        #                 'country_id': 1  # Assuming South Africa has ID 1
-        #             }
-        #         )
-        #         self.mother_body = safa
+        #         from geography.models import MotherBody
+        #         safam = MotherBody.objects.get(name='SAFAM')
+        #         self.mother_body = safam
         # except Exception as e:
         #     # Log error but don't prevent save - field might not exist yet
         #     import logging
@@ -490,28 +500,17 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 logger = logging.getLogger(__name__)
                 logger.warning(f"ID number validation failed for user {self.email}: {str(e)}")
 
-        # Set proper organization relationships based on role
-        if self.role == 'ADMIN_NATIONAL':
-            # For national admins, ensure national_federation is set
-            if not self.national_federation:
-                from geography.models import NationalFederation, Country
-                # Replace incorrect field references for NationalFederation
-                default_federation, _ = NationalFederation.objects.get_or_create(
-                    name="South African Football Association",
-                    defaults={
-                        'acronym': "SAFA",
-                        'country': Country.objects.get(name="South Africa")
-                    }
-                )
-                self.national_federation = default_federation
-
         # Ensure mother_body is set to SAFAM if not specified
-        if not self.mother_body:
-            from geography.models import MotherBody
-            safam = MotherBody.objects.filter(name='SAFAM').first()
-            if not safam:
-                raise ValidationError("SAFAM does not exist in the MotherBody table.")
-            self.mother_body = safam
+            try:
+                from geography.models import MotherBody
+                safam = MotherBody.objects.get(name="SAFAM")
+                self.mother_body = safam
+            except (MotherBody.DoesNotExist, ImportError) as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Could not set SAFAM as mother body: {str(e)}")
+            # Set to None instead of raising error
+            self.mother_body = None
 
         super().save(*args, **kwargs)
 
@@ -574,13 +573,11 @@ class CustomUser(AbstractUser, ModelWithLogo):
 
             # Validate date
             try:
-                # Determine century (19xx or 20xx)
                 from django.utils import timezone
                 current_year = timezone.now().year % 100
                 century = '19' if int(year) > current_year else '20'
                 full_year = int(century + year)
 
-                # Check if date is valid
                 import datetime
                 result['date_of_birth'] = datetime.date(full_year, int(month), int(day))
             except ValueError:
@@ -732,10 +729,6 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 # Re-raise the error if it's not about province
                 raise
 
-    def clean(self):
-        """Custom validation for the club field based on role and organization type."""
-        super().clean()
-
     def get_organization_info(self):
         """Return organization information for profile display"""
         if self.role == 'ADMIN_NATIONAL':
@@ -885,16 +878,6 @@ class CustomUser(AbstractUser, ModelWithLogo):
 
         return int((completed_items / total_items) * 100)
 
-    # Add mother body/federation field that defaults to SAFAM
-    mother_body = models.ForeignKey(
-        'geography.MotherBody',
-        on_delete=models.PROTECT,  # Don't allow deletion of SAFAM
-        null=True,
-        blank=True,
-        related_name='member_users',
-        help_text="The mother body this user belongs to (defaults to SAFAM)"
-    )
-
     @property
     def age(self):
         """Return the user's age in years, or None if date_of_birth is not set."""
@@ -912,7 +895,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
             return None
         return self.age < 18
 
-# Define permissions for roles
+
 class RolePermissions:
     @staticmethod
     def assign_permissions(user):
@@ -932,6 +915,7 @@ class RolePermissions:
         elif user.role == 'CLUB_ADMIN':
             # Add club-specific permissions
             pass
+
 
 class LFAAdministrator(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
