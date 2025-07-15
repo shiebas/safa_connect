@@ -5,10 +5,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.utils.translation import gettext_lazy as _
 from django.forms import ValidationError
 from django.utils import timezone
-
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder, Submit
-
 from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation
 from membership.models import Player, Official, OfficialCertification
@@ -1451,7 +1449,10 @@ class PositionForm(forms.ModelForm):
 class AssociationOfficialRegistrationForm(forms.ModelForm):
     """Form for registering officials at Association level"""
     # Optional email field for official (already in model)
+    
     popi_consent = forms.BooleanField(required=False, label="POPI Consent", help_text="Required for all officials")
+
+   
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1638,3 +1639,5 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
             raise ValidationError(errors)
             
         return cleaned_data
+
+        

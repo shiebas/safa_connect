@@ -51,6 +51,11 @@ class Member(TimeStampedModel):
         ('REJECTED', 'Rejected'),
     ]
 
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                              related_name='member_profile', null=True,
+                              blank=True,
+                              help_text=_("The user account associated with this member profile"))
+
     GENDER_CHOICES = [
         ('M', 'Male'),
         ('F', 'Female'),

@@ -9,6 +9,10 @@ from django.utils import timezone
 from django.db import transaction
 import random
 import string
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -334,7 +338,7 @@ def create_player_invoice(player, club, issued_by, is_junior=False):
     """
     try:
         # Import at function level to avoid circular imports
-        from membership.models.invoice import Invoice, InvoiceItem
+        from membership.models import Invoice, InvoiceItem
         
         # Calculate player age to determine junior/senior status if not specified
         if is_junior is None:
@@ -414,7 +418,7 @@ def create_official_invoice(official, club=None, association=None, issued_by=Non
     """
     try:
         # Import at function level to avoid circular imports
-        from membership.models.invoice import Invoice, InvoiceItem
+        from membership.models import Invoice, InvoiceItem
         
         # Set fee amount based on position type
         # Default fee is R150, but can be adjusted based on position
@@ -462,3 +466,22 @@ def create_official_invoice(official, club=None, association=None, issued_by=Non
     except Exception as e:
         logger.error(f"Error creating official invoice: {str(e)}")
         return None
+    
+
+def send_activation_email(request, user):
+    subject = 'Activate Your Account'
+    activation_link = request.build_absolute_uri(
+        f'/accounts/activate/{user.activation_token}/'
+    )
+    html_message = render_to_string('accounts/activation_email.html', {
+        'user': user,
+        'activation_link': activation_link,
+    })
+    plain_message = strip_tags(html_message)
+    send_mail(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=html_message,
+    )

@@ -79,6 +79,7 @@ urlpatterns = [
     path('club-admin/add-player/', club_admin_add_player, name='club_admin_add_player'),
     path('club-admin/add-official/', club_admin_add_official, name='club_admin_add_official'),
     path('association-admin/add-official/', association_admin_add_official, name='association_admin_add_official'),
+    path('association/register/', association_registration, name='association_registration'),
     path('officials/', official_list, name='official_list'),
     path('players/approval-list/', player_approval_list, name='player_approval_list'),
     path('players/<int:player_id>/', player_detail, name='player_detail'),
