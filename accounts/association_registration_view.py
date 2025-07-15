@@ -12,7 +12,7 @@ def association_registration(request):
         print(f"[DEBUG - REFEREE REG] POST data: {request.POST}")
         print(f"[DEBUG - REFEREE REG] FILES data: {request.FILES}")
         
-        form = UniversalRegistrationForm(request.POST, request.FILES)
+        form = UniversalRegistrationForm(request.POST, request.FILES, request=request)
         # Set the role to ASSOCIATION_ADMIN
         if form.is_valid():
             print("[DEBUG - REFEREE REG] Form is valid, proceeding with user creation")
@@ -49,8 +49,16 @@ def association_registration(request):
             user.save()
             messages.success(request, 'Association administrator account created successfully! Your account is pending approval.')
             return redirect('accounts:login')
+        else:
+            print("[DEBUG - REFEREE REG] Form is invalid")
+            print(form.errors)
+            return render(request, 'accounts/association_registration.html', {
+                'form': form,
+                'title': 'Referee Association Administrator Registration'
+            })
+
     else:
-        form = UniversalRegistrationForm()
+        form = UniversalRegistrationForm(request=request)
         # Modify the form to show association field
         if hasattr(form.fields, 'association'):
             form.fields['association'].required = True
@@ -145,8 +153,9 @@ def association_registration(request):
             if field_name in form.fields:
                 form.fields[field_name].required = False
                 form.fields[field_name].widget = forms.HiddenInput()
+                form.fields[field_name].initial = None
                 print(f"[DEBUG - REFEREE REG] Hidden {field_name} field for referee admin registration")
-                pass
+                
     
     return render(request, 'accounts/association_registration.html', {
         'form': form,

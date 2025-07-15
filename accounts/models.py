@@ -980,7 +980,6 @@ class DocumentAccessLog(models.Model):
             size /= 1024.0
         return f"{size:.1f} TB"
 
-class Official(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='official')
+
     
 

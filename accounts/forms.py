@@ -143,8 +143,8 @@ class UniversalRegistrationForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
         }
-    
-def __init__(self, *args, registration_type=None, **kwargs):
+
+    def __init__(self, *args, registration_type=None, request=None, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and hasattr(self.instance, 'age'):
             self.fields['age'].initial = self.instance.age
@@ -201,7 +201,7 @@ def __init__(self, *args, registration_type=None, **kwargs):
         
         self.fields['association'] = forms.ModelChoiceField(
             queryset=Association.objects.all(),
-            required=True,
+            required=False,
             widget=forms.Select(attrs={'class': 'form-select'}),
             help_text="Select the referee association for this official"
         )
@@ -524,8 +524,8 @@ def __init__(self, *args, registration_type=None, **kwargs):
             </script>
             '''),
         )
-    
-def clean_id_number(self):
+
+    def clean_id_number(self):
         """Validate that the ID number is unique"""
         id_number = self.cleaned_data.get('id_number')
         id_document_type = self.cleaned_data.get('id_document_type')
@@ -541,8 +541,8 @@ def clean_id_number(self):
                 raise forms.ValidationError("This ID number is already registered in the system.")
         
         return id_number
-    
-def clean_passport_number(self):
+
+    def clean_passport_number(self):
         """Validate that the passport number is unique"""
         passport_number = self.cleaned_data.get('passport_number')
         id_document_type = self.cleaned_data.get('id_document_type')
@@ -554,8 +554,8 @@ def clean_passport_number(self):
                 raise forms.ValidationError("This passport number is already registered in the system.")
         
         return passport_number
-    
-def clean(self):
+
+    def clean(self):
         print("[DEBUG - REFEREE REG] Starting form validation (clean method)")
         cleaned_data = super().clean()
         
@@ -615,10 +615,13 @@ def clean(self):
         
         return cleaned_data
 
-def save(self, commit=True):
+    def save(self, commit=True):
+        cleaned_data = self.cleaned_data
         print("[DEBUG - REFEREE REG] Starting form save method")
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        if not self.cleaned_data.get("password1"):
+            raise ValidationError(_("Password cannot be empty."))
         role = self.cleaned_data['role']
         user.role = role
         print(f"[DEBUG - REFEREE REG] User role set to: {role}")
@@ -1449,10 +1452,10 @@ class PositionForm(forms.ModelForm):
 class AssociationOfficialRegistrationForm(forms.ModelForm):
     """Form for registering officials at Association level"""
     # Optional email field for official (already in model)
-    
+    password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'}))
+    password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'}))
     popi_consent = forms.BooleanField(required=False, label="POPI Consent", help_text="Required for all officials")
 
-   
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1545,7 +1548,7 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
     class Meta:
         model = Official
         fields = [
-            'first_name', 'last_name',
+            'first_name', 'last_name', 'email',
             'id_document_type', 'id_number', 'passport_number',
             'gender', 'date_of_birth', 'email', 'phone_number',
             'position', 'certification_number', 'certification_document',
@@ -1579,6 +1582,12 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
         id_document = cleaned_data.get('id_document')
         first_name = cleaned_data.get('first_name')
         last_name = cleaned_data.get('last_name')
+        password = cleaned_data.get("password")
+        password2 = cleaned_data.get("password2")
+
+        if password and password2 and password != password2:
+            self.add_error('password2', "Passwords do not match")
+
         
         errors = {}
         
