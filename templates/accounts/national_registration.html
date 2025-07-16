@@ -251,6 +251,7 @@
     </div>
 </div>
 
+<script src="{% static 'js/safa_global_validator.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Get all necessary elements once
@@ -266,6 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const genderReadonlyInput = document.getElementById('gender_readonly');
     const genderHiddenInput = document.getElementById('gender_hidden');
     const validationMessage = document.getElementById('id-validation-message');
+    const firstNameInput = document.getElementById('id_first_name');
+    const lastNameInput = document.getElementById('id_last_name');
     
     // Organization elements
     const orgTypeSelect = document.getElementById('id_organization_type');
@@ -301,50 +304,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (otherIdContainer) otherIdContainer.style.display = 'block';
             if (dobGenderManualRow) dobGenderManualRow.style.display = 'flex';
         }
-    }
-    
-    // ID validation function
-    function validateSAID(idNumber) {
-        if (!idNumber || idNumber.length !== 13 || !/^\d+$/.test(idNumber)) {
-            return { isValid: false, message: "ID number must be 13 digits" };
-        }
-        
-        const year = idNumber.substring(0, 2);
-        const month = idNumber.substring(2, 4);
-        const day = idNumber.substring(4, 6);
-        
-        const currentYear = new Date().getFullYear() % 100;
-        const birthYear = parseInt(year);
-        const fullYear = birthYear > currentYear ? 1900 + birthYear : 2000 + birthYear;
-        
-        const birthDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-        if (
-            birthDate.getFullYear() !== fullYear || 
-            birthDate.getMonth() + 1 !== parseInt(month) || 
-            birthDate.getDate() !== parseInt(day)
-        ) {
-            return { isValid: false, message: "ID contains invalid date" };
-        }
-        
-        const genderDigits = parseInt(idNumber.substring(6, 10));
-        const gender = genderDigits >= 5000 ? 'M' : 'F';
-        const genderText = gender === 'M' ? 'Male' : 'Female';
-        
-        const formattedDate = birthDate.toISOString().split('T')[0];
-        const displayDate = new Intl.DateTimeFormat('en-ZA', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        }).format(birthDate);
-        
-        return {
-            isValid: true,
-            message: "Valid ID number",
-            dateOfBirth: formattedDate,
-            displayDate: displayDate,
-            gender: gender,
-            genderText: genderText
-        };
     }
     
     // Organization fields toggle function
@@ -522,11 +481,63 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (dobHiddenInput) dobHiddenInput.value = result.dateOfBirth;
                     if (genderReadonlyInput) genderReadonlyInput.value = result.genderText;
                     if (genderHiddenInput) genderHiddenInput.value = result.gender;
+
+                    // Check for uniqueness
+                    fetch(`/accounts/ajax/check-id-number/?id_number=${this.value}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                validationMessage.textContent = "This ID number is already registered.";
+                                validationMessage.className = "form-text text-danger";
+                            }
+                        });
                 } else {
                     if (dobReadonlyInput) dobReadonlyInput.value = '';
                     if (dobHiddenInput) dobHiddenInput.value = '';
                     if (genderReadonlyInput) genderReadonlyInput.value = '';
                     if (genderHiddenInput) genderHiddenInput.value = '';
+                }
+            }
+        });
+    }
+
+    if (firstNameInput) {
+        firstNameInput.addEventListener('input', function() {
+            const result = validateName(this.value);
+            const errorDiv = this.nextElementSibling;
+            if (!result.isValid) {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = result.message;
+                } else {
+                    const newErrorDiv = document.createElement('div');
+                    newErrorDiv.className = 'text-danger small mt-1';
+                    newErrorDiv.textContent = result.message;
+                    this.parentNode.appendChild(newErrorDiv);
+                }
+            } else {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = '';
+                }
+            }
+        });
+    }
+
+    if (lastNameInput) {
+        lastNameInput.addEventListener('input', function() {
+            const result = validateName(this.value);
+            const errorDiv = this.nextElementSibling;
+            if (!result.isValid) {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = result.message;
+                } else {
+                    const newErrorDiv = document.createElement('div');
+                    newErrorDiv.className = 'text-danger small mt-1';
+                    newErrorDiv.textContent = result.message;
+                    this.parentNode.appendChild(newErrorDiv);
+                }
+            } else {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = '';
                 }
             }
         });

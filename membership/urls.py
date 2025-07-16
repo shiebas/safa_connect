@@ -99,5 +99,8 @@ urlpatterns = [
 
     # API and other endpoints
     path('api/', include(router.urls)),
+    path('api/regions_by_province/<int:province_id>/', views.regions_by_province, name='regions_by_province'),
+    path('api/lfas_by_region/<int:region_id>/', views.lfas_by_region, name='lfas_by_region'),
+    path('api/clubs_by_lfa/<int:lfa_id>/', views.clubs_by_lfa, name='clubs_by_lfa'),
     path('verify/', views.verify_view, name='verify'),
 ]

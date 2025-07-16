@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}Senior Membership Application{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'membership/css/membership.css' %}" rel="stylesheet">
-<script src="{% static 'membership/js/safa_global_validator.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -15,40 +15,162 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Senior Membership Application</h3>
-                    <p class="mb-0">For members 18 years and older</p>
+                    <p class="mb-0">For members 18 years and older.</p>
                 </div>
                 <div class="card-body">
-                    <form id="senior-membership-form" method="post" enctype="multipart/form-data">
+                    <form id="senior-membership-form" method="post" enctype="multipart/form-data" novalidate>
                         {% csrf_token %}
 
-                        <!-- Personal Information -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="first_name">First Name *</label>
-                                    <input type="text" class="form-control" id="first_name" name="first_name" required>
-                                </div>
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="last_name">Last Name *</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        {% endif %}
+
+                        <!-- Personal Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Personal Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                        {% render_field form.first_name class="form-control" %}
+                                        {% for error in form.first_name.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                        {% render_field form.last_name class="form-control" %}
+                                        {% for error in form.last_name.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{{ form.date_of_birth.label }}</label>
+                                        {% render_field form.date_of_birth class="form-control" type="date" %}
+                                        {% for error in form.date_of_birth.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+                                        {% render_field form.gender class="form-select" %}
+                                        {% for error in form.gender.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Age verification for seniors -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="date_of_birth">Date of Birth *</label>
-                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                        <!-- Contact Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Contact Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                        {% render_field form.email class="form-control" %}
+                                        <small class="form-text text-muted">If you don't have an email, a temporary one will be created for you.</small>
+                                        {% for error in form.email.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
+                                        {% render_field form.phone_number class="form-control" %}
+                                        {% for error in form.phone_number.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="email">Email *</label>
-                                    <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <!-- Identification -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Identification</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.id_document_type.id_for_label }}" class="form-label">{{ form.id_document_type.label }}</label>
+                                        {% render_field form.id_document_type class="form-select" %}
+                                        {% for error in form.id_document_type.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-md-6 mb-3" id="id_number_field">
+                                        <label for="{{ form.id_number.id_for_label }}" class="form-label">{{ form.id_number.label }}</label>
+                                        {% render_field form.id_number class="form-control" %}
+                                        {% for error in form.id_number.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-md-6 mb-3 d-none" id="passport_number_field">
+                                        <label for="{{ form.passport_number.id_for_label }}" class="form-label">{{ form.passport_number.label }}</label>
+                                        {% render_field form.passport_number class="form-control" %}
+                                        {% for error in form.passport_number.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.id_document.id_for_label }}" class="form-label">{{ form.id_document.label }}</label>
+                                    {% render_field form.id_document class="form-control" %}
+                                    {% for error in form.id_document.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Address</h5>
+                            </div>
+                            <div class="card-body">
+                                {% render_field form.street_address class="form-control mb-3" placeholder="Street Address" %}
+                                {% render_field form.suburb class="form-control mb-3" placeholder="Suburb" %}
+                                {% render_field form.city class="form-control mb-3" placeholder="City" %}
+                                {% render_field form.state class="form-control mb-3" placeholder="State/Province" %}
+                                {% render_field form.postal_code class="form-control mb-3" placeholder="Postal Code" %}
+                                {% render_field form.country class="form-control mb-3" placeholder="Country" %}
+                            </div>
+                        </div>
+
+                        <!-- Geographical Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Club Selection</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.province.id_for_label }}" class="form-label">{{ form.province.label }}</label>
+                                    {% render_field form.province class="form-select" id="province" %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.region.id_for_label }}" class="form-label">{{ form.region.label }}</label>
+                                    {% render_field form.region class="form-select" id="region" %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.lfa.id_for_label }}" class="form-label">{{ form.lfa.label }}</label>
+                                    {% render_field form.lfa class="form-select" id="lfa" %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.club.id_for_label }}" class="form-label">{{ form.club.label }}</label>
+                                    {% render_field form.club class="form-select" id="club" %}
                                 </div>
                             </div>
                         </div>
@@ -68,36 +190,98 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/safa_global_validator.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('senior-membership-form');
-    const dobInput = document.getElementById('date_of_birth');
+    const idTypeSelect = document.getElementById('{{ form.id_document_type.id_for_label }}');
+    const idNumberField = document.getElementById('id_number_field');
+    const passportNumberField = document.getElementById('passport_number_field');
 
-    dobInput.addEventListener('change', function() {
-        const birthDate = new Date(this.value);
-        const today = new Date();
-        const age = today.getFullYear() - birthDate.getFullYear();
-
-        if (age < 18) {
-            alert('Senior membership requires age 18 or older');
-            this.value = '';
-            return;
-        }
-    });
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        if (typeof SafaGlobalValidator !== 'undefined') {
-            const validator = new SafaGlobalValidator();
-            if (validator.validateForm(form)) {
-                this.submit();
-            }
+    function toggleIdFields() {
+        if (idTypeSelect.value === 'PP') {
+            idNumberField.classList.add('d-none');
+            passportNumberField.classList.remove('d-none');
         } else {
-            this.submit();
+            idNumberField.classList.remove('d-none');
+            passportNumberField.classList.add('d-none');
         }
-    });
-});
-</script>
+    }
+
+    if (idTypeSelect) {
+        idTypeSelect.addEventListener('change', toggleIdFields);
+        toggleIdFields(); // Initial call
+    }
+
+    // Dynamic dropdowns for geography
+    const provinceSelect = document.getElementById('province');
+    const regionSelect = document.getElementById('region');
+    const lfaSelect = document.getElementById('lfa');
+    const clubSelect = document.getElementById('club');
+
+    function populateDropdown(selectElement, data) {
+        selectElement.innerHTML = '<option value="">Select a ' + selectElement.id + '</option>';
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.name;
+            selectElement.appendChild(option);
+        });
+        selectElement.disabled = false;
+    }
+
+    if(provinceSelect) {
+        provinceSelect.addEventListener('change', function() {
+            const provinceId = this.value;
+            regionSelect.innerHTML = '<option value="">Select a region</option>';
+            regionSelect.disabled = true;
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+            lfaSelect.disabled = true;
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = true;
+
+            if (provinceId) {
+                fetch(`/membership/api/regions_by_province/${provinceId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(regionSelect, data))
+                    .catch(error => console.error('Error fetching regions:', error));
+            }
+        });
+    }
+
+    if(regionSelect) {
+        regionSelect.addEventListener('change', function() {
+            const regionId = this.value;
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+            lfaSelect.disabled = true;
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = true;
+
+            if (regionId) {
+                fetch(`/membership/api/lfas_by_region/${regionId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(lfaSelect, data))
+                    .catch(error => console.error('Error fetching LFAs:', error));
+            }
+        });
+    }
+
+    if(lfaSelect) {
+        lfaSelect.addEventListener('change', function() {
+            const lfaId = this.value;
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = true;
+
+            if (lfaId) {
+                fetch(`/membership/api/clubs_by_lfa/${lfaId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(clubSelect, data))
+                    .catch(error => console.error('Error fetching clubs:', error));
+            }
+        });
+    }
+
+    // Initial state: disable region, LFA, and club dropdowns
+    regionSelect.disabled = true;
+    lfaSelect.disabled = true;
+    clubSelect.disabled = true;
+
 {% endblock %}

@@ -126,6 +126,7 @@ class Member(TimeStampedModel):
     province = models.ForeignKey('geography.Province', on_delete=models.SET_NULL, null=True, blank=True)
     region = models.ForeignKey('geography.Region', on_delete=models.SET_NULL, null=True, blank=True)
     lfa = models.ForeignKey('geography.LocalFootballAssociation', on_delete=models.SET_NULL, null=True, blank=True)
+    club = models.ForeignKey(GeographyClub, on_delete=models.SET_NULL, null=True, blank=True, related_name='club_members')
 
     # Images
     profile_picture = models.ImageField(_("Profile Picture"),
@@ -244,8 +245,9 @@ class Member(TimeStampedModel):
         if not self.safa_id:
             self.generate_safa_id()
 
-        # Validate and save
+        # Validate before saving
         self.clean()
+
         super().save(*args, **kwargs)
 
     def approve_membership(self, approved_by):

@@ -9,7 +9,8 @@ from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from .models import Member, Player, Membership, MembershipApplication
 from geography.models import Club, Province, Region, LocalFootballAssociation  # Import Club from geography
-from .forms import MemberForm, PlayerForm, ClubForm, MembershipApplicationForm
+from .forms import MemberForm, PlayerForm, ClubForm, MembershipApplicationForm, SeniorMemberRegistrationForm
+from .invoice_models import Invoice, InvoiceItem
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect
 from rest_framework import viewsets
@@ -193,6 +194,10 @@ def regions_by_province(request, province_id):
 def lfas_by_region(request, region_id):
     lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name')
     return JsonResponse(list(lfas), safe=False)
+
+def clubs_by_lfa(request, lfa_id):
+    clubs = Club.objects.filter(localfootballassociation_id=lfa_id).values('id', 'name')
+    return JsonResponse(list(clubs), safe=False)
 
 # Payment Processing Views
 class PaymentReturnView(LoginRequiredMixin, View):
@@ -422,7 +427,36 @@ def registration_selector(request):
 def senior_registration(request):
     """Senior membership registration"""
     if request.method == 'POST':
-        messages.success(request, 'Senior membership application submitted successfully!')
-        return redirect('membership:registration_selector')
+        form = SeniorMemberRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    member = form.save(commit=False)
+                    member.status = 'PENDING'
+                    if not member.email:
+                        member.email = f"user_{get_random_string(8)}@safa.system"
+                    member.save()
 
-    return render(request, 'membership/senior_registration.html')
+                    # Create an invoice for the senior membership fee
+                    invoice = Invoice.objects.create(
+                        player=member,
+                        club=form.cleaned_data.get('club'),
+                        amount=200.00,  # Assuming a static senior fee
+                        status='PENDING',
+                        invoice_type='MEMBERSHIP',
+                        due_date=timezone.now() + timezone.timedelta(days=30)
+                    )
+                    InvoiceItem.objects.create(
+                        invoice=invoice,
+                        description='Senior Membership Fee',
+                        quantity=1,
+                        unit_price=200.00
+                    )
+
+                    messages.success(request, _('Senior membership application submitted successfully. Please check your email for payment instructions.'))
+                    return redirect('membership:registration_selector')
+            except Exception as e:
+                messages.error(request, _(f"An error occurred: {e}"))
+    else:
+        form = SeniorMemberRegistrationForm()
+    return render(request, 'membership/senior_registration.html', {'form': form})

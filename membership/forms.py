@@ -157,19 +157,17 @@ class PlayerRegistrationForm(AddressFormMixin, forms.ModelForm):
         id_number = self.cleaned_data.get('id_number', '').strip()
         if id_number:
             try:
+                # Use the model's validation logic
                 temp_instance = Player(id_number=id_number)
                 temp_instance._validate_id_number()
             except ValidationError as e:
                 raise forms.ValidationError(e.messages)
         return id_number
 
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if self.club:
-            instance.club = self.club
-        if commit:
-            instance.save()
-        return instance
+    def clean(self):
+        cleaned_data = super().clean()
+        # No need to call clean_id_number explicitly; Django does this automatically.
+        return cleaned_data
 
 class PaymentSelectionForm(forms.Form):
     """Form for selecting membership type and payment method"""
@@ -348,7 +346,7 @@ class MembershipApplicationForm(forms.ModelForm):
             'emergency_contact', 'emergency_phone', 'medical_notes',
             'profile_picture', 'id_document',
             # Geography fields for administrative purposes
-            'province', 'region', 'lfa',
+            'province', 'region', 'lfa', 'club',
         ]
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
@@ -369,19 +367,19 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Style form fields
         self.fields['first_name'].widget.attrs.update({
-            'pattern': '[A-Za-z\s\-\']{3,}',
+            'pattern': "[A-Za-z\\s'-]{3,}",
             'minlength': '3',
             'title': 'Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters',
             'class': 'form-control',
-            'oninput': 'this.value = this.value.replace(/[^A-Za-z\s\-\']/g, "")',
+            'oninput': "this.value = this.value.replace(/[^A-Za-z\\s'-]/g, \"\")",
             'onblur': 'validateNameField(this)'
         })
         self.fields['last_name'].widget.attrs.update({
-            'pattern': '[A-Za-z\s\-\']{3,}',
+            'pattern': "[A-Za-z\\s'-]{3,}",
             'minlength': '3',
             'title': 'Only letters, spaces, hyphens, and apostrophes (no numbers), at least 3 characters',
             'class': 'form-control',
-            'oninput': 'this.value = this.value.replace(/[^A-Za-z\s\-\']/g, "")',
+            'oninput': "this.value = this.value.replace(/[^A-Za-z\\s'-]/g, \"\")",
             'onblur': 'validateNameField(this)'
         })
         self.fields['email'].widget.attrs.update({
@@ -415,7 +413,7 @@ class MembershipApplicationForm(forms.ModelForm):
         self.fields['fifa_id'].widget.attrs.update({
             'pattern': '[0-9]{7}',
             'title': '7-digit FIFA identification number',
-            'placeholder': 'e.g. 1234567',
+            'placeholder': 'e.g. ABC4567',
             'class': 'form-control'
         })
 
@@ -435,6 +433,13 @@ class MembershipApplicationForm(forms.ModelForm):
         self.fields['province'].required = False
         self.fields['region'].required = False
         self.fields['lfa'].required = False
+        self.fields['club'].required = False
+
+        # Add styling for geography fields
+        self.fields['province'].widget.attrs.update({'class': 'form-control'})
+        self.fields['region'].widget.attrs.update({'class': 'form-control'})
+        self.fields['lfa'].widget.attrs.update({'class': 'form-control'})
+        self.fields['club'].widget.attrs.update({'class': 'form-control'})
 
     def clean_first_name(self):
         value = self.cleaned_data.get('first_name', '')
@@ -444,7 +449,7 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
         import re
-        if not re.match(r'^[A-Za-z\s\-\']+$', value):
+        if not re.match(r"^[A-Za-z\s-']+", value):
             raise ValidationError('First name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
 
         # Check if name contains any digits
@@ -461,7 +466,7 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
         import re
-        if not re.match(r'^[A-Za-z\s\-\']+$', value):
+        if not re.match(r"^[A-Za-z\s-']+", value):
             raise ValidationError('Last name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
 
         # Check if name contains any digits
@@ -582,3 +587,55 @@ class ClubRegistrationForm(forms.ModelForm):
         # Add styling
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+
+
+class SeniorMemberRegistrationForm(MembershipApplicationForm):
+    """Form for registering a new senior member"""
+
+    class Meta(MembershipApplicationForm.Meta):
+        model = Member
+        fields = [
+            'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth',
+            'gender', 'id_document_type', 'id_number', 'passport_number',
+            'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
+            'emergency_contact', 'emergency_phone', 'medical_notes',
+            'profile_picture', 'id_document',
+            'province', 'region', 'lfa', 'club',
+            # Add missing fields from parent form to prevent KeyError
+            'safa_id', 'fifa_id', 'member_type', 'has_sa_passport',
+            'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['member_type'].initial = 'SENIOR'
+        self.fields['member_type'].widget = forms.HiddenInput()
+
+        # Make geography fields required for senior members
+        self.fields['province'].required = True
+        self.fields['region'].required = True
+        self.fields['lfa'].required = True
+        self.fields['club'].required = True
+
+        # Set initial querysets for geography fields
+        self.fields['province'].queryset = Province.objects.all()
+        self.fields['region'].queryset = Region.objects.none()
+        self.fields['lfa'].queryset = LocalFootballAssociation.objects.none()
+        self.fields['club'].queryset = Club.objects.none()
+
+        # Add styling for geography fields
+        self.fields['province'].widget.attrs.update({'class': 'form-control'})
+        self.fields['region'].widget.attrs.update({'class': 'form-control'})
+        self.fields['lfa'].widget.attrs.update({'class': 'form-control'})
+        self.fields['club'].widget.attrs.update({'class': 'form-control'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Ensure member is a senior
+        dob = cleaned_data.get('date_of_birth')
+        if dob:
+            age = (timezone.now().date() - dob).days // 365
+            if age < 18:
+                raise ValidationError(_("Senior members must be 18 years or older."))
+        cleaned_data['member_type'] = 'SENIOR'
+        return cleaned_data

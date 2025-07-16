@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Referee Association Administrator Registration{% endblock %}
 
@@ -122,6 +123,7 @@
                             <div class="form-group mb-3">
                                 <label for="{{ form.id_number.id_for_label }}">SA ID Number</label>
                                 {{ form.id_number }}
+                                <div id="id-validation-message" class="form-text"></div>
                                 {% if form.id_number.errors %}
                                 <div class="text-danger">{{ form.id_number.errors }}</div>
                                 {% endif %}
@@ -223,17 +225,21 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/safa_global_validator.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // No need for Province/Region/LFA selection - using direct association selection
 
         // Document Type field handling - only allow SA ID or Passport
         const idDocTypeSelect = document.getElementById('id_id_document_type');
-        const idNumberField = document.getElementById('id_id_number');
+        const idNumberInput = document.getElementById('id_id_number');
         const passportField = document.getElementById('id_passport_number');
         const dateOfBirthField = document.getElementById('id_date_of_birth');
         const saIdField = document.querySelector('.sa-id-field');
         const passportFieldDiv = document.querySelector('.passport-field');
+        const validationMessage = document.getElementById('id-validation-message');
+        const firstNameInput = document.getElementById('id_first_name');
+        const lastNameInput = document.getElementById('id_last_name');
         
         // Disable date of birth field - it will be calculated from ID number
         dateOfBirthField.disabled = true;
@@ -248,7 +254,7 @@
                 saIdField.style.display = 'none';
                 passportFieldDiv.style.display = 'block';
                 // Clear SA ID number and enable DOB
-                idNumberField.value = '';
+                idNumberInput.value = '';
                 dateOfBirthField.disabled = false;
                 dateOfBirthField.removeAttribute('readonly');
                 
@@ -263,27 +269,63 @@
             }
         }
         
-        // Calculate date of birth from SA ID number
-        idNumberField.addEventListener('input', function() {
+        // Add event listeners
+        idNumberInput.addEventListener('input', function() {
             if (idDocTypeSelect.value === 'ID') {
-                const idNumber = idNumberField.value;
-                if (idNumber.length >= 6) {
-                    // Extract date from ID: yymmdd is the first 6 digits
-                    let year = idNumber.substring(0, 2);
-                    const month = idNumber.substring(2, 4);
-                    const day = idNumber.substring(4, 6);
-                    
-                    // Determine century - SA ID numbers starting with 0-2 are assumed to be 2000+
-                    // though most adults would be 1900+
-                    if (parseInt(year) < 50) { // Adjust this threshold as needed
-                        year = '20' + year;
-                    } else {
-                        year = '19' + year;
-                    }
-                    
-                    // Format date as YYYY-MM-DD for the input
-                    const formattedDate = `${year}-${month}-${day}`;
-                    dateOfBirthField.value = formattedDate;
+                const result = validateSAID(this.value);
+                validationMessage.textContent = result.message;
+                validationMessage.className = result.isValid ? "form-text text-success" : "form-text text-danger";
+                if (result.isValid) {
+                    dateOfBirthField.value = result.dateOfBirth;
+                    // Check for uniqueness
+                    fetch(`/accounts/ajax/check-id-number/?id_number=${this.value}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                validationMessage.textContent = "This ID number is already registered.";
+                                validationMessage.className = "form-text text-danger";
+                            }
+                        });
+                } else {
+                    dateOfBirthField.value = '';
+                }
+            }
+        });
+
+        firstNameInput.addEventListener('input', function() {
+            const result = validateName(this.value);
+            const errorDiv = this.nextElementSibling;
+            if (!result.isValid) {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = result.message;
+                } else {
+                    const newErrorDiv = document.createElement('div');
+                    newErrorDiv.className = 'text-danger small mt-1';
+                    newErrorDiv.textContent = result.message;
+                    this.parentNode.appendChild(newErrorDiv);
+                }
+            } else {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = '';
+                }
+            }
+        });
+
+        lastNameInput.addEventListener('input', function() {
+            const result = validateName(this.value);
+            const errorDiv = this.nextElementSibling;
+            if (!result.isValid) {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = result.message;
+                } else {
+                    const newErrorDiv = document.createElement('div');
+                    newErrorDiv.className = 'text-danger small mt-1';
+                    newErrorDiv.textContent = result.message;
+                    this.parentNode.appendChild(newErrorDiv);
+                }
+            } else {
+                if (errorDiv && errorDiv.classList.contains('text-danger')) {
+                    errorDiv.textContent = '';
                 }
             }
         });
