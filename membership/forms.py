@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import Member, Membership, Player, Transfer, TransferAppeal, MembershipApplication, ClubRegistration, JuniorMember
-from geography.models import Club, LocalFootballAssociation, Province, Region
+from geography.models import Club, LocalFootballAssociation, Province, Region, Association # Import Association
 # Assuming phonenumber_field is installed and CustomUser has extract_id_info
 # from phonenumber_field.formfields import PhoneNumberField
 from accounts.models import CustomUser
@@ -312,23 +312,9 @@ class ClubForm(forms.ModelForm):
                 field.widget.attrs.update({'class': 'form-control'})
 
 class MembershipApplicationForm(forms.ModelForm):
-    """Form for applying for SAFA membership (Step 1 of two-tier system)"""
+    """Base form for applying for SAFA membership (common fields for junior and senior)"""
 
-    # Junior-specific fields
-    is_junior = forms.BooleanField(required=False, label="Under 18 years old")
-    guardian_name = forms.CharField(required=False, label="Guardian/Parent Name")
-    guardian_email = forms.EmailField(required=False, label="Guardian/Parent Email")
-    guardian_phone = forms.CharField(required=False, label="Guardian/Parent Phone")
-    school = forms.CharField(required=False, label="School Name")
-
-    # Consent
-    popi_consent = forms.BooleanField(
-        required=False,
-        label="POPI Act Consent",
-        help_text="Required for members under 18 years old"
-    )
-
-    # Signature data (for digital signature pad)
+    # Signature data (for digital signature pad) - common for all applications
     signature_data = forms.CharField(
         widget=forms.HiddenInput(),
         required=False,
@@ -338,15 +324,23 @@ class MembershipApplicationForm(forms.ModelForm):
     class Meta:
         model = Member
         fields = [
+            # Personal Information
             'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth',
-            'gender', 'id_document_type', 'id_number', 'passport_number', 'member_type',
-            'safa_id', 'fifa_id',  # Add SAFA ID and FIFA ID fields
+            'gender',
+            # Identification
+            'id_document_type', 'id_number', 'passport_number',
+            'safa_id', 'fifa_id',
             'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+            # Address Information
             'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
+            # Emergency Contact
             'emergency_contact', 'emergency_phone', 'medical_notes',
+            # Images
             'profile_picture', 'id_document',
             # Geography fields for administrative purposes
-            'province', 'region', 'lfa', 'club',
+            'province', 'region', 'lfa', 'club', 'association',
+            # Member Type (will be set by specific junior/senior forms)
+            'member_type',
         ]
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
@@ -385,7 +379,7 @@ class MembershipApplicationForm(forms.ModelForm):
         self.fields['email'].widget.attrs.update({
             'class': 'form-control',
             'type': 'email',
-            'pattern': '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
+            'pattern': '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
             'title': 'Please enter a valid email address',
             'oninput': 'validateEmailField(this)',
         })
@@ -395,7 +389,7 @@ class MembershipApplicationForm(forms.ModelForm):
             'title': 'Enter a valid phone number (numbers and + sign only)',
             'placeholder': 'e.g., +27123456789 (optional)',
             'inputmode': 'tel',
-            'oninput': 'this.value = this.value.replace(/[^+0-9]/g, "")'
+            'oninput': 'this.value = this.value.replace(/[^+0-9]/g, \"\")'
         })
 
         # Configure SAFA ID and FIFA ID fields
@@ -423,23 +417,25 @@ class MembershipApplicationForm(forms.ModelForm):
             'inputmode': 'numeric',
             'title': 'ID number must be exactly 13 digits (numbers only)',
             'class': 'form-control',
-            'oninput': 'this.value = this.value.replace(/[^0-9]/g, "")',
+            'oninput': 'this.value = this.value.replace(/[^0-9]/g, \"\")',
             'onblur': 'validateIdField(this)',
             'maxlength': '13',
             'minlength': '13'
         })
 
         # Geography fields are optional but helpful for admin
-        self.fields['province'].required = False
-        self.fields['region'].required = False
-        self.fields['lfa'].required = False
-        self.fields['club'].required = False
+        if 'province' in self.fields: self.fields['province'].required = False
+        if 'region' in self.fields: self.fields['region'].required = False
+        if 'lfa' in self.fields: self.fields['lfa'].required = False
+        if 'club' in self.fields: self.fields['club'].required = False
+        if 'association' in self.fields: self.fields['association'].required = False # Make association optional
 
         # Add styling for geography fields
-        self.fields['province'].widget.attrs.update({'class': 'form-control'})
-        self.fields['region'].widget.attrs.update({'class': 'form-control'})
-        self.fields['lfa'].widget.attrs.update({'class': 'form-control'})
-        self.fields['club'].widget.attrs.update({'class': 'form-control'})
+        if 'province' in self.fields: self.fields['province'].widget.attrs.update({'class': 'form-control'})
+        if 'region' in self.fields: self.fields['region'].widget.attrs.update({'class': 'form-control'})
+        if 'lfa' in self.fields: self.fields['lfa'].widget.attrs.update({'class': 'form-control'})
+        if 'club' in self.fields: self.fields['club'].widget.attrs.update({'class': 'form-control'})
+        if 'association' in self.fields: self.fields['association'].widget.attrs.update({'class': 'form-control'}) # Add styling for association
 
     def clean_first_name(self):
         value = self.cleaned_data.get('first_name', '')
@@ -449,7 +445,7 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
         import re
-        if not re.match(r"^[A-Za-z\s'-]+", value):
+        if not re.match(r"^[A-Za-z\\s'-]+", value):
             raise ValidationError('First name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
 
         # Check if name contains any digits
@@ -466,7 +462,7 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
         import re
-        if not re.match(r"^[A-Za-z\s'-]+", value):
+        if not re.match(r"^[A-Za-z\\s'-]+", value):
             raise ValidationError('Last name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
 
         # Check if name contains any digits
@@ -513,12 +509,6 @@ class MembershipApplicationForm(forms.ModelForm):
         id_number = cleaned_data.get('id_number')
         passport_number = cleaned_data.get('passport_number')
         dob = cleaned_data.get('date_of_birth')
-        is_junior = cleaned_data.get('is_junior')
-        popi_consent = cleaned_data.get('popi_consent')
-
-        # SAFA ID auto-generation will be handled in the save method
-        guardian_name = cleaned_data.get('guardian_name')
-        guardian_email = cleaned_data.get('guardian_email')
 
         errors = {}
 
@@ -540,27 +530,6 @@ class MembershipApplicationForm(forms.ModelForm):
                 errors['date_of_birth'] = 'Date of birth is required when using passport'
             if not cleaned_data.get('gender'):
                 errors['gender'] = 'Gender is required when using passport'
-
-        # Junior validation
-        if dob:
-            age = (timezone.now().date() - dob).days // 365
-            is_actually_junior = age < 18
-
-            if is_actually_junior or is_junior:
-                # Require POPI consent for juniors
-                if not popi_consent:
-                    errors['popi_consent'] = 'POPI consent is required for members under 18'
-
-                # Require guardian information for juniors
-                if not guardian_name:
-                    errors['guardian_name'] = 'Guardian name is required for members under 18'
-                if not guardian_email:
-                    errors['guardian_email'] = 'Guardian email is required for members under 18'
-
-                # Auto-set member type
-                cleaned_data['member_type'] = 'JUNIOR'
-            else:
-                cleaned_data['member_type'] = 'SENIOR'
 
         if errors:
             raise ValidationError(errors)
@@ -589,64 +558,126 @@ class ClubRegistrationForm(forms.ModelForm):
             field.widget.attrs.update({'class': 'form-control'})
 
 
-class SeniorMemberRegistrationForm(MembershipApplicationForm):
-    """Form for registering a new senior member"""
+class JuniorMemberRegistrationForm(MembershipApplicationForm):
+    """Form for registering a new junior member"""
+
+    # Junior-specific fields
+    guardian_name = forms.CharField(required=True, label="Guardian/Parent Name")
+    guardian_email = forms.EmailField(required=True, label="Guardian/Parent Email")
+    guardian_phone = forms.CharField(required=True, label="Guardian/Parent Phone")
+    school = forms.CharField(required=False, label="School Name")
+
+    # Consent
+    popi_consent = forms.BooleanField(
+        required=True,
+        label="POPI Act Consent",
+        help_text="Required for members under 18 years old"
+    )
 
     class Meta(MembershipApplicationForm.Meta):
-        model = Player
-        fields = [
-            'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth',
-            'gender', 'id_document_type', 'id_number', 'passport_number',
-            'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
-            'emergency_contact', 'emergency_phone', 'medical_notes',
-            'profile_picture', 'id_document',
-            'province', 'region', 'lfa', 'club',
-            # Add missing fields from parent form to prevent KeyError
-            'safa_id', 'fifa_id', 'member_type', 'has_sa_passport',
-            'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+        model = JuniorMember # Use JuniorMember model
+        fields = MembershipApplicationForm.Meta.fields + [
+            'guardian_name', 'guardian_email', 'guardian_phone', 'school', 'popi_consent',
+            'birth_certificate', # Add birth certificate for juniors
         ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.fields['member_type'].initial = 'SENIOR' # Let user select
-        # self.fields['member_type'].widget = forms.HiddenInput() # Make visible
+        # Set initial member type for juniors
+        self.fields['member_type'].initial = 'JUNIOR'
+        self.fields['member_type'].widget = forms.HiddenInput() # Hide member type field
 
-        # Make geography fields optional for senior members
+        # Make geography fields optional for junior members
         self.fields['province'].required = False
         self.fields['region'].required = False
         self.fields['lfa'].required = False
         self.fields['club'].required = False
+        self.fields['association'].required = False # Make association optional for juniors
 
         # Set initial querysets for geography fields
         self.fields['province'].queryset = Province.objects.all()
+        self.fields['association'].queryset = Association.objects.all() # Add queryset for association
 
         # Add styling for geography fields
         self.fields['province'].widget.attrs.update({'class': 'form-control'})
         self.fields['region'].widget.attrs.update({'class': 'form-control'})
         self.fields['lfa'].widget.attrs.update({'class': 'form-control'})
         self.fields['club'].widget.attrs.update({'class': 'form-control'})
+        self.fields['association'].widget.attrs.update({'class': 'form-control'}) # Add styling for association
+
+    def clean(self):
+        cleaned_data = super().clean()
+        dob = cleaned_data.get('date_of_birth')
+        popi_consent = cleaned_data.get('popi_consent')
+        guardian_name = cleaned_data.get('guardian_name')
+        guardian_email = cleaned_data.get('guardian_email')
+        guardian_phone = cleaned_data.get('guardian_phone')
+
+        errors = {}
+
+        # Junior-specific age validation
+        if dob:
+            age = (timezone.now().date() - dob).days // 365
+            if age >= 18:
+                errors['date_of_birth'] = 'Junior members must be under 18 years old. Please use the Senior Registration form.'
+
+        # Require POPI consent for juniors
+        if not popi_consent:
+            errors['popi_consent'] = 'POPI consent is required for members under 18'
+
+        # Require guardian information for juniors
+        if not guardian_name:
+            errors['guardian_name'] = 'Guardian name is required for members under 18'
+        if not guardian_email:
+            errors['guardian_email'] = 'Guardian email is required for members under 18'
+        if not guardian_phone:
+            errors['guardian_phone'] = 'Guardian phone is required for members under 18'
+
+        if errors:
+            raise ValidationError(errors)
+
+        cleaned_data['member_type'] = 'JUNIOR'
+        return cleaned_data
+
+
+class SeniorMemberRegistrationForm(MembershipApplicationForm):
+    """Form for registering a new senior member"""
+
+    class Meta(MembershipApplicationForm.Meta):
+        model = Member # Use base Member model for seniors
+        fields = MembershipApplicationForm.Meta.fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set initial member type for seniors
+        self.fields['member_type'].initial = 'SENIOR'
+        self.fields['member_type'].widget = forms.HiddenInput() # Hide member type field
+
+        # Make geography fields optional for senior members
+        self.fields['province'].required = False
+        self.fields['region'].required = False
+        self.fields['lfa'].required = False
+        self.fields['club'].required = False
+        self.fields['association'].required = False # Make association optional for seniors
+
+        # Set initial querysets for geography fields
+        self.fields['province'].queryset = Province.objects.all()
+        self.fields['association'].queryset = Association.objects.all() # Add queryset for association
+
+        # Add styling for geography fields
+        self.fields['province'].widget.attrs.update({'class': 'form-control'})
+        self.fields['region'].widget.attrs.update({'class': 'form-control'})
+        self.fields['lfa'].widget.attrs.update({'class': 'form-control'})
+        self.fields['club'].widget.attrs.update({'class': 'form-control'})
+        self.fields['association'].widget.attrs.update({'class': 'form-control'}) # Add styling for association
 
     def clean(self):
         # Call the parent's clean method to handle common validation and geography fields
         cleaned_data = super().clean()
 
-        id_number = cleaned_data.get('id_number')
-        passport_number = cleaned_data.get('passport_number')
         dob = cleaned_data.get('date_of_birth')
-        id_document_type = cleaned_data.get('id_document_type')
-        
+
         errors = {}
-
-        # Re-implement essential checks from the parent form
-        if not id_number and not passport_number:
-            errors['id_number'] = 'Either ID number or passport number is required.'
-            errors['passport_number'] = 'Either ID number or passport number is required.'
-
-        if id_document_type == 'PP' and passport_number:
-            if not dob:
-                errors['date_of_birth'] = 'Date of birth is required when using a passport.'
-            if not cleaned_data.get('gender'):
-                errors['gender'] = 'Gender is required when using a passport.'
 
         # Senior-specific age validation
         if dob:

@@ -1,249 +1,556 @@
 {% extends 'base.html' %}
- {% load static %}
+{% load static %}
+{% load widget_tweaks %}
 
 {% block title %}Junior Membership Application{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'membership/css/membership.css' %}" rel="stylesheet">
-<script src="{% static 'membership/js/safa_global_validator.js' %}"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    .card-header {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+</style>
 {% endblock %}
 
- {% block content %}
-<div class="container mt-4">
- <div class="row justify-content-center">
-  <div class="col-md-10">
-   <div class="card">
-    <div class="card-header">
-     <h3>Junior Membership Application</h3>
-     <p class="mb-0">For members under 18 years old. Must be registered by a club administrator.</p>
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="text-center mb-4">Junior Membership Application</h1>
+            <p class="text-center text-muted mb-5">For members under 18 years old. Guardian information is required.</p>
+
+            <form id="junior-membership-form" method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Junior's Personal Information
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                {% render_field form.first_name class="form-control" %}
+                                {% for error in form.first_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                {% render_field form.last_name class="form-control" %}
+                                {% for error in form.last_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{{ form.date_of_birth.label }}</label>
+                                {% render_field form.date_of_birth class="form-control" type="date" %}
+                                {% for error in form.date_of_birth.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                <div id="age-info" class="form-text"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+                                {% render_field form.gender class="form-select" %}
+                                {% for error in form.gender.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.member_type.id_for_label }}" class="form-label">{{ form.member_type.label }}</label>
+                                {% render_field form.member_type class="form-select" %}
+                                {% for error in form.member_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.school.id_for_label }}" class="form-label">{{ form.school.label }}</label>
+                            {% render_field form.school class="form-control" %}
+                            {% for error in form.school.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Contact Information
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                {% render_field form.email class="form-control" %}
+                                <small class="form-text text-muted">If you don't have an email, a temporary one will be created for you.</small>
+                                {% for error in form.email.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
+                                {% render_field form.phone_number class="form-control" %}
+                                {% for error in form.phone_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Identification
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.id_document_type.id_for_label }}" class="form-label">{{ form.id_document_type.label }}</label>
+                                {% render_field form.id_document_type class="form-select" %}
+                                {% for error in form.id_document_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3" id="id_number_field">
+                                <label for="{{ form.id_number.id_for_label }}" class="form-label">{{ form.id_number.label }}</label>
+                                {% render_field form.id_number class="form-control" %}
+                                {% for error in form.id_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3 d-none" id="passport_number_field">
+                                <label for="{{ form.passport_number.id_for_label }}" class="form-label">{{ form.passport_number.label }}</label>
+                                {% render_field form.passport_number class="form-control" %}
+                                {% for error in form.passport_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.safa_id.id_for_label }}" class="form-label">{{ form.safa_id.label }}</label>
+                                {% render_field form.safa_id class="form-control" %}
+                                <small class="form-text text-muted">{{ form.safa_id.help_text }}</small>
+                                {% for error in form.safa_id.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fifa_id.id_for_label }}" class="form-label">{{ form.fifa_id.label }}</label>
+                                {% render_field form.fifa_id class="form-control" %}
+                                <small class="form-text text-muted">{{ form.fifa_id.help_text }}</small>
+                                {% for error in form.fifa_id.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.id_document.id_for_label }}" class="form-label">{{ form.id_document.label }}</label>
+                            {% render_field form.id_document class="form-control" %}
+                            {% for error in form.id_document.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">{{ form.profile_picture.label }}</label>
+                            {% render_field form.profile_picture class="form-control" %}
+                            {% for error in form.profile_picture.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.birth_certificate.id_for_label }}" class="form-label">{{ form.birth_certificate.label }}</label>
+                            {% render_field form.birth_certificate class="form-control" %}
+                            {% for error in form.birth_certificate.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Address
+                    </div>
+                    <div class="card-body">
+                        {% render_field form.street_address class="form-control mb-3" placeholder="Street Address" %}
+                        {% render_field form.suburb class="form-control mb-3" placeholder="Suburb" %}
+                        {% render_field form.city class="form-control mb-3" placeholder="City" %}
+                        {% render_field form.state class="form-control mb-3" placeholder="State/Province" %}
+                        {% render_field form.postal_code class="form-control mb-3" placeholder="Postal Code" %}
+                        {% render_field form.country class="form-control mb-3" placeholder="Country" %}
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Guardian Information
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.guardian_name.id_for_label }}" class="form-label">{{ form.guardian_name.label }}</label>
+                            {% render_field form.guardian_name class="form-control" %}
+                            {% for error in form.guardian_name.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.guardian_email.id_for_label }}" class="form-label">{{ form.guardian_email.label }}</label>
+                                {% render_field form.guardian_email class="form-control" %}
+                                {% for error in form.guardian_email.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.guardian_phone.id_for_label }}" class="form-label">{{ form.guardian_phone.label }}</label>
+                                {% render_field form.guardian_phone class="form-control" %}
+                                {% for error in form.guardian_phone.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            {% render_field form.popi_consent class="form-check-input" %}
+                            <label class="form-check-label" for="{{ form.popi_consent.id_for_label }}">{{ form.popi_consent.label }}</label>
+                            <small class="form-text text-muted">{{ form.popi_consent.help_text }}</small>
+                            {% for error in form.popi_consent.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Club/Association Selection (Optional)
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="province" class="form-label">Province</label>
+                            {% render_field form.province class="form-select" id="province" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="region" class="form-label">Region</label>
+                            {% render_field form.region class="form-select" id="region" disabled="disabled" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="lfa" class="form-label">LFA</label>
+                            {% render_field form.lfa class="form-select" id="lfa" disabled="disabled" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="club" class="form-label">Club</label>
+                            {% render_field form.club class="form-select" id="club" disabled="disabled" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="association" class="form-label">Association</label>
+                            {% render_field form.association class="form-select" id="association" disabled="disabled" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'membership:registration_selector' %}" class="btn btn-secondary me-md-2">
+                        Back to Selection
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Submit Junior Application
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="card-body">
-     <form id="junior-membership-form" method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-
-      <!-- Personal Information (Junior) -->
-      <div class="card mb-4">
-       <div class="card-header">
-        <h5>Junior's Personal Information</h5>
-       </div>
-       <div class="card-body">
-        <div class="row">
-         <div class="col-md-6">
-          <div class="form-group mb-3">
-           <label for="first_name" class="form-label">First Name *</label>
-           <input type="text" class="form-control" id="first_name" name="first_name" required>
-           <div class="invalid-feedback"></div>
-          </div>
-         </div>
-         <div class="col-md-6">
-          <div class="form-group mb-3">
-           <label for="last_name" class="form-label">Last Name *</label>
-           <input type="text" class="form-control" id="last_name" name="last_name" required>
-           <div class="invalid-feedback"></div>
-          </div>
-         </div>
-        </div>
-
-        <div class="row">
-         <div class="col-md-6">
-          <div class="form-group mb-3">
-           <label for="date_of_birth" class="form-label">Date of Birth *</label>
-           <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
-           <div class="invalid-feedback"></div>
-           <div id="age-info" class="form-text"></div>
-          </div>
-         </div>
-         <div class="col-md-6">
-          <div class="form-group mb-3">
-           <label for="gender" class="form-label">Gender *</label>
-           <select class="form-control" id="gender" name="gender" required>
-            <option value="">Select Gender</option>
-            <option value="M">Male</option>
-            <option value="F">Female</option>
-            <option value="O">Other</option>
-           </select>
-           <div class="invalid-feedback"></div>
-          </div>
-         </div>
-        </div>
-
-        <div class="form-group mb-3">
-         <label for="school" class="form-label">School (Optional)</label>
-         <input type="text" class="form-control" id="school" name="school">
-        </div>
-       </div>
-      </div>
-
-      <!-- Guardian Information Section -->
-      <div class="card mb-4">
-       <div class="card-header">
-        <h5>Guardian Information</h5>
-       </div>
-       <div class="card-body">
-        <div class="form-group mb-3">
-         <label for="guardian_name" class="form-label">Guardian Full Name *</label>
-         <input type="text" class="form-control" id="guardian_name" name="guardian_name" required>
-         <div class="invalid-feedback"></div>
-        </div>
-        <div class="row">
-         <div class="col-md-6">
-          <div class="form-group mb-3">
-           <label for="guardian_email" class="form-label">Guardian Email *</label>
-           <input type="email" class="form-control" id="guardian_email" name="guardian_email" required>
-           <div class="invalid-feedback"></div>
-          </div>
-         </div>
-         <div class="col-md-6">
-          <div class="form-group mb-3">
-           <label for="guardian_phone" class="form-label">Guardian Phone Number *</label>
-           <input type="tel" class="form-control" id="guardian_phone" name="guardian_phone" required>
-           <div class="invalid-feedback"></div>
-          </div>
-         </div>
-        </div>
-       </div>
-      </div>
-
-      <!-- Submit Button -->
-      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-       <a href="{% url 'membership:registration_selector' %}" class="btn btn-secondary me-md-2">
-        Back to Selection
-       </a>
-       <button type="submit" class="btn btn-primary">
-        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-        Submit Junior Application
-       </button>
-      </div>
-     </form>
-    </div>
-   </div>
-  </div>
- </div>
 </div>
 {% endblock %}
 
- {% block extra_js %}
- <script src="{% static 'js/safa_global_validator.js' %}"></script>
- <script>
- document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('junior-membership-form');
-  const submitButton = form.querySelector('button[type="submit"]');
-  const spinner = submitButton.querySelector('.spinner-border');
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const idTypeSelect = document.getElementById('{{ form.id_document_type.id_for_label }}');
+    const idNumberField = document.getElementById('id_number_field');
+    const passportNumberField = document.getElementById('passport_number_field');
 
-  let validator;
-  if (typeof SafaGlobalValidator !== 'undefined') {
-   validator = new SafaGlobalValidator();
-   console.log('SAFA Global Validator initialized for junior form');
-  } else {
-   console.warn('SAFA Global Validator not found, using basic validation for junior form');
-   validator = {
-    validateForm: function (form) {
-     return validateFormBasic(form);
+    function toggleIdFields() {
+        if (idTypeSelect.value === 'PP') {
+            idNumberField.classList.add('d-none');
+            passportNumberField.classList.remove('d-none');
+        } else {
+            idNumberField.classList.remove('d-none');
+            passportNumberField.classList.add('d-none');
+        }
     }
-   };
-  }
 
-  const dobInput = document.getElementById('date_of_birth');
-
-  dobInput.addEventListener('change', function () {
-   const birthDate = new Date(this.value);
-   const today = new Date();
-   let age = today.getFullYear() - birthDate.getFullYear();
-
-   const monthDiff = today.getMonth() - birthDate.getMonth();
-
-   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-   }
-
-   let ageInfo = document.getElementById('age-info');
-   if (!ageInfo) {
-    ageInfo = document.createElement('div');
-    ageInfo.id = 'age-info';
-    ageInfo.className = 'form-text';
-    dobInput.parentNode.appendChild(ageInfo);
-   }
-
-   if (age >= 18) {
-    ageInfo.innerHTML = `<span class="text-warning">Age: ${age} years - This is a senior age. Please use the <a href="{% url 'membership:senior_registration' %}">Senior Registration</a> form.</span>`;
-    dobInput.setCustomValidity("Junior membership requires age under 18.");
-   } else {
-    ageInfo.innerHTML = `<span class="text-success">Age: ${age} years - Junior membership application</span>`;
-    dobInput.setCustomValidity("");
-   }
-  });
-
-  form.addEventListener('submit', function (e) {
-   e.preventDefault();
-
-   submitButton.disabled = true;
-   spinner.classList.remove('d-none');
-
-   clearValidationErrors();
-
-   let isValid = validator.validateForm(form);
-
-   // Custom validation for junior age
-   const dobValue = dobInput.value;
-   if (dobValue) {
-    const birthDate = new Date(dobValue);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-     age--;
+    if (idTypeSelect) {
+        idTypeSelect.addEventListener('change', toggleIdFields);
+        toggleIdFields(); // Initial call
     }
-    if (age >= 18) {
-     showFieldError('date_of_birth', 'Junior membership requires age under 18. Please use the Senior Registration form.');
-     isValid = false;
+
+    // Dynamic dropdowns for geography
+    const provinceSelect = document.getElementById('province');
+    const regionSelect = document.getElementById('region');
+    const lfaSelect = document.getElementById('lfa');
+    const clubSelect = document.getElementById('club');
+    const associationSelect = document.getElementById('association'); // New: Association select
+    const idNumberInput = document.getElementById('{{ form.id_number.id_for_label }}');
+    const dobInput = document.getElementById('{{ form.date_of_birth.id_for_label }}');
+
+    function populateDropdown(selectElement, data, defaultOptionText) {
+        selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.name;
+            selectElement.appendChild(option);
+        });
+        selectElement.disabled = false;
     }
-   }
 
-   if (isValid) {
-    this.submit();
-   } else {
-    resetSubmitButton();
-   }
-  });
+    if(provinceSelect) {
+        provinceSelect.addEventListener('change', function() {
+            const provinceId = this.value;
+            regionSelect.innerHTML = '<option value="">Select a region</option>';
+            regionSelect.disabled = true;
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+            lfaSelect.disabled = true;
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = true;
+            associationSelect.innerHTML = '<option value="">Select an association</option>'; // New: Clear association
+            associationSelect.disabled = true; // New: Disable association
 
-  function resetSubmitButton() {
-   submitButton.disabled = false;
-   spinner.classList.add('d-none');
-  }
-
-  function clearValidationErrors() {
-   const errorElements = form.querySelectorAll('.invalid-feedback');
-   errorElements.forEach(element => {
-    element.textContent = '';
-   });
-   const invalidInputs = form.querySelectorAll('.is-invalid');
-   invalidInputs.forEach(input => {
-    input.classList.remove('is-invalid');
-   });
-  }
-
-  function showFieldError(fieldName, message) {
-   const field = form.querySelector(`[name="${fieldName}"]`);
-   if (field) {
-    field.classList.add('is-invalid');
-    const feedback = field.parentNode.querySelector('.invalid-feedback');
-    if (feedback) {
-     feedback.textContent = message;
+            if (provinceId) {
+                fetch(`/membership/api/regions_by_province/${provinceId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(regionSelect, data, 'Select a region'))
+                    .catch(error => console.error('Error fetching regions:', error));
+            }
+        });
     }
-   }
-  }
 
-  function validateFormBasic(form) {
-   const requiredFields = form.querySelectorAll('[required]');
-   let isValid = true;
-   requiredFields.forEach(field => {
-    if (!field.value.trim()) {
-     showFieldError(field.name, 'This field is required');
-     isValid = false;
+    if(regionSelect) {
+        regionSelect.addEventListener('change', function() {
+            const regionId = this.value;
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+            lfaSelect.disabled = true;
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = true;
+            associationSelect.innerHTML = '<option value="">Select an association</option>'; // New: Clear association
+            associationSelect.disabled = true; // New: Disable association
+
+            if (regionId) {
+                fetch(`/membership/api/lfas_by_region/${regionId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(lfaSelect, data, 'Select an LFA'))
+                    .catch(error => console.error('Error fetching LFAs:', error));
+            }
+        });
     }
-   });
-   return isValid;
-  }
- });
- </script>
- {% endblock %}
+
+    if(lfaSelect) {
+        lfaSelect.addEventListener('change', function() {
+            const lfaId = this.value;
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = true;
+            associationSelect.innerHTML = '<option value="">Select an association</option>'; // New: Clear association
+            associationSelect.disabled = true; // New: Disable association
+
+            if (lfaId) {
+                fetch(`/membership/api/clubs_by_lfa/${lfaId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(clubSelect, data, 'Select a club'))
+                    .catch(error => console.error('Error fetching clubs:', error));
+
+                // New: Fetch associations by LFA
+                fetch(`/accounts/api/lfas/${lfaId}/associations/`) // Assuming this API endpoint exists
+                    .then(response => response.json())
+                    .then(data => populateDropdown(associationSelect, data, 'Select an association'))
+                    .catch(error => console.error('Error fetching associations:', error));
+            }
+        });
+    }
+
+    // New: Association select change listener (if needed for further filtering)
+    if(associationSelect) {
+        associationSelect.addEventListener('change', function() {
+            // No further cascading dropdowns from association for now
+        });
+    }
+
+    // --- SA ID Number Validation ---
+    const genderSelect = document.getElementById('{{ form.gender.id_for_label }}');
+    const idErrorDiv = document.createElement('div');
+    idErrorDiv.className = 'invalid-feedback d-block';
+    if (idNumberInput) {
+        idNumberInput.parentNode.appendChild(idErrorDiv);
+    }
+
+    function validateSAID(idNumber) {
+        if (!/^\d{13}$/.test(idNumber)) {
+            return { valid: false, error: 'ID number must be 13 digits.' };
+        }
+
+        let year = parseInt(idNumber.substring(0, 2), 10);
+        const month = parseInt(idNumber.substring(2, 4), 10);
+        const day = parseInt(idNumber.substring(4, 6), 10);
+
+        const currentCentury = Math.floor(new Date().getFullYear() / 100) * 100;
+        const prospectiveYear = parseInt(String(currentCentury).substring(0,2) + idNumber.substring(0,2));
+        year = (prospectiveYear > new Date().getFullYear()) ? 1900 + year : 2000 + year;
+
+        const dob = new Date(year, month - 1, day);
+        if (dob.getFullYear() !== year || dob.getMonth() !== month - 1 || dob.getDate() !== day) {
+            return { valid: false, error: 'Invalid date of birth in ID number.' };
+        }
+        
+        const age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000));
+        if (age >= 18) {
+            return { valid: false, error: 'Applicant is 18 years or older. Please use the Senior Registration form.' };
+        }
+        
+        const genderDigit = parseInt(idNumber.substring(6, 7), 10);
+        const gender = genderDigit >= 5 ? 'M' : 'F';
+
+        let sum = 0;
+        for (let i = 0; i < 13; i++) {
+            let digit = parseInt(idNumber.charAt(i));
+            if (i % 2 === 1) { // odd position (2nd, 4th, ..)
+                digit *= 2;
+                if (digit > 9) digit -= 9;
+            }
+            sum += digit;
+        }
+        if (sum % 10 !== 0) {
+            return { valid: false, error: 'Invalid ID number (checksum failed).' };
+        }
+
+        return { valid: true, dob: dob.toISOString().split('T')[0], gender: gender, error: null };
+    }
+
+    if(idNumberInput) {
+        idNumberInput.addEventListener('input', function() {
+            const idNumber = this.value;
+            idErrorDiv.textContent = '';
+            idNumberInput.classList.remove('is-invalid');
+            
+            if (idNumber.length === 13) {
+                const result = validateSAID(idNumber);
+                if (result.valid) {
+                    dobInput.value = result.dob;
+                    genderSelect.value = result.gender;
+                    dobInput.readOnly = true;
+                    genderSelect.disabled = true;
+                } else {
+                    idErrorDiv.textContent = result.error;
+                    idNumberInput.classList.add('is-invalid');
+                    dobInput.readOnly = false;
+                    genderSelect.disabled = false;
+                }
+            } else {
+                dobInput.readOnly = false;
+                genderSelect.disabled = false;
+                if (idNumber.length > 0) {
+                    idErrorDiv.textContent = 'ID number must be 13 digits.';
+                    idNumberInput.classList.add('is-invalid');
+                }
+            }
+        });
+    }
+
+    // Form submission and validation (similar to senior_registration.html)
+    const form = document.getElementById('junior-membership-form');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const spinner = submitButton.querySelector('.spinner-border');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        submitButton.disabled = true;
+        spinner.classList.remove('d-none');
+
+        clearValidationErrors();
+
+        let isValid = true; // Assume valid until an error is found
+
+        // Manually validate required fields (since widget_tweaks doesn't add 'required' attribute directly)
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (field.value.trim() === '') {
+                showFieldError(field.name, 'This field is required.');
+                isValid = false;
+            }
+        });
+
+        // Custom validation for junior age (re-check on submit)
+        const dobValue = dobInput.value;
+        if (dobValue) {
+            const birthDate = new Date(dobValue);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (age >= 18) {
+                showFieldError('date_of_birth', 'Junior membership requires age under 18. Please use the Senior Registration form.');
+                isValid = false;
+            }
+        }
+
+        // Validate SA ID if present
+        if (idTypeSelect.value === 'ID' && idNumberInput.value.length > 0) {
+            const result = validateSAID(idNumberInput.value);
+            if (!result.valid) {
+                showFieldError(idNumberInput.name, result.error);
+                isValid = false;
+            }
+        }
+
+        if (isValid) {
+            this.submit();
+        } else {
+            resetSubmitButton();
+        }
+    });
+
+    function resetSubmitButton() {
+        submitButton.disabled = false;
+        spinner.classList.add('d-none');
+    }
+
+    function clearValidationErrors() {
+        const errorElements = form.querySelectorAll('.invalid-feedback');
+        errorElements.forEach(element => {
+            element.textContent = '';
+        });
+        const invalidInputs = form.querySelectorAll('.is-invalid');
+        invalidInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+    }
+
+    function showFieldError(fieldName, message) {
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('is-invalid');
+            const feedback = field.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = message;
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

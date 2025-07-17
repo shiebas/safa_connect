@@ -715,38 +715,52 @@ def player_approval_list(request):
             # National admin sees all players with their club registrations
             player_registrations = PlayerClubRegistration.objects.all().select_related('player', 'club')
     
-    # Create a list of (player, club) tuples
-    player_club_pairs = [(reg.player, reg.club) for reg in player_registrations]
-    
     # Filter by approval status and make sure each player only appears once
     approval_status = request.GET.get('status', 'pending')
-    
+    invoice_filter_status = request.GET.get('invoice_status', 'all') # New filter for invoices
+
     # Import here to avoid circular imports
     from membership.invoice_models import Invoice
-    
+
     # Use a dictionary to ensure each player only appears once
     unique_players = {}
-    for player, club in player_club_pairs:
+    for reg in player_registrations:
+        player = reg.player
+        club = reg.club
+
         if player.id not in unique_players:
+            # Apply approval status filter
             if (approval_status == 'pending' and not player.is_approved) or \
                (approval_status == 'approved' and player.is_approved) or \
                (approval_status not in ['pending', 'approved']):
-                # Check invoice payment status
-                has_unpaid_invoice = Invoice.objects.filter(
-                    player=player,
-                    status__in=['PENDING', 'OVERDUE'],
-                    invoice_type='REGISTRATION'
-                ).exists()
-                
-                # Add invoice payment status to the tuple
-                unique_players[player.id] = (player, club, has_unpaid_invoice)
-    
-    # Convert back to a list of tuples
-    player_club_pairs = list(unique_players.values())
-    
+
+                # Get all invoices for the player
+                player_invoices = Invoice.objects.filter(player=player, invoice_type='REGISTRATION')
+                unpaid_invoices = player_invoices.filter(status__in=['PENDING', 'OVERDUE'])
+                paid_invoices = player_invoices.filter(status='PAID')
+
+                # Apply invoice status filter
+                if invoice_filter_status == 'unpaid' and not unpaid_invoices.exists():
+                    continue # Skip if filtering for unpaid but no unpaid invoices
+                if invoice_filter_status == 'paid' and not paid_invoices.exists():
+                    continue # Skip if filtering for paid but no paid invoices
+
+                # Add invoice details to the player data
+                unique_players[player.id] = {
+                    'player': player,
+                    'club': club,
+                    'unpaid_invoices': unpaid_invoices,
+                    'paid_invoices': paid_invoices,
+                    'has_unpaid_invoice': unpaid_invoices.exists()
+                }
+
+    # Convert back to a list of dictionaries
+    players_data = list(unique_players.values())
+
     return render(request, 'accounts/player_approval_list.html', {
-        'player_club_pairs': player_club_pairs,
-        'approval_status': approval_status
+        'players_data': players_data,
+        'approval_status': approval_status,
+        'invoice_filter_status': invoice_filter_status,
     })
 
 @login_required

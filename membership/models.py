@@ -78,7 +78,7 @@ class Member(TimeStampedModel):
     first_name = models.CharField(_("First Name"), max_length=100)
     last_name = models.CharField(_("Last Name"), max_length=100)
     email = models.EmailField(_("Email Address"))
-    phone_number = models.CharField(_("Phone Number"), max_length=20)
+    phone_number = models.CharField(_("Phone Number"), max_length=20, blank=True)
     date_of_birth = models.DateField(_("Date of Birth"))
     member_type = models.CharField(_("Member Type"), max_length=20, choices=MEMBER_TYPES, default='SENIOR')
 
@@ -127,6 +127,7 @@ class Member(TimeStampedModel):
     region = models.ForeignKey('geography.Region', on_delete=models.SET_NULL, null=True, blank=True)
     lfa = models.ForeignKey('geography.LocalFootballAssociation', on_delete=models.SET_NULL, null=True, blank=True)
     club = models.ForeignKey(GeographyClub, on_delete=models.SET_NULL, null=True, blank=True, related_name='club_members')
+    association = models.ForeignKey('geography.Association', on_delete=models.SET_NULL, null=True, blank=True, related_name='associated_members')
 
     # Images
     profile_picture = models.ImageField(_("Profile Picture"),
@@ -366,6 +367,7 @@ class JuniorMember(Member):
     guardian_email = models.EmailField(_("Guardian Email"))
     guardian_phone = models.CharField(_("Guardian Phone"), max_length=20)
     school = models.CharField(_("School"), max_length=100, blank=True)
+    birth_certificate = models.ImageField(_("Birth Certificate"), upload_to='documents/birth_certificates/', null=True, blank=True)
 
     class Meta:
         verbose_name = _("Junior Member")
@@ -484,7 +486,7 @@ class Player(Member):
         self.role = 'PLAYER'
 
     def __str__(self):
-        return f"{self.get_full_name()} - {self.membership_number or 'No Membership Number'}"
+        return f"{self.get_full_name()} - {self.safa_id or 'No SAFA ID'}"
 
     def save(self, *args, **kwargs):
         # Force role to be PLAYER before saving

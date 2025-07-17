@@ -28,6 +28,8 @@ class SeniorMembershipDashboardView(LoginRequiredMixin, TemplateView):
             members = members.filter(status='PENDING')
         elif approval_status == 'approved':
             members = members.filter(status='ACTIVE')
+        elif approval_status == 'rejected':
+            members = members.filter(status='REJECTED')
 
         context['members'] = members
         context['approval_status'] = approval_status
@@ -36,6 +38,8 @@ class SeniorMembershipDashboardView(LoginRequiredMixin, TemplateView):
 def approve_membership(request, member_id):
     member = get_object_or_404(Member, id=member_id)
     member.status = 'ACTIVE'
+    member.approved_by = request.user # Assign the user who approved
+    member.approved_date = timezone.now() # Set the approval date
     member.save()
     messages.success(request, f'Membership for {member.get_full_name()} has been approved.')
     return redirect('membership:senior_membership_dashboard')
@@ -60,7 +64,7 @@ class JuniorMembershipDashboardView(LoginRequiredMixin, TemplateView):
         context['title'] = _("Junior Membership Approval")
 
         # Get all junior members
-        members = Member.objects.filter(is_junior=True)
+        members = Member.objects.filter(member_type='JUNIOR')
 
         # Filter by approval status
         approval_status = self.request.GET.get('status', 'pending')
@@ -68,6 +72,8 @@ class JuniorMembershipDashboardView(LoginRequiredMixin, TemplateView):
             members = members.filter(status='PENDING')
         elif approval_status == 'approved':
             members = members.filter(status='ACTIVE')
+        elif approval_status == 'rejected':
+            members = members.filter(status='REJECTED')
 
         context['members'] = members
         context['approval_status'] = approval_status

@@ -124,10 +124,26 @@
                                     <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            <div class="col-md-6 mb-3 d-none" id="passport_number_field">
+                            <div class="col-md-6 mb-3" id="passport_number_field">
                                 <label for="{{ form.passport_number.id_for_label }}" class="form-label">{{ form.passport_number.label }}</label>
                                 {% render_field form.passport_number class="form-control" %}
                                 {% for error in form.passport_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.safa_id.id_for_label }}" class="form-label">{{ form.safa_id.label }}</label>
+                                {% render_field form.safa_id class="form-control" %}
+                                <small class="form-text text-muted">{{ form.safa_id.help_text }}</small>
+                                {% for error in form.safa_id.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fifa_id.id_for_label }}" class="form-label">{{ form.fifa_id.label }}</label>
+                                {% render_field form.fifa_id class="form-control" %}
+                                <small class="form-text text-muted">{{ form.fifa_id.help_text }}</small>
+                                {% for error in form.fifa_id.errors %}
                                     <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
                             </div>
@@ -136,6 +152,13 @@
                             <label for="{{ form.id_document.id_for_label }}" class="form-label">{{ form.id_document.label }}</label>
                             {% render_field form.id_document class="form-control" %}
                             {% for error in form.id_document.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">{{ form.profile_picture.label }}</label>
+                            {% render_field form.profile_picture class="form-control" %}
+                            {% for error in form.profile_picture.errors %}
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
                         </div>
