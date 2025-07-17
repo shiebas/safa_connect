@@ -4,7 +4,6 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from .dashboard_views import superuser_dashboard  # Re-enabled - Invoice model is fixed
 
 # Update admin site title, header, and index title
 admin.site.site_header = "SAFA Administration"
@@ -13,7 +12,6 @@ admin.site.index_title = "Welcome to SAFA Administration Portal"
 
 
 urlpatterns = [
-    path('admin/dashboard/', superuser_dashboard, name='superuser_dashboard'),  # Re-enabled - Invoice model is fixed
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('geography/', include(('geography.urls', 'geography'), namespace='geography')),

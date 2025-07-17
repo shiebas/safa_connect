@@ -160,25 +160,6 @@
                                     </a></li>
                                 </ul>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="membershipDropdown" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-id-badge me-1"></i>Membership
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="/admin/membership/">
-                                        <i class="fas fa-users me-2"></i>Members
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="/admin/membership_cards/">
-                                        <i class="fas fa-id-card me-2"></i>Digital Cards
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="/admin/accounts/customuser/">
-                                        <i class="fas fa-user-cog me-2"></i>User Accounts
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'membership:membership_application' %}">
-                                        <i class="fas fa-user-plus me-2"></i>Register Member
-                                    </a></li>
-                                </ul>
-                            </li>
                             {% if user.is_superuser or user.role == 'ADMIN_LOCAL_FED' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'accounts:lfa_admin_approvals' %}">

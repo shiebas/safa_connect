@@ -4,7 +4,7 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center">Welcome, {{ user.get_full_name|default:user.email }}</h2>
     <div class="row justify-content-center">
-        {% if user.is_superuser or user.role == "ADMIN_SYSTEM" or user.role == "ADMIN_COUNTRY" or user.role == "ADMIN_FEDERATION" %}
+        {% if user.is_superuser %}
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm h-100">
                     <div class="card-body text-center">
@@ -12,6 +12,16 @@
                         <h5 class="card-title mt-3">Document Access Monitor</h5>
                         <p class="card-text">Monitor document downloads and access activity across the system.</p>
                         <a href="{% url 'accounts:document_access_dashboard' %}" class="btn btn-outline-danger">View Dashboard</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check2-square display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Senior Membership Approval</h5>
+                        <p class="card-text">View and approve pending senior membership applications.</p>
+                        <a href="{% url 'membership:senior_membership_dashboard' %}" class="btn btn-outline-primary">View Approvals</a>
                     </div>
                 </div>
             </div>
@@ -137,17 +147,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-graph-up display-4 text-warning"></i>
-                        <h5 class="card-title mt-3">Analytics Dashboard</h5>
-                        <p class="card-text">View comprehensive analytics across all SAFA systems.</p>
-                        <a href="{% url 'superuser_dashboard' %}" class="btn btn-outline-warning">View Analytics</a>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
+            {% endif %}
         {% if user.role == "ADMIN_PROVINCE" %}
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm h-100">
@@ -176,6 +176,27 @@
                         <h5 class="card-title mt-3">Register New Referee</h5>
                         <p class="card-text">Register new referees for your province.</p>
                         <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-outline-warning">Register Referee</a>
+                    </div>
+                </div>
+            </div>
+        {% elif user.role == "ADMIN_NATIONAL" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check2-square display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Membership Approval</h5>
+                        <p class="card-text">View and approve pending membership applications.</p>
+                        <a href="{% url 'membership:senior_membership_dashboard' %}" class="btn btn-outline-primary">View Approvals</a>
+                    </div>
+                </div>
+            </div>
+        <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check2-square display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Junior Membership Approval</h5>
+                        <p class="card-text">View and approve pending junior membership applications.</p>
+                        <a href="{% url 'membership:junior_membership_dashboard' %}" class="btn btn-outline-primary">View Approvals</a>
                     </div>
                 </div>
             </div>

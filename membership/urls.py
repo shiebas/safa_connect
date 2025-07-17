@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views, registration_views, transfer_views, appeal_views, invoice_views, api_views
 from . import outstanding_report, membership_registration_views, junior_registration_views
+from . import dashboard_views
 from .views import MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, MembershipDeleteView
 from rest_framework import routers
 from .views import MemberViewSet
@@ -104,4 +105,10 @@ urlpatterns = [
     path('api/lfas_by_region/<int:region_id>/', api_views.lfas_by_region, name='lfas_by_region'),
     path('api/clubs_by_lfa/<int:lfa_id>/', api_views.clubs_by_lfa, name='clubs_by_lfa'),
     path('verify/', views.verify_view, name='verify'),
+
+    # Custom admin dashboards
+    path('dashboard/senior/', dashboard_views.SeniorMembershipDashboardView.as_view(), name='senior_membership_dashboard'),
+    path('members/<int:member_id>/approve/', dashboard_views.approve_membership, name='approve_membership'),
+    path('members/<int:member_id>/reject/', dashboard_views.reject_membership, name='reject_membership'),
+    path('dashboard/junior/', dashboard_views.JuniorMembershipDashboardView.as_view(), name='junior_membership_dashboard'),
 ]

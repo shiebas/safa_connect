@@ -12,22 +12,18 @@
 
 {% block content %}
 {% if user.is_superuser %}
-    {# Keep the superuser dashboard card if you still want it #}
     <div class="row">
         <div class="col-12 mb-4">
-            <a href="{% url 'superuser_dashboard' %}" class="dashboard-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white; padding: 20px; display: block; text-decoration: none;">
+            <a href="{% url 'membership:senior_membership_dashboard' %}" class="dashboard-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white; padding: 20px; display: block; text-decoration: none;">
                 <div class="text-center">
-                    <i class="bi bi-speedometer2" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                    <h4>🚀 SAFA Global - Superuser Dashboard</h4>
-                    <p class="mb-0">Comprehensive overview of events, supporters, invoices, and system metrics</p>
+                    <i class="bi bi-check2-square" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <h4>Senior Membership Approval</h4>
+                    <p class="mb-0">View and approve pending senior membership applications</p>
                 </div>
             </a>
         </div>
     </div>
 {% endif %}
-
-{# This line includes your new National Admin dashboard content #}
-{% include "admin/membership/national_dashboard.html" %}
 
 {# This line includes the default Django admin app list #}
 {{ block.super }}
