@@ -449,7 +449,7 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
         import re
-        if not re.match(r"^[A-Za-z\s-']+", value):
+        if not re.match(r"^[A-Za-z\s'-]+", value):
             raise ValidationError('First name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
 
         # Check if name contains any digits
@@ -466,7 +466,7 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Check if name contains only allowed characters (letters, spaces, hyphens, apostrophes)
         import re
-        if not re.match(r"^[A-Za-z\s-']+", value):
+        if not re.match(r"^[A-Za-z\s'-]+", value):
             raise ValidationError('Last name must contain only letters, spaces, hyphens, and apostrophes (no numbers).')
 
         # Check if name contains any digits
@@ -593,7 +593,7 @@ class SeniorMemberRegistrationForm(MembershipApplicationForm):
     """Form for registering a new senior member"""
 
     class Meta(MembershipApplicationForm.Meta):
-        model = Member
+        model = Player
         fields = [
             'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth',
             'gender', 'id_document_type', 'id_number', 'passport_number',
@@ -608,20 +608,17 @@ class SeniorMemberRegistrationForm(MembershipApplicationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['member_type'].initial = 'SENIOR'
-        self.fields['member_type'].widget = forms.HiddenInput()
+        # self.fields['member_type'].initial = 'SENIOR' # Let user select
+        # self.fields['member_type'].widget = forms.HiddenInput() # Make visible
 
-        # Make geography fields required for senior members
-        self.fields['province'].required = True
-        self.fields['region'].required = True
-        self.fields['lfa'].required = True
-        self.fields['club'].required = True
+        # Make geography fields optional for senior members
+        self.fields['province'].required = False
+        self.fields['region'].required = False
+        self.fields['lfa'].required = False
+        self.fields['club'].required = False
 
         # Set initial querysets for geography fields
         self.fields['province'].queryset = Province.objects.all()
-        self.fields['region'].queryset = Region.objects.none()
-        self.fields['lfa'].queryset = LocalFootballAssociation.objects.none()
-        self.fields['club'].queryset = Club.objects.none()
 
         # Add styling for geography fields
         self.fields['province'].widget.attrs.update({'class': 'form-control'})
@@ -630,12 +627,35 @@ class SeniorMemberRegistrationForm(MembershipApplicationForm):
         self.fields['club'].widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
+        # Call the parent's clean method to handle common validation and geography fields
         cleaned_data = super().clean()
-        # Ensure member is a senior
+
+        id_number = cleaned_data.get('id_number')
+        passport_number = cleaned_data.get('passport_number')
         dob = cleaned_data.get('date_of_birth')
+        id_document_type = cleaned_data.get('id_document_type')
+        
+        errors = {}
+
+        # Re-implement essential checks from the parent form
+        if not id_number and not passport_number:
+            errors['id_number'] = 'Either ID number or passport number is required.'
+            errors['passport_number'] = 'Either ID number or passport number is required.'
+
+        if id_document_type == 'PP' and passport_number:
+            if not dob:
+                errors['date_of_birth'] = 'Date of birth is required when using a passport.'
+            if not cleaned_data.get('gender'):
+                errors['gender'] = 'Gender is required when using a passport.'
+
+        # Senior-specific age validation
         if dob:
             age = (timezone.now().date() - dob).days // 365
             if age < 18:
-                raise ValidationError(_("Senior members must be 18 years or older."))
+                errors['date_of_birth'] = 'Senior members must be 18 years or older. Please use the Junior Registration form.'
+        
+        if errors:
+            raise ValidationError(errors)
+            
         cleaned_data['member_type'] = 'SENIOR'
         return cleaned_data

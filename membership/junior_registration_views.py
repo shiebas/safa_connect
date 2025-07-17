@@ -6,6 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.db import transaction
 from django.core.mail import send_mail
+from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 
@@ -190,6 +191,9 @@ class JuniorRegistrationForm(MembershipApplicationForm):
             'emergency_contact', 'emergency_phone', 'medical_notes',
             'profile_picture', 'id_document',
             'guardian_name', 'guardian_email', 'guardian_phone', 'school',
+            # Add fields from parent form to prevent KeyError
+            'safa_id', 'fifa_id', 'member_type',
+            'province', 'region', 'lfa', 'club',
         ]
 
     def __init__(self, *args, **kwargs):

@@ -5,191 +5,195 @@
 {% block title %}Senior Membership Application{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'membership/css/membership.css' %}" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    .card-header {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Senior Membership Application</h3>
-                    <p class="mb-0">For members 18 years and older.</p>
-                </div>
-                <div class="card-body">
-                    <form id="senior-membership-form" method="post" enctype="multipart/form-data" novalidate>
-                        {% csrf_token %}
+        <div class="col-lg-10">
+            <h1 class="text-center mb-4">Senior Membership Application</h1>
+            <p class="text-center text-muted mb-5">For members 18 years and older.</p>
 
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    <p>{{ error }}</p>
+            <form id="senior-membership-form" method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Personal Information
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                {% render_field form.first_name class="form-control" %}
+                                {% for error in form.first_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                        {% endif %}
-
-                        <!-- Personal Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5>Personal Information</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
-                                        {% render_field form.first_name class="form-control" %}
-                                        {% for error in form.first_name.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
-                                        {% render_field form.last_name class="form-control" %}
-                                        {% for error in form.last_name.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{{ form.date_of_birth.label }}</label>
-                                        {% render_field form.date_of_birth class="form-control" type="date" %}
-                                        {% for error in form.date_of_birth.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
-                                        {% render_field form.gender class="form-select" %}
-                                        {% for error in form.gender.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                {% render_field form.last_name class="form-control" %}
+                                {% for error in form.last_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
-
-                        <!-- Contact Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5>Contact Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{{ form.date_of_birth.label }}</label>
+                                {% render_field form.date_of_birth class="form-control" type="date" %}
+                                {% for error in form.date_of_birth.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                                        {% render_field form.email class="form-control" %}
-                                        <small class="form-text text-muted">If you don't have an email, a temporary one will be created for you.</small>
-                                        {% for error in form.email.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
-                                        {% render_field form.phone_number class="form-control" %}
-                                        {% for error in form.phone_number.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+                                {% render_field form.gender class="form-select" %}
+                                {% for error in form.gender.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.member_type.id_for_label }}" class="form-label">{{ form.member_type.label }}</label>
+                                {% render_field form.member_type class="form-select" %}
+                                {% for error in form.member_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
-
-                        <!-- Identification -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5>Identification</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.id_document_type.id_for_label }}" class="form-label">{{ form.id_document_type.label }}</label>
-                                        {% render_field form.id_document_type class="form-select" %}
-                                        {% for error in form.id_document_type.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    <div class="col-md-6 mb-3" id="id_number_field">
-                                        <label for="{{ form.id_number.id_for_label }}" class="form-label">{{ form.id_number.label }}</label>
-                                        {% render_field form.id_number class="form-control" %}
-                                        {% for error in form.id_number.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    <div class="col-md-6 mb-3 d-none" id="passport_number_field">
-                                        <label for="{{ form.passport_number.id_for_label }}" class="form-label">{{ form.passport_number.label }}</label>
-                                        {% render_field form.passport_number class="form-control" %}
-                                        {% for error in form.passport_number.errors %}
-                                            <div class="invalid-feedback d-block">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="{{ form.id_document.id_for_label }}" class="form-label">{{ form.id_document.label }}</label>
-                                    {% render_field form.id_document class="form-control" %}
-                                    {% for error in form.id_document.errors %}
-                                        <div class="invalid-feedback d-block">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Address Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5>Address</h5>
-                            </div>
-                            <div class="card-body">
-                                {% render_field form.street_address class="form-control mb-3" placeholder="Street Address" %}
-                                {% render_field form.suburb class="form-control mb-3" placeholder="Suburb" %}
-                                {% render_field form.city class="form-control mb-3" placeholder="City" %}
-                                {% render_field form.state class="form-control mb-3" placeholder="State/Province" %}
-                                {% render_field form.postal_code class="form-control mb-3" placeholder="Postal Code" %}
-                                {% render_field form.country class="form-control mb-3" placeholder="Country" %}
-                            </div>
-                        </div>
-
-                        <!-- Geographical Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5>Club Selection</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="{{ form.province.id_for_label }}" class="form-label">{{ form.province.label }}</label>
-                                    {% render_field form.province class="form-select" id="province" %}
-                                </div>
-                                <div class="mb-3">
-                                    <label for="{{ form.region.id_for_label }}" class="form-label">{{ form.region.label }}</label>
-                                    {% render_field form.region class="form-select" id="region" %}
-                                </div>
-                                <div class="mb-3">
-                                    <label for="{{ form.lfa.id_for_label }}" class="form-label">{{ form.lfa.label }}</label>
-                                    {% render_field form.lfa class="form-select" id="lfa" %}
-                                </div>
-                                <div class="mb-3">
-                                    <label for="{{ form.club.id_for_label }}" class="form-label">{{ form.club.label }}</label>
-                                    {% render_field form.club class="form-select" id="club" %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'membership:registration_selector' %}" class="btn btn-secondary me-md-2">
-                                Back to Selection
-                            </a>
-                            <button type="submit" class="btn btn-primary">Submit Application</button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Contact Information
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                {% render_field form.email class="form-control" %}
+                                <small class="form-text text-muted">If you don't have an email, a temporary one will be created for you.</small>
+                                {% for error in form.email.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
+                                {% render_field form.phone_number class="form-control" %}
+                                {% for error in form.phone_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Identification
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.id_document_type.id_for_label }}" class="form-label">{{ form.id_document_type.label }}</label>
+                                {% render_field form.id_document_type class="form-select" %}
+                                {% for error in form.id_document_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3" id="id_number_field">
+                                <label for="{{ form.id_number.id_for_label }}" class="form-label">{{ form.id_number.label }}</label>
+                                {% render_field form.id_number class="form-control" %}
+                                {% for error in form.id_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3 d-none" id="passport_number_field">
+                                <label for="{{ form.passport_number.id_for_label }}" class="form-label">{{ form.passport_number.label }}</label>
+                                {% render_field form.passport_number class="form-control" %}
+                                {% for error in form.passport_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.id_document.id_for_label }}" class="form-label">{{ form.id_document.label }}</label>
+                            {% render_field form.id_document class="form-control" %}
+                            {% for error in form.id_document.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Address
+                    </div>
+                    <div class="card-body">
+                        {% render_field form.street_address class="form-control mb-3" placeholder="Street Address" %}
+                        {% render_field form.suburb class="form-control mb-3" placeholder="Suburb" %}
+                        {% render_field form.city class="form-control mb-3" placeholder="City" %}
+                        {% render_field form.state class="form-control mb-3" placeholder="State/Province" %}
+                        {% render_field form.postal_code class="form-control mb-3" placeholder="Postal Code" %}
+                        {% render_field form.country class="form-control mb-3" placeholder="Country" %}
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Club Selection (Optional)
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="province" class="form-label">Province</label>
+                            {% render_field form.province class="form-select" id="province" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="region" class="form-label">Region</label>
+                            {% render_field form.region class="form-select" id="region" disabled="disabled" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="lfa" class="form-label">LFA</label>
+                            {% render_field form.lfa class="form-select" id="lfa" disabled="disabled" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="club" class="form-label">Club</label>
+                            {% render_field form.club class="form-select" id="club" disabled="disabled" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'membership:registration_selector' %}" class="btn btn-secondary me-md-2">
+                        Back to Selection
+                    </a>
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const idTypeSelect = document.getElementById('{{ form.id_document_type.id_for_label }}');
@@ -216,9 +220,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const regionSelect = document.getElementById('region');
     const lfaSelect = document.getElementById('lfa');
     const clubSelect = document.getElementById('club');
+    const idNumberInput = document.getElementById('{{ form.id_number.id_for_label }}');
+    const dobInput = document.getElementById('{{ form.date_of_birth.id_for_label }}');
 
-    function populateDropdown(selectElement, data) {
-        selectElement.innerHTML = '<option value="">Select a ' + selectElement.id + '</option>';
+    function populateDropdown(selectElement, data, defaultOptionText) {
+        selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
         data.forEach(item => {
             const option = document.createElement('option');
             option.value = item.id;
@@ -241,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (provinceId) {
                 fetch(`/membership/api/regions_by_province/${provinceId}/`)
                     .then(response => response.json())
-                    .then(data => populateDropdown(regionSelect, data))
+                    .then(data => populateDropdown(regionSelect, data, 'Select a region'))
                     .catch(error => console.error('Error fetching regions:', error));
             }
         });
@@ -258,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (regionId) {
                 fetch(`/membership/api/lfas_by_region/${regionId}/`)
                     .then(response => response.json())
-                    .then(data => populateDropdown(lfaSelect, data))
+                    .then(data => populateDropdown(lfaSelect, data, 'Select an LFA'))
                     .catch(error => console.error('Error fetching LFAs:', error));
             }
         });
@@ -273,15 +279,91 @@ document.addEventListener('DOMContentLoaded', function() {
             if (lfaId) {
                 fetch(`/membership/api/clubs_by_lfa/${lfaId}/`)
                     .then(response => response.json())
-                    .then(data => populateDropdown(clubSelect, data))
+                    .then(data => populateDropdown(clubSelect, data, 'Select a club'))
                     .catch(error => console.error('Error fetching clubs:', error));
             }
         });
     }
 
-    // Initial state: disable region, LFA, and club dropdowns
-    regionSelect.disabled = true;
-    lfaSelect.disabled = true;
-    clubSelect.disabled = true;
+    // --- SA ID Number Validation ---
+    const genderSelect = document.getElementById('{{ form.gender.id_for_label }}');
+    const idErrorDiv = document.createElement('div');
+    idErrorDiv.className = 'invalid-feedback d-block';
+    if (idNumberInput) {
+        idNumberInput.parentNode.appendChild(idErrorDiv);
+    }
 
+    function validateSAID(idNumber) {
+        if (!/^\d{13}$/.test(idNumber)) {
+            return { valid: false, error: 'ID number must be 13 digits.' };
+        }
+
+        let year = parseInt(idNumber.substring(0, 2), 10);
+        const month = parseInt(idNumber.substring(2, 4), 10);
+        const day = parseInt(idNumber.substring(4, 6), 10);
+
+        const currentCentury = Math.floor(new Date().getFullYear() / 100) * 100;
+        const prospectiveYear = parseInt(String(currentCentury).substring(0,2) + idNumber.substring(0,2));
+        year = (prospectiveYear > new Date().getFullYear()) ? 1900 + year : 2000 + year;
+
+        const dob = new Date(year, month - 1, day);
+        if (dob.getFullYear() !== year || dob.getMonth() !== month - 1 || dob.getDate() !== day) {
+            return { valid: false, error: 'Invalid date of birth in ID number.' };
+        }
+        
+        const age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000));
+        if (age < 18) {
+            return { valid: false, error: 'Applicant is under 18. Please use the Junior Registration form.' };
+        }
+        
+        const genderDigit = parseInt(idNumber.substring(6, 7), 10);
+        const gender = genderDigit >= 5 ? 'M' : 'F';
+
+        let sum = 0;
+        for (let i = 0; i < 13; i++) {
+            let digit = parseInt(idNumber.charAt(i));
+            if (i % 2 === 1) { // odd position (2nd, 4th, ..)
+                digit *= 2;
+                if (digit > 9) digit -= 9;
+            }
+            sum += digit;
+        }
+        if (sum % 10 !== 0) {
+            return { valid: false, error: 'Invalid ID number (checksum failed).' };
+        }
+
+        return { valid: true, dob: dob.toISOString().split('T')[0], gender: gender, error: null };
+    }
+
+    if(idNumberInput) {
+        idNumberInput.addEventListener('input', function() {
+            const idNumber = this.value;
+            idErrorDiv.textContent = '';
+            idNumberInput.classList.remove('is-invalid');
+            
+            if (idNumber.length === 13) {
+                const result = validateSAID(idNumber);
+                if (result.valid) {
+                    dobInput.value = result.dob;
+                    genderSelect.value = result.gender;
+                    dobInput.readOnly = true;
+                    genderSelect.disabled = true;
+                } else {
+                    idErrorDiv.textContent = result.error;
+                    idNumberInput.classList.add('is-invalid');
+                    dobInput.readOnly = false;
+                    genderSelect.disabled = false;
+                }
+            } else {
+                dobInput.readOnly = false;
+                genderSelect.disabled = false;
+                if (idNumber.length > 0) {
+                    idErrorDiv.textContent = 'ID number must be 13 digits.';
+                    idNumberInput.classList.add('is-invalid');
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

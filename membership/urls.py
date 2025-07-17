@@ -1,5 +1,5 @@
 from django.urls import path, include
-from . import views, registration_views, transfer_views, appeal_views, invoice_views
+from . import views, registration_views, transfer_views, appeal_views, invoice_views, api_views
 from . import outstanding_report, membership_registration_views, junior_registration_views
 from .views import MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, MembershipDeleteView
 from rest_framework import routers
@@ -88,6 +88,7 @@ urlpatterns = [
     # New Two-Tier Membership System
     path('apply/', membership_registration_views.membership_application, name='membership_application'),
     path('apply/submitted/', membership_registration_views.ApplicationSubmittedView.as_view(), name='application_submitted'),
+    path('admin/pending/', membership_registration_views.membership_dashboard, name='pending_applications'),
     path('admin/approve/<int:member_id>/', membership_registration_views.approve_member, name='approve_member'),
     path('admin/reject/<int:member_id>/', membership_registration_views.reject_member, name='reject_member'),
     path('admin/dashboard/', membership_registration_views.membership_dashboard, name='membership_dashboard'),
@@ -99,8 +100,8 @@ urlpatterns = [
 
     # API and other endpoints
     path('api/', include(router.urls)),
-    path('api/regions_by_province/<int:province_id>/', views.regions_by_province, name='regions_by_province'),
-    path('api/lfas_by_region/<int:region_id>/', views.lfas_by_region, name='lfas_by_region'),
-    path('api/clubs_by_lfa/<int:lfa_id>/', views.clubs_by_lfa, name='clubs_by_lfa'),
+    path('api/regions_by_province/<int:province_id>/', api_views.regions_by_province, name='regions_by_province'),
+    path('api/lfas_by_region/<int:region_id>/', api_views.lfas_by_region, name='lfas_by_region'),
+    path('api/clubs_by_lfa/<int:lfa_id>/', api_views.clubs_by_lfa, name='clubs_by_lfa'),
     path('verify/', views.verify_view, name='verify'),
 ]

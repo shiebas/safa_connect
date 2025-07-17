@@ -1,0 +1,115 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-section {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .dashboard-section h2 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        font-size: 1.5em;
+    }
+    .dashboard-section ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .dashboard-section ul li {
+        margin-bottom: 10px;
+        font-size: 1.1em;
+    }
+    .dashboard-section ul li a {
+        text-decoration: none;
+        color: #007bff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+    }
+    .dashboard-section ul li a:hover {
+        background-color: #f0f8ff;
+    }
+    .dashboard-section ul li .count {
+        background-color: #007bff;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+    .dashboard-section ul li a.overdue .count {
+        background-color: #dc3545; /* Red for overdue items */
+    }
+</style>
+
+<h1>{{ title }}</h1>
+
+<div class="dashboard-section" id="action-items">
+    <h2>{% trans "Action Items" %}</h2>
+    <ul>
+        <li>
+            <a href="{% url 'admin:membership_member_changelist' %}?status__exact=PENDING">
+                <span>{% trans "Pending Member Approvals" %}</span>
+                <span class="count">{{ pending_members }}</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:membership_official_changelist' %}?is_approved__exact=0">
+                <span>{% trans "Pending Official Approvals" %}</span>
+                <span class="count">{{ pending_officials }}</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:membership_transfer_changelist' %}?status__exact=PENDING">
+                <span>{% trans "Pending Transfers" %}</span>
+                <span class="count">{{ pending_transfers }}</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:membership_membershipapplication_changelist' %}?status__exact=PENDING">
+                <span>{% trans "Pending Membership Applications" %}</span>
+                <span class="count">{{ pending_applications }}</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="dashboard-section" id="invoices">
+    <h2>{% trans "Invoices" %}</h2>
+    <ul>
+        <li>
+            <a href="{% url 'admin:membership_invoice_changelist' %}?status__exact=OVERDUE" class="overdue">
+                <span>{% trans "Overdue Invoices" %}</span>
+                <span class="count">{{ overdue_invoices }}</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:membership_invoice_changelist' %}">
+                <span>{% trans "View All Invoices" %}</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="dashboard-section" id="reports">
+    <h2>{% trans "Reports & Exports" %}</h2>
+    <ul>
+        <li><a href="#">{% trans "Download Full Membership Report (CSV)" %}</a></li>
+        <li><a href="#">{% trans "Download Financial Summary (CSV)" %}</a></li>
+        <!-- Add links to actual report generation views here -->
+    </ul>
+</div>
+
+{% endblock %}

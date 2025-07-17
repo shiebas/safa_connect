@@ -15,7 +15,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect
 from rest_framework import viewsets
 from .serializers import MemberSerializer
-
+from django.db import transaction
 class StaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_staff
@@ -256,7 +256,6 @@ def send_payment_reminder(request, entity_type, entity_id):
         entity_id: ID of the club or player to send reminder to
     """
     from django.core.mail import send_mail
-    from .models.invoice import Invoice
 
     success = False
     if entity_type == 'club':
@@ -427,6 +426,7 @@ def registration_selector(request):
 def senior_registration(request):
     """Senior membership registration"""
     if request.method == 'POST':
+        from django.utils.crypto import get_random_string
         form = SeniorMemberRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             try:
@@ -435,11 +435,18 @@ def senior_registration(request):
                     member.status = 'PENDING'
                     if not member.email:
                         member.email = f"user_{get_random_string(8)}@safa.system"
+
+                    # Explicitly assign geography fields from cleaned_data
+                    member.province = form.cleaned_data.get('province')
+                    member.region = form.cleaned_data.get('region')
+                    member.lfa = form.cleaned_data.get('lfa')
+                    member.club = form.cleaned_data.get('club')
+
                     member.save()
 
                     # Create an invoice for the senior membership fee
                     invoice = Invoice.objects.create(
-                        player=member,
+                        player=member, # This now works as `member` is a Player instance
                         club=form.cleaned_data.get('club'),
                         amount=200.00,  # Assuming a static senior fee
                         status='PENDING',
@@ -453,10 +460,15 @@ def senior_registration(request):
                         unit_price=200.00
                     )
 
-                    messages.success(request, _('Senior membership application submitted successfully. Please check your email for payment instructions.'))
+                    messages.success(request, _('Senior membership application submitted successfully. An invoice has been generated.'))
                     return redirect('membership:registration_selector')
             except Exception as e:
                 messages.error(request, _(f"An error occurred: {e}"))
+        else:
+            # Display form errors to the user for better feedback
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{form.fields.get(field).label if form.fields.get(field) and field != '__all__' else 'Error'}: {error}")
     else:
         form = SeniorMemberRegistrationForm()
     return render(request, 'membership/senior_registration.html', {'form': form})

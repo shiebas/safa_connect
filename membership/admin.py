@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render
@@ -168,6 +168,7 @@ class LegacyMemberAdmin(admin.ModelAdmin):
 class PlayerAdmin(LegacyMemberAdmin):
     list_display = ('get_full_name', 'email', 'safa_id', 'status', 'has_active_club')
     list_filter = ('status', 'gender')
+    search_fields = ('first_name', 'last_name', 'email', 'safa_id')
     
     def has_active_club(self, obj):
         return PlayerClubRegistration.objects.filter(player=obj, status='ACTIVE').exists()
@@ -404,7 +405,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_display = (
         'invoice_number', 'player', 'club', 'vendor', 'amount', 'status', 'issue_date', 'due_date', 'payment_date', 'is_paid', 'is_overdue'
     )
-    search_fields = ('invoice_number', 'player__first_name', 'player__last_name', 'club__name', 'vendor__name')
+    search_fields = ('invoice_number', 'player__first_name', 'player__last_name', 'club__name', 'vendor__name', 'issued_by__email')
     list_filter = ('status', 'invoice_type', 'issue_date', 'due_date', 'vendor')
     autocomplete_fields = ['player', 'club', 'issued_by', 'vendor']
     date_hierarchy = 'issue_date'
@@ -450,6 +451,30 @@ class MembershipApplicationAdmin(admin.ModelAdmin):
         'get_id_number', 'get_passport_number', 'club', 'status', 'submitted_at', 'reviewed_by', 'reviewed_at'
     )
     list_filter = ('status', 'club', 'submitted_at')
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Always filter for PENDING status by default for all admins
+        qs = qs.filter(status='PENDING')
+
+        user = request.user
+        if user.is_superuser or getattr(user, 'role', None) == 'ADMIN_NATIONAL':
+            # Superusers and National Admins see all pending applications
+            return qs
+        elif getattr(user, 'role', None) == 'ADMIN_PROVINCE' and user.province:
+            # Provincial Admins see applications for their province
+            return qs.filter(member__province=user.province)
+        elif getattr(user, 'role', None) == 'ADMIN_REGION' and user.region:
+            # Regional Admins see applications for their region
+            return qs.filter(member__region=user.region)
+        elif getattr(user, 'role', None) == 'ADMIN_LOCAL_FED' and user.local_federation:
+            # LFA Admins see applications for their LFA
+            return qs.filter(member__lfa=user.local_federation)
+        elif getattr(user, 'role', None) == 'CLUB_ADMIN' and user.club:
+            # Club Admins see applications for their club
+            return qs.filter(club=user.club) # Note: MembershipApplication has a direct 'club' FK
+        
+        # For any other role or if no relevant geographical assignment, return an empty queryset
+        return qs.none()
     search_fields = (
         'member__first_name', 'member__last_name', 'member__id_number', 'club__name', 'member__email'
     )
@@ -486,7 +511,7 @@ class MembershipApplicationAdmin(admin.ModelAdmin):
                 app.status = 'APPROVED'
                 app.reviewed_by = request.user
                 app.reviewed_at = timezone.now()
-                app.save()
+                app.save()  
     approve_applications.short_description = "Approve selected applications"
 
     def reject_applications(self, request, queryset):
@@ -497,3 +522,30 @@ class MembershipApplicationAdmin(admin.ModelAdmin):
                 app.reviewed_at = timezone.now()
                 app.save()
     reject_applications.short_description = "Reject selected applications"
+
+from . import admin_views  # Import the new admin views
+from django.urls import path
+
+class CustomAdminSite(admin.AdminSite):
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            # This is the URL for our new dashboard view
+            path('membership/dashboard/', self.admin_view(admin_views.national_admin_dashboard), name='national_dashboard'),
+        ]
+        return custom_urls + urls
+
+try:
+    admin_site = CustomAdminSite()  # Use the custom admin site
+
+    original_site = admin.site
+    admin.site = admin_site
+
+    # Move registered models from the old site to the new one
+    for model, model_admin in list(original_site._registry.items()):  # Use list() to avoid size change during iteration
+        admin.site.register(model, model_admin.__class__)
+
+except Exception as e:
+    # If something goes wrong, fall back to the default site to avoid crashing
+    print(f"Could not replace admin site: {e}")
+    admin.site = original_site  # Restore the original site
