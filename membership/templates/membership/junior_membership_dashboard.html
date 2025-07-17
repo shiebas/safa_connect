@@ -12,11 +12,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <h2>{{ title }}</h2>
-                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-house"></i> Dashboard
-                </a>
-            </div>
-            <hr>
+                <hr>
         </div>
     </div>
 
@@ -26,6 +22,7 @@
             <div>
                 <a href="{% url 'membership:junior_membership_dashboard' %}?status=pending" class="btn btn-sm {% if approval_status == 'pending' %}btn-light{% else %}btn-outline-light{% endif %}">Pending</a>
                 <a href="{% url 'membership:junior_membership_dashboard' %}?status=approved" class="btn btn-sm {% if approval_status == 'approved' %}btn-light{% else %}btn-outline-light{% endif %}">Approved</a>
+                <a href="{% url 'membership:junior_membership_dashboard' %}?status=rejected" class="btn btn-sm {% if approval_status == 'rejected' %}btn-light{% else %}btn-outline-light{% endif %}">Rejected</a>
             </div>
         </div>
         <div class="card-body">
@@ -62,7 +59,7 @@
                                         {% endif %}
                                     </td>
                                     <td>{{ member.date_of_birth|date:"Y-m-d" }}</td>
-                                    <td>{{ member.date_joined|date:"Y-m-d" }}</td>
+                                    <td>{{ member.created|date:"Y-m-d" }}</td>
                                     <td>
                                         {% if member.status == 'ACTIVE' %}
                                             <span class="badge bg-success">Approved</span>
@@ -97,6 +94,8 @@
                         No pending junior membership applications found.
                     {% elif approval_status == 'approved' %}
                         No approved junior members found.
+                    {% elif approval_status == 'rejected' %}
+                        No rejected junior members found.
                     {% else %}
                         No junior members found.
                     {% endif %}

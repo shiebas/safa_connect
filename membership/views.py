@@ -8,7 +8,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from .models import Member, Player, Membership, MembershipApplication
-from geography.models import Club, Province, Region, LocalFootballAssociation  # Import Club from geography
+from geography.models import Club, Province, Region, LocalFootballAssociation, Association  # Import Club and Association from geography
 from .forms import MemberForm, PlayerForm, ClubForm, MembershipApplicationForm, SeniorMemberRegistrationForm
 from .invoice_models import Invoice, InvoiceItem
 from django.core.exceptions import PermissionDenied
@@ -441,6 +441,7 @@ def senior_registration(request):
                     member.region = form.cleaned_data.get('region')
                     member.lfa = form.cleaned_data.get('lfa')
                     member.club = form.cleaned_data.get('club')
+                    member.association = form.cleaned_data.get('association') # Assign association
 
                     member.save()
 
