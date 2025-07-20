@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Member, Player, Membership, MembershipApplication
 from geography.models import Club, Province, Region, LocalFootballAssociation, Association  # Import Club and Association from geography
 from .forms import MemberForm, PlayerForm, ClubForm, MembershipApplicationForm, SeniorMemberRegistrationForm
-from .invoice_models import Invoice, InvoiceItem
+from .models import Invoice, InvoiceItem
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect
 from rest_framework import viewsets
@@ -47,6 +47,25 @@ class MemberUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
         messages.success(self.request, _('Member updated successfully.'))
         return super().form_valid(form)
 
+class MemberDetailView(LoginRequiredMixin, DetailView):
+    model = Member
+    template_name = 'membership/member_detail.html' # You'll need to create this template
+    context_object_name = 'member'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.is_superuser or user.is_staff:
+            return qs
+        # Club admins can only see members associated with their club
+        if hasattr(user, 'member_profile') and user.member_profile.role == 'CLUB_ADMIN' and user.member_profile.club:
+            return qs.filter(club=user.member_profile.club)
+        # Association admins can only see members associated with their association
+        if hasattr(user, 'member_profile') and user.member_profile.role == 'ASSOCIATION_ADMIN' and user.member_profile.association:
+            return qs.filter(association=user.member_profile.association)
+        return qs.none()
+
+
 # Player views
 class PlayerListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
     model = Player
@@ -73,6 +92,24 @@ class PlayerUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, _('Player updated successfully.'))
         return super().form_valid(form)
+
+class PlayerDetailView(LoginRequiredMixin, DetailView):
+    model = Player
+    template_name = 'membership/player_detail.html' # You'll need to create this template
+    context_object_name = 'player'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.is_superuser or user.is_staff:
+            return qs
+        # Club admins can only see players associated with their club
+        if hasattr(user, 'member_profile') and user.member_profile.role == 'CLUB_ADMIN' and user.member_profile.club:
+            return qs.filter(club=user.member_profile.club)
+        # Association admins can only see players associated with their association (if applicable)
+        if hasattr(user, 'member_profile') and user.member_profile.role == 'ASSOCIATION_ADMIN' and user.member_profile.association:
+            return qs.filter(association=user.member_profile.association)
+        return qs.none()
 
 # Club views
 class ClubListView(LoginRequiredMixin, ListView):
@@ -473,3 +510,12 @@ def senior_registration(request):
     else:
         form = SeniorMemberRegistrationForm()
     return render(request, 'membership/senior_registration.html', {'form': form})
+
+
+def check_email(request):
+    email = request.GET.get('email', None)
+    data = {
+        'is_taken': Member.objects.filter(email__iexact=email).exists()
+    }
+    return JsonResponse(data)
+

@@ -28,9 +28,13 @@ urlpatterns = [
     # Member and Player Management
     path('members/', views.MemberListView.as_view(), name='member_list'),
     path('members/add/', views.MemberCreateView.as_view(), name='member_create'),
+    path('members/<int:pk>/', views.MemberDetailView.as_view(), name='member_detail'),
+    path('members/<int:pk>/', views.MemberDetailView.as_view(), name='member_detail'),
     path('members/<int:pk>/edit/', views.MemberUpdateView.as_view(), name='member_update'),
     path('players/', views.PlayerListView.as_view(), name='player_list'),
     path('players/add/', views.PlayerCreateView.as_view(), name='player_create'),
+    path('players/<int:pk>/', views.PlayerDetailView.as_view(), name='player_detail'),
+    path('players/<int:pk>/', views.PlayerDetailView.as_view(), name='player_detail'),
     path('players/<int:pk>/edit/', views.PlayerUpdateView.as_view(), name='player_update'),
 
     # Club Management
@@ -111,4 +115,9 @@ urlpatterns = [
     path('members/<int:member_id>/approve/', dashboard_views.approve_membership, name='approve_membership'),
     path('members/<int:member_id>/reject/', dashboard_views.reject_membership, name='reject_membership'),
     path('dashboard/junior/', dashboard_views.JuniorMembershipDashboardView.as_view(), name='junior_membership_dashboard'),
+]
+
+# AJAX URLs
+urlpatterns += [
+    path('ajax/check_email/', views.check_email, name='check_email'),
 ]

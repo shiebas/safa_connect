@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Player Details (Accounts App){% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="mb-4">Player Details: {{ player.get_full_name }} <small class="text-muted">({{ player.safa_id|default:'N/A' }})</small></h1>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    Personal Information
+                </div>
+                <div class="card-body">
+                    <p><strong>Email:</strong> {{ player.email }}</p>
+                    <p><strong>Phone:</strong> {{ player.phone_number|default:'N/A' }}</p>
+                    <p><strong>Date of Birth:</strong> {{ player.date_of_birth|date:"d M Y" }}</p>
+                    <p><strong>Gender:</strong> {{ player.get_gender_display|default:'N/A' }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    Identification
+                </div>
+                <div class="card-body">
+                    <p><strong>SAFA ID:</strong> {{ player.safa_id|default:'N/A' }}</p>
+                    <p><strong>FIFA ID:</strong> {{ player.fifa_id|default:'N/A' }}</p>
+                    <p><strong>ID Number:</strong> {{ player.id_number|default:'N/A' }}</p>
+                    <p><strong>Passport Number:</strong> {{ player.passport_number|default:'N/A' }}</p>
+                    {% if player.id_document %}
+                        <p><strong>ID Document:</strong> <a href="{{ player.id_document.url }}" target="_blank">View Document</a></p>
+                    {% else %}
+                        <p><strong>ID Document:</strong> N/A</p>
+                    {% endif %}
+                    {% if player.profile_picture %}
+                        <p><strong>Profile Picture:</strong> <br><img src="{{ player.profile_picture.url }}" class="img-thumbnail" style="max-width: 200px;"></p>
+                    {% else %}
+                        <p><strong>Profile Picture:</strong> N/A</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    Club Registrations
+                </div>
+                <div class="card-body">
+                    {% if registrations %}
+                        <ul class="list-group">
+                            {% for reg in registrations %}
+                                <li class="list-group-item">
+                                    <strong>Club:</strong> {{ reg.club.name }}<br>
+                                    <strong>Status:</strong> <span class="badge bg-{% if reg.status == 'ACTIVE' %}success{% elif reg.status == 'PENDING' %}warning{% else %}info{% endif %}">{{ reg.get_status_display }}</span><br>
+                                    <strong>Registration Date:</strong> {{ reg.registration_date|date:"d M Y" }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No club registrations found for this player.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-secondary">Back to Player Approvals</a>
+                <a href="{% url 'accounts:edit_player' player.pk %}" class="btn btn-primary">Edit Player (Accounts App)</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

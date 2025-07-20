@@ -10,7 +10,7 @@ from django.db import models
 # Import models directly from the models.py file 
 from membership.models import Member, JuniorMember, ClubRegistration, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
 # Import Invoice models
-from .invoice_models import Invoice, InvoiceItem, Vendor
+from .models import Invoice, InvoiceItem, Vendor
 from .models import MembershipApplication
 
 # Legacy MemberAdmin - keeping for reference but not registering
@@ -194,16 +194,21 @@ class PlayerClubRegistrationAdmin(admin.ModelAdmin):
     list_filter = ('status', 'registration_date')
     search_fields = ('player__first_name', 'player__last_name', 'club__name')
 
+
+
 admin.site.register(TransferAppeal)
 admin.site.register(Membership)
 
 
 # New admin classes for refactored membership system
 class NewMemberAdmin(admin.ModelAdmin):
+    class Media:
+        js = ("admin/js/jquery.init.js", "admin/js/member_admin_dynamic_fields.js",)
+
     """Admin for the new two-tier membership system"""
     list_display = ('safa_id', 'get_full_name', 'email', 'member_type', 'status', 'created')
     list_filter = ('status', 'member_type', 'province', 'created')
-    search_fields = ('safa_id', 'first_name', 'last_name', 'email')
+    search_fields = ('safa_id', 'first_name', 'last_name', 'email', 'id_number')
     actions = ['approve_selected', 'reject_selected', 'send_welcome_emails']
     
     fieldsets = (
@@ -217,7 +222,7 @@ class NewMemberAdmin(admin.ModelAdmin):
             'fields': ('status', 'approved_by', 'approved_date', 'rejection_reason')
         }),
         (_('Geography'), {
-            'fields': ('province', 'region', 'lfa'),
+            'fields': ('province', 'region', 'lfa', 'association', 'club'),
             'classes': ('collapse',),
         }),
         (_('Address'), {
@@ -235,11 +240,11 @@ class NewMemberAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ('safa_id', 'approved_by', 'approved_date')
-    
+
     def get_full_name(self, obj):
         return obj.get_full_name()
     get_full_name.short_description = _('Name')
-    
+
     def approve_selected(self, request, queryset):
         """Approve selected members"""
         count = 0
@@ -248,16 +253,16 @@ class NewMemberAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, _('Approved {} members').format(count))
     approve_selected.short_description = _('Approve selected members')
-    
+
     def reject_selected(self, request, queryset):
-        """Reject selected members"""
+        """Reject selected members with a generic reason. For a custom reason, a separate form/view would be needed."""
         count = 0
         for member in queryset.filter(status='PENDING'):
-            member.reject_membership(request.user, "Bulk rejection")
+            member.reject_membership(request.user, "Rejected by admin action.")
             count += 1
         self.message_user(request, _('Rejected {} members').format(count))
     reject_selected.short_description = _('Reject selected members')
-    
+
     def send_welcome_emails(self, request, queryset):
         """Send welcome emails to approved members"""
         from .membership_registration_views import send_welcome_email
@@ -268,6 +273,24 @@ class NewMemberAdmin(admin.ModelAdmin):
                 count += 1
         self.message_user(request, _('Sent welcome emails to {} members').format(count))
     send_welcome_emails.short_description = _('Send welcome emails')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        user = request.user
+
+        if user.is_superuser or user.role == 'ADMIN_NATIONAL':
+            return qs
+        elif user.role == 'ADMIN_PROVINCE' and user.province:
+            return qs.filter(province=user.province)
+        elif user.role == 'ADMIN_REGION' and user.region:
+            return qs.filter(region=user.region)
+        elif user.role == 'ADMIN_LOCAL_FED' and user.local_federation:
+            return qs.filter(lfa=user.local_federation)
+        elif user.role == 'CLUB_ADMIN' and user.club:
+            return qs.filter(club=user.club)
+        elif user.role == 'ASSOCIATION_ADMIN' and user.association:
+            return qs.filter(association=user.association)
+        return qs.none()
 
 
 @admin.register(JuniorMember)
@@ -355,6 +378,7 @@ class OfficialAdmin(LegacyMemberAdmin):
     
     actions = ['approve_officials', 'reject_officials']
     
+    
     def approve_officials(self, request, queryset):
         updated = queryset.update(is_approved=True, status='ACTIVE')
         self.message_user(request, _(f"{updated} official(s) approved and activated."))
@@ -365,84 +389,7 @@ class OfficialAdmin(LegacyMemberAdmin):
         self.message_user(request, _(f"{updated} official(s) rejected."))
     reject_officials.short_description = _('Reject selected officials')
 
-# Invoice Administration
-class InvoiceItemInline(admin.TabularInline):
-    model = InvoiceItem
-    extra = 1
-    fields = ('description', 'quantity', 'unit_price', 'sub_total')
-    readonly_fields = ('sub_total',)
 
-@admin.register(Vendor)
-class VendorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone', 'is_active', 'logo_thumbnail', 'created', 'modified')
-    search_fields = ('name', 'email', 'phone')
-    list_filter = ('is_active',)
-    readonly_fields = ('created', 'modified', 'logo_preview')
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'email', 'phone', 'address', 'is_active')
-        }),
-        ('Logo', {
-            'fields': ('logo', 'logo_preview')
-        }),
-    )
-
-    def logo_thumbnail(self, obj):
-        if obj.logo:
-            return format_html('<img src="{}" width="30" height="30" style="border-radius: 50%;" />', obj.logo.url)
-        return "No logo"
-    logo_thumbnail.short_description = 'Logo'
-
-    def logo_preview(self, obj):
-        if obj.logo:
-            return format_html('<img src="{}" width="200" height="200" style="max-width: 200px;" />', obj.logo.url)
-        return "No logo uploaded."
-    logo_preview.short_description = 'Logo Preview'
-    logo_preview.allow_tags = True
-
-@admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
-    list_display = (
-        'invoice_number', 'player', 'club', 'vendor', 'amount', 'status', 'issue_date', 'due_date', 'payment_date', 'is_paid', 'is_overdue'
-    )
-    search_fields = ('invoice_number', 'player__first_name', 'player__last_name', 'club__name', 'vendor__name', 'issued_by__email')
-    list_filter = ('status', 'invoice_type', 'issue_date', 'due_date', 'vendor')
-    autocomplete_fields = ['player', 'club', 'issued_by', 'vendor']
-    date_hierarchy = 'issue_date'
-    readonly_fields = ('invoice_number', 'uuid', 'is_paid', 'is_overdue', 'get_payment_instructions')
-    inlines = [InvoiceItemInline]
-    actions = ['mark_selected_paid', 'mark_selected_overdue']
-
-    def get_payment_instructions(self, obj):
-        return obj.get_payment_instructions()
-    get_payment_instructions.short_description = 'Payment Instructions'
-
-    def mark_selected_paid(self, request, queryset):
-        """Bulk action: Mark selected invoices as paid."""
-        paid_count = 0
-        for invoice in queryset:
-            if invoice.status != 'PAID':
-                invoice.mark_as_paid()
-                paid_count += 1
-        self.message_user(request, f"{paid_count} invoice(s) marked as paid.")
-    mark_selected_paid.short_description = "Mark selected invoices as paid"
-
-    def mark_selected_overdue(self, request, queryset):
-        """Bulk action: Mark selected invoices as overdue."""
-        overdue_count = queryset.exclude(status='OVERDUE').update(status='OVERDUE')
-        self.message_user(request, f"{overdue_count} invoice(s) marked as overdue.")
-    mark_selected_overdue.short_description = "Mark selected invoices as overdue"
-
-@admin.register(InvoiceItem)
-class InvoiceItemAdmin(admin.ModelAdmin):
-    list_display = ('invoice', 'description', 'quantity', 'unit_price', 'sub_total')
-    search_fields = ('invoice__invoice_number', 'description')
-    autocomplete_fields = ['invoice']
-    readonly_fields = ('sub_total',)
-    
-    def sub_total(self, obj):
-        return f"R{obj.sub_total:.2f}"
-    sub_total.short_description = "Sub Total"
 
 @admin.register(MembershipApplication)
 class MembershipApplicationAdmin(admin.ModelAdmin):
@@ -535,17 +482,145 @@ class CustomAdminSite(admin.AdminSite):
         ]
         return custom_urls + urls
 
-try:
-    admin_site = CustomAdminSite()  # Use the custom admin site
+class InvoiceItemInline(admin.TabularInline):
+    model = InvoiceItem
+    extra = 1
+    fields = ('description', 'quantity', 'unit_price', 'sub_total')
+    readonly_fields = ('sub_total',)
 
-    original_site = admin.site
-    admin.site = admin_site
 
-    # Move registered models from the old site to the new one
-    for model, model_admin in list(original_site._registry.items()):  # Use list() to avoid size change during iteration
-        admin.site.register(model, model_admin.__class__)
+@admin.register(Vendor)
+class VendorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'phone', 'is_active', 'logo_thumbnail', 'created', 'modified')
+    search_fields = ('name', 'email', 'phone')
+    list_filter = ('is_active',)
+    readonly_fields = ('created', 'modified', 'logo_preview')
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'email', 'phone', 'address', 'is_active')
+        }),
+        ('Logo', {
+            'fields': ('logo', 'logo_preview')
+        }),
+    )
 
-except Exception as e:
-    # If something goes wrong, fall back to the default site to avoid crashing
-    print(f"Could not replace admin site: {e}")
-    admin.site = original_site  # Restore the original site
+    def logo_thumbnail(self, obj):
+        if obj.logo:
+            return format_html('<img src="{}" width="30" height="30" style="border-radius: 50%;" />', obj.logo.url)
+        return "No logo"
+
+    logo_thumbnail.short_description = 'Logo'
+
+    def logo_preview(self, obj):
+        if obj.logo:
+            return format_html('<img src="{}" width="200" height="200" style="max-width: 200px;" />', obj.logo.url)
+        return "No logo uploaded."
+
+    logo_preview.short_description = 'Logo Preview'
+    logo_preview.allow_tags = True
+
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = (
+        'invoice_number',
+        'billed_to',  # Consolidates player, club, etc.
+        'amount',
+        'status',
+        'invoice_type',
+        'issue_date',
+        'due_date',
+        'is_paid'
+    )
+    search_fields = (
+        'invoice_number',
+        'player__first_name', 'player__last_name',
+        'club__name',
+        'official__first_name', 'official__last_name',
+        'association__name',
+        'vendor__name',
+        'issued_by__email'
+    )
+    list_filter = ('status', 'invoice_type', 'issue_date', 'due_date', 'vendor')
+    autocomplete_fields = ['player', 'club', 'official', 'association', 'issued_by', 'vendor']
+    date_hierarchy = 'issue_date'
+    readonly_fields = (
+        'invoice_number', 'uuid', 'is_paid', 'is_overdue',
+        'get_payment_instructions', 'created', 'modified'
+    )
+    inlines = [InvoiceItemInline]
+    actions = ['mark_selected_paid', 'mark_selected_overdue']
+
+    fieldsets = (
+        (None, {
+            'fields': ('invoice_number', 'uuid', 'status', 'invoice_type')
+        }),
+        (_('Billing To'), {
+            'fields': ('player', 'club', 'official', 'association', 'vendor')
+        }),
+        (_('Financials'), {
+            'fields': ('amount', 'tax_amount', 'payment_method')
+        }),
+        (_('Dates'), {
+            'fields': ('issue_date', 'due_date', 'payment_date')
+        }),
+        (_('Administration'), {
+            'fields': ('issued_by', 'notes')
+        }),
+        (_('System Information'), {
+            'fields': ('is_paid', 'is_overdue', 'created', 'modified'),
+            'classes': ('collapse',)
+        })
+    )
+
+    def billed_to(self, obj):
+        """Display the primary entity this invoice is billed to."""
+        if obj.player:
+            return f"Player: {obj.player}"
+        if obj.club:
+            return f"Club: {obj.club}"
+        if obj.official:
+            return f"Official: {obj.official}"
+        if obj.association:
+            return f"Association: {obj.association}"
+        if obj.vendor:
+            return f"Vendor: {obj.vendor}"
+        return "N/A"
+
+    billed_to.short_description = _('Billed To')
+
+    def get_payment_instructions(self, obj):
+        return obj.get_payment_instructions()
+
+    get_payment_instructions.short_description = 'Payment Instructions'
+
+    def mark_selected_paid(self, request, queryset):
+        """Bulk action: Mark selected invoices as paid."""
+        paid_count = 0
+        for invoice in queryset:
+            if invoice.status != 'PAID':
+                invoice.mark_as_paid()
+                paid_count += 1
+        self.message_user(request, f"{paid_count} invoice(s) marked as paid.")
+
+    mark_selected_paid.short_description = "Mark selected invoices as paid"
+
+    def mark_selected_overdue(self, request, queryset):
+        """Bulk action: Mark selected invoices as overdue."""
+        overdue_count = queryset.exclude(status='OVERDUE').update(status='OVERDUE')
+        self.message_user(request, f"{overdue_count} invoice(s) marked as overdue.")
+
+    mark_selected_overdue.short_description = "Mark selected invoices as overdue"
+
+
+@admin.register(InvoiceItem)
+class InvoiceItemAdmin(admin.ModelAdmin):
+    list_display = ('invoice', 'description', 'quantity', 'unit_price', 'sub_total')
+    search_fields = ('invoice__invoice_number', 'description')
+    autocomplete_fields = ['invoice']
+    readonly_fields = ('sub_total',)
+
+    def sub_total(self, obj):
+        return f"R{obj.sub_total:.2f}"
+
+    sub_total.short_description = "Sub Total"

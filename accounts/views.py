@@ -720,7 +720,7 @@ def player_approval_list(request):
     invoice_filter_status = request.GET.get('invoice_status', 'all') # New filter for invoices
 
     # Import here to avoid circular imports
-    from membership.invoice_models import Invoice
+    from membership.models import Invoice
 
     # Use a dictionary to ensure each player only appears once
     unique_players = {}
@@ -867,7 +867,7 @@ def approve_player(request, player_id):
             missing_requirements.append("Passport document")
         
         # Check if the player has any unpaid invoices
-        from membership.invoice_models import Invoice
+        from membership.models import Invoice
         pending_invoices = Invoice.objects.filter(
             player=player,
             status__in=['PENDING', 'OVERDUE'],
@@ -1033,7 +1033,7 @@ def edit_player(request, player_id):
 def club_invoices(request):
         """View to show outstanding and all invoices for a club or association"""
         # Import here to avoid circular imports
-        from membership.invoice_models import Invoice
+        from membership.models import Invoice
         
         # Check permission based on user role
         is_association = request.GET.get('association') == 'true'
@@ -1792,7 +1792,7 @@ def official_detail(request, official_id):
                 print(f"[DEBUG - OFFICIAL DETAIL] Error setting SAFRA as primary_association: {e}")
         
         # Get invoices
-        from membership.invoice_models import Invoice
+        from membership.models import Invoice
         invoices = Invoice.objects.filter(official=official)
         
         # Check if user can approve official
@@ -1944,7 +1944,7 @@ def approve_official(request, official_id):
             return redirect('accounts:dashboard')
         
         # Check if the official has any unpaid invoices
-        from membership.invoice_models import Invoice
+        from membership.models import Invoice
         unpaid_invoices = Invoice.objects.filter(official=official, status__in=['PENDING', 'OVERDUE'])
         
         if unpaid_invoices.exists():

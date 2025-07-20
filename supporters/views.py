@@ -6,7 +6,7 @@ from datetime import timedelta
 from .forms import SupporterRegistrationForm, SupporterPreferencesForm
 from .models import SupporterProfile, SupporterPreferences
 from accounts.models import CustomUser
-from membership.invoice_models import Invoice
+from membership.models import Invoice
 from membership.models import Member
 from geography.models import Club
 from rest_framework import viewsets

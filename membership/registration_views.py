@@ -18,7 +18,7 @@ from .models import (
     Player,
     PlayerClubRegistration
 )
-from .invoice_models import Invoice, InvoiceItem
+from .models import Invoice, InvoiceItem
 from geography.models import Club
 
 

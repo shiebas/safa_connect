@@ -325,10 +325,9 @@ class MembershipApplicationForm(forms.ModelForm):
         model = Member
         fields = [
             # Personal Information
-            'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth',
-            'gender',
+            'first_name', 'last_name', 'email', 'phone_number',
             # Identification
-            'id_document_type', 'id_number', 'passport_number',
+            'id_document_type', 'id_number', 'gender', 'date_of_birth', 'passport_number',
             'safa_id', 'fifa_id',
             'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
             # Address Information
@@ -382,6 +381,7 @@ class MembershipApplicationForm(forms.ModelForm):
             'pattern': '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
             'title': 'Please enter a valid email address',
             'oninput': 'validateEmailField(this)',
+            'onblur': 'checkEmail(this)',
         })
         self.fields['phone_number'].widget.attrs.update({
             'class': 'form-control',
@@ -481,11 +481,7 @@ class MembershipApplicationForm(forms.ModelForm):
                 raise ValidationError('Phone number must contain only digits and optional + sign (10-15 digits)')
         return phone_number
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email and Member.objects.filter(email=email).exists():
-            raise ValidationError('A member with this email address already exists.')
-        return email
+    
 
     def clean_id_number(self):
         id_number = self.cleaned_data.get('id_number', '').strip()

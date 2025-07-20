@@ -1,11 +1,12 @@
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from membership.models import Member, Official, Transfer, MembershipApplication
-from membership.invoice_models import Invoice
+from membership.models import Invoice
 
 class SeniorMembershipDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'membership/senior_membership_dashboard.html'

@@ -72,7 +72,7 @@ class AssociationAdmin(ModelWithLogoAdmin):
     list_display = ['name', 'acronym', 'national_federation', 'safa_id', 'display_logo']
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym', 'safa_id']
-    readonly_fields = ('safa_id',)  # Only include actual readonly fields
+    readonly_fields = ('safa_id',)
     
 @admin.action(description="Generate and assign unique SAFA IDs to selected regions")
 def generate_safa_ids(modeladmin, request, queryset):

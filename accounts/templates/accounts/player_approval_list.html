@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Player Approval List{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Player Approval List</h1>
+
+    <div class="mb-3">
+        <a href="?status=pending" class="btn btn-{% if approval_status == 'pending' %}primary{% else %}outline-primary{% endif %} me-2">Pending ({{ players_data|selectattr:"player.is_approved"|rejectattr:"player.is_approved"|length }})</a>
+        <a href="?status=approved" class="btn btn-{% if approval_status == 'approved' %}primary{% else %}outline-primary{% endif %} me-2">Approved ({{ players_data|selectattr:"player.is_approved"|length }})</a>
+        <a href="?status=all" class="btn btn-{% if approval_status == 'all' %}primary{% else %}outline-primary{% endif %}">All ({{ players_data|length }})</a>
+    </div>
+
+    <div class="mb-3">
+        <a href="?invoice_status=all" class="btn btn-{% if invoice_filter_status == 'all' %}primary{% else %}outline-primary{% endif %} me-2">All Invoices</a>
+        <a href="?invoice_status=unpaid" class="btn btn-{% if invoice_filter_status == 'unpaid' %}primary{% else %}outline-primary{% endif %} me-2">Unpaid Invoices</a>
+        <a href="?invoice_status=paid" class="btn btn-{% if invoice_filter_status == 'paid' %}primary{% else %}outline-primary{% endif %}">Paid Invoices</a>
+    </div>
+
+    {% if players_data %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Player Name</th>
+                    <th>SAFA ID</th>
+                    <th>Club</th>
+                    <th>Status</th>
+                    <th>Has Unpaid Invoice</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in players_data %}
+                <tr>
+                    <td><a href="{% url 'accounts:player_detail' data.player.pk %}">{{ data.player.get_full_name }}</a></td>
+                    <td>{{ data.player.safa_id|default:"N/A" }}</td>
+                    <td>{{ data.club.name|default:"N/A" }}</td>
+                    <td><span class="badge bg-{% if data.player.is_approved %}success{% else %}warning{% endif %}">{{ data.player.get_status_display }}</span></td>
+                    <td>
+                        {% if data.has_unpaid_invoice %}
+                            <span class="badge bg-danger">Yes</span>
+                            {% for invoice in data.unpaid_invoices %}
+                                <a href="{% url 'membership:invoice_detail' invoice.uuid %}" class="badge bg-info text-decoration-none">#{{ invoice.invoice_number }}</a>
+                            {% endfor %}
+                        {% else %}
+                            <span class="badge bg-success">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'accounts:player_detail' data.player.pk %}" class="btn btn-sm btn-info">View</a>
+                        {% if not data.player.is_approved %}
+                            <form action="{% url 'accounts:approve_player' data.player.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success" {% if data.has_unpaid_invoice %}disabled title="Cannot approve with unpaid invoices"{% endif %}>Approve</button>
+                            </form>
+                        {% else %}
+                            <form action="{% url 'accounts:unapprove_player' data.player.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-warning">Unapprove</button>
+                            </form>
+                        {% endif %}
+                        <a href="{% url 'accounts:edit_player' data.player.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No players found matching the criteria.</p>
+    {% endif %}
+</div>
+{% endblock %}

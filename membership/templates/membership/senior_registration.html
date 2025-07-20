@@ -39,14 +39,14 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">Name</label>
                                 {% render_field form.first_name class="form-control" %}
                                 {% for error in form.first_name.errors %}
                                     <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Surname</label>
                                 {% render_field form.last_name class="form-control" %}
                                 {% for error in form.last_name.errors %}
                                     <div class="invalid-feedback d-block">{{ error }}</div>
@@ -54,27 +54,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{{ form.date_of_birth.label }}</label>
-                                {% render_field form.date_of_birth class="form-control" type="date" %}
-                                {% for error in form.date_of_birth.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
-                                {% render_field form.gender class="form-select" %}
-                                {% for error in form.gender.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.member_type.id_for_label }}" class="form-label">{{ form.member_type.label }}</label>
-                                {% render_field form.member_type class="form-select" %}
-                                {% for error in form.member_type.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -87,8 +67,11 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                                {% render_field form.email class="form-control" %}
-                                <small class="form-text text-muted">If you don't have an email, a temporary one will be created for you.</small>
+                                {% render_field form.email class="form-control" onblur="checkEmail(this)" %}
+                                <span id="email-error" class="text-danger"></span>
+                                {% if form.email.help_text %}
+                                    <small class="form-text text-muted">{{ form.email.help_text }}</small>
+                                {% endif %}
                                 {% for error in form.email.errors %}
                                     <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
@@ -111,16 +94,32 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.id_document_type.id_for_label }}" class="form-label">{{ form.id_document_type.label }}</label>
+                                <label for="{{ form.id_document_type.id_for_label }}" class="form-label">Document Type</label>
                                 {% render_field form.id_document_type class="form-select" %}
                                 {% for error in form.id_document_type.errors %}
                                     <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
                             </div>
                             <div class="col-md-6 mb-3" id="id_number_field">
-                                <label for="{{ form.id_number.id_for_label }}" class="form-label">{{ form.id_number.label }}</label>
+                                <label for="{{ form.id_number.id_for_label }}" class="form-label">SA ID Number</label>
                                 {% render_field form.id_number class="form-control" %}
                                 {% for error in form.id_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{{ form.date_of_birth.label }}</label>
+                                {% render_field form.date_of_birth class="form-control" type="date" %}
+                                {% for error in form.date_of_birth.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+                                {% render_field form.gender class="form-select" %}
+                                {% for error in form.gender.errors %}
                                     <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
                             </div>
@@ -175,7 +174,7 @@
                         {% render_field form.city class="form-control mb-3" placeholder="City" %}
                         {% render_field form.state class="form-control mb-3" placeholder="State/Province" %}
                         {% render_field form.postal_code class="form-control mb-3" placeholder="Postal Code" %}
-                        {% render_field form.country class="form-control mb-3" placeholder="Country" %}
+                        {% render_field form.country type="hidden" %}
                     </div>
                 </div>
 
@@ -194,11 +193,15 @@
                         </div>
                         <div class="mb-3">
                             <label for="lfa" class="form-label">LFA</label>
-                            {% render_field form.lfa class="form-select" id="lfa" disabled="disabled" %}
+                            {% render_field form.lfa class="form-select" id="lfa" %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="association" class="form-label">Association</label>
+                            {% render_field form.association class="form-select" id="association" %}
                         </div>
                         <div class="mb-3">
                             <label for="club" class="form-label">Club</label>
-                            {% render_field form.club class="form-select" id="club" disabled="disabled" %}
+                            {% render_field form.club class="form-select" id="club" %}
                         </div>
                     </div>
                 </div>
@@ -243,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const regionSelect = document.getElementById('region');
     const lfaSelect = document.getElementById('lfa');
     const clubSelect = document.getElementById('club');
+    const associationSelect = document.getElementById('association');
     const idNumberInput = document.getElementById('{{ form.id_number.id_for_label }}');
     const dobInput = document.getElementById('{{ form.date_of_birth.id_for_label }}');
 
@@ -257,15 +261,21 @@ document.addEventListener('DOMContentLoaded', function() {
         selectElement.disabled = false;
     }
 
+    function resetClubAssociationFields() {
+        clubSelect.innerHTML = '<option value="">Select a club</option>';
+        clubSelect.disabled = true;
+        associationSelect.innerHTML = '<option value="">Select an association</option>';
+        associationSelect.disabled = true;
+    }
+
     if(provinceSelect) {
         provinceSelect.addEventListener('change', function() {
             const provinceId = this.value;
+            resetClubAssociationFields();
             regionSelect.innerHTML = '<option value="">Select a region</option>';
             regionSelect.disabled = true;
             lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
             lfaSelect.disabled = true;
-            clubSelect.innerHTML = '<option value="">Select a club</option>';
-            clubSelect.disabled = true;
 
             if (provinceId) {
                 fetch(`/membership/api/regions_by_province/${provinceId}/`)
@@ -279,10 +289,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if(regionSelect) {
         regionSelect.addEventListener('change', function() {
             const regionId = this.value;
+            resetClubAssociationFields();
             lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
             lfaSelect.disabled = true;
-            clubSelect.innerHTML = '<option value="">Select a club</option>';
-            clubSelect.disabled = true;
 
             if (regionId) {
                 fetch(`/membership/api/lfas_by_region/${regionId}/`)
@@ -298,12 +307,40 @@ document.addEventListener('DOMContentLoaded', function() {
             const lfaId = this.value;
             clubSelect.innerHTML = '<option value="">Select a club</option>';
             clubSelect.disabled = true;
+            associationSelect.innerHTML = '<option value="">Select an association</option>';
+            associationSelect.disabled = true;
 
             if (lfaId) {
                 fetch(`/membership/api/clubs_by_lfa/${lfaId}/`)
                     .then(response => response.json())
                     .then(data => populateDropdown(clubSelect, data, 'Select a club'))
                     .catch(error => console.error('Error fetching clubs:', error));
+
+                fetch(`/accounts/api/lfas/${lfaId}/associations/`) // Assuming this API endpoint exists
+                    .then(response => response.json())
+                    .then(data => populateDropdown(associationSelect, data, 'Select an association'))
+                    .catch(error => console.error('Error fetching associations:', error));
+            }
+        });
+    }
+
+    // Mutual exclusivity for Club and Association
+    if (clubSelect && associationSelect) {
+        clubSelect.addEventListener('change', function() {
+            if (this.value) {
+                associationSelect.value = ''; // Clear association selection
+                associationSelect.disabled = true;
+            } else {
+                associationSelect.disabled = false;
+            }
+        });
+
+        associationSelect.addEventListener('change', function() {
+            if (this.value) {
+                clubSelect.value = ''; // Clear club selection
+                clubSelect.disabled = true;
+            } else {
+                clubSelect.disabled = false;
             }
         });
     }

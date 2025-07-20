@@ -14,7 +14,11 @@ from geography.models import (
     Club as GeographyClub  # Import Club from geography with an alias
 )
 from django.apps import apps
-# from membership.models.vendor import Vendor  # COMMENTED OUT - vendor model doesn't exist yet
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+import uuid
+from decimal import Decimal
+
 
 # Import utils functions conditionally to avoid import issues
 try:
@@ -80,7 +84,7 @@ class Member(TimeStampedModel):
     email = models.EmailField(_("Email Address"))
     phone_number = models.CharField(_("Phone Number"), max_length=20, blank=True)
     date_of_birth = models.DateField(_("Date of Birth"))
-    member_type = models.CharField(_("Member Type"), max_length=20, choices=MEMBER_TYPES, default='SENIOR')
+    member_type = models.CharField(_("Member Type"), max_length=20, choices=MEMBER_TYPES, default='SENIOR', blank=True, null=True)
 
     # Address Information
     street_address = models.CharField(_("Street Address"), max_length=255, blank=True)
@@ -127,6 +131,14 @@ class Member(TimeStampedModel):
     region = models.ForeignKey('geography.Region', on_delete=models.SET_NULL, null=True, blank=True)
     lfa = models.ForeignKey('geography.LocalFootballAssociation', on_delete=models.SET_NULL, null=True, blank=True)
     club = models.ForeignKey(GeographyClub, on_delete=models.SET_NULL, null=True, blank=True, related_name='club_members')
+    national_federation = models.ForeignKey(
+        'geography.NationalFederation',
+        on_delete=models.PROTECT, # Protect from accidental deletion of NationalFederation
+        null=False,
+        blank=False,
+        default=1, # Assuming ID 1 is the default NationalFederation (SAFA)
+        help_text=_("The national federation this member belongs to")
+    )
     association = models.ForeignKey('geography.Association', on_delete=models.SET_NULL, null=True, blank=True, related_name='associated_members')
 
     # Images
@@ -1073,20 +1085,181 @@ class ClubWithSafaID(GeographyClub):
         return None
 
 
-# Import invoice models to make them available
-try:
-    from .invoice_models import Invoice, InvoiceItem, Vendor
-except ImportError:
-    # If invoice_models.py doesn't exist yet, create placeholder classes
-    class Invoice(models.Model):
-        class Meta:
-            app_label = 'membership'
-    class InvoiceItem(models.Model):
-        class Meta:
-            app_label = 'membership'
-    class Vendor(models.Model):
-        class Meta:
-            app_label = 'membership'
+class Vendor(TimeStampedModel):
+    """Vendor model for suppliers, merchandise, etc."""
+    name = models.CharField(_("Vendor Name"), max_length=200)
+    email = models.EmailField(_("Email"), blank=True)
+    phone = models.CharField(_("Phone"), max_length=20, blank=True)
+    address = models.TextField(_("Address"), blank=True)
+    is_active = models.BooleanField(_("Active"), default=True)
+    logo = models.ImageField(_("Logo"), upload_to='vendor_logos/', blank=True, null=True)
+    
+    class Meta:
+        verbose_name = _("Vendor")
+        verbose_name_plural = _("Vendors")
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+class Invoice(TimeStampedModel):
+    """Invoice model for all billing in the system"""
+    INVOICE_STATUS = [
+        ('PENDING', _('Pending')),
+        ('PAID', _('Paid')),
+        ('OVERDUE', _('Overdue')),
+        ('CANCELLED', _('Cancelled')),
+    ]
+    
+    INVOICE_TYPES = [
+        ('REGISTRATION', _('Player Registration')),
+        ('MEMBERSHIP', _('Membership Fee')),
+        ('EVENT', _('Event Ticket')),
+        ('MERCHANDISE', _('Merchandise Order')),
+        ('OTHER', _('Other')),
+    ]
+    
+    # Unique identifiers
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    invoice_number = models.CharField(_("Invoice Number"), max_length=50, unique=True, blank=True)
+    
+    # Basic invoice info
+    status = models.CharField(_("Status"), max_length=20, choices=INVOICE_STATUS, default='PENDING')
+    invoice_type = models.CharField(_("Invoice Type"), max_length=20, choices=INVOICE_TYPES, default='OTHER')
+    
+    # Relationships
+    player = models.ForeignKey(
+        'membership.Member',
+        on_delete=models.CASCADE,
+        related_name='player_invoices',
+        null=True, blank=True,
+        help_text=_("Player this invoice is for (if player registration)")
+    )
+    club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.CASCADE,
+        related_name='invoices',
+        null=True, blank=True
+    )
+    official = models.ForeignKey(
+        'membership.Official',
+        on_delete=models.CASCADE,
+        related_name='official_invoices',
+        null=True, blank=True,
+        help_text=_("Official this invoice is for (if official registration)")
+    )
+    association = models.ForeignKey(
+        'geography.Association',
+        on_delete=models.CASCADE,
+        related_name='invoices',
+        null=True, blank=True,
+        help_text=_("Association this invoice is for (e.g., LFA, Region)")
+    )
+    vendor = models.ForeignKey(
+        'Vendor',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        help_text=_("Vendor associated with this invoice (if applicable)")
+    )
+    issued_by = models.ForeignKey(
+        'membership.Member',
+        on_delete=models.SET_NULL,
+        related_name='issued_invoices',
+        null=True, blank=True
+    )
+    
+    # Generic foreign key for flexible relationships
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    # Financial details
+    amount = models.DecimalField(_("Amount"), max_digits=10, decimal_places=2)
+    tax_amount = models.DecimalField(_("Tax Amount"), max_digits=10, decimal_places=2, default=0)
+    
+    # Dates
+    issue_date = models.DateField(_("Issue Date"), default=timezone.now)
+    due_date = models.DateField(_("Due Date"))
+    payment_date = models.DateTimeField(_("Payment Date"), null=True, blank=True)
+    
+    # Payment details
+    payment_method = models.CharField(_("Payment Method"), max_length=50, blank=True)
+    notes = models.TextField(_("Notes"), blank=True)
+    
+    class Meta:
+        verbose_name = _("Invoice")
+        verbose_name_plural = _("Invoices")
+        ordering = ['-issue_date']
+    
+    def __str__(self):
+        return f"INV-{self.invoice_number} - R{self.amount}"
+    
+    def save(self, *args, **kwargs):
+        print("DEBUG: Invoice save method called.")
+        if not self.invoice_number:
+            self.invoice_number = self.generate_invoice_number()
+            print(f"DEBUG: Generated invoice number: {self.invoice_number}")
+        if not self.due_date:
+            # Default due date is 30 days from issue
+            from datetime import timedelta
+            self.due_date = self.issue_date + timedelta(days=30)
+        super().save(*args, **kwargs)
+    
+    def generate_invoice_number(self):
+        """Generate unique invoice number"""
+        import random
+        import string
+        while True:
+            number = ''.join(random.choices(string.digits, k=8))
+            print(f"DEBUG: Attempting to generate number: {number}")
+            if not Invoice.objects.filter(invoice_number=number).exists():
+                print(f"DEBUG: Found unique number: {number}")
+                return number
+            print(f"DEBUG: Number {number} already exists, trying again.")
+    
+    @property
+    def is_paid(self):
+        return self.status == 'PAID'
+    
+    @property
+    def is_overdue(self):
+        return self.status == 'OVERDUE' or (
+            self.status == 'PENDING' and self.due_date < timezone.now().date()
+        )
+    
+    @property
+    def total_amount(self):
+        return self.amount + self.tax_amount
+    
+    def mark_as_paid(self):
+        """Mark invoice as paid"""
+        self.status = 'PAID'
+        self.payment_date = timezone.now()
+        self.save()
+    
+    def get_payment_instructions(self):
+        """Return payment instructions for this invoice"""
+        return f"Please pay R{self.total_amount} for invoice {self.invoice_number}"
+
+class InvoiceItem(models.Model):
+    """Individual line items for invoices"""
+    invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='items')
+    description = models.CharField(_("Description"), max_length=200)
+    quantity = models.PositiveIntegerField(_("Quantity"), default=1)
+    unit_price = models.DecimalField(_("Unit Price"), max_digits=8, decimal_places=2)
+    
+    class Meta:
+        verbose_name = _("Invoice Item")
+        verbose_name_plural = _("Invoice Items")
+    
+    def __str__(self):
+        return f"{self.description} (x{self.quantity})"
+    
+    @property
+    def sub_total(self):
+        quantity = self.quantity if self.quantity is not None else 0
+        unit_price = self.unit_price if self.unit_price is not None else Decimal('0.00')
+        return quantity * unit_price
 
 class MembershipApplication(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='applications', null=True, blank=True)
