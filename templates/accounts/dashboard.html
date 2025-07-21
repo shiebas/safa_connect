@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}My Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4 text-center">Welcome, {{ user.get_full_name|default:user.email }}</h2>
@@ -386,7 +391,93 @@
                 </div>
             </div>
         {% endif %}
-        
+
+        {% if user.role == "ADMIN_NATIONAL" or user.role == "ADMIN_PROVINCE" or user.role == "ADMIN_LOCAL_FED" %}
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Members List</h5>
+                </div>
+                <div class="card-body">
+                    <table id="membersTable" class="display table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>SAFA ID</th>
+                                <th>Status</th>
+                                <th>Club/Association</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                            <tr>
+                                <td>{{ member.first_name }} {{ member.last_name }}</td>
+                                <td>{{ member.email }}</td>
+                                <td>{{ member.safa_id }}</td>
+                                <td>{{ member.status }}</td>
+                                <td>
+                                    {% if member.club %}
+                                        {{ member.club.name }}
+                                    {% elif member.association %}
+                                        {{ member.association.name }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Outstanding Invoices</h5>
+                </div>
+                <div class="card-body">
+                    <table id="invoicesTable" class="display table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Related To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in outstanding_invoices %}
+                            <tr>
+                                <td>{{ invoice.invoice_number }}</td>
+                                <td>R{{ invoice.amount|floatformat:2 }}</td>
+                                <td>{{ invoice.due_date|date:"Y-m-d" }}</td>
+                                <td>{{ invoice.get_status_display }}</td>
+                                <td>
+                                    {% if invoice.player %}
+                                        Player: {{ invoice.player.first_name }} {{ invoice.player.last_name }}
+                                    {% elif invoice.official %}
+                                        Official: {{ invoice.official.first_name }} {{ invoice.official.last_name }}
+                                    {% elif invoice.club %}
+                                        Club: {{ invoice.club.name }}
+                                    {% elif invoice.association %}
+                                        Association: {{ invoice.association.name }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Digital Membership Card - Available to all users -->
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm h-100">
@@ -402,4 +493,14 @@
 </div>
 <!-- Optionally include Bootstrap Icons CDN if not already present -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+<script>
+$(document).ready( function () {
+    $('#membersTable').DataTable();
+    $('#invoicesTable').DataTable();
+} );
+</script>
 {% endblock %}
