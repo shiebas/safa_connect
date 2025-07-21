@@ -1194,52 +1194,66 @@ class Invoice(TimeStampedModel):
     def __str__(self):
         return f"INV-{self.invoice_number} - R{self.amount}"
     
+    def recalculate_totals(self):
+        """
+        Recalculates the invoice's amount and tax_amount from its line items.
+        Assumes that the unit_price on InvoiceItem is VAT-inclusive.
+        """
+        items = self.items.all()
+        total_incl_vat = sum(item.sub_total for item in items)
+        vat_rate = Decimal('1.15')
+
+        if total_incl_vat > 0:
+            base_amount = (total_incl_vat / vat_rate).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            tax_amount = total_incl_vat - base_amount
+        else:
+            base_amount = Decimal('0.00')
+            tax_amount = Decimal('0.00')
+
+        # Update the invoice fields without triggering a recursive save signal
+        Invoice.objects.filter(pk=self.pk).update(
+            amount=base_amount,
+            tax_amount=tax_amount
+        )
+
     def save(self, *args, **kwargs):
-        print("DEBUG: Invoice save method called.")
         if not self.invoice_number:
             self.invoice_number = self.generate_invoice_number()
-            print(f"DEBUG: Generated invoice number: {self.invoice_number}")
         if not self.due_date:
             # Default due date is 30 days from issue
             from datetime import timedelta
             self.due_date = self.issue_date + timedelta(days=30)
         super().save(*args, **kwargs)
-    
+
     def generate_invoice_number(self):
         """Generate unique invoice number"""
         import random
         import string
         while True:
             number = ''.join(random.choices(string.digits, k=8))
-            print(f"DEBUG: Attempting to generate number: {number}")
             if not Invoice.objects.filter(invoice_number=number).exists():
-                print(f"DEBUG: Found unique number: {number}")
                 return number
-            print(f"DEBUG: Number {number} already exists, trying again.")
-    
+
     @property
     def is_paid(self):
         return self.status == 'PAID'
-    
+
     @property
     def is_overdue(self):
         return self.status == 'OVERDUE' or (
             self.status == 'PENDING' and self.due_date < timezone.now().date()
         )
-    
+
     @property
     def total_amount(self):
-        return self.amount + self.tax_amount
-    
+        return self.items.aggregate(total=models.Sum('unit_price'))['total'] or Decimal('0.00')
+
     def mark_as_paid(self):
-        """Mark invoice as paid"""
-        self.status = 'PAID'
-        self.payment_date = timezone.now()
-        self.save()
-    
-    def get_payment_instructions(self):
-        """Return payment instructions for this invoice"""
-        return f"Please pay R{self.total_amount} for invoice {self.invoice_number}"
+        """Marks the invoice as paid and sets the payment date."""
+        if self.status != 'PAID':
+            self.status = 'PAID'
+            self.payment_date = timezone.now()
+            self.save(update_fields=['status', 'payment_date'])
 
 class InvoiceItem(models.Model):
     """Individual line items for invoices"""
