@@ -61,6 +61,7 @@ class UniversalRegistrationForm(forms.ModelForm):
     role = forms.ChoiceField(
         choices=[
             ('ADMIN_NATIONAL', 'SAFA System Administrator'),
+            ('ADMIN_NATIONAL_ACCOUNTS', 'National Accounts Administrator'), # Added this line
             ('ASSOCIATION_ADMIN', 'Referee Association Administrator'),
             ('CLUB_ADMIN', 'Club Administrator'),
             ('ADMIN_LOCAL_FED', 'Local Football Association Administrator'),
@@ -128,6 +129,23 @@ class UniversalRegistrationForm(forms.ModelForm):
         help_text="Select your primary organization type"
     )
     
+    safa_id = forms.CharField(
+        max_length=5, 
+        required=False, 
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Auto-generated if left blank'
+        }),
+        help_text="SAFA ID (auto-generated if left blank)"
+    )
+
+    positions = forms.ModelMultipleChoiceField(
+        queryset=Position.objects.filter(is_active=True),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text="Select all positions held within SAFA structure"
+    )
+
     class Meta:
         model = CustomUser
         fields = [
@@ -136,7 +154,7 @@ class UniversalRegistrationForm(forms.ModelForm):
             'province', 'region', 'local_federation', 'club', 'association',
             'id_document_type', 'id_number', 'passport_number', 'id_number_other',
             'date_of_birth', 'gender', 'id_document', 'profile_photo', 
-            'popi_act_consent', 'national_federation', 'mother_body', 'age'
+            'popi_act_consent', 'national_federation', 'mother_body', 'age', 'safa_id', 'fifa_id'
         ]
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
@@ -153,44 +171,44 @@ class UniversalRegistrationForm(forms.ModelForm):
         self.helper.form_method = 'post'
         self.helper.form_class = 'form-horizontal'
         
+        # For ALL registrations, set SAFA as default national federation
+        try:
+            safa_federation, _ = NationalFederation.objects.get_or_create(
+                name="South African Football Association",
+                defaults={
+                    'acronym': "SAFA",
+                    'country_id': 1  # Assuming South Africa has ID 1
+                }
+            )
+            self.initial['national_federation'] = safa_federation.id
+            # Make it read-only for clarity
+            if 'national_federation' not in self.fields:
+                self.fields['national_federation'] = forms.ModelChoiceField(
+                    queryset=NationalFederation.objects.all(),
+                    required=False,
+                    widget=forms.Select(attrs={'class': 'form-control', 'readonly': True})
+                )
+            self.fields['national_federation'].widget.attrs['readonly'] = True
+            self.fields['national_federation'].help_text = "Default: SAFA (All registrations belong to SAFA)"
+        except Exception:
+            pass
+
         # Set default role based on registration type
         if registration_type == 'national':
             self.initial['role'] = 'ADMIN_NATIONAL'
             self.fields['role'].widget = forms.HiddenInput()
             
-            # For ALL registrations, set SAFA as default national federation
+            # Set default SAFA Referee Association for National admins
             try:
-                safa_federation, _ = NationalFederation.objects.get_or_create(
-                    name="South African Football Association",
+                from geography.models import Association
+                safa_referee_association, _ = Association.objects.get_or_create(
+                    name="SAFA Referees Association",
                     defaults={
-                        'acronym': "SAFA",
-                        'country_id': 1  # Assuming South Africa has ID 1
+                        'acronym': "SRA",
+                        'national_federation': safa_federation
                     }
                 )
-                self.initial['national_federation'] = safa_federation.id
-                # Make it read-only for clarity
-                if 'national_federation' not in self.fields:
-                    self.fields['national_federation'] = forms.ModelChoiceField(
-                        queryset=NationalFederation.objects.all(),
-                        required=False,
-                        widget=forms.Select(attrs={'class': 'form-control', 'readonly': True})
-                    )
-                self.fields['national_federation'].widget.attrs['readonly'] = True
-                self.fields['national_federation'].help_text = "Default: SAFA (All registrations belong to SAFA)"
-                
-                # Set default SAFA Referee Association for National admins
-                try:
-                    from geography.models import Association
-                    safa_referee_association, _ = Association.objects.get_or_create(
-                        name="SAFA Referees Association",
-                        defaults={
-                            'acronym': "SRA",
-                            'national_federation': safa_federation
-                        }
-                    )
-                    self.initial['association'] = safa_referee_association.id
-                except Exception:
-                    pass
+                self.initial['association'] = safa_referee_association.id
             except Exception:
                 pass
         
@@ -216,6 +234,22 @@ class UniversalRegistrationForm(forms.ModelForm):
             self.fields['organization_type'].required = False
             
         print("[DEBUG - REFEREE REG] Association field added to form")
+
+        # Add region and local_federation fields dynamically
+        self.fields['safa_id'].help_text = "SAFA ID (auto-generated if left blank)"
+        self.fields['safa_id'].widget.attrs.update({
+            'pattern': '[A-Z0-9]{5}',
+            'title': '5-character alphanumeric code (all caps)',
+            'placeholder': 'e.g. A12B3'
+        })
+
+        self.fields['fifa_id'].required = False
+        self.fields['fifa_id'].help_text = "If the player has a FIFA ID, enter it here. Otherwise, leave blank."
+        self.fields['fifa_id'].widget.attrs.update({
+            'pattern': '[0-9]{7}',
+            'title': '7-digit FIFA identification number',
+            'placeholder': 'e.g. 1234567'
+        })
 
         # Add region and local_federation fields dynamically
         self.fields['region'] = forms.ModelChoiceField(
@@ -269,261 +303,7 @@ class UniversalRegistrationForm(forms.ModelForm):
             except Exception as e:
                 self.fields['region'].required = False
         
-        # Create a layout with organization type selection
-        self.helper.layout = Layout(
-            # Account Information
-            Fieldset(
-                'Account Information',
-                Div(
-                    Div(Field('email', css_id='id_email'), css_class='col-md-4'),
-                    Div(Field('password1', css_id='id_password1'), css_class='col-md-4'),
-                    Div(Field('password2', css_id='id_password2'), css_class='col-md-4'),
-                    css_class='row mb-3'
-                ),
-            ),
-            
-            # Personal Information
-            Fieldset(
-                'Personal Information',
-                Div(
-                    Div(Field('first_name', css_id='id_first_name'), css_class='col-md-6'),
-                    Div(Field('last_name', css_id='id_last_name'), css_class='col-md-6'),
-                    css_class='row mb-3'
-                ),
-                Div(
-                    Div(Field('organization_type', css_id='id_organization_type'), css_class='col-md-6'),
-                    Div(Field('role', css_id='id_role'), css_class='col-md-6'),
-                    css_class='row mb-3'
-                ),
-            ),
-
-            # Organization Information - dynamically shown based on organization type
-            Fieldset(
-                'Organization Information',
-                Div(
-                    Div(Field('province', css_id='id_province'), css_class='col-md-12'),
-                    css_class='row mb-3 org-field province-field',
-                    css_id='province-container',
-                    style='display:none;'
-                ),
-                Div(
-                    Div(Field('region', css_id='id_region'), css_class='col-md-12'),
-                    css_class='row mb-3 org-field region-field',
-                    css_id='region-container',
-                    style='display:none;'
-                ),
-                Div(
-                    Div(Field('local_federation', css_id='id_local_federation'), css_class='col-md-12'),
-                    css_class='row mb-3 org-field lfa-field',
-                    css_id='lfa-container',
-                    style='display:none;'
-                ),
-                Div(
-                    Div(Field('club', css_id='id_club'), css_class='col-md-12'),
-                    css_class='row mb-3 org-field club-field',
-                    css_id='club-container',
-                    style='display:none;'
-                ),
-                css_id='organization-section'
-            ),
-            
-            # Association Information - separate section for clarity
-            Fieldset(
-                'Referee Association',
-                Div(
-                    Div(Field('association', css_id='id_association'), css_class='col-md-12'),
-                    HTML('<div class="form-text mb-3">Select the referee association you are affiliated with</div>'),
-                    css_class='row mb-3'
-                )
-            ),
-            
-            # Identity Information
-            Fieldset(
-                'Identity Information',
-                Div(
-                    Div(Field('id_document_type', css_id='id_id_document_type'), css_class='col-md-4'),
-                    Div(
-                        Field('id_number', css_id='id_id_number'),
-                        HTML('<div id="id_number_error" class="text-danger" style="display:none;"></div>'),
-                        css_class='col-md-4',
-                        css_id='id_number_box'
-                    ),
-                    Div(
-                        Field('passport_number', css_id='id_passport_number'),
-                        css_class='col-md-4',
-                        css_id='passport_box',
-                        style='display:none;'
-                    ),
-                    Div(
-                        Field('id_number_other', css_id='id_id_number_other'),
-                        css_class='col-md-4',
-                        css_id='id_number_other_box',
-                        style='display:none;'
-                    ),
-                    css_class='row mb-3'
-                ),
-                Div(
-                    Div(Field('date_of_birth', css_id='id_date_of_birth'), css_class='col-md-6'),
-                    Div(Field('gender', css_id='id_gender'), css_class='col-md-6'),
-                    css_class='row mb-3'
-                ),
-                Div(
-                    Div(Field('id_document', css_id='id_id_document'), css_class='col-md-12'),
-                    css_class='row mb-3'
-                ),
-            ),
-            
-            # Compliance Section (including profile photo)
-            Fieldset(
-                'Compliance Requirements',
-                Div(
-                    Div(Field('profile_photo', css_id='id_profile_photo'), css_class='col-md-12'),
-                    HTML('<div class="form-text mb-3">Please upload a clear profile photo for identification</div>'),
-                    css_class='row mb-3'
-                ),
-                Div(
-                    Field('popi_act_consent', css_class='form-check-input'),
-                    HTML('<div class="mt-2"><small class="text-muted">By checking this box, you consent to the POPI Act terms</small></div>'),
-                    css_class='form-check'
-                ),
-            ),
-            
-            # Submit button
-            Div(
-                Submit('submit', 'Register', css_class='btn btn-primary'),
-                css_class='d-grid gap-2 mt-4'
-            ),
-            
-            # JavaScript for field toggling
-            HTML('''
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // ID Type field toggling
-                    const idTypeSelect = document.getElementById('id_id_document_type');
-                    const idNumberBox = document.getElementById('id_number_box');
-                    const passportBox = document.getElementById('passport_box');
-                    const otherIdBox = document.getElementById('id_number_other_box');
-                    
-                    function updateIdFields() {
-                        const selectedValue = idTypeSelect.value;
-                        
-                        // Hide all ID fields first
-                        idNumberBox.style.display = 'none';
-                        passportBox.style.display = 'none';
-                        otherIdBox.style.display = 'none';
-                        
-                        // Show the appropriate field
-                        if (selectedValue === 'ID') {
-                            idNumberBox.style.display = 'block';
-                        } else if (selectedValue === 'PP') {
-                            passportBox.style.display = 'block';
-                        } else if (selectedValue === 'OT') {
-                            otherIdBox.style.display = 'block';
-                        }
-                    }
-                    
-                    // Initial state
-                    updateIdFields();
-                    
-                    // Add change listener
-                    idTypeSelect.addEventListener('change', updateIdFields);
-                    
-                    // Dynamic geographic fields based on role
-                    const roleSelect = document.getElementById('id_role');
-                    const geoSection = document.getElementById('geographic-section');
-                    
-                    function updateGeoFields() {
-                        const role = roleSelect.value;
-                        
-                        if (role === 'ADMIN_NATIONAL') {
-                            geoSection.style.display = 'none';
-                        } else {
-                            geoSection.style.display = 'block';
-                        }
-                    }
-                    
-                    // Initial state
-                    updateGeoFields();
-                    
-                    // Add change listener
-                    roleSelect.addEventListener('change', function() {
-                        updateGeoFields();
-                        // Also update organization fields when role changes
-                        if (typeof updateOrgFields === 'function') {
-                            updateOrgFields();
-                        }
-                    });
-                    
-                    // Organization type handling - add data attributes to options first
-                    const orgTypeSelect = document.getElementById('id_organization_type');
-                    // Add data-level attribute to each option
-                    Array.from(orgTypeSelect.options).forEach(option => {
-                        if (option.value) {
-                            const text = option.text;
-                            if (text.includes('National')) option.setAttribute('data-level', 'NATIONAL');
-                            else if (text.includes('Province')) option.setAttribute('data-level', 'PROVINCE');
-                            else if (text.includes('Region')) option.setAttribute('data-level', 'REGION');
-                            else if (text.includes('Local') || text.includes('LFA')) option.setAttribute('data-level', 'LFA');
-                            else if (text.includes('Club')) option.setAttribute('data-level', 'CLUB');
-                        }
-                    });
-                    
-                    // Get all organization field containers
-                    const nationalFederationContainer = document.getElementById('national-federation-container');
-                    const provinceContainer = document.getElementById('province-container');
-                    const regionContainer = document.getElementById('region-container');
-                    const lfaContainer = document.getElementById('lfa-container');
-                    const clubContainer = document.getElementById('club-container');
-                    // Association container is always shown, no need to reference it here
-                    
-                    // Function to update visible organization fields
-                    function updateOrgFields() {
-                        // Get selected organization type level
-                        const selectedOption = orgTypeSelect.options[orgTypeSelect.selectedIndex];
-                        const orgLevel = selectedOption.getAttribute('data-level');
-                        
-                        // Hide all organization fields first
-                        document.querySelectorAll('.org-field').forEach(field => {
-                            field.style.display = 'none';
-                        });
-                        
-                        // Show relevant fields based on organization type
-                        switch(orgLevel) {
-                            case 'NATIONAL':
-                                nationalFederationContainer.style.display = 'flex';
-                                break;
-                            case 'PROVINCE':
-                                provinceContainer.style.display = 'flex';
-                                break;
-                            case 'REGION':
-                                provinceContainer.style.display = 'flex';
-                                regionContainer.style.display = 'flex';
-                                break;
-                            case 'LFA':
-                                provinceContainer.style.display = 'flex';
-                                regionContainer.style.display = 'flex';
-                                lfaContainer.style.display = 'flex';
-                                break;
-                            case 'CLUB':
-                                provinceContainer.style.display = 'flex';
-                                regionContainer.style.display = 'flex';
-                                lfaContainer.style.display = 'flex';
-                                clubContainer.style.display = 'flex';
-                                break;
-                        }
-                        
-                        // Association field is always visible, no need to conditionally show it
-                    }
-                    
-                    // Set initial state
-                    updateOrgFields();
-                    
-                    // Add change listeners
-                    orgTypeSelect.addEventListener('change', updateOrgFields);
-                });
-            </script>
-            '''),
-        )
+        
 
     def clean_id_number(self):
         """Validate that the ID number is unique"""
@@ -707,6 +487,29 @@ class UniversalRegistrationForm(forms.ModelForm):
                     print(f"[DEBUG - REFEREE REG] Created and set national federation to: {safa}")
             except Exception as e:
                 print(f"[DEBUG - REFEREE REG] Error setting SAFA national federation: {e}")
+        elif role == 'ADMIN_NATIONAL_ACCOUNTS':
+            print("[DEBUG - NATIONAL ACCOUNTS REG] Special handling for ADMIN_NATIONAL_ACCOUNTS role")
+            from .models import OrganizationType
+            from geography.models import NationalFederation
+            try:
+                # Get or create NATIONAL organization type
+                national_org_type, _ = OrganizationType.objects.get_or_create(
+                    level='NATIONAL',
+                    defaults={'name': 'National Federation', 'requires_approval': False, 'is_active': True}
+                )
+                user.organization_type = national_org_type
+                print(f"[DEBUG - NATIONAL ACCOUNTS REG] Set organization type to: {national_org_type}")
+
+                # Get or create SAFA National Federation
+                safa_federation, _ = NationalFederation.objects.get_or_create(
+                    name="South African Football Association",
+                    defaults={'acronym': "SAFA", 'country_id': 1}
+                )
+                user.national_federation = safa_federation
+                print(f"[DEBUG - NATIONAL ACCOUNTS REG] Set national federation to: {safa_federation}")
+
+            except Exception as e:
+                print(f"[DEBUG - NATIONAL ACCOUNTS REG] Error setting organization type or national federation: {e}")
         else:
             # Standard organization type handling for non-referee roles
             org_type = self.cleaned_data.get('organization_type')
@@ -757,70 +560,87 @@ class UniversalRegistrationForm(forms.ModelForm):
         print(f"[DEBUG - REFEREE REG] All form cleaned data keys: {list(self.cleaned_data.keys())}")
         
         # Save the association from the form data, ensure it's always checked
-        association_id = self.cleaned_data.get('association') or self.data.get('association')
-        if association_id:
-            from geography.models import Association, NationalFederation
-            try:
-                # Get the association
-                if isinstance(association_id, Association):
-                    user.association = association_id
-                else:
-                    user.association = Association.objects.get(pk=association_id)
-                
-                print(f"[DEBUG - REFEREE REG] Association set to: {user.association}")
-                
-                # If the association doesn't have a national federation, set it to SAFA
-                if not user.association.national_federation:
-                    # Get or create SAFA
-                    safa = NationalFederation.objects.filter(
-                        name__icontains="South African Football").first()
-                    
-                    if not safa:
-                        safa = NationalFederation.objects.create(
-                            name="South African Football Association",
-                            acronym="SAFA",
-                            country_id=1  # Assuming South Africa has ID 1
-                        )
-                    
-                    # Set the association's national federation to SAFA and save it
-                    user.association.national_federation = safa
-                    user.association.save()
-                    print(f"[DEBUG - REFEREE REG] Updated association's national federation to: {safa}")
-                
-                # Make sure the user's national federation matches the association's
-                user.national_federation = user.association.national_federation
-                print(f"[DEBUG - REFEREE REG] Set user's national federation to match association: {user.national_federation}")
-                
-            except Exception as e:
-                print(f"[DEBUG - REFEREE REG] Error setting association: {e}")
+        # For ADMIN_NATIONAL_ACCOUNTS, the association field should be None
+        if role == 'ADMIN_NATIONAL_ACCOUNTS':
+            user.association = None
+            print("[DEBUG - NATIONAL ACCOUNTS REG] Association explicitly set to None for ADMIN_NATIONAL_ACCOUNTS role.")
         else:
-            print("[DEBUG - REFEREE REG] No association selected in form, trying to set to SAFRA (ID: 11)")
-            # If no association is selected and the role is ASSOCIATION_ADMIN, try to set SAFRA as default
-            if role == 'ASSOCIATION_ADMIN':
+            association_id = self.cleaned_data.get('association') or self.data.get('association')
+            if association_id:
+                from geography.models import Association, NationalFederation
                 try:
-                    from geography.models import Association, NationalFederation
-                    # Try to get SAFRA with ID 11
-                    safra_assoc = Association.objects.filter(id=11).first()
-                    if safra_assoc:
-                        print(f"[DEBUG - REFEREE REG] Found SAFRA: {safra_assoc.name} (ID: {safra_assoc.id})")
-                        user.association = safra_assoc
-                        
-                        # Make sure the user's national federation matches the association's
-                        if safra_assoc.national_federation:
-                            user.national_federation = safra_assoc.national_federation
-                        print(f"[DEBUG - REFEREE REG] Set default SAFRA as association: {user.association}")
+                    # Get the association
+                    if isinstance(association_id, Association):
+                        user.association = association_id
                     else:
-                        print("[DEBUG - REFEREE REG] SAFRA association with ID 11 not found")
+                        user.association = Association.objects.get(pk=association_id)
+                    
+                    print(f"[DEBUG - REFEREE REG] Association set to: {user.association}")
+                    
+                    # If the association doesn't have a national federation, set it to SAFA
+                    if not user.association.national_federation:
+                        # Get or create SAFA
+                        safa = NationalFederation.objects.filter(
+                            name__icontains="South African Football").first()
+                        
+                        if not safa:
+                            safa = NationalFederation.objects.create(
+                                name="South African Football Association",
+                                acronym="SAFA",
+                                country_id=1  # Assuming South Africa has ID 1
+                            )
+                        
+                        # Set the association's national federation to SAFA and save it
+                        user.association.national_federation = safa
+                        user.association.save()
+                        print(f"[DEBUG - REFEREE REG] Updated association's national federation to: {safa}")
+                    
+                    # Make sure the user's national federation matches the association's
+                    user.national_federation = user.association.national_federation
+                    print(f"[DEBUG - REFEREE REG] Set user's national federation to match association: {user.national_federation}")
+                    
                 except Exception as e:
-                    print(f"[DEBUG - REFEREE REG] Error setting SAFRA as default association: {e}")
+                    print(f"[DEBUG - REFEREE REG] Error setting association: {e}")
+            else:
+                print("[DEBUG - REFEREE REG] No association selected in form, trying to set to SAFRA (ID: 11)")
+                # If no association is selected and the role is ASSOCIATION_ADMIN, try to set SAFRA as default
+                if role == 'ASSOCIATION_ADMIN':
+                    try:
+                        from geography.models import Association, NationalFederation
+                        # Try to get SAFRA with ID 11
+                        safra_assoc = Association.objects.filter(id=11).first()
+                        if safra_assoc:
+                            print(f"[DEBUG - REFEREE REG] Found SAFRA: {safra_assoc.name} (ID: {safra_assoc.id})")
+                            user.association = safra_assoc
+                            
+                            # Make sure the user's national federation matches the association's
+                            if safra_assoc.national_federation:
+                                user.national_federation = safra_assoc.national_federation
+                            print(f"[DEBUG - REFEREE REG] Set default SAFRA as association: {user.association}")
+                        else:
+                            print("[DEBUG - REFEREE REG] SAFRA association with ID 11 not found")
+                    except Exception as e:
+                        print(f"[DEBUG - REFEREE REG] Error setting SAFRA as default association: {e}")
 
         if role in ['ADMIN_NATIONAL', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'CLUB_ADMIN']:
             user.is_staff = True
         user.country_code = 'ZAF'
         user.nationality = 'South African'
         user.popi_act_consent = self.cleaned_data.get('popi_act_consent')
+        # Generate SAFA ID if not provided
+        if not user.safa_id:
+            from .utils import generate_unique_safa_id
+            user.safa_id = generate_unique_safa_id()
+
+        # Set default status and approval status
+        user.status = 'PENDING'
+        user.is_approved = False
+
         if commit:
             user.save()
+            # Save the many-to-many relationship for positions
+            if self.cleaned_data.get('positions'):
+                user.positions.set(self.cleaned_data['positions'])
             print(f"[DEBUG] User saved with region: {user.region} (pk={getattr(user.region, 'pk', None)})")
             print(f"[DEBUG - REFEREE REG] User successfully saved: {user.email}, association: {user.association}")
         return user
@@ -840,6 +660,90 @@ class ClubAdminPlayerRegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False  # We'll handle the <form> tag and CSRF token in the template
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Field('first_name'),
+                    Field('last_name'),
+                    Field('id_document_type'),
+                    Div(
+                        Field('id_number'),
+                        css_class='id-number-field'
+                    ),
+                    Div(
+                        Field('has_sa_passport'),
+                        Div(
+                            Field('sa_passport_number'),
+                            css_class='sa-passport-number-field', style='display:none;'
+                        ),
+                        css_class='sa-passport-section id-number-only', style='display:none;'
+                    ),
+                    Div(
+                        Field('passport_number'),
+                        css_class='passport-field', style='display:none;'
+                    ),
+                    Field('safa_id'),
+                    Field('fifa_id'),
+                    css_class='col-md-6'
+                ),
+                Div(
+                    Div(
+                        HTML("""
+                            <div id="div_id_date_of_birth" class="form-group">
+                                <label for="id_date_of_birth">Date of birth</label>
+                                <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth" disabled>
+                                <small class="form-text text-muted">Auto-populated from ID number or enter manually for passport</small>
+                            </div>
+                        """),
+                        css_class='mb-3'
+                    ),
+                    Div(
+                        HTML("""
+                            <div id="div_id_gender" class="form-group">
+                                <label for="id_gender">Gender</label>
+                                <select name="gender" class="form-control" id="id_gender" disabled>
+                                    <option value="">---------</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                </select>
+                                <small class="form-text text-muted">Auto-populated from ID number or select for passport</small>
+                            </div>
+                        """),
+                        css_class='mb-3'
+                    ),
+                    Div(
+                        Field('sa_passport_document'),
+                        css_class='mb-3 sa-passport-document-field', style='display:none;'
+                    ),
+                    Div(
+                        Field('sa_passport_expiry_date'),
+                        css_class='mb-3 sa-passport-expiry-field', style='display:none;'
+                    ),
+                    css_class='col-md-6'
+                ),
+                css_class='row'
+            ),
+            HTML('<hr>'),
+            Fieldset(
+                'Documents & Player Information',
+                HTML('<p class="text-muted small">These documents are required for initial registration only</p>'),
+                Div(
+                    Div(
+                        Field('profile_picture'),
+                        css_class='col-md-6'
+                    ),
+                    Div(
+                        Field('id_document'),
+                        css_class='col-md-6'
+                    ),
+                    css_class='row'
+                )
+            ),
+            HTML('<hr>'),
+            Field('popi_consent')
+        )
         # Make gender and email hidden fields
         self.fields['gender'].widget = forms.HiddenInput()
         self.fields['email'].widget = forms.HiddenInput()
@@ -899,6 +803,41 @@ class ClubAdminPlayerRegistrationForm(forms.ModelForm):
         self.fields['sa_passport_expiry_date'].widget = forms.DateInput(
             attrs={'type': 'date', 'class': 'form-control', 'min': datetime.date.today().isoformat()}
         )
+
+        if self.instance and self.instance.pk:
+            # If an instance is provided (i.e., editing an existing player)
+            # Disable fields that should not be changed after initial registration
+            self.fields['first_name'].widget.attrs['readonly'] = True
+            self.fields['last_name'].widget.attrs['readonly'] = True
+            self.fields['id_document_type'].widget.attrs['disabled'] = True
+            self.fields['id_number'].widget.attrs['readonly'] = True
+            self.fields['passport_number'].widget.attrs['readonly'] = True
+            self.fields['gender'].widget.attrs['disabled'] = True
+            self.fields['date_of_birth'].widget.attrs['readonly'] = True
+            self.fields['email'].widget.attrs['readonly'] = True # Email is auto-generated, should not be changed
+            self.fields['safa_id'].widget.attrs['readonly'] = True
+            self.fields['fifa_id'].widget.attrs['readonly'] = True
+            self.fields['popi_consent'].widget.attrs['disabled'] = True # Consent is given once
+
+            # If SA ID is selected, hide passport fields and vice versa
+            if self.instance.id_document_type == 'ID':
+                self.fields['passport_number'].widget = forms.HiddenInput()
+                self.fields['passport_number'].required = False
+            elif self.instance.id_document_type == 'PP':
+                self.fields['id_number'].widget = forms.HiddenInput()
+                self.fields['id_number'].required = False
+                self.fields['has_sa_passport'].widget = forms.HiddenInput()
+                self.fields['has_sa_passport'].required = False
+                self.fields['sa_passport_number'].widget = forms.HiddenInput()
+                self.fields['sa_passport_number'].required = False
+                self.fields['sa_passport_document'].widget = forms.HiddenInput()
+                self.fields['sa_passport_document'].required = False
+                self.fields['sa_passport_expiry_date'].widget = forms.HiddenInput()
+                self.fields['sa_passport_expiry_date'].required = False
+
+            # Ensure hidden fields are not required
+            for field_name in ['gender', 'email', 'date_of_birth']:
+                self.fields[field_name].required = False
 
     class Meta:
         model = Player
@@ -1058,6 +997,72 @@ class ClubAdminPlayerRegistrationForm(forms.ModelForm):
             
         return cleaned_data
 
+class PlayerLookupForm(forms.Form):
+    safa_id = forms.CharField(
+        max_length=5, 
+        required=False, 
+        label="SAFA ID",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter existing SAFA ID'
+        }),
+        help_text="Enter the player's existing SAFA ID."
+    )
+    id_number = forms.CharField(
+        max_length=13, 
+        required=False, 
+        label="SA ID Number",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit SA ID number'
+        }),
+        help_text="Alternatively, enter the player's SA ID number."
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        safa_id = cleaned_data.get('safa_id')
+        id_number = cleaned_data.get('id_number')
+
+        if not safa_id and not id_number:
+            raise forms.ValidationError("Either SAFA ID or SA ID Number is required.")
+        
+        return cleaned_data
+
+
+class OfficialLookupForm(forms.Form):
+    safa_id = forms.CharField(
+        max_length=5, 
+        required=False, 
+        label="SAFA ID",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter existing SAFA ID'
+        }),
+        help_text="Enter the official's existing SAFA ID."
+    )
+    id_number = forms.CharField(
+        max_length=13, 
+        required=False, 
+        label="SA ID Number",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 13-digit SA ID number'
+        }),
+        help_text="Alternatively, enter the official's SA ID number."
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        safa_id = cleaned_data.get('safa_id')
+        id_number = cleaned_data.get('id_number')
+
+        if not safa_id and not id_number:
+            raise forms.ValidationError("Either SAFA ID or SA ID Number is required.")
+        
+        return cleaned_data
+
+
 class PlayerClubRegistrationOnlyForm(forms.ModelForm):
     class Meta:
         model = PlayerClubRegistration
@@ -1068,8 +1073,10 @@ class PlayerUpdateForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Set has_sa_passport to False by default
-        if not self.instance.has_sa_passport:
+        # Set has_sa_passport initial value based on instance or default to False
+        if self.instance and self.instance.pk:
+            self.fields['has_sa_passport'].initial = self.instance.has_sa_passport
+        else:
             self.fields['has_sa_passport'].initial = False
         # Help text for the checkbox
         self.fields['has_sa_passport'].help_text = "Optional: Check if player has a South African passport (for record purposes only)"
@@ -1258,6 +1265,68 @@ class ClubAdminOfficialRegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    'first_name',
+                    'last_name',
+                    'id_document_type',
+                    Div('id_number', css_class='id-number-field'),
+                    Div('passport_number', css_class='passport-field', style='display:none;'),
+                    'safa_id',
+                    'fifa_id',
+                    css_class='col-md-6'
+                ),
+                Div(
+                    HTML("""
+                        <div class="mb-3">
+                            <div id="div_id_date_of_birth" class="form-group">
+                                <label for="id_date_of_birth">Date of birth</label>
+                                <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth" disabled>
+                                <small class="form-text text-muted">Auto-populated from ID number or enter manually for passport</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div id="div_id_gender" class="form-group">
+                                <label for="id_gender">Gender</label>
+                                <select name="gender" class="form-control" id="id_gender" disabled>
+                                    <option value="">---------</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                </select>
+                                <small class="form-text text-muted">Auto-populated from ID number or select for passport</small>
+                            </div>
+                        </div>
+                    """),
+                    'position',
+                    Div('referee_level', css_class='referee-field', style='display:none;'),
+                    css_class='col-md-6'
+                ),
+                css_class='row'
+            ),
+            Fieldset(
+                'Certification Information',
+                Div(
+                    Div('certification_number', css_class='col-md-4'),
+                    Div('certification_document', css_class='col-md-4'),
+                    Div('certification_expiry_date', css_class='col-md-4'),
+                    css_class='row'
+                ),
+                css_id='certification-section'
+            ),
+            Fieldset(
+                'Documents & Official Information',
+                Div(
+                    Div('profile_picture', css_class='col-md-6'),
+                    Div('id_document', css_class='col-md-6'),
+                    css_class='row'
+                )
+            ),
+            'popi_consent'
+        )
+
         # Make gender and email hidden fields
         self.fields['gender'].widget = forms.HiddenInput()
         self.fields['email'].widget = forms.HiddenInput()

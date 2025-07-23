@@ -48,7 +48,8 @@ class Member(TimeStampedModel):
     ]
 
     MEMBERSHIP_STATUS = [
-        ('PENDING', 'Pending Approval'),
+        ('PENDING', 'Pending'),
+        ('PENDING_APPROVAL', 'Pending Approval'),
         ('ACTIVE', 'Active'),
         ('INACTIVE', 'Inactive'),
         ('SUSPENDED', 'Suspended'),
@@ -97,7 +98,7 @@ class Member(TimeStampedModel):
     # SAFA Membership Information
     status = models.CharField(
         _("Membership Status"),
-        max_length=10,
+        max_length=20,
         choices=MEMBERSHIP_STATUS,
         default='PENDING'
     )
@@ -503,6 +504,11 @@ class Player(Member):
     def save(self, *args, **kwargs):
         # Force role to be PLAYER before saving
         self.role = 'PLAYER'
+        # Synchronize status with is_approved
+        if self.is_approved:
+            self.status = 'ACTIVE'
+        else:
+            self.status = 'PENDING'
         super().save(*args, **kwargs)
 
 class Official(Member):
@@ -706,7 +712,7 @@ class PlayerClubRegistration(TimeStampedModel):
     # Registration Details
     registration_date = models.DateField(_("Registration Date"), default=timezone.now)
     status = models.CharField(_("Status"), max_length=20,
-                            choices=STATUS_CHOICES, default='INACTIVE')
+                            choices=STATUS_CHOICES, default='PENDING')
     expiry_date = models.DateField(_("Registration Expiry"), null=True, blank=True)
 
     # Playing Details
@@ -1174,7 +1180,8 @@ class Invoice(TimeStampedModel):
     content_object = GenericForeignKey('content_type', 'object_id')
     
     # Financial details
-    amount = models.DecimalField(_("Amount"), max_digits=10, decimal_places=2)
+    amount = models.DecimalField(_("Total Amount"), max_digits=10, decimal_places=2)
+    paid_amount = models.DecimalField(_("Amount Paid"), max_digits=10, decimal_places=2, default=0.00)
     tax_amount = models.DecimalField(_("Tax Amount"), max_digits=10, decimal_places=2, default=0)
     
     # Dates
@@ -1184,6 +1191,7 @@ class Invoice(TimeStampedModel):
     
     # Payment details
     payment_method = models.CharField(_("Payment Method"), max_length=50, blank=True)
+    payment_reference = models.CharField(_("Payment Reference"), max_length=100, blank=True, help_text="Reference number for the payment")
     notes = models.TextField(_("Notes"), blank=True)
     
     class Meta:
@@ -1236,7 +1244,11 @@ class Invoice(TimeStampedModel):
 
     @property
     def is_paid(self):
-        return self.status == 'PAID'
+        return self.status == 'PAID' or self.paid_amount >= self.amount
+
+    @property
+    def outstanding_amount(self):
+        return self.amount - self.paid_amount
 
     @property
     def is_overdue(self):

@@ -128,7 +128,7 @@
                                 {% if is_association %}
                                 <th>Official</th>
                                 {% else %}
-                                <th>Person</th>
+                                <th>Member</th>
                                 {% endif %}
                                 <th>Type</th>
                                 <th>Amount</th>
@@ -148,7 +148,7 @@
                                             {{ invoice.official.first_name }} {{ invoice.official.last_name }}
                                         </a>
                                         {% elif invoice.player %}
-                                        <a href="{% url 'accounts:player_detail' invoice.player.id %}">
+                                        <a href="{% url 'accounts:player_detail' invoice.player.safa_id %}">
                                             {{ invoice.player.first_name }} {{ invoice.player.last_name }}
                                         </a>
                                         {% elif invoice.official %}

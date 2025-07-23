@@ -354,7 +354,7 @@ def create_player_invoice(player, club, issued_by, is_junior=False):
         registration_type = "Junior Registration" if is_junior else "Senior Registration"
         
         # Generate a reference number using player membership number or ID
-        reference = f"REG-{player.membership_number or player.id}-{timezone.now().strftime('%Y%m%d')}"
+        invoice_number_prefix = f"REG-{player.membership_number or player.id}-{timezone.now().strftime('%Y%m%d')}"
 
         with transaction.atomic():
             # Create invoice
@@ -366,7 +366,7 @@ def create_player_invoice(player, club, issued_by, is_junior=False):
                 player=player,
                 club=club,
                 issued_by=issued_by,
-                reference=reference
+                invoice_number=invoice_number_prefix # Use invoice_number field
             )
             invoice.save()
             
@@ -434,7 +434,7 @@ def create_official_invoice(official, club=None, association=None, issued_by=Non
                 fee_amount = 200.00
         
         # Generate a reference number
-        reference = f"REG-OFF-{official.membership_number or official.id}-{timezone.now().strftime('%Y%m%d')}"
+        invoice_number_prefix = f"REG-OFF-{official.membership_number or official.id}-{timezone.now().strftime('%Y%m%d')}"
 
         with transaction.atomic():
             # Create invoice
@@ -448,7 +448,7 @@ def create_official_invoice(official, club=None, association=None, issued_by=Non
                 club=club,
                 association=association,
                 issued_by=issued_by,
-                reference=reference
+                invoice_number=invoice_number_prefix # Use invoice_number field
             )
             invoice.save()
             

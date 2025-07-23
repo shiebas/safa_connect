@@ -55,7 +55,7 @@ class MemberDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        if user.is_superuser or user.is_staff:
+        if user.is_superuser or user.is_staff or user.role in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS']:
             return qs
         # Club admins can only see members associated with their club
         if hasattr(user, 'member_profile') and user.member_profile.role == 'CLUB_ADMIN' and user.member_profile.club:
@@ -101,7 +101,7 @@ class PlayerDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        if user.is_superuser or user.is_staff:
+        if user.is_superuser or user.is_staff or user.role in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS']:
             return qs
         # Club admins can only see players associated with their club
         if hasattr(user, 'member_profile') and user.member_profile.role == 'CLUB_ADMIN' and user.member_profile.club:

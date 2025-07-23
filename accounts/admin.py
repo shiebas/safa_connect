@@ -159,7 +159,7 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     
     list_display = [
-        'email', 'get_full_name', 'role', 'get_organization', 'position', 'employment_status', 'popi_act_consent',
+        'email', 'get_full_name', 'role', 'get_organization', 'display_positions', 'employment_status', 'popi_act_consent',
         'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other',
         'membership_status', 'club_membership_verified', 'safa_id', 'is_active', 'date_joined'  # removed 'age'
     ]
@@ -173,6 +173,10 @@ class CustomUserAdmin(UserAdmin):
     ordering = ['email']
     
     actions = ['activate_users', 'deactivate_users']
+
+    def display_positions(self, obj):
+        return ", ".join([position.title for position in obj.positions.all()])
+    display_positions.short_description = 'Positions'
     
     def activate_users(self, request, queryset):
         """Admin action to activate selected users"""
@@ -192,7 +196,7 @@ class CustomUserAdmin(UserAdmin):
         ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),  # removed 'age'
         ('SAFA Structure', {
             'fields': (
-                'role', 'employment_status', 'position', 
+                'role', 'employment_status', 'positions', 
                 'organization_type',
                 'national_federation', 'province', 'region', 'local_federation', 'association', 'club',
                 'club_membership_number', 'club_membership_verified'
@@ -219,36 +223,55 @@ class CustomUserAdmin(UserAdmin):
     
     def activate_membership(self, request, queryset):
         """Activate selected memberships and generate SAFA IDs"""
+        from membership.models import Invoice # Import Invoice model
         activated_count = 0
+        skipped_count = 0
         for user in queryset.filter(membership_status='PENDING'):
-            user.membership_status = 'ACTIVE'
-            user.membership_approved_date = timezone.now()
-            
-            # Generate clean SAFA ID without random/PROV
-            if not user.safa_id:
-                user.generate_safa_id()
-            
-            user.save()
-            activated_count += 1
-            
-            # Create digital card automatically
-            from membership_cards.models import DigitalCard
-            try:
-                DigitalCard.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        'expires_date': timezone.now().date() + timezone.timedelta(days=365),
-                        'status': 'ACTIVE'
-                    }
-                )
-            except:
-                pass
+            # Check if there's a paid invoice for this user
+            # Assuming a user has one primary invoice for their membership registration
+            invoice = Invoice.objects.filter(player=user, invoice_type='REGISTRATION', status='PAID').first()
+            if not invoice:
+                invoice = Invoice.objects.filter(official=user, invoice_type='REGISTRATION', status='PAID').first()
+
+            if invoice and invoice.is_paid:
+                user.membership_status = 'ACTIVE'
+                user.membership_approved_date = timezone.now()
+                
+                # Generate clean SAFA ID without random/PROV
+                if not user.safa_id:
+                    user.generate_safa_id()
+                
+                user.save()
+                activated_count += 1
+                
+                # Create digital card automatically
+                from membership_cards.models import DigitalCard
+                try:
+                    DigitalCard.objects.get_or_create(
+                        user=user,
+                        defaults={
+                            'expires_date': timezone.now().date() + timezone.timedelta(days=365),
+                            'status': 'ACTIVE'
+                        }
+                    )
+                except:
+                    pass
+            else:
+                skipped_count += 1
+                self.message_user(request, f"Membership for {user.get_full_name()} (SAFA ID: {user.safa_id or 'N/A'}) cannot be activated. Payment not yet verified.", messages.WARNING)
         
-        self.message_user(
-            request,
-            f'{activated_count} memberships activated and SAFA IDs generated',
-            messages.SUCCESS
-        )
+        if activated_count > 0:
+            self.message_user(
+                request,
+                f'{activated_count} memberships activated and SAFA IDs generated',
+                messages.SUCCESS
+            )
+        if skipped_count > 0:
+            self.message_user(
+                request,
+                f'{skipped_count} memberships skipped due to unverified payment.',
+                messages.WARNING
+            )
     activate_membership.short_description = "Activate selected memberships"
     
     def suspend_membership(self, request, queryset):
@@ -306,6 +329,10 @@ class CustomUserAdmin(UserAdmin):
                 if obj.national_federation:
                     return f"National: {obj.national_federation.name}"
                 return "National: SAFA"
+            elif obj.role == 'ADMIN_NATIONAL_ACCOUNTS':
+                if obj.national_federation:
+                    return f"National Accounts: {obj.national_federation.name}"
+                return "National Accounts: SAFA"
             elif obj.role == 'ADMIN_PROVINCE':
                 if obj.province:
                     return f"Province: {obj.province.name}"

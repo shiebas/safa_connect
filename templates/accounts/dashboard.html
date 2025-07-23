@@ -478,7 +478,8 @@
         </div>
         {% endif %}
 
-        <!-- Digital Membership Card - Available to all users -->
+        {% if user.role != "ADMIN_NATIONAL" %}
+        <!-- Digital Membership Card - Available to all users except National Admin -->
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
@@ -489,6 +490,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 <!-- Optionally include Bootstrap Icons CDN if not already present -->

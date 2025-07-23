@@ -116,17 +116,17 @@
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-secondary">Back to List</a>
                         <div>
-                            <a href="{% url 'accounts:edit_player' player.id %}" class="btn btn-primary me-2">
+                            <a href="{% url 'accounts:edit_player' player.safa_id %}" class="btn btn-sm btn-primary ms-1">Edit</a>
                                 <i class="fas fa-edit"></i> Edit Player
                             </a>
                             
                             {% if not player.is_approved %}
-                                <form method="post" action="{% url 'accounts:approve_player' player.id %}" style="display: inline;">
+                                <form method="post" action="{% url 'accounts:approve_player' player.safa_id %}" style="display: inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-success">Approve Player</button>
                                 </form>
                             {% else %}
-                                <form method="post" action="{% url 'accounts:unapprove_player' player.id %}" style="display: inline;">
+                                <form method="post" action="{% url 'accounts:unapprove_player' player.safa_id %}" style="display: inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-warning">Unapprove</button>
                                 </form>

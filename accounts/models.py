@@ -47,8 +47,9 @@ class CustomUserManager(BaseUserManager):
 
 ROLES = (
     ('ADMIN_NATIONAL', _('National Federation Admin')),
+    ('ADMIN_NATIONAL_ACCOUNTS', _('National Accounts Administrator')),
     ('ADMIN_PROVINCE', _('Provincial Administrator')),
-    ('ADMIN_REGION', _('Regionial Administrator')),
+    ('ADMIN_REGION', _('Regional Administrator')),
     ('ADMIN_LOCAL_FED', _('Local Federation Administrator')),
     ('CLUB_ADMIN', _('Club Administrator')),
     ('ASSOCIATION_ADMIN', _('Association Administrator')),
@@ -93,7 +94,7 @@ class Position(models.Model):
     title = models.CharField(max_length=100, unique=True)  # Make title unique across all levels
     description = models.TextField(blank=True)
     # Level is no longer a constraint but indicates where this position can be used
-    levels = models.CharField(max_length=100, default='NATIONAL,PROVINCE,REGION,LFA,CLUB', 
+    levels = models.CharField(max_length=100, default='NATIONAL,PROVINCE,REGION,LFA,CLUB',
                               help_text="Comma-separated list of levels where this position can be used")
     employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_STATUS)
     is_active = models.BooleanField(default=True)
@@ -180,7 +181,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
     )
 
     # Core Fields
-    role = models.CharField(max_length=20, choices=ROLES, default='ADMIN_PROVINCE')
+    role = models.CharField(max_length=30, choices=ROLES, default='ADMIN_PROVINCE')
     name = models.CharField(max_length=50, blank=True)
     middle_name = models.CharField(max_length=100, blank=True)
     surname = models.CharField(max_length=100, blank=True)
@@ -195,8 +196,8 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text=_("User's nationality")
     )
     birth_country = models.CharField(
-        max_length=3, 
-        default='ZAF', 
+        max_length=3,
+        default='ZAF',
         help_text=_("3-letter country code for country of birth")
     )
 
@@ -208,15 +209,15 @@ class CustomUser(AbstractUser, ModelWithLogo):
 
     # Simplify country handling for South African context
     country_code = models.CharField(
-        max_length=3, 
-        default='ZAF', 
+        max_length=3,
+        default='ZAF',
         blank=True,
         help_text=_("Default is ZAF for South African citizens")
     )
 
     # Identification - FIXED to handle empty values
     id_number = models.CharField(
-        max_length=20, 
+        max_length=20,
         blank=True,
         null=True,
         help_text=_("13-digit South African ID number for citizens")
@@ -240,7 +241,7 @@ class CustomUser(AbstractUser, ModelWithLogo):
     profile_photo = models.ImageField(upload_to='images/profile_photos/', blank=True, null=True)
     id_document = models.FileField(
         upload_to='documents/user_documents/',
-        null=True, 
+        null=True,
         blank=True
     )
 
@@ -261,24 +262,24 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text='Current membership status'
     )
     membership_paid_date = models.DateTimeField(
-        null=True, 
+        null=True,
         blank=True,
         help_text='Date when membership payment was received'
     )
     membership_activated_date = models.DateTimeField(
-        null=True, 
+        null=True,
         blank=True,
         help_text='Date when membership was activated by admin'
     )
     membership_expires_date = models.DateField(
-        null=True, 
+        null=True,
         blank=True,
         help_text='Date when membership expires (annual renewal)'
     )
     membership_fee_amount = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        null=True, 
+        max_digits=10,
+        decimal_places=2,
+        null=True,
         blank=True,
         verbose_name=_('Membership Fee (ZAR)'),
         help_text=_('Amount paid for membership in ZAR (South African Rand)')
@@ -316,13 +317,11 @@ class CustomUser(AbstractUser, ModelWithLogo):
         help_text=_("Employment/membership status within SAFA structure")
     )
 
-    # Add position field
-    position = models.ForeignKey(
+    # Add positions field (Many-to-Many)
+    positions = models.ManyToManyField(
         Position,
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
-        help_text=_("User's position within SAFA structure")
+        help_text=_("User's positions within SAFA structure")
     )
 
     # Add club membership verification for Members
@@ -348,8 +347,8 @@ class CustomUser(AbstractUser, ModelWithLogo):
 
     # Add driver_license_number field to the model
     driver_license_number = models.CharField(
-        max_length=25, 
-        blank=True, 
+        max_length=25,
+        blank=True,
         null=True,
         help_text="Driver's license number"
     )
@@ -441,12 +440,12 @@ class CustomUser(AbstractUser, ModelWithLogo):
         verbose_name_plural = 'Custom Users'
         constraints = [
             models.UniqueConstraint(
-                fields=['id_number'], 
+                fields=['id_number'],
                 name='unique_id_number',
                 condition=models.Q(id_number__isnull=False)
             ),
             models.UniqueConstraint(
-                fields=['passport_number'], 
+                fields=['passport_number'],
                 name='unique_passport_number',
                 condition=models.Q(passport_number__isnull=False)
             ),
@@ -737,6 +736,12 @@ class CustomUser(AbstractUser, ModelWithLogo):
                 'name': 'SAFA National Office',
                 'level': 'National Level'
             }
+        elif self.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            return {
+                'type': 'National Accounts',
+                'name': self.national_federation.name if self.national_federation else 'SAFA National Office',
+                'level': 'National Level'
+            }
         elif self.role == 'ADMIN_PROVINCE' and self.province:
             return {
                 'type': 'Province',
@@ -981,5 +986,5 @@ class DocumentAccessLog(models.Model):
         return f"{size:.1f} TB"
 
 
-    
+
 

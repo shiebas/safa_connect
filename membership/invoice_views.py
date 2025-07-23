@@ -365,12 +365,12 @@ def mark_invoice_paid(request, uuid):
                 registration.status = 'ACTIVE'
                 registration.save()
             
-            # Update player status if not already active
+            # Update player status to PENDING_APPROVAL
             if invoice.player.status != 'ACTIVE':
-                invoice.player.status = 'ACTIVE'
+                invoice.player.status = 'PENDING_APPROVAL'
                 invoice.player.save()
                 
-            messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid and player activated."))
+            messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid. Player is now pending approval."))
         except PlayerClubRegistration.DoesNotExist:
             messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid."))
             messages.warning(request, _("Player registration not found - player status unchanged."))

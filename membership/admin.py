@@ -355,7 +355,7 @@ class OfficialAdmin(LegacyMemberAdmin):
             'fields': ('safa_id', 'fifa_id', 'id_number', 'gender')
         }),
         (_('Membership Details'), {
-            'fields': ('role', 'status', 'registration_date', 'expiry_date', 'is_approved')
+            'fields': ('status', 'is_approved')
         }),
         (_('Position & Association'), {
             'fields': ('position', 'primary_association', 'associations', 'club')
@@ -488,6 +488,22 @@ class InvoiceItemInline(admin.TabularInline):
     fields = ('description', 'quantity', 'unit_price', 'sub_total')
     readonly_fields = ('sub_total',)
 
+class PlayerClubRegistrationInline(admin.TabularInline):
+    model = PlayerClubRegistration
+    extra = 0
+    fields = ('player', 'status', 'registration_date', 'position', 'jersey_number')
+    readonly_fields = ('player', 'registration_date')
+    raw_id_fields = ('player',)
+
+class OfficialInline(admin.TabularInline):
+    model = Official
+    fk_name = 'primary_association' # Specify the foreign key to use
+    extra = 0
+    fields = ('get_full_name', 'email', 'position', 'is_approved')
+    readonly_fields = ('get_full_name', 'email', 'position', 'is_approved')
+    can_delete = False
+    show_change_link = True
+
 
 @admin.register(Vendor)
 class VendorAdmin(admin.ModelAdmin):
@@ -559,7 +575,7 @@ class InvoiceAdmin(admin.ModelAdmin):
             'fields': ('player', 'club', 'official', 'association', 'vendor')
         }),
         (_('Financials'), {
-            'fields': ('amount', 'tax_amount', 'payment_method')
+            'fields': ('amount', 'paid_amount', 'tax_amount', 'payment_method', 'payment_reference')
         }),
         (_('Dates'), {
             'fields': ('issue_date', 'due_date', 'payment_date')
@@ -571,6 +587,36 @@ class InvoiceAdmin(admin.ModelAdmin):
             'fields': ('is_paid', 'is_overdue', 'created', 'modified'),
             'classes': ('collapse',)
         })
+    )
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            # Accounts Admin can only edit payment-related fields
+            for field_name in form.base_fields:
+                if field_name not in ['paid_amount', 'payment_reference', 'payment_method', 'notes', 'status']:
+                    form.base_fields[field_name].widget.attrs['readonly'] = True
+        return form
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser or request.user.role == 'ADMIN_NATIONAL':
+            return True
+        if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            return True # Accounts admin can change invoices
+        return False
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser or request.user.role == 'ADMIN_NATIONAL':
+            return qs
+        if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            # Accounts admin sees all invoices
+            return qs
+        return qs.none()
+
+    readonly_fields = (
+        'invoice_number', 'uuid', 'is_paid', 'is_overdue',
+        'get_payment_instructions', 'created', 'modified', 'amount', 'tax_amount', 'issue_date', 'due_date', 'player', 'club', 'official', 'association', 'vendor', 'issued_by'
     )
 
     def billed_to(self, obj):

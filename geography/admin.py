@@ -8,6 +8,7 @@ from .models import (
 )
 from django.utils.crypto import get_random_string
 from django.contrib import messages
+from membership.admin import PlayerClubRegistrationInline, OfficialInline
 
 # Admin classes for models that inherit from ModelWithLogo
 class ContinentFederationAdmin(ModelWithLogoAdmin):
@@ -73,6 +74,7 @@ class AssociationAdmin(ModelWithLogoAdmin):
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym', 'safa_id']
     readonly_fields = ('safa_id',)
+    inlines = [OfficialInline]
     
 @admin.action(description="Generate and assign unique SAFA IDs to selected regions")
 def generate_safa_ids(modeladmin, request, queryset):
@@ -102,6 +104,7 @@ class LocalFootballAssociationAdmin(admin.ModelAdmin):
     get_province.short_description = 'Province'
     get_province.admin_order_field = 'region__province__name'
 
+@admin.register(Club)
 class ClubAdmin(ModelWithLogoAdmin):
     list_display = [
         'name', 'localfootballassociation', 'region', 'province', 'status', 'safa_id', 'display_logo'
@@ -113,6 +116,7 @@ class ClubAdmin(ModelWithLogoAdmin):
         'name', 'localfootballassociation__name', 'region__name', 'province__name', 'safa_id'
     ]
     list_editable = []
+    inlines = [PlayerClubRegistrationInline]
     
 # Register models
 admin.site.register(WorldSportsBody)
@@ -124,7 +128,7 @@ admin.site.register(NationalFederation, NationalFederationAdmin)
 admin.site.register(Province, ProvinceAdmin)
 admin.site.register(LocalFootballAssociation, LocalFootballAssociationAdmin)
 admin.site.register(Association, AssociationAdmin)
-admin.site.register(Club, ClubAdmin)
+
 admin.site.register(OrganizationType)
 admin.site.register(OrganizationLevel)
 # Note: Region is registered using @admin.register decorator above, so no need to register it here

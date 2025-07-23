@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}National Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>National Admin Dashboard</h1>
+    <p>Welcome, {{ user.get_full_name }}.</p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Pending Player Approvals</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ pending_players }}</h5>
+                    <a href="{% url 'accounts:player_approval_list' %}?status=pending" class="text-white">View Details</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-secondary mb-3">
+                <div class="card-header">Pending Official Approvals</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ pending_officials }}</h5>
+                    <a href="#" class="text-white">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

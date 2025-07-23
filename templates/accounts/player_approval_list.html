@@ -89,6 +89,8 @@
                                     <td>
                                         {% if player.status == 'ACTIVE' %}
                                             <span class="badge bg-success">Approved</span>
+                                        {% elif player.status == 'PENDING_APPROVAL' %}
+                                            <span class="badge bg-info">Pending Approval</span>
                                         {% elif player.status == 'REJECTED' %}
                                             <span class="badge bg-danger">Rejected</span>
                                         {% else %}
@@ -140,19 +142,19 @@
                                     </td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="{% url 'accounts:player_detail' player.id %}" class="btn btn-sm btn-info">View</a>
-                                            <a href="{% url 'accounts:edit_player' player.id %}" class="btn btn-sm btn-primary ms-1">Edit</a>
+                                            <a href="{% url 'accounts:player_detail' player.safa_id %}" class="btn btn-sm btn-info">View</a>
+                                            <a href="{% url 'accounts:edit_player' player.safa_id %}" class="btn btn-sm btn-primary ms-1">Edit</a>
                                             {% if player.status == 'PENDING' %}
-                                                <form method="post" action="{% url 'accounts:approve_player' player.id %}" style="display: inline;">
+                                                <form method="post" action="{% url 'accounts:approve_player' player.safa_id %}" style="display: inline;">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-success ms-1">Approve</button>
                                                 </form>
-                                                <form method="post" action="{% url 'membership:reject_membership' player.id %}" style="display: inline;">
+                                                <form method="post" action="{% url 'membership:reject_membership' player.safa_id %}" style="display: inline;">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-danger ms-1">Reject</button>
                                                 </form>
                                             {% elif player.status == 'ACTIVE' %}
-                                                <form method="post" action="{% url 'accounts:unapprove_player' player.id %}" style="display: inline;">
+                                                <form method="post" action="{% url 'accounts:unapprove_player' player.safa_id %}" style="display: inline;">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-warning ms-1">Unapprove</button>
                                                 </form>

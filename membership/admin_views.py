@@ -21,7 +21,7 @@ def national_admin_dashboard(request):
         'pending_applications': pending_applications.count(),
         'overdue_invoices': Invoice.objects.filter(status='OVERDUE').count(),
     }
-    return render(request, 'admin/membership/national_dashboard.html', context)
+    return render(request, 'accounts/dashboard_national_admin.html', context)
 
 @staff_member_required
 def senior_membership_dashboard(request):
@@ -40,4 +40,4 @@ def senior_membership_dashboard(request):
         'pending_applications': pending_applications.count(),
         'overdue_invoices': Invoice.objects.filter(status='OVERDUE').count(),
     }
-    return render(request, 'admin/membership/senior_dashboard.html', context)
+    return render(request, 'accounts/dashboard_national_accounts.html', context)
