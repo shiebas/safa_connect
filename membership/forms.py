@@ -1,7 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import Member, Membership, Player, Transfer, TransferAppeal, MembershipApplication, ClubRegistration, JuniorMember
+from registration.models import Player
+from .models import Member, Membership, Transfer, TransferAppeal, MembershipApplication, ClubRegistration, JuniorMember
 from geography.models import Club, LocalFootballAssociation, Province, Region, Association # Import Association
 # Assuming phonenumber_field is installed and CustomUser has extract_id_info
 # from phonenumber_field.formfields import PhoneNumberField
@@ -635,13 +636,8 @@ class JuniorMemberRegistrationForm(MembershipApplicationForm):
         cleaned_data['member_type'] = 'JUNIOR'
         return cleaned_data
 
-
 class SeniorMemberRegistrationForm(MembershipApplicationForm):
     """Form for registering a new senior member"""
-
-    class Meta(MembershipApplicationForm.Meta):
-        model = Member # Use base Member model for seniors
-        fields = MembershipApplicationForm.Meta.fields
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

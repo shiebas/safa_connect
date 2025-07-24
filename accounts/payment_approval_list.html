@@ -1,0 +1,85 @@
+{% extends 'base.html' %} {% block title %}Payment Approval List{% endblock %} {% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Payment Management</h1>
+
+    <div class="mb-3">
+        <a href="{% url 'accounts:payment_approval_list' %}" class="btn btn-outline-primary {% if not status_filter or status_filter == 'pending' %}active{% endif %}">Pending Payments</a>
+        <a href="{% url 'accounts:payment_approval_list' %}?status=overdue" class="btn btn-outline-danger {% if status_filter == 'overdue' %}active{% endif %}">Overdue</a>
+        <a href="{% url 'accounts:payment_approval_list' %}?status=paid" class="btn btn-outline-success {% if status_filter == 'paid' %}active{% endif %}">Paid</a>
+        <a href="{% url 'accounts:payment_approval_list' %}?status=all" class="btn btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">All Invoices</a>
+    </div>
+
+    {% if invoices %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Member</th>
+                    <th>Type</th>
+                    <th>Club/Association</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
+                    <th>Payment Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>{{ invoice.invoice_number }}</td>
+                    <td>
+                        {% if invoice.player %}
+                            {{ invoice.player.get_full_name }} (Player)
+                        {% elif invoice.official %}
+                            {{ invoice.official.get_full_name }} (Official)
+                        {% else %}
+                            Unknown Member
+                        {% endif %}
+                    </td>
+                    <td>{{ invoice.get_invoice_type_display }}</td>
+                    <td>
+                        {% if invoice.club %}
+                            {{ invoice.club.name }}
+                        {% elif invoice.association %}
+                            {{ invoice.association.name }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>R{{ invoice.amount|floatformat:2 }}</td>
+                    <td>
+                        <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'PENDING' %}warning text-dark{% else %}danger{% endif %}">
+                            {{ invoice.get_status_display }}
+                            {% if invoice.status == 'PENDING' and invoice.due_date < today %}
+                                (Overdue)
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ invoice.due_date|date:"d M Y" }}</td>
+                    <td>{% if invoice.payment_date %}{{ invoice.payment_date|date:"d M Y" }}{% else %}-{% endif %}</td>
+                    <td>
+                        <a href="{% url 'accounts:approve_payment' invoice.id %}" class="btn btn-info btn-sm">View Details</a>
+                        {% if invoice.status != 'PAID' %}
+                            <form action="{% url 'accounts:approve_payment' invoice.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="mark_paid" class="btn btn-success btn-sm">Mark Paid</button>
+                                {% if invoice.status == 'PENDING' %}
+                                    <button type="submit" name="action" value="mark_overdue" class="btn btn-danger btn-sm">Mark Overdue</button>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No invoices found with the selected status.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

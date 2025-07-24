@@ -8,13 +8,14 @@ from .views import (
     check_email_availability, check_id_number_availability,
     registration_portal, 
     update_profile_photo, CustomUserViewSet, lfa_admin_approvals,
-    dashboard, club_admin_add_player, club_admin_add_official, association_admin_add_official,
+    dashboard, club_admin_add_official, association_admin_add_official,
     api_regions, api_clubs, api_lfas, api_associations_by_lfa,
     ajax_check_id_number, ajax_check_passport_number, ajax_check_sa_passport_number,
     ajax_check_safa_id, ajax_check_fifa_id, 
     player_approval_list, player_detail, approve_player, unapprove_player,
     edit_player, club_invoices, player_statistics, official_list,
     official_detail, add_official_certification, approve_official, unapprove_official, manage_official_associations, edit_official,
+    invoice_detail_view,
     admin_registration_view
 )
 from .document_views import document_access_dashboard, document_access_report, document_access_api, protected_document_view
@@ -76,7 +77,6 @@ urlpatterns = [
     path('register/association/', admin_registration_view, {'role_type': 'association'}, name='association_registration'),
     path('lfa-admin/approvals/', lfa_admin_approvals, name='lfa_admin_approvals'),
     path('dashboard/', dashboard, name='dashboard'),
-    path('club-admin/add-player/', club_admin_add_player, name='club_admin_add_player'),
     path('club-admin/add-official/', club_admin_add_official, name='club_admin_add_official'),
     path('association-admin/add-official/', association_admin_add_official, name='association_admin_add_official'),
     path('officials/', official_list, name='official_list'),
@@ -94,6 +94,7 @@ urlpatterns = [
     path('officials/<int:official_id>/unapprove/', unapprove_official, name='unapprove_official'),
     path('officials/<int:official_id>/manage-associations/', manage_official_associations, name='manage_official_associations'),
     path('officials/<int:official_id>/edit/', edit_official, name='edit_official'),
+    path('invoices/<int:invoice_id>/', invoice_detail_view, name='invoice_detail'),
     path('admin/add-referee/', admin_add_referee, name='admin_add_referee'),
     
     # Document Protection & Access Tracking

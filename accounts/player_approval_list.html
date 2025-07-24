@@ -1,0 +1,75 @@
+{% extends 'base.html' %} {% block title %}Player Approval List{% endblock %} {% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Player Approval Management</h1>
+
+    <div class="mb-3">
+        <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-outline-primary {% if not status_filter or status_filter == 'pending' %}active{% endif %}">Pending Approval</a>
+        <a href="{% url 'accounts:player_approval_list' %}?status=approved" class="btn btn-outline-success {% if status_filter == 'approved' %}active{% endif %}">Approved</a>
+        <a href="{% url 'accounts:player_approval_list' %}?status=all" class="btn btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">All Players</a>
+    </div>
+
+    {% if players_data %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>SAFA ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Club</th>
+                    <th>Association</th>
+                    <th>Approval Status</th>
+                    <th>Invoice Status</th>
+                    <th>Registration Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in players_data %}
+                <tr>
+                    <td>{{ data.player.safa_id|default:"N/A" }}</td>
+                    <td>{{ data.player.get_full_name }}</td>
+                    <td>{{ data.player.email }}</td>
+                    <td>{{ data.club.name|default:"N/A" }}</td>
+                    <td>{{ data.player.association.name|default:"N/A" }}</td>
+                    <td>
+                        {% if data.player.is_approved %}
+                            <span class="badge bg-success">Approved</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if data.has_unpaid_invoice %}
+                            <span class="badge bg-danger">Unpaid</span>
+                        {% else %}
+                            <span class="badge bg-success">Paid</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ data.player.created|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'accounts:player_detail' data.player.safa_id %}" class="btn btn-info btn-sm">View Details</a>
+                        {% if not data.player.is_approved and not data.has_unpaid_invoice %}
+                            <form action="{% url 'accounts:approve_player' data.player.safa_id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+                        {% elif data.player.is_approved %}
+                            <form action="{% url 'accounts:unapprove_player' data.player.safa_id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="unapprove" class="btn btn-warning btn-sm">Unapprove</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No players found with the selected status.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

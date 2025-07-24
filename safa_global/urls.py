@@ -13,6 +13,7 @@ admin.site.index_title = "Welcome to SAFA Administration Portal"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('registration/', include('registration.urls')),
     path('accounts/', include('accounts.urls')),
     path('geography/', include(('geography.urls', 'geography'), namespace='geography')),
     path('membership/', include('membership.urls')),

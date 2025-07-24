@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Required for allauth
+    'django.contrib.humanize', # For human-friendly numbers and dates
     
     # Third party apps
     'rest_framework',  # Added for Django REST Framework
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',
     'membership_cards',
+    'registration.apps.RegistrationConfig',
     'league_management',  # Competition management system
     # 'tools',  # REMOVED - functionality moved to other apps
     'supporters',

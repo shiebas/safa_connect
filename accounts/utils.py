@@ -323,66 +323,67 @@ def validate_passport_document(passport_document, passport_number, first_name, l
         # In case of errors, allow the document but flag for manual verification
         return True, [f"Document accepted but requires manual verification. Automatic validation error: {str(e)}"]
 
-def create_player_invoice(player, club, issued_by, is_junior=False):
+def create_player_invoice(player, club, issued_by=None, is_junior=False):
     """
-    Create an invoice for player registration
-    
+    Create an invoice for player registration.
+
     Args:
-        player (Player): The player to create an invoice for
-        club (Club): The club the player is registering with
-        issued_by (Member): The admin who issued the invoice
-        is_junior (bool): If True, use junior registration fee (R100), otherwise senior fee (R200)
-        
+        player (Player): The player to create an invoice for.
+        club (Club): The club the player is registering with.
+        issued_by (CustomUser, optional): The user issuing the invoice. Defaults to None.
+        is_junior (bool): If True, use junior registration fee. Defaults to False.
+
     Returns:
-        Invoice: The created invoice
+        Invoice: The created invoice or None if an error occurs.
     """
+    from membership.models import Invoice, InvoiceItem, Member
+    from decimal import Decimal
+
+    logger.info(f"Attempting to create invoice for player: {player.id}")
+
     try:
-        # Import at function level to avoid circular imports
-        from membership.models import Invoice, InvoiceItem
-        
-        # Calculate player age to determine junior/senior status if not specified
-        if is_junior is None:
-            today = timezone.now().date()
-            player_age = today.year - player.date_of_birth.year
-            # Adjust age if birthday hasn't happened yet this year
-            if (today.month, today.day) < (player.date_of_birth.month, player.date_of_birth.day):
-                player_age -= 1
-            is_junior = player_age < 18
-        
-        # Set fee amount based on age group
-        fee_amount = 100.00 if is_junior else 200.00
+        issuer_member = None
+        if issued_by and issued_by.is_authenticated:
+            try:
+                issuer_member = Member.objects.get(user=issued_by)
+                logger.info(f"Invoice will be issued by member: {issuer_member.id}")
+            except Member.DoesNotExist:
+                logger.warning(
+                    f"User '{issued_by.email}' (ID: {issued_by.id}) created an invoice "
+                    f"but does not have a corresponding Member profile. Invoice will have no issuer."
+                )
+
+        fee_amount = Decimal("100.00") if is_junior else Decimal("200.00")
         registration_type = "Junior Registration" if is_junior else "Senior Registration"
-        
-        # Generate a reference number using player membership number or ID
-        invoice_number_prefix = f"REG-{player.membership_number or player.id}-{timezone.now().strftime('%Y%m%d')}"
+        invoice_number = f"REG-{player.safa_id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
 
         with transaction.atomic():
-            # Create invoice
-            invoice = Invoice(
+            invoice = Invoice.objects.create(
                 invoice_type='REGISTRATION',
                 amount=fee_amount,
                 status='PENDING',
                 issue_date=timezone.now().date(),
+                due_date=timezone.now().date() + timezone.timedelta(days=30),
                 player=player,
                 club=club,
-                issued_by=issued_by,
-                invoice_number=invoice_number_prefix # Use invoice_number field
+                issued_by=issuer_member,  # This can now be None
+                invoice_number=invoice_number
             )
-            invoice.save()
-            
-            # Create invoice item
-            item = InvoiceItem(
+            logger.info(f"Successfully created invoice {invoice.invoice_number} for player {player.id}")
+
+            InvoiceItem.objects.create(
                 invoice=invoice,
                 description=f"{registration_type} Fee",
                 quantity=1,
                 unit_price=fee_amount,
                 sub_total=fee_amount
             )
-            item.save()
-            
+            logger.info(f"Successfully created invoice item for invoice {invoice.invoice_number}")
+
             return invoice
+
     except Exception as e:
-        logger.error(f"Error creating player invoice: {str(e)}")
+        logger.error(f"UNEXPECTED ERROR creating player invoice for player {player.id}: {e}", exc_info=True)
         return None
 
 def generate_unique_safa_id():

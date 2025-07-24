@@ -1,0 +1,94 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Invoice Details{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .invoice-details-card {
+        max-width: 800px;
+        margin: 2rem auto;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .invoice-header {
+        background-color: #006633;
+        color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 8px 8px 0 0;
+    }
+    .invoice-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+    }
+    .invoice-body {
+        padding: 2rem;
+    }
+    .invoice-body .row {
+        margin-bottom: 1rem;
+    }
+    .invoice-body strong {
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="invoice-details-card">
+    <div class="invoice-header">
+        <h1>Invoice #{{ invoice.invoice_number }}</h1>
+        <p class="mb-0">Status: <span class="badge bg-light text-dark">{{ invoice.get_status_display }}</span></p>
+    </div>
+    <div class="card-body invoice-body">
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Billed To:</strong>
+                <p>
+                    {% if invoice.player %}
+                        {{ invoice.player.get_full_name }} (Player)
+                    {% elif invoice.official %}
+                        {{ invoice.official.get_full_name }} (Official)
+                    {% elif invoice.club %}
+                        {{ invoice.club.name }} (Club)
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <strong>Invoice Date:</strong>
+                <p>{{ invoice.created|date:"d M Y" }}</p>
+                <strong>Due Date:</strong>
+                <p>{{ invoice.due_date|date:"d M Y" }}</p>
+            </div>
+        </div>
+        <hr>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ invoice.get_invoice_type_display }} Fee</td>
+                    <td class="text-end">R{{ invoice.amount|intcomma }}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th class="text-end">Total:</th>
+                    <th class="text-end">R{{ invoice.amount|intcomma }}</th>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="text-center mt-4">
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

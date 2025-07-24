@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.translation import gettext_lazy as _
-from .models import Member, Official, Transfer, MembershipApplication
+from .models import Member, Transfer, MembershipApplication
+from registration.models import Official
+from registration.models import Official
 from .models import Invoice
 
 @staff_member_required

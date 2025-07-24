@@ -6,12 +6,14 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.utils import timezone
 import datetime
-from .forms import EmailAuthenticationForm, NationalUserRegistrationForm, UniversalRegistrationForm, ClubAdminPlayerRegistrationForm, PlayerClubRegistrationOnlyForm, PlayerUpdateForm, PlayerClubRegistrationUpdateForm, ClubAdminOfficialRegistrationForm, AssociationOfficialRegistrationForm, OfficialCertificationForm
+from .forms import EmailAuthenticationForm, NationalUserRegistrationForm, UniversalRegistrationForm, PlayerClubRegistrationOnlyForm, PlayerUpdateForm, PlayerClubRegistrationUpdateForm, ClubAdminOfficialRegistrationForm, AssociationOfficialRegistrationForm, OfficialCertificationForm
 from .models import CustomUser
-from membership.models import Membership, Player, PlayerClubRegistration, Official, Member
+from registration.models import Player, Official, PlayerClubRegistration
+from membership.models import Invoice
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from .decorators import role_required
 from django.contrib.auth import get_user_model
 from django.db.models import Q, Count, Sum
 from django.shortcuts import get_object_or_404
@@ -353,11 +355,12 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 from django.contrib.auth.decorators import user_passes_test
 
 @login_required
+@role_required(allowed_roles=['ADMIN_LOCAL_FED'])
 def lfa_admin_approvals(request):
     user = request.user
     # Only LFA admins can access
-    if user.role != 'ADMIN_LOCAL_FED' or not user.local_federation:
-        messages.error(request, 'You do not have permission to access this page.')
+    if not user.local_federation: # Keep this check as it's specific to the LFA admin's data scope
+        messages.error(request, 'Your profile is not linked to an LFA.')
         return redirect('accounts:profile')
 
     # Get pending club admins in this LFA, prefetch club for compliance checks
@@ -410,179 +413,91 @@ def lfa_admin_approvals(request):
 
 @login_required
 def dashboard(request):
-    members = []
-    outstanding_invoices = []
-    template_name = 'accounts/dashboard.html' # Default for superuser and general admins
+    """Main dashboard view that routes users based on their role"""
+    
+    context = {'user': request.user}
+    today = timezone.now().date()
 
-    # Fetch data based on role for specific dashboards
-    if request.user.is_superuser or request.user.role in ["ADMIN_NATIONAL", "ADMIN_PROVINCE", "ADMIN_LOCAL_FED", "ADMIN_NATIONAL_ACCOUNTS"]:
-        from membership.models import Member, Invoice
-        from geography.models import Province, Region, LocalFootballAssociation, Club
-        from django.db.models import Q
+    # Calculate age stats for players
+    all_players = Player.objects.all()
+    junior_players = 0
+    senior_players = 0
+    for player in all_players:
+        if player.date_of_birth:
+            age = today.year - player.date_of_birth.year - ((today.month, today.day) < (player.date_of_birth.month, player.date_of_birth.day))
+            if age < 18:
+                junior_players += 1
+            else:
+                senior_players += 1
 
-        if request.user.is_superuser:
-            # Superuser sees all data
-            members = Member.objects.all().select_related('club', 'association')
-            outstanding_invoices = Invoice.objects.filter(status__in=['PENDING', 'OVERDUE']).select_related('player', 'official', 'club', 'association')
-            template_name = 'accounts/dashboard.html' # Superuser uses the comprehensive dashboard
-        elif request.user.role == "ADMIN_NATIONAL":
-            # National Admin sees all data, but uses a specific template
-            members = Member.objects.all().select_related('club', 'association')
-            outstanding_invoices = Invoice.objects.filter(status__in=['PENDING', 'OVERDUE']).select_related('player', 'official', 'club', 'association')
-            template_name = 'accounts/dashboard_national_admin.html'
-        elif request.user.role == "ADMIN_NATIONAL_ACCOUNTS":
-            # National Accounts Admin sees all data, but uses a specific template
-            members = Member.objects.all().select_related('club', 'association') # They might need to see members for context
-            outstanding_invoices = Invoice.objects.filter(status__in=['PENDING', 'OVERDUE']).select_related('player', 'official', 'club', 'association')
-            template_name = 'accounts/dashboard_national_accounts.html'
-        elif request.user.role == "ADMIN_PROVINCE" and request.user.province:
-            members = Member.objects.filter(
-                Q(club__localfootballassociation__region__province=request.user.province) |
-                Q(association__local_football_association__region__province=request.user.province)
-            ).distinct().select_related('club', 'association')
-            outstanding_invoices = Invoice.objects.filter(
-                Q(player__club_registrations__club__localfootballassociation__region__province=request.user.province) |
-                Q(official__primary_association__local_football_association__region__province=request.user.province) |
-                Q(club__localfootballassociation__region__province=request.user.province) |
-                Q(association__local_football_association__region__province=request.user.province),
-                status__in=['PENDING', 'OVERDUE']
-            ).distinct().select_related('player', 'official', 'club', 'association')
-            template_name = 'accounts/dashboard.html' # Assuming provincial admin uses general dashboard
-        elif request.user.role == "ADMIN_LOCAL_FED" and request.user.local_federation:
-            members = Member.objects.filter(
-                Q(club__localfootballassociation=request.user.local_federation) |
-                Q(association__local_football_association=request.user.local_federation)
-            ).distinct().select_related('club', 'association')
-            outstanding_invoices = Invoice.objects.filter(
-                Q(player__club_registrations__club__localfootballassociation=request.user.local_federation) |
-                Q(official__primary_association__local_football_association=request.user.local_federation) |
-                Q(club__localfootballassociation=request.user.local_federation) |
-                Q(association__local_football_association=request.user.local_federation),
-                status__in=['PENDING', 'OVERDUE']
-            ).distinct().select_related('player', 'official', 'club', 'association')
-            template_name = 'accounts/dashboard.html' # Assuming LFA admin uses general dashboard
-
-    context = {
-        'members': members,
-        'outstanding_invoices': outstanding_invoices,
+    player_stats = {
+        'total': all_players.count(),
+        'approved': all_players.filter(is_approved=True).count(),
+        'pending': all_players.filter(is_approved=False).count(),
+        'junior': junior_players,
+        'senior': senior_players,
     }
-    return render(request, template_name, context)
-
-def club_admin_add_player(request):
-    if not request.user.is_authenticated or request.user.role != 'CLUB_ADMIN':
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('accounts:dashboard')
-
-    if not request.user.club:
-        messages.error(request, 'Your user profile is not linked to a club. Please contact support.')
-        return redirect('accounts:dashboard')
-
-    if request.method == 'POST':
-        player_form = ClubAdminPlayerRegistrationForm(request.POST, request.FILES)
-        # Store request in form to allow showing document validation warnings
-        player_form.request = request
-        # Process ID number before validation if provided
-        if 'id_number' in request.POST and request.POST['id_number'].strip():
-            id_number = request.POST['id_number'].strip()
-            try:
-                # Extract DOB from ID number (format: YYMMDD...)
-                year = int(id_number[:2])
-                month = int(id_number[2:4])
-                day = int(id_number[4:6])
-
-                # Determine century (00-99)
-                current_year = timezone.now().year % 100
-                century = 2000 if year <= current_year else 1900
-                full_year = century + year
-
-                # Check if date is valid
-                try:
-                    dob = datetime.date(full_year, month, day)
-                    # Set the date_of_birth field in the form data
-                    player_form.data = player_form.data.copy()
-                    player_form.data['date_of_birth'] = dob.isoformat()
-
-                    # Also set gender based on ID number
-                    gender_digit = int(id_number[6])
-                    player_form.data['gender'] = 'M' if gender_digit >= 5 else 'F'
-                except ValueError:
-                    # Invalid date in ID number, will be caught in form validation
-                    pass
-            except (ValueError, IndexError):
-                # Invalid ID number, will be caught in form validation
-                pass
-
-        # Generate a unique email for the player before checking form validity
-        if 'first_name' in request.POST and 'last_name' in request.POST:
-            first_name = request.POST['first_name']
-            last_name = request.POST['last_name']
-
-            # Generate unique email using the utility function
-            unique_email = generate_unique_player_email(first_name, last_name)
-
-            # Set the email in the form data
-            player_form.data = player_form.data.copy()
-            player_form.data['email'] = unique_email
-
-        if player_form.is_valid():
-            # Generate a unique SAFA ID if one wasn't provided
-            if not player_form.cleaned_data.get('safa_id'):
-                from .utils import generate_unique_safa_id
-                try:
-                    unique_safa_id = generate_unique_safa_id()
-                    player_form.instance.safa_id = unique_safa_id
-                except Exception as e:
-                    messages.warning(request, f"Could not generate a unique SAFA ID: {e}")
-
-            # Save player with all fields including the generated unique email and SAFA ID
-            player = player_form.save()
-
-            # Create minimal club registration (just linking player to club)
-            registration = PlayerClubRegistration(
-                player=player,
-                club=request.user.club
-            )
-            registration.save()
-
-            # Determine if player is junior (under 18) based on date of birth
-            today = timezone.now().date()
-            is_junior = False
-            if player.date_of_birth:
-                player_age = today.year - player.date_of_birth.year
-                # Adjust age if birthday hasn't happened yet this year
-                if (today.month, today.day) < (player.date_of_birth.month, player.date_of_birth.day):
-                    player_age -= 1
-                is_junior = player_age < 18
-
-            # Create invoice for the player
-            from .utils import create_player_invoice
-            invoice = create_player_invoice(
-                player=player,
-                club=request.user.club,
-                issued_by=player,  # Using player as issued_by as they don't have a separate Member instance
-                is_junior=is_junior
-            )
-
-            success_message = f'Player registered successfully with email {player.email}!'
-            if invoice:
-                success_message += f' An invoice (#{invoice.invoice_number}) has been created.'
-                success_message += f' Registration fee: R{"100" if is_junior else "200"}.'
-                success_message += ' Player will be eligible for approval once the invoice is paid.'
-
-            messages.success(request, success_message)
-            return redirect('accounts:dashboard')
-        else:
-            # Add a summary error message at the top without showing specific fields
-            messages.error(request, 'Please correct the errors in the form below.')
+    
+    if request.user.role == 'NATIONAL_ADMIN':
+        context.update({
+            'player_stats': player_stats,
+            'pending_officials': Official.objects.filter(is_approved=False, status='PENDING').count(),
+        })
+        return render(request, 'accounts/dashboard_national_admin.html', context)
+        
+    elif request.user.role == 'NATIONAL_ACCOUNTS':
+        invoices = Invoice.objects.select_related('player', 'official', 'club').all()
+        
+        summary = {
+            'total_invoices': invoices.count(),
+            'total_amount': invoices.aggregate(total=Sum('amount'))['total'] or 0,
+            'paid_invoices': invoices.filter(status='PAID').count(),
+            'paid_amount': invoices.filter(status='PAID').aggregate(total=Sum('amount'))['total'] or 0,
+            'pending_invoices': invoices.filter(status='PENDING').count(),
+            'pending_amount': invoices.filter(status='PENDING').aggregate(total=Sum('amount'))['total'] or 0,
+            'overdue_invoices': invoices.filter(status='PENDING', due_date__lt=today).count(),
+            'overdue_amount': invoices.filter(status='PENDING', due_date__lt=today).aggregate(total=Sum('amount'))['total'] or 0,
+        }
+        
+        context.update({
+            'summary': summary,
+            'invoices': invoices.order_by('-created')[:50],
+            'player_stats': player_stats, # Add player stats for context
+        })
+        return render(request, 'accounts/dashboard_national_accounts.html', context)
+        
+    elif request.user.role == 'CLUB_ADMIN':
+        return render(request, 'accounts/dashboard_club_admin.html', context)
+        
+    elif request.user.role == 'ASSOCIATION_ADMIN':
+        return render(request, 'accounts/dashboard_association_admin.html', context)
+        
     else:
-        player_form = ClubAdminPlayerRegistrationForm()
+        # Default dashboard for other roles (including superuser)
+        if request.user.is_superuser:
+            context.update({
+                'player_stats': player_stats,
+                'total_users': CustomUser.objects.count(),
+                'total_officials': Official.objects.count(),
+                'total_clubs': Club.objects.count(),
+            })
+        return render(request, 'accounts/dashboard_default.html', context)
 
-    return render(request, 'accounts/club_admin_add_player.html', {
-        'player_form': player_form
-    })
+
+@login_required
+@role_required(allowed_roles=['NATIONAL_ACCOUNTS', 'NATIONAL_ADMIN'], allow_superuser=True)
+def invoice_detail_view(request, invoice_id):
+    """A view for non-superusers to see invoice details."""
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    context = {
+        'invoice': invoice,
+    }
+    return render(request, 'accounts/invoice_detail.html', context)
+
+
 
 from django.http import JsonResponse
-from membership.models import Player
+from registration.models import Player
 
 def ajax_check_id_number(request):
     id_number = request.GET.get('id_number')
@@ -664,12 +579,8 @@ def ajax_check_fifa_id(request):
     return JsonResponse({'exists': exists})
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN'], allow_superuser=True, allow_staff=True)
 def player_approval_list(request):
-
-    if not (request.user.is_superuser or request.user.is_staff or
-            (hasattr(request.user, 'role') and request.user.role in ['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN'])):
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('accounts:dashboard')
 
     # Get players related to the admin's scope
     player_registrations = []
@@ -751,11 +662,8 @@ def player_approval_list(request):
     })
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN'])
 def player_detail(request, safa_id):
-
-    if not hasattr(request.user, 'role') or request.user.role not in ['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN']:
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('accounts:dashboard')
 
     # Get player with prefetched invoices
     player = get_object_or_404(Player.objects.prefetch_related('invoices'), safa_id=safa_id)
@@ -799,14 +707,11 @@ def player_detail(request, safa_id):
     })
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN'])
 def approve_player(request, safa_id):
 
     if request.method != 'POST':
         return redirect('accounts:player_approval_list')
-
-    if not hasattr(request.user, 'role') or request.user.role not in ['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN']:
-        messages.error(request, 'You do not have permission to approve players.')
-        return redirect('accounts:dashboard')
 
     player = get_object_or_404(Player, safa_id=safa_id)
 
@@ -884,15 +789,11 @@ def approve_player(request, safa_id):
         return redirect('accounts:player_approval_list')
 
 @login_required
+@role_required(allowed_roles=['LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN'])
 def unapprove_player(request, safa_id):
 
         if request.method != 'POST':
             return redirect('accounts:player_approval_list')
-
-        # Only higher-level admins can unapprove players
-        if not hasattr(request.user, 'role') or request.user.role not in ['LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN']:
-            messages.error(request, 'You do not have permission to unapprove players.')
-            return redirect('accounts:dashboard')
 
         player = get_object_or_404(Player, safa_id=safa_id)
 
@@ -930,11 +831,8 @@ def unapprove_player(request, safa_id):
         return redirect('accounts:player_approval_list')
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN'])
 def edit_player(request, safa_id):
-
-        if not hasattr(request.user, 'role') or request.user.role not in ['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN']:
-            messages.error(request, 'You do not have permission to access this page.')
-            return redirect('accounts:dashboard')
 
         player = get_object_or_404(Player, safa_id=safa_id)
 
@@ -1028,7 +926,7 @@ def club_invoices(request):
         if is_association:
             # Association admin viewing invoices
             if not (request.user.is_superuser or request.user.is_staff or
-                    (hasattr(request.user, 'role') and request.user.role == 'ASSOCIATION_ADMIN')):
+                    (getattr(request.user, 'role', None) == 'ASSOCIATION_ADMIN')):
                 messages.error(request, 'You do not have permission to access this page.')
                 return redirect('accounts:dashboard')
 
@@ -1068,7 +966,7 @@ def club_invoices(request):
         else:
             # Club admin viewing invoices
             if not (request.user.is_superuser or request.user.is_staff or
-                    (hasattr(request.user, 'role') and request.user.role == 'CLUB_ADMIN')):
+                    (getattr(request.user, 'role', None) == 'CLUB_ADMIN')):
                 messages.error(request, 'You do not have permission to access this page.')
                 return redirect('accounts:dashboard')
 
@@ -1137,15 +1035,12 @@ def club_invoices(request):
             })
 
 @login_required
+@role_required(allowed_roles=['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_COUNTRY'])
 def player_statistics(request):
-
-        if not hasattr(request.user, 'role') or request.user.role not in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_COUNTRY']:
-            messages.error(request, 'You do not have permission to access this page.')
-            return redirect('accounts:dashboard')
 
         # Import models
         from geography.models import Province, Region, LocalFootballAssociation, Club
-        from membership.models import Player
+        from registration.models import Player
         from django.db.models import Count, Sum
 
         # Initialize statistics based on user role
@@ -1423,10 +1318,9 @@ def player_statistics(request):
             'entity_type': entity_type,
         })
 
+@login_required
+@role_required(allowed_roles=['CLUB_ADMIN'])
 def club_admin_add_official(request):
-        if not request.user.is_authenticated or request.user.role != 'CLUB_ADMIN':
-            messages.error(request, 'You do not have permission to access this page.')
-            return redirect('accounts:dashboard')
 
         if not request.user.club:
             messages.error(request, 'Your user profile is not linked to a club. Please contact support.')
@@ -1617,10 +1511,9 @@ def club_admin_add_official(request):
             'official_form': official_form
         })
 
+@login_required
 def official_list(request):
         """View for listing club officials"""
-        if not request.user.is_authenticated:
-            return redirect('accounts:login')
 
         # Club admins can see officials in their own club
         if request.user.role == 'CLUB_ADMIN':
@@ -1718,34 +1611,13 @@ def official_list(request):
         })
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ASSOCIATION_ADMIN', 'ADMIN_NATIONAL'], allow_superuser=True)
 def official_detail(request, official_id):
         """View details of an official"""
         official = get_object_or_404(Official, id=official_id)
 
         # Check permissions
         has_permission = False
-
-        # Determine if current user can view this official
-        if request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
-            has_permission = official.club == request.user.club
-        elif request.user.role == 'ADMIN_LOCAL_FED' and hasattr(request.user, 'local_federation') and request.user.local_federation:
-            has_permission = official.local_federation == request.user.local_federation
-        elif request.user.role == 'ADMIN_REGION' and hasattr(request.user, 'region') and request.user.region:
-            has_permission = official.region == request.user.region
-        elif request.user.role == 'ADMIN_PROVINCE' and hasattr(request.user, 'province') and request.user.province:
-            has_permission = official.province == request.user.province
-        elif request.user.role == 'ASSOCIATION_ADMIN' and hasattr(request.user, 'association') and request.user.association:
-            # Association admins can view officials in their association
-            if hasattr(official, 'primary_association') and official.primary_association:
-                has_permission = official.primary_association == request.user.association
-            else:
-                has_permission = official.associations.filter(id=request.user.association.id).exists()
-        elif request.user.role == 'ADMIN_NATIONAL' or request.user.is_superuser:
-            has_permission = True
-
-        if not has_permission:
-            messages.error(request, 'You do not have permission to view this official.')
-            return redirect('accounts:dashboard')
 
         # Get certifications
         certifications = official.certifications.all().order_by('-obtained_date')
@@ -1802,10 +1674,8 @@ def official_detail(request, official_id):
 
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN', 'ASSOCIATION_ADMIN'])
 def edit_official(request, official_id):
-    if not hasattr(request.user, 'role') or request.user.role not in ['CLUB_ADMIN', 'LFA_ADMIN', 'REGION_ADMIN', 'PROVINCE_ADMIN', 'NATIONAL_ADMIN', 'ASSOCIATION_ADMIN']:
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('accounts:dashboard')
 
     official = get_object_or_404(Official, id=official_id)
 
@@ -1843,26 +1713,13 @@ def edit_official(request, official_id):
     })
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'], allow_superuser=True)
 def add_official_certification(request, official_id):
         """Add a certification to an official"""
         official = get_object_or_404(Official, id=official_id)
 
         # Check permissions - only club admins for their own club, or higher level admins
         has_permission = False
-        if request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
-            has_permission = official.club == request.user.club
-        elif request.user.role == 'ADMIN_LOCAL_FED' and hasattr(request.user, 'local_federation') and request.user.local_federation:
-            has_permission = official.local_federation == request.user.local_federation
-        elif request.user.role == 'ADMIN_REGION' and hasattr(request.user, 'region') and request.user.region:
-            has_permission = official.region == request.user.region
-        elif request.user.role == 'ADMIN_PROVINCE' and hasattr(request.user, 'province') and request.user.province:
-            has_permission = official.province == request.user.province
-        elif request.user.role == 'ADMIN_NATIONAL' or request.user.is_superuser:
-            has_permission = True
-
-        if not has_permission:
-            messages.error(request, 'You do not have permission to add certifications for this official.')
-            return redirect('accounts:dashboard')
 
         if request.method == 'POST':
             form = OfficialCertificationForm(request.POST, request.FILES)
@@ -1894,20 +1751,13 @@ def add_official_certification(request, official_id):
         })
 
 @login_required
+@role_required(allowed_roles=['CLUB_ADMIN', 'ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'], allow_superuser=True)
 def manage_official_associations(request, official_id):
         """Manage associations linked to an official"""
         official = get_object_or_404(Official, id=official_id)
 
         # Check permissions - only admins can manage associations
         has_permission = False
-        if request.user.role == 'CLUB_ADMIN' and hasattr(request.user, 'club') and request.user.club:
-            has_permission = official.club == request.user.club
-        elif request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'] or request.user.is_superuser:
-            has_permission = True
-
-        if not has_permission:
-            messages.error(request, 'You do not have permission to manage associations for this official.')
-            return redirect('accounts:dashboard')
 
         from geography.models import Association
 
@@ -1958,18 +1808,10 @@ def manage_official_associations(request, official_id):
         return render(request, 'accounts/manage_official_associations.html', context)
 
 @login_required
+@role_required(allowed_roles=['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'NATIONAL_ADMIN'], allow_superuser=True)
 def approve_official(request, official_id):
         """Approve an official registration"""
         official = get_object_or_404(Official, id=official_id)
-
-        # Check permissions - only admins can approve officials
-        has_permission = False
-        if request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'NATIONAL_ADMIN'] or request.user.is_superuser:
-            has_permission = True
-
-        if not has_permission:
-            messages.error(request, 'You do not have permission to approve officials.')
-            return redirect('accounts:dashboard')
 
         # Check if the official has any unpaid invoices
         from membership.models import Invoice
@@ -1988,18 +1830,10 @@ def approve_official(request, official_id):
         return redirect('accounts:official_detail', official_id=official.id)
 
 @login_required
+@role_required(allowed_roles=['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'NATIONAL_ADMIN'], allow_superuser=True)
 def unapprove_official(request, official_id):
         """Unapprove an official registration"""
         official = get_object_or_404(Official, id=official_id)
-
-        # Check permissions - only admins can unapprove officials
-        has_permission = False
-        if request.user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'NATIONAL_ADMIN'] or request.user.is_superuser:
-            has_permission = True
-
-        if not has_permission:
-            messages.error(request, 'You do not have permission to unapprove officials.')
-            return redirect('accounts:dashboard')
 
         # Unapprove the official
         official.is_approved = False
@@ -2009,10 +1843,9 @@ def unapprove_official(request, official_id):
         messages.success(request, f'Official {official.get_full_name()} has been unapproved and status set to pending.')
         return redirect('accounts:official_detail', official_id=official.id)
 
+@login_required
+@role_required(allowed_roles=['ASSOCIATION_ADMIN'])
 def association_admin_add_official(request):
-    if not request.user.is_authenticated or request.user.role != 'ASSOCIATION_ADMIN':
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('accounts:dashboard')
 
     if not request.user.association:
         messages.error(request, 'Your user profile is not linked to an association. Please contact support.')

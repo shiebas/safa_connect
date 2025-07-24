@@ -1,0 +1,144 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}SAFA System Dashboard{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --safa-green: #006633;
+        --safa-dark: #004d26;
+        --safa-gold: #FFD700;
+        --safa-black: #000000;
+        --safa-grey: #f8f9fa;
+        --safa-light-grey: #e9ecef;
+        --safa-white: #ffffff;
+    }
+    #content {
+        padding: 0;
+    }
+    .dashboard-container {
+        padding: 2rem;
+        background-color: var(--safa-grey);
+    }
+    .dashboard-header {
+        margin-bottom: 2rem;
+        color: var(--safa-black);
+    }
+    .dashboard-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+    }
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    .card {
+        background-color: var(--safa-white);
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    .card-header {
+        background-color: var(--safa-green);
+        color: var(--safa-white);
+        font-weight: 600;
+        font-size: 1.2rem;
+        padding: 1rem 1.5rem;
+        border-radius: 8px 8px 0 0;
+        border-bottom: none;
+    }
+    .card-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+    }
+    .card-body ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .card-body ul li a {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        margin: -0.75rem -1rem;
+        border-radius: 5px;
+        text-decoration: none;
+        color: var(--safa-dark);
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+    }
+    .card-body ul li a:hover {
+        background-color: var(--safa-light-grey);
+    }
+    .card-body ul li a .bi {
+        font-size: 1.2rem;
+        margin-right: 10px;
+        color: var(--safa-green);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>SAFA Superuser Dashboard</h1>
+        <p class="lead">Welcome, {{ user.get_full_name }}. Use the links below to manage the system.</p>
+    </div>
+
+    <div class="dashboard-cards">
+        <!-- Member Management -->
+        <div class="card">
+            <div class="card-header">Member Management</div>
+            <div class="card-body">
+                <ul>
+                    <li><a href="{% url 'admin:registration_player_changelist' %}"><i class="bi bi-person-vcard"></i> Manage Players</a></li>
+                    <li><a href="{% url 'admin:registration_official_changelist' %}"><i class="bi bi-person-badge"></i> Manage Officials</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Organization Management -->
+        <div class="card">
+            <div class="card-header">Organization Management</div>
+            <div class="card-body">
+                <ul>
+                    <li><a href="{% url 'admin:geography_club_changelist' %}"><i class="bi bi-shield-check"></i> Manage Clubs</a></li>
+                    <li><a href="{% url 'admin:geography_association_changelist' %}"><i class="bi bi-diagram-3"></i> Manage Associations</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- System & Access -->
+        <div class="card">
+            <div class="card-header">System & Access</div>
+            <div class="card-body">
+                <ul>
+                    <li><a href="{% url 'admin:accounts_customuser_changelist' %}"><i class="bi bi-people-fill"></i> Manage Users</a></li>
+                    <li><a href="{% url 'admin:auth_group_changelist' %}"><i class="bi bi-lock-fill"></i> Manage User Groups</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Financials -->
+        <div class="card">
+            <div class="card-header">Financials</div>
+            <div class="card-body">
+                <ul>
+                    <li><a href="{% url 'admin:membership_invoice_changelist' %}"><i class="bi bi-receipt"></i> Manage Invoices</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

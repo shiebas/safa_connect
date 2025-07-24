@@ -108,6 +108,7 @@ urlpatterns = [
     path('api/regions_by_province/<int:province_id>/', api_views.regions_by_province, name='regions_by_province'),
     path('api/lfas_by_region/<int:region_id>/', api_views.lfas_by_region, name='lfas_by_region'),
     path('api/clubs_by_lfa/<int:lfa_id>/', api_views.clubs_by_lfa, name='clubs_by_lfa'),
+    path('api/associations_by_lfa/<int:lfa_id>/', api_views.associations_by_lfa, name='associations_by_lfa'),
     path('verify/', views.verify_view, name='verify'),
 
     # Custom admin dashboards

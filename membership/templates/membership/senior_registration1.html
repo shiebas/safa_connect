@@ -11,29 +11,6 @@
         background-color: #f8f9fa;
         font-weight: bold;
     }
-    .registration-type-card {
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    .registration-type-card:hover {
-        border-color: #007bff;
-        box-shadow: 0 4px 8px rgba(0,123,255,.1);
-    }
-    .registration-type-card.selected {
-        border-color: #007bff;
-        background-color: #f8f9ff;
-    }
-    .registration-type-icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .conditional-section {
-        display: none;
-    }
-    .conditional-section.show {
-        display: block;
-    }
 </style>
 {% endblock %}
 
@@ -54,44 +31,6 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-
-                <!-- Registration Type Selection -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        Registration Type
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <div class="registration-type-card card h-100 text-center p-3" data-type="MEMBER">
-                                    <div class="registration-type-icon text-primary">👤</div>
-                                    <h6 class="card-title">General Member</h6>
-                                    <p class="card-text small">Register as a general member of the federation</p>
-                                    <input type="radio" name="registration_as" value="MEMBER" class="d-none" id="member-radio">
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="registration-type-card card h-100 text-center p-3" data-type="PLAYER">
-                                    <div class="registration-type-icon text-success">⚽</div>
-                                    <h6 class="card-title">Player</h6>
-                                    <p class="card-text small">Register as a player for a specific club</p>
-                                    <input type="radio" name="registration_as" value="PLAYER" class="d-none" id="player-radio">
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="registration-type-card card h-100 text-center p-3" data-type="OFFICIAL">
-                                    <div class="registration-type-icon text-warning">🏁</div>
-                                    <h6 class="card-title">Official</h6>
-                                    <p class="card-text small">Register as a match official (referee, assistant referee, etc.)</p>
-                                    <input type="radio" name="registration_as" value="OFFICIAL" class="d-none" id="official-radio">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <small class="text-muted">Please select your registration type to continue</small>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="card mb-4">
                     <div class="card-header">
@@ -239,15 +178,11 @@
                     </div>
                 </div>
 
-                <!-- Club Selection - Only shown for Players -->
-                <div class="card mb-4 conditional-section" id="club-selection-section">
+                <div class="card mb-4">
                     <div class="card-header">
-                        Club Selection <span class="text-danger">*</span>
+                        Club Selection (Optional)
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info">
-                            <strong>Player Registration:</strong> You must select a club to register as a player.
-                        </div>
                         <div class="mb-3">
                             <label for="province" class="form-label">Province</label>
                             {% render_field form.province class="form-select" id="province" %}
@@ -271,67 +206,11 @@
                     </div>
                 </div>
 
-                <!-- Association Selection - Only shown for Officials -->
-                <div class="card mb-4 conditional-section" id="association-selection-section">
-                    <div class="card-header">
-                        Association Selection (Optional)
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <strong>Official Registration:</strong> You may optionally select an association to be affiliated with.
-                        </div>
-                        <div class="mb-3">
-                            <label for="province-official" class="form-label">Province</label>
-                            {% render_field form.province class="form-select" id="province-official" %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="region-official" class="form-label">Region</label>
-                            {% render_field form.region class="form-select" id="region-official" disabled="disabled" %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="lfa-official" class="form-label">LFA</label>
-                            {% render_field form.lfa class="form-select" id="lfa-official" %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="association-official" class="form-label">Association</label>
-                            {% render_field form.association class="form-select" id="association-official" %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Member Selection - Only shown for General Members -->
-                <div class="card mb-4 conditional-section" id="member-selection-section">
-                    <div class="card-header">
-                        Geographic Association (Optional)
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <strong>General Member:</strong> You may optionally select a geographic association.
-                        </div>
-                        <div class="mb-3">
-                            <label for="province-member" class="form-label">Province</label>
-                            {% render_field form.province class="form-select" id="province-member" %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="region-member" class="form-label">Region</label>
-                            {% render_field form.region class="form-select" id="region-member" disabled="disabled" %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="lfa-member" class="form-label">LFA</label>
-                            {% render_field form.lfa class="form-select" id="lfa-member" %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="association-member" class="form-label">Association</label>
-                            {% render_field form.association class="form-select" id="association-member" %}
-                        </div>
-                    </div>
-                </div>
-
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                     <a href="{% url 'membership:registration_selector' %}" class="btn btn-secondary me-md-2">
                         Back to Selection
                     </a>
-                    <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Submit Application</button>
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
                 </div>
             </form>
         </div>
@@ -343,44 +222,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const registrationTypeCards = document.querySelectorAll('.registration-type-card');
-    const clubSection = document.getElementById('club-selection-section');
-    const associationSection = document.getElementById('association-selection-section');
-    const memberSection = document.getElementById('member-selection-section');
-    const submitBtn = document.getElementById('submit-btn');
-    
-    // Registration type selection
-    registrationTypeCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const type = this.dataset.type;
-            const radio = document.getElementById(`${type.toLowerCase()}-radio`);
-            
-            // Clear all selections
-            registrationTypeCards.forEach(c => c.classList.remove('selected'));
-            document.querySelectorAll('input[name="registration_as"]').forEach(r => r.checked = false);
-            
-            // Select current card
-            this.classList.add('selected');
-            radio.checked = true;
-            
-            // Show/hide appropriate sections
-            clubSection.classList.remove('show');
-            associationSection.classList.remove('show');
-            memberSection.classList.remove('show');
-            
-            if (type === 'PLAYER') {
-                clubSection.classList.add('show');
-            } else if (type === 'OFFICIAL') {
-                associationSection.classList.add('show');
-            } else if (type === 'MEMBER') {
-                memberSection.classList.add('show');
-            }
-            
-            // Enable submit button
-            submitBtn.disabled = false;
-        });
-    });
-
     const idTypeSelect = document.getElementById('{{ form.id_document_type.id_for_label }}');
     const idNumberField = document.getElementById('id_number_field');
     const passportNumberField = document.getElementById('passport_number_field');
@@ -400,116 +241,111 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleIdFields(); // Initial call
     }
 
-    // Dynamic dropdowns for geography (for all three registration types)
-    function setupGeographyDropdowns(prefix) {
-        const provinceSelect = document.getElementById(`province${prefix ? '-' + prefix : ''}`);
-        const regionSelect = document.getElementById(`region${prefix ? '-' + prefix : ''}`);
-        const lfaSelect = document.getElementById(`lfa${prefix ? '-' + prefix : ''}`);
-        const clubSelect = document.getElementById(`club`);
-        const associationSelect = document.getElementById(`association${prefix ? '-' + prefix : ''}`);
-
-        function populateDropdown(selectElement, data, defaultOptionText) {
-            if (!selectElement) return;
-            selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.name;
-                selectElement.appendChild(option);
-            });
-            selectElement.disabled = false;
-        }
-
-        function resetFields() {
-            if (clubSelect && prefix === '') {
-                clubSelect.innerHTML = '<option value="">Select a club</option>';
-                clubSelect.disabled = true;
-            }
-            if (associationSelect) {
-                associationSelect.innerHTML = '<option value="">Select an association</option>';
-                associationSelect.disabled = true;
-            }
-        }
-
-        if (provinceSelect) {
-            provinceSelect.addEventListener('change', function() {
-                const provinceId = this.value;
-                resetFields();
-                if (regionSelect) {
-                    regionSelect.innerHTML = '<option value="">Select a region</option>';
-                    regionSelect.disabled = true;
-                }
-                if (lfaSelect) {
-                    lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
-                    lfaSelect.disabled = true;
-                }
-
-                if (provinceId) {
-                    fetch(`/membership/api/regions_by_province/${provinceId}/`)
-                        .then(response => response.json())
-                        .then(data => populateDropdown(regionSelect, data, 'Select a region'))
-                        .catch(error => console.error('Error fetching regions:', error));
-                }
-            });
-        }
-
-        if (regionSelect) {
-            regionSelect.addEventListener('change', function() {
-                const regionId = this.value;
-                resetFields();
-                if (lfaSelect) {
-                    lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
-                    lfaSelect.disabled = true;
-                }
-
-                if (regionId) {
-                    fetch(`/membership/api/lfas_by_region/${regionId}/`)
-                        .then(response => response.json())
-                        .then(data => populateDropdown(lfaSelect, data, 'Select an LFA'))
-                        .catch(error => console.error('Error fetching LFAs:', error));
-                }
-            });
-        }
-
-        if (lfaSelect) {
-            lfaSelect.addEventListener('change', function() {
-                const lfaId = this.value;
-                if (clubSelect && prefix === '') {
-                    clubSelect.innerHTML = '<option value="">Select a club</option>';
-                    clubSelect.disabled = true;
-                }
-                if (associationSelect) {
-                    associationSelect.innerHTML = '<option value="">Select an association</option>';
-                    associationSelect.disabled = true;
-                }
-
-                if (lfaId) {
-                    if (clubSelect && prefix === '') {
-                        fetch(`/membership/api/clubs_by_lfa/${lfaId}/`)
-                            .then(response => response.json())
-                            .then(data => populateDropdown(clubSelect, data, 'Select a club'))
-                            .catch(error => console.error('Error fetching clubs:', error));
-                    }
-
-                    if (associationSelect) {
-                        fetch(`/membership/api/associations_by_lfa/${lfaId}/`)
-                            .then(response => response.json())
-                            .then(data => populateDropdown(associationSelect, data, 'Select an association'))
-                            .catch(error => console.error('Error fetching associations:', error));
-                    }
-                }
-            });
-        }
-    }
-
-    // Setup geography dropdowns for all three sections
-    setupGeographyDropdowns(''); // Player section (no prefix)
-    setupGeographyDropdowns('official');
-    setupGeographyDropdowns('member');
-
-    // SA ID Number Validation
+    // Dynamic dropdowns for geography
+    const provinceSelect = document.getElementById('province');
+    const regionSelect = document.getElementById('region');
+    const lfaSelect = document.getElementById('lfa');
+    const clubSelect = document.getElementById('club');
+    const associationSelect = document.getElementById('association');
     const idNumberInput = document.getElementById('{{ form.id_number.id_for_label }}');
     const dobInput = document.getElementById('{{ form.date_of_birth.id_for_label }}');
+
+    function populateDropdown(selectElement, data, defaultOptionText) {
+        selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.name;
+            selectElement.appendChild(option);
+        });
+        selectElement.disabled = false;
+    }
+
+    function resetClubAssociationFields() {
+        clubSelect.innerHTML = '<option value="">Select a club</option>';
+        clubSelect.disabled = true;
+        associationSelect.innerHTML = '<option value="">Select an association</option>';
+        associationSelect.disabled = true;
+    }
+
+    if(provinceSelect) {
+        provinceSelect.addEventListener('change', function() {
+            const provinceId = this.value;
+            resetClubAssociationFields();
+            regionSelect.innerHTML = '<option value="">Select a region</option>';
+            regionSelect.disabled = true;
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+            lfaSelect.disabled = true;
+
+            if (provinceId) {
+                fetch(`/membership/api/regions_by_province/${provinceId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(regionSelect, data, 'Select a region'))
+                    .catch(error => console.error('Error fetching regions:', error));
+            }
+        });
+    }
+
+    if(regionSelect) {
+        regionSelect.addEventListener('change', function() {
+            const regionId = this.value;
+            resetClubAssociationFields();
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+            lfaSelect.disabled = true;
+
+            if (regionId) {
+                fetch(`/membership/api/lfas_by_region/${regionId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(lfaSelect, data, 'Select an LFA'))
+                    .catch(error => console.error('Error fetching LFAs:', error));
+            }
+        });
+    }
+
+    if(lfaSelect) {
+        lfaSelect.addEventListener('change', function() {
+            const lfaId = this.value;
+            clubSelect.innerHTML = '<option value="">Select a club</option>';
+            clubSelect.disabled = true;
+            associationSelect.innerHTML = '<option value="">Select an association</option>';
+            associationSelect.disabled = true;
+
+            if (lfaId) {
+                fetch(`/membership/api/clubs_by_lfa/${lfaId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(clubSelect, data, 'Select a club'))
+                    .catch(error => console.error('Error fetching clubs:', error));
+
+                fetch(`/membership/api/associations_by_lfa/${lfaId}/`)
+                    .then(response => response.json())
+                    .then(data => populateDropdown(associationSelect, data, 'Select an association'))
+                    .catch(error => console.error('Error fetching associations:', error));
+            }
+        });
+    }
+
+    // Mutual exclusivity for Club and Association
+    if (clubSelect && associationSelect) {
+        clubSelect.addEventListener('change', function() {
+            if (this.value) {
+                associationSelect.value = ''; // Clear association selection
+                associationSelect.disabled = true;
+            } else {
+                associationSelect.disabled = false;
+            }
+        });
+
+        associationSelect.addEventListener('change', function() {
+            if (this.value) {
+                clubSelect.value = ''; // Clear club selection
+                clubSelect.disabled = true;
+            } else {
+                clubSelect.disabled = false;
+            }
+        });
+    }
+
+    // --- SA ID Number Validation ---
     const genderSelect = document.getElementById('{{ form.gender.id_for_label }}');
     const idErrorDiv = document.createElement('div');
     idErrorDiv.className = 'invalid-feedback d-block';

@@ -373,6 +373,36 @@ class Member(TimeStampedModel):
             return (timezone.now().date() - self.date_of_birth).days // 365
         return None
 
+class Player(Member):
+    """
+    Player model represents a registered member who can play for clubs.
+    Physical attributes and position details are handled in club registration.
+    """
+    # Add approval field
+    is_approved = models.BooleanField(_("Approved"), default=False,
+                                     help_text=_("Whether the player has been approved by an admin"))
+
+    class Meta:
+        verbose_name = _("Player")
+        verbose_name_plural = _("Players")
+
+    def clean(self):
+        super().clean()
+        # Force role to be PLAYER
+        self.role = 'PLAYER'
+
+    def __str__(self):
+        return f"{self.get_full_name()} - {self.safa_id or 'No SAFA ID'}"
+
+    def save(self, *args, **kwargs):
+        # Force role to be PLAYER before saving
+        self.role = 'PLAYER'
+        # Synchronize status with is_approved
+        if self.is_approved:
+            self.status = 'ACTIVE'
+        else:
+            self.status = 'PENDING'
+        super().save(*args, **kwargs)
 
 class JuniorMember(Member):
     """Junior members require guardian information"""
@@ -480,36 +510,75 @@ class ClubRegistration(TimeStampedModel):
         if self.member.status != 'ACTIVE':
             raise ValidationError(_("Only approved SAFA members can register with clubs"))
 
-class Player(Member):
-    """
-    Player model represents a registered member who can play for clubs.
-    Physical attributes and position details are handled in club registration.
-    """
-    # Add approval field
-    is_approved = models.BooleanField(_("Approved"), default=False,
-                                     help_text=_("Whether the player has been approved by an admin"))
+class PlayerClubRegistration(TimeStampedModel):
+    """Represents a player's registration with a specific club"""
+    POSITION_CHOICES = [
+        ('GK', 'Goalkeeper'),
+        ('DF', 'Defender'),
+        ('MF', 'Midfielder'),
+        ('FW', 'Forward'),
+    ]
+
+    STATUS_CHOICES = [
+        ('ACTIVE', 'Active'),
+        ('INACTIVE', 'Inactive'),
+        ('SUSPENDED', 'Suspended'),
+        ('TRANSFERRED', 'Transferred'),
+    ]
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE,
+                             related_name='club_registrations')
+    club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
+                           related_name='player_registrations')
+    # Registration Details
+    registration_date = models.DateField(_("Registration Date"), default=timezone.now)
+    status = models.CharField(_("Status"), max_length=20,
+                            choices=STATUS_CHOICES, default='PENDING')
+    expiry_date = models.DateField(_("Registration Expiry"), null=True, blank=True)
+
+    # Playing Details
+    position = models.CharField(_("Position"), max_length=2,
+                              choices=POSITION_CHOICES, blank=True)
+    jersey_number = models.PositiveIntegerField(_("Jersey Number"),
+                                              blank=True, null=True)
+    # Physical Attributes
+    height = models.DecimalField(_("Height (cm)"), max_digits=5,
+                               decimal_places=2, blank=True, null=True)
+    weight = models.DecimalField(_("Weight (kg)"), max_digits=5,
+                               decimal_places=2, blank=True, null=True)
+
+    # Additional Information
+    notes = models.TextField(_("Notes"), blank=True)
 
     class Meta:
-        verbose_name = _("Player")
-        verbose_name_plural = _("Players")
+        verbose_name = _("Player Club Registration")
+        verbose_name_plural = _("Player Club Registrations")
+        ordering = ['-registration_date']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['player', 'club'],
+                name='unique_active_registration',
+                condition=models.Q(status='INACTIVE')
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.player.get_full_name()} - {self.club.name}"
 
     def clean(self):
         super().clean()
-        # Force role to be PLAYER
-        self.role = 'PLAYER'
+        # Ensure player doesn't have another active registration
+        if self.status == 'ACTIVE':
+            existing = PlayerClubRegistration.objects.filter(
+                player=self.player,
+                status='ACTIVE'
+            ).exclude(pk=self.pk)
+            if existing.exists():
+                raise ValidationError(_(
+                    "Player already has an active registration with another club. "
+                    "Please transfer or deactivate the existing registration first."
+                ))
 
-    def __str__(self):
-        return f"{self.get_full_name()} - {self.safa_id or 'No SAFA ID'}"
-
-    def save(self, *args, **kwargs):
-        # Force role to be PLAYER before saving
-        self.role = 'PLAYER'
-        # Synchronize status with is_approved
-        if self.is_approved:
-            self.status = 'ACTIVE'
-        else:
-            self.status = 'PENDING'
-        super().save(*args, **kwargs)
 
 class Official(Member):
     """
@@ -603,160 +672,6 @@ class Official(Member):
                 print(f"[DEBUG - OFFICIAL SAVE] Added primary_association to associations M2M")
 
 
-class OfficialCertification(TimeStampedModel):
-    """
-    Tracks certification history for officials (referees, coaches, etc.)
-    Allows recording multiple certifications with dates obtained
-    """
-    CERTIFICATION_TYPES = [
-        ('REFEREE', _('Referee Certification')),
-        ('COACH', _('Coaching Certification')),
-        ('ADMIN', _('Administrative Certification')),
-        ('OTHER', _('Other Certification')),
-    ]
-
-    LEVEL_CHOICES = [
-        ('LOCAL', _('Local')),
-        ('REGIONAL', _('Regional')),
-        ('PROVINCIAL', _('Provincial')),
-        ('NATIONAL', _('National')),
-        ('INTERNATIONAL', _('International')),
-    ]
-
-    official = models.ForeignKey(Official, on_delete=models.CASCADE,
-                              related_name='certifications',
-                              help_text=_("The official who holds this certification"))
-
-    certification_type = models.CharField(_("Certification Type"), max_length=20,
-                                       choices=CERTIFICATION_TYPES,
-                                       help_text=_("Type of certification"))
-
-    level = models.CharField(_("Level"), max_length=20,
-                          choices=LEVEL_CHOICES,
-                          help_text=_("Level or grade of the certification"))
-
-    name = models.CharField(_("Certification Name"), max_length=100,
-                         help_text=_("Name of the specific certification or qualification"))
-
-    issuing_body = models.CharField(_("Issuing Organization"), max_length=100,
-                                 help_text=_("Organization that issued this certification"))
-
-    certification_number = models.CharField(_("Certification Number"), max_length=50,
-                                         blank=True, null=True,
-                                         help_text=_("Unique identifier for this certification"))
-
-    obtained_date = models.DateField(_("Date Obtained"),
-                                  help_text=_("When the certification was first obtained"))
-
-    expiry_date = models.DateField(_("Expiry Date"),
-                                blank=True, null=True,
-                                help_text=_("When the certification expires (if applicable)"))
-
-    document = models.FileField(_("Certificate Document"),
-                             upload_to='certification_documents/history/',
-                             blank=True, null=True,
-                             help_text=_("Upload proof of certification"))
-
-    notes = models.TextField(_("Notes"), blank=True,
-                          help_text=_("Additional information about this certification"))
-
-    is_verified = models.BooleanField(_("Verified"), default=False,
-                                   help_text=_("Whether this certification has been verified by an administrator"))
-
-    class Meta:
-        verbose_name = _("Official Certification")
-        verbose_name_plural = _("Official Certifications")
-        ordering = ['-obtained_date']
-
-    def __str__(self):
-        return f"{self.official.get_full_name()} - {self.name} ({self.level})"
-
-    @property
-    def is_active(self):
-        """Check if certification is currently active based on expiry date"""
-        if not self.expiry_date:
-            return True  # Certifications without expiry dates are considered active
-        return self.expiry_date >= timezone.now().date()
-
-    @property
-    def validity_status(self):
-        """Return the validity status of the certification"""
-        if not self.is_verified:
-            return "Pending Verification"
-        if not self.expiry_date:
-            return "Active (No Expiration)"
-        if self.is_active:
-            return "Active"
-        return "Expired"
-
-class PlayerClubRegistration(TimeStampedModel):
-    """Represents a player's registration with a specific club"""
-    POSITION_CHOICES = [
-        ('GK', 'Goalkeeper'),
-        ('DF', 'Defender'),
-        ('MF', 'Midfielder'),
-        ('FW', 'Forward'),
-    ]
-
-    STATUS_CHOICES = [
-        ('ACTIVE', 'Active'),
-        ('INACTIVE', 'Inactive'),
-        ('SUSPENDED', 'Suspended'),
-        ('TRANSFERRED', 'Transferred'),
-    ]
-
-    player = models.ForeignKey(Player, on_delete=models.CASCADE,
-                             related_name='club_registrations')
-    club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
-                           related_name='player_registrations')
-    # Registration Details
-    registration_date = models.DateField(_("Registration Date"), default=timezone.now)
-    status = models.CharField(_("Status"), max_length=20,
-                            choices=STATUS_CHOICES, default='PENDING')
-    expiry_date = models.DateField(_("Registration Expiry"), null=True, blank=True)
-
-    # Playing Details
-    position = models.CharField(_("Position"), max_length=2,
-                              choices=POSITION_CHOICES, blank=True)
-    jersey_number = models.PositiveIntegerField(_("Jersey Number"),
-                                              blank=True, null=True)
-    # Physical Attributes
-    height = models.DecimalField(_("Height (cm)"), max_digits=5,
-                               decimal_places=2, blank=True, null=True)
-    weight = models.DecimalField(_("Weight (kg)"), max_digits=5,
-                               decimal_places=2, blank=True, null=True)
-
-    # Additional Information
-    notes = models.TextField(_("Notes"), blank=True)
-
-    class Meta:
-        verbose_name = _("Player Club Registration")
-        verbose_name_plural = _("Player Club Registrations")
-        ordering = ['-registration_date']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['player', 'club'],
-                name='unique_active_registration',
-                condition=models.Q(status='INACTIVE')
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.player.get_full_name()} - {self.club.name}"
-
-    def clean(self):
-        super().clean()
-        # Ensure player doesn't have another active registration
-        if self.status == 'ACTIVE':
-            existing = PlayerClubRegistration.objects.filter(
-                player=self.player,
-                status='ACTIVE'
-            ).exclude(pk=self.pk)
-            if existing.exists():
-                raise ValidationError(_(
-                    "Player already has an active registration with another club. "
-                    "Please transfer or deactivate the existing registration first."
-                ))
 
 class Transfer(TimeStampedModel):
     """Represents a player transfer between clubs"""
@@ -767,7 +682,7 @@ class Transfer(TimeStampedModel):
         ('CANCELLED', 'Cancelled'),
     ]
 
-    player = models.ForeignKey(Player, on_delete=models.CASCADE,
+    player = models.ForeignKey('registration.Player', on_delete=models.CASCADE,
                              related_name='transfers')
     from_club = models.ForeignKey(GeographyClub, on_delete=models.CASCADE,  # Use GeographyClub
                                 related_name='transfers_out')
@@ -817,7 +732,7 @@ class Transfer(TimeStampedModel):
             ) % {'status': self.player.get_status_display()})
 
         # Check if player is registered with from_club
-        current_registration = PlayerClubRegistration.objects.filter(
+        current_registration = apps.get_model('registration', 'PlayerClubRegistration').objects.filter(
             player=self.player,
             club=self.from_club,
             status='ACTIVE'
@@ -842,14 +757,14 @@ class Transfer(TimeStampedModel):
 
         with transaction.atomic():
             # Deactivate current registration
-            PlayerClubRegistration.objects.filter(
+            apps.get_model('registration', 'PlayerClubRegistration').objects.filter(
                 player=self.player,
                 club=self.from_club,
                 status='ACTIVE'
             ).update(status='TRANSFERRED')
 
             # Create new registration with to_club
-            PlayerClubRegistration.objects.create(
+            apps.get_model('registration', 'PlayerClubRegistration').objects.create(
                 player=self.player,
                 club=self.to_club,
                 status='ACTIVE',
@@ -1041,7 +956,6 @@ class ClubWithSafaID(GeographyClub):
     """
     class Meta:
         proxy = True
-        app_label = 'membership'
         verbose_name = _("Club with SAFA ID")
         verbose_name_plural = _("Clubs with SAFA ID")
 
@@ -1148,7 +1062,7 @@ class Invoice(TimeStampedModel):
         null=True, blank=True
     )
     official = models.ForeignKey(
-        'membership.Official',
+        'registration.Official',
         on_delete=models.CASCADE,
         related_name='official_invoices',
         null=True, blank=True,

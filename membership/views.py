@@ -7,10 +7,10 @@ from django.utils import timezone
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView, View
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .models import Member, Player, Membership, MembershipApplication
+from registration.models import Player, PlayerClubRegistration
 from geography.models import Club, Province, Region, LocalFootballAssociation, Association  # Import Club and Association from geography
 from .forms import MemberForm, PlayerForm, ClubForm, MembershipApplicationForm, SeniorMemberRegistrationForm
-from .models import Invoice, InvoiceItem
+from .models import Member, Invoice, InvoiceItem, Membership, MembershipApplication
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect
 from rest_framework import viewsets

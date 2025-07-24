@@ -1,0 +1,19 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Association Admin Dashboard{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Welcome, {{ user.username|default:"Association Admin" }}!</h1>
+    <p>This is the dashboard for Association Administrators.</p>
+    
+    <h2>Quick Links</h2>
+    <ul>
+        <li><a href="{% url 'admin:index' %}">Admin Home</a></li>
+        <li><a href="{% url 'accounts:profile' %}">View Your Profile</a></li>
+        <li><a href="{% url 'accounts:official_list' %}">View Officials</a></li>
+        <li><a href="{% url 'accounts:association_admin_add_official' %}">Add New Official</a></li>
+        <li><a href="{% url 'accounts:club_invoices' %}?association=true">Association Invoices</a></li>
+    </ul>
+</div>
+{% endblock %}

@@ -8,7 +8,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db import models
 # Import models directly from the models.py file 
-from membership.models import Member, JuniorMember, ClubRegistration, Player, PlayerClubRegistration, Transfer, TransferAppeal, Membership, Official
+from membership.models import Member, JuniorMember, ClubRegistration, Transfer, TransferAppeal, Membership
+from registration.models import Player, PlayerClubRegistration, Official
 # Import Invoice models
 from .models import Invoice, InvoiceItem, Vendor
 from .models import MembershipApplication
@@ -164,16 +165,7 @@ class LegacyMemberAdmin(admin.ModelAdmin):
     send_payment_reminder.short_description = _('Send payment reminder email to selected members')
 
 # Register other models with similar enhancements
-@admin.register(Player)
-class PlayerAdmin(LegacyMemberAdmin):
-    list_display = ('get_full_name', 'email', 'safa_id', 'status', 'has_active_club')
-    list_filter = ('status', 'gender')
-    search_fields = ('first_name', 'last_name', 'email', 'safa_id')
-    
-    def has_active_club(self, obj):
-        return PlayerClubRegistration.objects.filter(player=obj, status='ACTIVE').exists()
-    has_active_club.boolean = True
-    has_active_club.short_description = _('Active Club')
+
 
 @admin.register(Transfer)
 class TransferAdmin(admin.ModelAdmin):
@@ -188,11 +180,7 @@ class TransferAdmin(admin.ModelAdmin):
     display_transfer_fee.short_description = 'Transfer Fee (ZAR)'
     display_transfer_fee.admin_order_field = 'transfer_fee'
 
-@admin.register(PlayerClubRegistration)
-class PlayerClubRegistrationAdmin(admin.ModelAdmin):
-    list_display = ('player', 'club', 'status', 'registration_date', 'position')
-    list_filter = ('status', 'registration_date')
-    search_fields = ('player__first_name', 'player__last_name', 'club__name')
+
 
 
 
@@ -201,14 +189,17 @@ admin.site.register(Membership)
 
 
 # New admin classes for refactored membership system
+from django.urls import reverse
+
 class NewMemberAdmin(admin.ModelAdmin):
     class Media:
         js = ("admin/js/jquery.init.js", "admin/js/member_admin_dynamic_fields.js",)
 
     """Admin for the new two-tier membership system"""
-    list_display = ('safa_id', 'get_full_name', 'email', 'member_type', 'status', 'created')
-    list_filter = ('status', 'member_type', 'province', 'created')
-    search_fields = ('safa_id', 'first_name', 'last_name', 'email', 'id_number')
+    list_display = ('safa_id_link', 'get_full_name', 'email', 'member_type', 'status', 'created', 'club', 'association')
+    list_display_links = ('get_full_name',)
+    list_filter = ('status', 'member_type', 'province', 'created', 'club', 'association')
+    search_fields = ('safa_id', 'first_name', 'last_name', 'email', 'id_number', 'club__name', 'association__name')
     actions = ['approve_selected', 'reject_selected', 'send_welcome_emails']
     
     fieldsets = (
@@ -240,6 +231,12 @@ class NewMemberAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ('safa_id', 'approved_by', 'approved_date')
+
+    def safa_id_link(self, obj):
+        url = reverse("admin:membership_member_change", args=[obj.id])
+        return format_html(f'<a href="{url}">{obj.safa_id}</a>')
+    safa_id_link.short_description = "SAFA ID"
+    safa_id_link.admin_order_field = "safa_id"
 
     def get_full_name(self, obj):
         return obj.get_full_name()
@@ -287,9 +284,9 @@ class NewMemberAdmin(admin.ModelAdmin):
         elif user.role == 'ADMIN_LOCAL_FED' and user.local_federation:
             return qs.filter(lfa=user.local_federation)
         elif user.role == 'CLUB_ADMIN' and user.club:
-            return qs.filter(club=user.club)
+            return qs.filter(playerclubregistration__club=user.club)
         elif user.role == 'ASSOCIATION_ADMIN' and user.association:
-            return qs.filter(association=user.association)
+            return qs.filter(playerclubregistration__club__association=user.association)
         return qs.none()
 
 
@@ -341,54 +338,6 @@ try:
 except admin.sites.NotRegistered:
     pass
 admin.site.register(Member, NewMemberAdmin)
-
-@admin.register(Official)
-class OfficialAdmin(LegacyMemberAdmin):
-    list_display = ('get_full_name', 'email', 'safa_id', 'position', 'primary_association', 'status', 'is_approved')
-    list_filter = ('status', 'is_approved', 'referee_level', 'primary_association')
-    search_fields = ('first_name', 'last_name', 'email', 'safa_id', 'certification_number')
-    fieldsets = (
-        (None, {
-            'fields': ('first_name', 'last_name', 'email', 'phone_number', 'date_of_birth')
-        }),
-        (_('Identification'), {
-            'fields': ('safa_id', 'fifa_id', 'id_number', 'gender')
-        }),
-        (_('Membership Details'), {
-            'fields': ('status', 'is_approved')
-        }),
-        (_('Position & Association'), {
-            'fields': ('position', 'primary_association', 'associations', 'club')
-        }),
-        (_('Certification'), {
-            'fields': ('certification_number', 'certification_document', 'certification_expiry_date', 'referee_level')
-        }),
-        (_('Address'), {
-            'fields': ('street_address', 'suburb', 'city', 'state', 'postal_code', 'country'),
-            'classes': ('collapse',),
-        }),
-        (_('Emergency Contact'), {
-            'fields': ('emergency_contact', 'emergency_phone', 'medical_notes'),
-            'classes': ('collapse',),
-        }),
-        (_('Media'), {
-            'fields': ('profile_picture', 'qr_code_preview'),
-        }),
-    )
-    
-    actions = ['approve_officials', 'reject_officials']
-    
-    
-    def approve_officials(self, request, queryset):
-        updated = queryset.update(is_approved=True, status='ACTIVE')
-        self.message_user(request, _(f"{updated} official(s) approved and activated."))
-    approve_officials.short_description = _('Approve selected officials')
-    
-    def reject_officials(self, request, queryset):
-        updated = queryset.update(is_approved=False)
-        self.message_user(request, _(f"{updated} official(s) rejected."))
-    reject_officials.short_description = _('Reject selected officials')
-
 
 
 @admin.register(MembershipApplication)
@@ -497,12 +446,14 @@ class PlayerClubRegistrationInline(admin.TabularInline):
 
 class OfficialInline(admin.TabularInline):
     model = Official
-    fk_name = 'primary_association' # Specify the foreign key to use
+    fk_name = 'association' # Specify the foreign key to use
     extra = 0
     fields = ('get_full_name', 'email', 'position', 'is_approved')
     readonly_fields = ('get_full_name', 'email', 'position', 'is_approved')
     can_delete = False
     show_change_link = True
+    def get_queryset(self, request):
+        return super().get_queryset(request).all()
 
 
 @admin.register(Vendor)
@@ -598,11 +549,22 @@ class InvoiceAdmin(admin.ModelAdmin):
                     form.base_fields[field_name].widget.attrs['readonly'] = True
         return form
 
+    def get_readonly_fields(self, request, obj=None):
+        if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            return (
+                'invoice_number', 'uuid', 'is_paid', 'is_overdue',
+                'get_payment_instructions', 'created', 'modified', 'amount', 'tax_amount', 'issue_date', 'due_date', 'player', 'club', 'official', 'association', 'vendor', 'issued_by'
+            )
+        return (
+            'invoice_number', 'uuid', 'is_paid', 'is_overdue',
+            'get_payment_instructions', 'created', 'modified'
+        )
+
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser or request.user.role == 'ADMIN_NATIONAL':
             return True
         if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
-            return True # Accounts admin can change invoices
+            return False # Accounts admin can only view invoices
         return False
 
     def get_queryset(self, request):
@@ -614,10 +576,7 @@ class InvoiceAdmin(admin.ModelAdmin):
             return qs
         return qs.none()
 
-    readonly_fields = (
-        'invoice_number', 'uuid', 'is_paid', 'is_overdue',
-        'get_payment_instructions', 'created', 'modified', 'amount', 'tax_amount', 'issue_date', 'due_date', 'player', 'club', 'official', 'association', 'vendor', 'issued_by'
-    )
+    
 
     def billed_to(self, obj):
         """Display the primary entity this invoice is billed to."""

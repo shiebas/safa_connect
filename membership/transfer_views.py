@@ -7,7 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Transfer, Player, PlayerClubRegistration
+from .models import Transfer
+from registration.models import Player, PlayerClubRegistration
 from .forms import TransferRequestForm
 from geography.models import Club
 
