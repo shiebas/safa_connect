@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, reverse_lazy
 from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
 from .views import (
@@ -56,7 +56,8 @@ urlpatterns = [
     path('check-username/', check_username, name='check_username'),
     path('qr-code/', user_qr_code, name='qr_code'),
     path('profile/', profile_view, name='profile'),
-    path('profile/update-photo/', update_profile_photo, name='update_profile_photo'),
+    path('profile/change-password/', auth_views.PasswordChangeView.as_view(template_name='accounts/password_change_form.html', success_url=reverse_lazy('accounts:password_change_done')), name='password_change'),
+    path('profile/change-password/done/', auth_views.PasswordChangeDoneView.as_view(template_name='accounts/password_change_done.html'), name='password_change_done'),
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),

@@ -6,89 +6,329 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static 'css/safa_style.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <style>
     :root {
-        --safa-green: #006633;
-        --safa-dark: #004d26;
-        --safa-gold: #FFD700;
-        --safa-black: #000000;
-        --safa-grey: #f5f5f5;
-        --safa-light-grey: #e9ecef;
-        --safa-white: #ffffff;
+        --primary-blue: #1e3a8a;
+        --primary-blue-hover: #1e40af;
+        --secondary-blue: #1e40af;
+        --accent-blue: #60a5fa;
+        --light-blue: #dbeafe;
+        --very-light-blue: #eff6ff;
+        --dark-text: #1f2937;
+        --medium-text: #4b5563;
+        --light-text: #6b7280;
+        --success-green: #10b981;
+        --warning-orange: #f59e0b;
+        --danger-red: #ef4444;
+        --white: #ffffff;
+        --light-gray: #f9fafb;
+        --border-gray: #e5e7eb;
     }
 
     #header {
-        background: var(--safa-green) !important;
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue)) !important;
     }
 
     #content-main {
-        padding: 20px;
-        background-color: var(--safa-grey);
+        padding: 2rem;
+        background-color: var(--light-gray);
+        min-height: 100vh;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    .dashboard-header {
-        display: flex;
-        justify-content: space-between;
+
+    .dashboard-header h1 i {
+        margin-right: 1rem;
+        font-size: 2rem;
+    }
+
+    .dashboard-subtitle {
+        color: var(--medium-text);
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: var(--white);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
         align-items: center;
-        margin-bottom: 20px;
-        color: var(--safa-black);
     }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-blue-hover), var(--primary-blue));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.25);
+        color: var(--white);
+        text-decoration: none;
+    }
+
+    .btn-primary i {
+        margin-right: 0.5rem;
+    }
+
     .dashboard-cards {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
     }
-    .card {
-        background-color: var(--safa-white);
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+    .dashboard-card {
+        background: linear-gradient(135deg, var(--white), var(--very-light-blue));
+        border: 1px solid var(--light-blue);
+        border-radius: 1rem;
+        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.08);
         transition: all 0.3s ease;
-        border-left: 5px solid var(--safa-green);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: fadeInUp 0.6s ease-out;
     }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+
+    .dashboard-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(30, 58, 138, 0.15);
     }
+
+    .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+    .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+    .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+    .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
+
     .card-header {
-        background-color: var(--safa-light-grey);
-        padding: 15px 20px;
-        border-bottom: 1px solid #ddd;
-        font-weight: bold;
-        font-size: 1.1rem;
-        color: var(--safa-dark);
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
+        padding: 1.2rem 1.5rem;
+        border-bottom: none;
+        font-weight: 600;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
     }
+
+    .card-header i {
+        font-size: 1.5rem;
+        margin-right: 12px;
+        opacity: 0.9;
+    }
+
     .card-body {
-        padding: 20px;
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
     }
+
     .card-body ul {
         list-style: none;
         padding: 0;
         margin: 0;
+        flex-grow: 1;
     }
+
     .card-body ul li {
-        margin-bottom: 10px;
+        margin-bottom: 0.75rem;
     }
+
+    .card-body ul li:last-child {
+        margin-bottom: 0;
+    }
+
     .card-body ul li a {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        margin: -0.75rem -1rem;
+        border-radius: 0.75rem;
         text-decoration: none;
-        color: var(--safa-green);
-        display: block;
-        padding: 8px 12px;
-        border-radius: 5px;
-        transition: background-color 0.2s ease;
+        color: var(--dark-text);
         font-weight: 500;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
     }
+
     .card-body ul li a:hover {
-        background-color: var(--safa-light-grey);
+        background: linear-gradient(135deg, var(--light-blue), var(--very-light-blue));
+        color: var(--primary-blue);
+        transform: translateX(5px);
+        border-color: var(--accent-blue);
         text-decoration: none;
     }
-    .btn-primary {
-        background-color: var(--safa-green);
-        border-color: var(--safa-dark);
-        color: var(--safa-white); /* White text for better contrast */
+
+    .card-body ul li a i {
+        font-size: 1.2rem;
+        margin-right: 12px;
+        color: var(--primary-blue);
+        transition: all 0.3s ease;
+        width: 20px;
+        text-align: center;
     }
-    .btn-primary:hover {
-        background-color: var(--safa-dark);
-        border-color: var(--safa-dark);
+
+    .card-body ul li a:hover i {
+        color: var(--primary-blue-hover);
+        transform: scale(1.1);
+    }
+
+    /* Special styling for different card types */
+    .card-player-management .card-header {
+        background: linear-gradient(135deg, var(--success-green), #059669);
+    }
+
+    .card-player-management .card-body ul li a i {
+        color: var(--success-green);
+    }
+
+    .card-player-management .card-body ul li a:hover {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #065f46;
+    }
+
+    .card-official-management .card-header {
+        background: linear-gradient(135deg, var(--warning-orange), #d97706);
+    }
+
+    .card-official-management .card-body ul li a i {
+        color: var(--warning-orange);
+    }
+
+    .card-official-management .card-body ul li a:hover {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+    }
+
+    .card-financials .card-header {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .card-financials .card-body ul li a i {
+        color: #8b5cf6;
+    }
+
+    .card-financials .card-body ul li a:hover {
+        background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+        color: #5b21b6;
+    }
+
+    /* Welcome message */
+    .welcome-message {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-message::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: shimmer 4s ease-in-out infinite;
+    }
+
+    .welcome-message h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .welcome-message p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        #content-main {
+            padding: 1rem;
+        }
+        
+        .dashboard-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .dashboard-cards {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .welcome-message {
+            padding: 1.5rem;
+        }
+        
+        .welcome-message h2 {
+            font-size: 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes shimmer {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(3deg); }
+    }
+
+    /* Loading states */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Accessibility improvements */
+    .card-body ul li a:focus {
+        outline: 2px solid var(--accent-blue);
+        outline-offset: 2px;
+    }
+
+    /* Statistics badges */
+    .stat-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: var(--white);
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: auto;
     }
 </style>
 {% endblock %}
@@ -96,48 +336,188 @@
 {% block content %}
 <div id="content-main">
     <div class="dashboard-header">
-        <h1>Welcome, {{ user.get_full_name|default:"Club Admin" }}!</h1>
-        <a href="{% url 'admin:index' %}" class="btn btn-primary">Go to Main Admin</a>
+        <div>
+            <h1><i class="bi bi-shield-fill"></i>Club Administration</h1>
+            <p class="dashboard-subtitle">Welcome, {{ user.get_full_name|default:"Club Admin" }}! Manage your club operations efficiently.</p>
+        </div>
+        <a href="{% url 'admin:index' %}" class="btn btn-primary">
+            <i class="bi bi-speedometer2"></i>
+            Main Admin Panel
+        </a>
     </div>
     
     <div class="dashboard-cards">
-        <div class="card">
-            <div class="card-header">Player Management</div>
+        <div class="dashboard-card card-player-management">
+            <div class="card-header">
+                <i class="bi bi-people-fill"></i>
+                Player Management
+            </div>
             <div class="card-body">
                 <ul>
-                    <li><a href="{% url 'registration:club_admin_add_player' %}">Register New Player</a></li>
-                    <li><a href="{% url 'accounts:player_approval_list' %}">View Player Approval List</a></li>
+                    <li>
+                        <a href="{% url 'registration:club_admin_add_player' %}">
+                            <i class="bi bi-person-plus-fill"></i>
+                            Register New Player
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'accounts:player_approval_list' %}">
+                            <i class="bi bi-person-check-fill"></i>
+                            Player Approval Queue
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'accounts:player_approval_list' %}">
+                            <i class="bi bi-list-ul"></i>
+                            View All Players
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Official Management</div>
+        <div class="dashboard-card card-official-management">
+            <div class="card-header">
+                <i class="bi bi-person-badge-fill"></i>
+                Official Management
+            </div>
             <div class="card-body">
                 <ul>
-                    <li><a href="{% url 'accounts:club_admin_add_official' %}">Register New Official</a></li>
-                    <li><a href="{% url 'accounts:official_list' %}">View Officials List</a></li>
+                    <li>
+                        <a href="{% url 'accounts:club_admin_add_official' %}">
+                            <i class="bi bi-person-plus"></i>
+                            Register New Official
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'accounts:official_list' %}">
+                            <i class="bi bi-person-lines-fill"></i>
+                            View Officials List
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'accounts:official_list' %}">
+                            <i class="bi bi-check-circle"></i>
+                            Official Approvals
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Financials</div>
+        <div class="dashboard-card card-financials">
+            <div class="card-header">
+                <i class="bi bi-currency-dollar"></i>
+                Financial Management
+            </div>
             <div class="card-body">
                 <ul>
-                    <li><a href="{% url 'accounts:club_invoices' %}">View Club Invoices</a></li>
+                    <li>
+                        <a href="{% url 'accounts:club_invoices' %}">
+                            <i class="bi bi-receipt-cutoff"></i>
+                            View Club Invoices
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'accounts:club_invoices' %}">
+                            <i class="bi bi-credit-card"></i>
+                            Payment History
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'accounts:club_invoices' %}">
+                            <i class="bi bi-graph-up"></i>
+                            Financial Reports
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Your Account</div>
+        <div class="dashboard-card">
+            <div class="card-header">
+                <i class="bi bi-person-circle"></i>
+                Account & Settings
+            </div>
             <div class="card-body">
                 <ul>
-                    <li><a href="{% url 'accounts:profile' %}">View Your Profile</a></li>
+                    <li>
+                        <a href="{% url 'accounts:profile' %}">
+                            <i class="bi bi-person-gear"></i>
+                            Your Profile Settings
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="{% url 'accounts:password_change' %}">
+                            <i class="bi bi-key"></i>
+                            Change Password
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <i class="bi bi-bell-fill"></i>
+                Notifications & Updates
+            </div>
+            <div class="card-body">
+                <ul>
+                    
+                    <li>
+                        <a href="{% url 'accounts:player_statistics' %}">
+                            <i class="bi bi-bar-chart"></i>
+                            Membership Statistics
+                        </a>
+                    </li>
+                            Export Club Data
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth hover effects
+    const cards = document.querySelectorAll('.dashboard-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Add loading states to navigation links
+    const navLinks = document.querySelectorAll('.card-body a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            this.classList.add('loading');
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.className = 'bi bi-arrow-clockwise';
+                icon.style.animation = 'spin 1s linear infinite';
+            }
+        });
+    });
+});
+
+// Add CSS for spin animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}
+

@@ -1,0 +1,233 @@
+<!-- registration/templates/registration/member_details_modal.html -->
+<div class="row">
+    <div class="col-md-4">
+        <!-- Profile Picture -->
+        <div class="text-center mb-4">
+            {% if member.profile_picture %}
+                <img src="{{ member.profile_picture.url }}" class="img-fluid rounded-circle" 
+                     style="width: 150px; height: 150px; object-fit: cover;" alt="Profile Picture">
+            {% else %}
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center"
+                     style="width: 150px; height: 150px; margin: 0 auto;">
+                    <i class="fas fa-user fa-3x text-muted"></i>
+                </div>
+            {% endif %}
+            <h5 class="mt-3">{{ member.get_full_name }}</h5>
+            <span class="badge bg-{% if member.status == 'ACTIVE' %}success{% elif member.status == 'PENDING' %}warning{% else %}secondary{% endif %}">
+                {{ member.get_status_display }}
+            </span>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Member Information -->
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-muted mb-3">Personal Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>SAFA ID:</strong></td>
+                        <td>{{ member.safa_id|default:"Not assigned" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ member.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phone:</strong></td>
+                        <td>{{ member.phone_number|default:"Not provided" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ID Number:</strong></td>
+                        <td>{{ member.id_number|default:"Not provided" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date of Birth:</strong></td>
+                        <td>{{ member.date_of_birth|date:"M d, Y"|default:"Not provided" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gender:</strong></td>
+                        <td>{{ member.get_gender_display|default:"Not specified" }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="col-md-6">
+                <h6 class="text-muted mb-3">Registration Details</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Type:</strong></td>
+                        <td>{{ member.member_type|default:"General Member" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Registered:</strong></td>
+                        <td>{{ member.created|date:"M d, Y" }}</td>
+                    </tr>
+                    {% if member.club %}
+                    <tr>
+                        <td><strong>Club:</strong></td>
+                        <td>{{ member.club.name }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if member.province %}
+                    <tr>
+                        <td><strong>Province:</strong></td>
+                        <td>{{ member.province.name }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if member.approved_by %}
+                    <tr>
+                        <td><strong>Approved by:</strong></td>
+                        <td>{{ member.approved_by.get_full_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Approved on:</strong></td>
+                        <td>{{ member.approved_date|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        
+        <!-- Address Information -->
+        {% if member.street_address or member.city %}
+        <div class="mt-3">
+            <h6 class="text-muted mb-2">Address</h6>
+            <p class="mb-1">
+                {% if member.street_address %}{{ member.street_address }}<br>{% endif %}
+                {% if member.suburb %}{{ member.suburb }}<br>{% endif %}
+                {% if member.city %}{{ member.city }}{% endif %}
+                {% if member.postal_code %}, {{ member.postal_code }}{% endif %}
+                {% if member.country %}<br>{{ member.country }}{% endif %}
+            </p>
+        </div>
+        {% endif %}
+        
+        <!-- Emergency Contact -->
+        {% if member.emergency_contact %}
+        <div class="mt-3">
+            <h6 class="text-muted mb-2">Emergency Contact</h6>
+            <p class="mb-1">
+                <strong>{{ member.emergency_contact }}</strong><br>
+                {% if member.emergency_phone %}{{ member.emergency_phone }}{% endif %}
+            </p>
+        </div>
+        {% endif %}
+        
+        <!-- Medical Notes -->
+        {% if member.medical_notes %}
+        <div class="mt-3">
+            <h6 class="text-muted mb-2">Medical Notes</h6>
+            <p class="mb-1">{{ member.medical_notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Documents Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h6 class="text-muted mb-3">Documents</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Profile Picture</h6>
+                        {% if member.profile_picture %}
+                            <img src="{{ member.profile_picture.url }}" class="img-fluid" 
+                                 style="max-height: 100px;" alt="Profile Picture">
+                            <div class="mt-2">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Uploaded
+                                </span>
+                            </div>
+                        {% else %}
+                            <div class="text-muted">
+                                <i class="fas fa-image fa-2x mb-2"></i>
+                                <p>No profile picture uploaded</p>
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times me-1"></i>Missing
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">ID Document</h6>
+                        {% if member.id_document %}
+                            <div class="text-success">
+                                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                <p>{{ member.get_id_document_type_display }} Document</p>
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Uploaded
+                                </span>
+                            </div>
+                        {% else %}
+                            <div class="text-muted">
+                                <i class="fas fa-id-card fa-2x mb-2"></i>
+                                <p>No ID document uploaded</p>
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times me-1"></i>Missing
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Missing Documents Alert -->
+{% if missing_documents %}
+<div class="alert alert-warning mt-3" role="alert">
+    <h6 class="alert-heading">
+        <i class="fas fa-exclamation-triangle me-2"></i>Missing Documents
+    </h6>
+    <p class="mb-0">
+        The following documents are required for approval: 
+        <strong>{{ missing_documents|join:", " }}</strong>
+    </p>
+</div>
+{% endif %}
+
+<!-- Invoices Section -->
+{% if invoices %}
+<div class="row mt-4">
+    <div class="col-12">
+        <h6 class="text-muted mb-3">Payment Information</h6>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>#{{ invoice.invoice_number }}</td>
+                        <td>{{ invoice.items.first.description|default:invoice.invoice_type }}</td>
+                        <td>R{{ invoice.amount }}</td>
+                        <td>
+                            <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'PENDING' %}warning{% else %}danger{% endif %}">
+                                {{ invoice.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ invoice.due_date|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}

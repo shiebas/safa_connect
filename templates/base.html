@@ -26,48 +26,370 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Custom SAFA Styling -->
-    <style>
-        :root {
-            --safa-green: #006633;
-            --safa-gold: #FFD700;
-            --safa-dark: #004422;
+<style>
+    /* Standardized Design System */
+    :root {
+        --primary-blue: #1e3a8a;
+        --primary-blue-hover: #1e40af;
+        --primary-blue-light: #3b82f6;
+        --secondary-blue: #1e40af;
+        --accent-blue: #60a5fa;
+        --light-blue: #dbeafe;
+        --very-light-blue: #eff6ff;
+        --dark-text: #1f2937;
+        --medium-text: #4b5563;
+        --light-text: #6b7280;
+        --success-green: #10b981;
+        --warning-orange: #f59e0b;
+        --danger-red: #ef4444;
+        --white: #ffffff;
+        --light-gray: #f9fafb;
+        --border-gray: #e5e7eb;
+    }
+
+    /* Global Styles */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-text);
+        line-height: 1.6;
+    }
+
+    /* Container Styles */
+    .main-container {
+        background-color: var(--light-gray);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    /* Card Styles */
+    .modern-card {
+        background-color: var(--white);
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(30, 58, 138, 0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .modern-card:hover {
+        box-shadow: 0 15px 35px rgba(30, 58, 138, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .modern-card-header {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
+        padding: 1.5rem 2rem;
+        border-bottom: none;
+        border-radius: 0;
+    }
+
+    .modern-card-header h1,
+    .modern-card-header h2,
+    .modern-card-header h3 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .modern-card-body {
+        padding: 2rem;
+    }
+
+    /* Form Styles */
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-text);
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 0.75rem;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-gray);
+        background-color: var(--very-light-blue);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-blue);
+        background-color: var(--white);
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.15);
+        transform: translateY(-1px);
+    }
+
+    /* Button Styles */
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-blue-hover);
+        border-color: var(--primary-blue-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(30, 58, 138, 0.25);
+    }
+
+    .btn-secondary {
+        background-color: var(--medium-text);
+        border-color: var(--medium-text);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary {
+        color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    /* Section Headers */
+    .section-header {
+        background: linear-gradient(135deg, var(--dark-blue), var(--light-blue));
+        padding: 1rem 1.5rem;
+        margin: 2rem 0 1.5rem 0;
+        border-radius: 0.75rem;
+        border-left: 4px solid var(--primary-blue);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .section-header:hover {
+        transform: translateX(3px);
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.1);
+    }
+
+    .section-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: var(--dark-text);
+    }
+
+    .section-header i {
+        margin-right: 10px;
+        color: var(--primary-blue);
+        font-size: 1.2rem;
+    }
+
+    /* Status Badges */
+    .badge {
+        border-radius: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .badge.bg-success {
+        background-color: var(--success-green) !important;
+    }
+
+    .badge.bg-warning {
+        background-color: var(--warning-orange) !important;
+    }
+
+    .badge.bg-danger {
+        background-color: var(--danger-red) !important;
+    }
+
+    .badge.bg-primary {
+        background-color: var(--primary-blue) !important;
+    }
+
+    /* Table Styles */
+    .table {
+        background-color: var(--white);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.05);
+    }
+
+    .table thead th {
+        background-color: var(--very-light-blue);
+        color: var(--dark-text);
+        font-weight: 600;
+        border: none;
+        padding: 1rem;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        border-color: var(--border-gray);
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: var(--very-light-blue);
+    }
+
+    /* Alert Styles */
+    .alert {
+        border-radius: 0.75rem;
+        border: none;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .alert-info {
+        background-color: var(--very-light-blue);
+        color: var(--dark-text);
+        border-left: 4px solid var(--primary-blue);
+    }
+
+    .alert-success {
+        background-color: #d1fae5;
+        color: #065f46;
+        border-left: 4px solid var(--success-green);
+    }
+
+    .alert-warning {
+        background-color: #fef3c7;
+        color: #92400e;
+        border-left: 4px solid var(--warning-orange);
+    }
+
+    .alert-danger {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border-left: 4px solid var(--danger-red);
+    }
+
+    /* Dashboard Stats Cards */
+    .stat-card {
+        text-align: center;
+        background: linear-gradient(135deg, var(--white), var(--very-light-blue));
+        border: 1px solid var(--light-blue);
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(30, 58, 138, 0.15);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        color: var(--medium-text);
+        font-weight: 500;
+    }
+
+    /* Navigation & Header */
+    .navbar {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue)) !important;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+    }
+
+    /* Footer Styles */
+    .footer-safa {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue)) !important;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+        color: var(--white); /* Ensure text is readable on dark background */
+    }
+
+    /* Input Groups */
+    .input-group-text {
+        background-color: var(--light-blue);
+        color: var(--primary-blue);
+        border: 1px solid var(--border-gray);
+        border-radius: 0.75rem 0 0 0.75rem;
+        font-weight: 600;
+    }
+
+    .input-group .form-control {
+        border-radius: 0 0.75rem 0.75rem 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .modern-card-body {
+            padding: 1.5rem;
         }
         
-        .navbar-safa {
-            background: linear-gradient(135deg, var(--safa-green), var(--safa-dark));
+        .section-header {
+            padding: 0.75rem 1rem;
         }
         
-        .btn-safa {
-            background-color: var(--safa-green);
-            border-color: var(--safa-green);
-            color: white;
+        .stat-number {
+            font-size: 2rem;
         }
-        
-        .btn-safa:hover {
-            background-color: var(--safa-dark);
-            border-color: var(--safa-dark);
-        }
-        
-        .text-safa {
-            color: var(--safa-green);
-        }
-        
-        .footer-safa {
-            background-color: var(--safa-dark);
-            color: white;
-        }
-        
-        .footer-safa a {
-            color: #e9ecef !important;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-safa a:hover {
-            color: var(--safa-gold) !important;
-            text-decoration: underline !important;
-        }
-    </style>
+    }
+
+    /* Animation Classes */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Required Field Indicator */
+    .required-field::after {
+        content: ' *';
+        color: var(--danger-red);
+        font-weight: bold;
+    }
+
+    /* Form Tips */
+    .form-tip {
+        font-size: 0.85rem;
+        color: var(--light-text);
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+
+    /* Loading States */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--light-gray);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary-blue);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-blue-hover);
+    }
+</style>
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -90,6 +412,13 @@
                             <i class="fas fa-home me-1"></i>Home
                         </a>
                     </li>
+                    {% if user.is_staff and user.role in 'ADMIN_LOCAL_FED,ADMIN_REGION,ADMIN_PROVINCE,ADMIN_NATIONAL' %}
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2" href="{% url 'registration:member_approval_dashboard' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                            <i class="fas fa-user-check me-1"></i>Member Approvals
+                        </a>
+                    </li>
+                    {% endif %}
                     {% if user.is_superuser %}
                     <li class="nav-item">
                         <a class="nav-link fw-bold px-3 py-2" href="{% url 'merchandise:store_home' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
@@ -199,16 +528,25 @@
                                 <i class="fas fa-user-plus me-1"></i>Register
                             </a>
                         </li>
+                    {% endif %}
                        <!-- <li class="nav-item">
                             <a class="nav-link fw-bold px-3 py-2" href="{% url 'supporters:register' %}" style="background-color: rgba(255,105,180,0.9); border-radius: 6px; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
                                 <i class="fas fa-heart me-1"></i>Register Supporter
                             </a>
                         </li>-->
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
+    </ul>  
+    </div>  
+
+    </div>
     </nav>
+    <body style="display: flex; flex-direction: column; min-height: 100vh;">
+   
+                       <!-- <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'supporters:register' %}" style="background-color: rgba(255,105,180,0.9); border-radius: 6px; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                <i class="fas fa-heart me-1"></i>Register Supporter
+                            </a>
+                        </li>-->
+
 
     <!-- Messages -->
     {% if messages %}
@@ -236,7 +574,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
+                <!-- Footer -->
     <footer class="footer-safa mt-5 py-4">
         <div class="container">
             <div class="row">

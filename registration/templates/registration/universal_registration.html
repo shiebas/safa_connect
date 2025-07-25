@@ -1,0 +1,793 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SAFA Membership Registration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-step {
+        display: none;
+    }
+    .form-step.active {
+        display: block;
+    }
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    .step-indicator .step {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 10px;
+        font-weight: bold;
+        color: #6c757d;
+    }
+    .step-indicator .step.active {
+        background: var(--safa-green);
+        color: white;
+    }
+    .step-indicator .step.completed {
+        background: #198754;
+        color: white;
+    }
+    .validation-error {
+        border-color: #dc3545 !important;
+        background-color: #f8d7da;
+    }
+    .validation-success {
+        border-color: #198754 !important;
+        background-color: #d1e7dd;
+    }
+    .field-feedback {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    .field-feedback.invalid {
+        color: #dc3545;
+    }
+    .field-feedback.valid {
+        color: #198754;
+    }
+    .geography-cascade {
+        position: relative;
+    }
+    .loading-spinner {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: none;
+    }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+    .document-preview {
+        max-width: 200px;
+        max-height: 200px;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header" style="background: var(--safa-green); color: white;">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2"></i>
+                        SAFA Universal Registration
+                    </h3>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Step Indicator -->
+                    <div class="step-indicator">
+                        <div class="step active" data-step="1">1</div>
+                        <div class="step" data-step="2">2</div>
+                        <div class="step" data-step="3">3</div>
+                        <div class="step" data-step="4">4</div>
+                    </div>
+                    
+                    <form id="registrationForm" method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Step 1: Registration Type & Basic Info -->
+                        <div class="form-step active" data-step="1">
+                            <h4 class="mb-4">Step 1: Registration Type & Basic Information</h4>
+                            
+                            <!-- Registration Type -->
+                            <div class="mb-4">
+                                <label class="form-label required-field">Registration Type</label>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="registration_type" 
+                                                   id="type_member" value="MEMBER" checked>
+                                            <label class="form-check-label" for="type_member">
+                                                <i class="fas fa-user me-2"></i>General Member
+                                                <small class="d-block text-muted">National Federation Member</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="registration_type" 
+                                                   id="type_player" value="PLAYER">
+                                            <label class="form-check-label" for="type_player">
+                                                <i class="fas fa-futbol me-2"></i>Player
+                                                <small class="d-block text-muted">Club Player Registration</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="registration_type" 
+                                                   id="type_official" value="OFFICIAL">
+                                            <label class="form-check-label" for="type_official">
+                                                <i class="fas fa-whistle me-2"></i>Official
+                                                <small class="d-block text-muted">Referee, Coach, Administrator</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Name Fields -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_first_name" class="form-label required-field">First Name</label>
+                                        <input type="text" class="form-control" id="id_first_name" name="first_name" 
+                                               pattern="[A-Za-z\s'-]{3,}" required minlength="3"
+                                               oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')"
+                                               onblur="validateField(this)">
+                                        <div class="field-feedback" id="first_name_feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_last_name" class="form-label required-field">Last Name</label>
+                                        <input type="text" class="form-control" id="id_last_name" name="last_name" 
+                                               pattern="[A-Za-z\s'-]{3,}" required minlength="3"
+                                               oninput="this.value = this.value.replace(/[^A-Za-z\s'-]/g, '')"
+                                               onblur="validateField(this)">
+                                        <div class="field-feedback" id="last_name_feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="id_email" name="email" 
+                                       onblur="validateEmail(this)">
+                                <div class="field-feedback" id="email_feedback">
+                                    <small class="text-muted">Optional - will be auto-generated if left blank</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Phone -->
+                            <div class="mb-3">
+                                <label for="id_phone_number" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="id_phone_number" name="phone_number" 
+                                       pattern="^[\+]?[0-9]{10,15}$" placeholder="e.g., +27123456789"
+                                       oninput="this.value = this.value.replace(/[^+0-9]/g, '')">
+                                <div class="field-feedback" id="phone_feedback"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Identification -->
+                        <div class="form-step" data-step="2">
+                            <h4 class="mb-4">Step 2: Identification</h4>
+                            
+                            <!-- ID Number -->
+                            <div class="mb-3">
+                                <label for="id_id_number" class="form-label required-field">South African ID Number</label>
+                                <input type="text" class="form-control" id="id_id_number" name="id_number" 
+                                       pattern="[0-9]{13}" maxlength="13" inputmode="numeric" required
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       onblur="validateIdNumber(this)">
+                                <div class="field-feedback" id="id_number_feedback"></div>
+                            </div>
+                            
+                            <!-- Alternative: Passport -->
+                            <div class="mb-3">
+                                <label for="id_passport_number" class="form-label">Passport Number</label>
+                                <input type="text" class="form-control" id="id_passport_number" name="passport_number">
+                                <small class="text-muted">For non-SA citizens or if you don't have an SA ID</small>
+                            </div>
+                            
+                            <!-- Auto-filled from ID -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_date_of_birth" class="form-label">Date of Birth</label>
+                                        <input type="date" class="form-control" id="id_date_of_birth" name="date_of_birth" readonly>
+                                        <small class="text-muted">Auto-filled from ID number</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Gender</label>
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="gender" 
+                                                       id="gender_m" value="M" disabled>
+                                                <label class="form-check-label" for="gender_m">Male</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="gender" 
+                                                       id="gender_f" value="F" disabled>
+                                                <label class="form-check-label" for="gender_f">Female</label>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">Auto-filled from ID number</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Documents -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_profile_picture" class="form-label required-field">Profile Picture</label>
+                                        <input type="file" class="form-control" id="id_profile_picture" 
+                                               name="profile_picture" accept="image/*" required onchange="previewImage(this, 'profile_preview')">
+                                        <img id="profile_preview" class="document-preview" style="display: none;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_id_document" class="form-label required-field">ID/Passport Document</label>
+                                        <input type="file" class="form-control" id="id_id_document" 
+                                               name="id_document" accept="image/*,.pdf" required onchange="previewImage(this, 'id_preview')">
+                                        <img id="id_preview" class="document-preview" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Geography & Organization -->
+                        <div class="form-step" data-step="3">
+                            <h4 class="mb-4">Step 3: Geographic & Organizational Information</h4>
+                            
+                            <!-- Address -->
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="id_street_address" class="form-label">Street Address</label>
+                                        <input type="text" class="form-control" id="id_street_address" name="street_address">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_suburb" class="form-label">Suburb</label>
+                                        <input type="text" class="form-control" id="id_suburb" name="suburb">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_city" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="id_city" name="city">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_state" class="form-label">State/Province</label>
+                                        <input type="text" class="form-control" id="id_state" name="state">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_postal_code" class="form-label">Postal Code</label>
+                                        <input type="text" class="form-control" id="id_postal_code" name="postal_code">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Geography Cascade -->
+                            <div class="geography-cascade">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_province" class="form-label">Province</label>
+                                            <select class="form-control" id="id_province" name="province" onchange="loadRegions(this.value)">
+                                                <option value="">Select Province</option>
+                                                {% for province in provinces %}
+                                                <option value="{{ province.id }}">{{ province.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="loading-spinner" id="province_spinner">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_region" class="form-label">Region</label>
+                                            <select class="form-control" id="id_region" name="region" onchange="loadLFAs(this.value)" disabled>
+                                                <option value="">Select Region</option>
+                                            </select>
+                                            <div class="loading-spinner" id="region_spinner">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_lfa" class="form-label">Local Football Association</label>
+                                            <select class="form-control" id="id_lfa" name="lfa" onchange="loadClubs(this.value)" disabled>
+                                                <option value="">Select LFA</option>
+                                            </select>
+                                            <div class="loading-spinner" id="lfa_spinner">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_club" class="form-label">Club</label>
+                                            <select class="form-control" id="id_club" name="club" disabled>
+                                                <option value="">Select Club</option>
+                                            </select>
+                                            <div class="loading-spinner" id="club_spinner">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Role-specific fields -->
+                            <div id="official_fields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_position" class="form-label required-field">Position</label>
+                                            <select class="form-control" id="id_position" name="position">
+                                                <option value="">Select Position</option>
+                                                {% for position in positions %}
+                                                <option value="{{ position.id }}">{{ position.title }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_association" class="form-label">Association</label>
+                                            <select class="form-control" id="id_association" name="association">
+                                                <option value="">Select Association</option>
+                                                {% for association in associations %}
+                                                <option value="{{ association.id }}">{{ association.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Emergency Contact & Consent -->
+                        <div class="form-step" data-step="4">
+                            <h4 class="mb-4">Step 4: Emergency Contact & Consent</h4>
+                            
+                            <!-- Emergency Contact -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_emergency_contact" class="form-label">Emergency Contact Name</label>
+                                        <input type="text" class="form-control" id="id_emergency_contact" name="emergency_contact">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_emergency_phone" class="form-label">Emergency Contact Phone</label>
+                                        <input type="tel" class="form-control" id="id_emergency_phone" name="emergency_phone"
+                                               oninput="this.value = this.value.replace(/[^+0-9]/g, '')">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Medical Notes -->
+                            <div class="mb-3">
+                                <label for="id_medical_notes" class="form-label">Medical Notes</label>
+                                <textarea class="form-control" id="id_medical_notes" name="medical_notes" rows="3" 
+                                          placeholder="Any medical conditions, allergies, or important health information"></textarea>
+                            </div>
+                            
+                            <!-- POPI Consent -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="id_popi_act_consent" 
+                                           name="popi_act_consent" required>
+                                    <label class="form-check-label required-field" for="id_popi_act_consent">
+                                        I consent to the processing of my personal information in accordance with the 
+                                        Protection of Personal Information Act (POPIA)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Summary -->
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-info-circle me-2"></i>Registration Summary</h5>
+                                <div id="registration_summary">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Navigation Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+                                <i class="fas fa-arrow-left me-2"></i>Previous
+                            </button>
+                            <button type="button" class="btn btn-safa" id="nextBtn" onclick="changeStep(1)">
+                                Next<i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                            <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                                <i class="fas fa-check me-2"></i>Submit Registration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    // Step navigation
+    function changeStep(direction) {
+        if (direction === 1 && !validateCurrentStep()) {
+            return false;
+        }
+
+        if (direction === 1 && currentStep < totalSteps) {
+            currentStep++;
+        } else if (direction === -1 && currentStep > 1) {
+            currentStep--;
+        }
+
+        // Update step visibility
+        document.querySelectorAll('.form-step').forEach(step => {
+            step.classList.remove('active');
+        });
+        document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.add('active');
+
+        // Update step indicators
+        document.querySelectorAll('.step').forEach((step, index) => {
+            const stepNum = index + 1;
+            step.classList.remove('active', 'completed');
+            
+            if (stepNum < currentStep) {
+                step.classList.add('completed');
+            } else if (stepNum === currentStep) {
+                step.classList.add('active');
+            }
+        });
+
+        // Update navigation buttons
+        updateNavigationButtons();
+        
+        // Update summary on last step
+        if (currentStep === totalSteps) {
+            updateRegistrationSummary();
+        }
+    }
+
+    function updateNavigationButtons() {
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+
+        prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
+        
+        if (currentStep === totalSteps) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+        } else {
+            nextBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    // Form validation with corrected minimum lengths
+    function validateCurrentStep() {
+        const currentStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+        const requiredFields = currentStepElement.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+    function validateField(field) {
+        const value = field.type === 'checkbox' ? field.checked : field.value.trim();
+        const fieldName = field.name;
+        const feedbackElement = document.getElementById(fieldName + '_feedback');
+        
+        let isValid = true;
+        let message = '';
+
+        // Required field validation
+        if (field.hasAttribute('required') && !value) {
+            isValid = false;
+            message = 'This field is required.';
+        }
+        // Pattern validation
+        else if (field.hasAttribute('pattern') && value && !new RegExp(field.pattern).test(value)) {
+            isValid = false;
+            message = field.title || 'Invalid format.';
+        }
+        // Specific field validations
+        else if (fieldName === 'first_name' || fieldName === 'last_name') {
+            if (value.length < 3) {
+                isValid = false;
+                message = 'Name must be at least 3 characters long.';
+            }
+        }
+        // Phone number validation - only + and digits
+        else if (fieldName === 'phone_number' && value) {
+            if (!/^[\+]?[0-9]{10,15}$/.test(value)) {
+                isValid = false;
+                message = 'Phone number must contain only digits and optional + sign (10-15 digits).';
+            }
+        }
+
+        // Update field appearance and feedback
+        field.classList.remove('validation-error', 'validation-success');
+        if (feedbackElement) {
+            feedbackElement.classList.remove('invalid', 'valid');
+            
+            if (!isValid) {
+                field.classList.add('validation-error');
+                feedbackElement.classList.add('invalid');
+                feedbackElement.textContent = message;
+            } else if (value) {
+                field.classList.add('validation-success');
+                feedbackElement.classList.add('valid');
+                feedbackElement.textContent = '✓ Valid';
+            }
+        }
+
+        return isValid;
+    }
+
+    // ID number validation and auto-fill
+    function validateIdNumber(field) {
+        const idNumber = field.value.trim();
+        const feedbackElement = document.getElementById('id_number_feedback');
+        
+        if (!idNumber) {
+            return validateField(field);
+        }
+
+        if (idNumber.length !== 13 || !/^\d{13}$/.test(idNumber)) {
+            field.classList.add('validation-error');
+            feedbackElement.className = 'field-feedback invalid';
+            feedbackElement.textContent = 'ID number must be exactly 13 digits.';
+            return false;
+        }
+
+        // AJAX validation
+        fetch(`/registration/ajax/validate-id/?id_number=${idNumber}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    field.classList.add('validation-error');
+                    feedbackElement.className = 'field-feedback invalid';
+                    feedbackElement.textContent = 'A member with this ID number already exists.';
+                } else if (data.valid) {
+                    field.classList.add('validation-success');
+                    feedbackElement.className = 'field-feedback valid';
+                    feedbackElement.textContent = '✓ Valid ID number';
+                    
+                    // Auto-fill date of birth and gender
+                    if (data.date_of_birth) {
+                        document.getElementById('id_date_of_birth').value = data.date_of_birth;
+                    }
+                    if (data.gender) {
+                        document.getElementById('gender_' + data.gender.toLowerCase()).checked = true;
+                    }
+                } else {
+                    field.classList.add('validation-error');
+                    feedbackElement.className = 'field-feedback invalid';
+                    feedbackElement.textContent = data.errors.join(', ') || 'Invalid ID number.';
+                }
+            })
+            .catch(error => {
+                console.error('ID validation error:', error);
+            });
+    }
+
+    // Email validation
+    function validateEmail(field) {
+        const email = field.value.trim();
+        if (!email) {
+            field.classList.remove('validation-error', 'validation-success');
+            document.getElementById('email_feedback').innerHTML = '<small class="text-muted">Optional - will be auto-generated if left blank</small>';
+            return true;
+        }
+
+        fetch(`/registration/ajax/validate-email/?email=${encodeURIComponent(email)}`)
+            .then(response => response.json())
+            .then(data => {
+                const feedbackElement = document.getElementById('email_feedback');
+                if (data.exists) {
+                    field.classList.add('validation-error');
+                    feedbackElement.className = 'field-feedback invalid';
+                    feedbackElement.textContent = 'A member with this email already exists.';
+                } else {
+                    field.classList.add('validation-success');
+                    feedbackElement.className = 'field-feedback valid';
+                    feedbackElement.textContent = '✓ Email available';
+                }
+            });
+    }
+
+    // Geography cascade functions
+    function loadRegions(provinceId) {
+        const regionSelect = document.getElementById('id_region');
+        const lfaSelect = document.getElementById('id_lfa');
+        const clubSelect = document.getElementById('id_club');
+        const spinner = document.getElementById('region_spinner');
+        
+        // Reset dependent fields
+        regionSelect.innerHTML = '<option value="">Select Region</option>';
+        lfaSelect.innerHTML = '<option value="">Select LFA</option>';
+        clubSelect.innerHTML = '<option value="">Select Club</option>';
+        
+        regionSelect.disabled = true;
+        lfaSelect.disabled = true;
+        clubSelect.disabled = true;
+
+        if (!provinceId) return;
+
+        spinner.style.display = 'block';
+        
+        fetch(`/registration/api/regions/?province_id=${provinceId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(region => {
+                    const option = new Option(region.name, region.id);
+                    regionSelect.add(option);
+                });
+                regionSelect.disabled = false;
+            })
+            .catch(error => console.error('Error loading regions:', error))
+            .finally(() => {
+                spinner.style.display = 'none';
+            });
+    }
+
+    function loadLFAs(regionId) {
+        const lfaSelect = document.getElementById('id_lfa');
+        const clubSelect = document.getElementById('id_club');
+        const spinner = document.getElementById('lfa_spinner');
+        
+        lfaSelect.innerHTML = '<option value="">Select LFA</option>';
+        clubSelect.innerHTML = '<option value="">Select Club</option>';
+        lfaSelect.disabled = true;
+        clubSelect.disabled = true;
+
+        if (!regionId) return;
+
+        spinner.style.display = 'block';
+
+        fetch(`/registration/api/lfas/?region_id=${regionId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(lfa => {
+                    const option = new Option(lfa.name, lfa.id);
+                    lfaSelect.add(option);
+                });
+                lfaSelect.disabled = false;
+            })
+            .catch(error => console.error('Error loading LFAs:', error))
+            .finally(() => {
+                spinner.style.display = 'none';
+            });
+    }
+
+    function loadClubs(lfaId) {
+        const clubSelect = document.getElementById('id_club');
+        const spinner = document.getElementById('club_spinner');
+
+        clubSelect.innerHTML = '<option value="">Select Club</option>';
+        clubSelect.disabled = true;
+
+        if (!lfaId) return;
+
+        spinner.style.display = 'block';
+
+        fetch(`/registration/api/clubs/?lfa_id=${lfaId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(club => {
+                    const option = new Option(club.name, club.id);
+                    clubSelect.add(option);
+                });
+                clubSelect.disabled = false;
+            })
+            .catch(error => console.error('Error loading clubs:', error))
+            .finally(() => {
+                spinner.style.display = 'none';
+            });
+    }
+
+    function updateRegistrationSummary() {
+        const summary = document.getElementById('registration_summary');
+        const form = document.getElementById('registrationForm');
+        const formData = new FormData(form);
+        let html = '<ul class="list-unstyled">';
+
+        for (let [key, value] of formData.entries()) {
+            if (key === 'csrfmiddlewaretoken') continue;
+            
+            let label = document.querySelector(`label[for="id_${key}"]`);
+            if (!label) {
+                // Handle radio buttons
+                if (key === 'registration_type') {
+                    label = 'Registration Type';
+                } else {
+                    label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                }
+            } else {
+                label = label.innerText;
+            }
+
+            if (value instanceof File) {
+                html += `<li><strong>${label}:</strong> ${value.name}</li>`;
+            } else if (value) {
+                html += `<li><strong>${label}:</strong> ${value}</li>`;
+            }
+        }
+
+        html += '</ul>';
+        summary.innerHTML = html;
+    }
+
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.src = '#';
+            preview.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
+        

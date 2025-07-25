@@ -32,14 +32,14 @@ class ClubAdminRequiredMixin(LoginRequiredMixin):
             return self.handle_no_permission()
         
         # Check if user has CLUB_ADMIN role or is admin
-        if request.user.role not in ['CLUB_ADMIN', 'ADMIN', 'ADMIN_COUNTRY']:
+        if request.user.role not in ['CLUB_ADMIN', 'ADMIN_NATIONAL', 'ADMIN_COUNTRY']:
             raise PermissionDenied("You must be a club administrator to register players.")
         
         # Get the user's club membership
         try:
             self.club_member = Member.objects.get(
                 user=request.user,
-                role='CLUB_ADMIN',
+                user__role='CLUB_ADMIN',
                 status='ACTIVE',
                 club__isnull=False
             )
@@ -369,7 +369,7 @@ def get_club_info(request):
     try:
         admin_member = Member.objects.get(
             user=request.user,
-            role='CLUB_ADMIN',
+            user__role='CLUB_ADMIN',
             status='ACTIVE',
             club__isnull=False
         )
