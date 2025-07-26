@@ -8,10 +8,21 @@ from .models import Player, Official, PlayerClubRegistration
 from membership.models import Member
 from accounts.models import CustomUser, Position
 from geography.models import Province, Region, LocalFootballAssociation, Club, Association
-
+import sys
+import os 
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from safa_constants import DocumentTypes, ValidationRules
 
 class BaseRegistrationForm(forms.ModelForm):
     """Base form with common validation and fields"""
+    
+    # Document type selector (REQUIRED)
+    id_document_type = forms.ChoiceField(
+        choices=DocumentTypes.CHOICES,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+        label="Document Type",
+        help_text="Select your identification document type"
+    )
     
     # Add common fields that all registration forms need
     popi_act_consent = forms.BooleanField(
@@ -63,7 +74,7 @@ class BaseRegistrationForm(forms.ModelForm):
                 'inputmode': 'tel'
             })
         
-        # ID number validation
+        # ID number validation - CONDITIONAL based on document type
         if 'id_number' in self.fields:
             self.fields['id_number'].widget.attrs.update({
                 'pattern': r'[0-9]{13}',
@@ -71,16 +82,37 @@ class BaseRegistrationForm(forms.ModelForm):
                 'class': 'form-control',
                 'maxlength': '13',
                 'inputmode': 'numeric',
-                'data-validation': 'id-check'
+                'data-validation': 'id-check',
+                'data-document-field': 'sa-id'
             })
+            self.fields['id_number'].required = False  # Made conditional
         
-        # Date fields
+        # Passport number - CONDITIONAL
+        if 'passport_number' in self.fields:
+            self.fields['passport_number'].widget.attrs.update({
+                'class': 'form-control',
+                'data-document-field': 'passport'
+            })
+            self.fields['passport_number'].required = False  # Made conditional
+        
+        # Date fields - CONDITIONAL for passport users
         if 'date_of_birth' in self.fields:
             self.fields['date_of_birth'].widget = forms.DateInput(attrs={
                 'type': 'date',
-                'class': 'form-control'
+                'class': 'form-control',
+                'data-document-field': 'dob'
             })
-            self.fields['date_of_birth'].required = False  # Extracted from ID
+            self.fields['date_of_birth'].required = False  # Will be required for passport
+            self.fields['date_of_birth'].help_text = "Auto-filled from SA ID, or manually enter for passport"
+        
+        # Gender field - CONDITIONAL for passport users
+        if 'gender' in self.fields:
+            self.fields['gender'].widget.attrs.update({
+                'class': 'form-control',
+                'data-document-field': 'gender'
+            })
+            self.fields['gender'].required = False  # Will be required for passport
+            self.fields['gender'].help_text = "Auto-filled from SA ID, or manually select for passport"
         
         # File fields
         file_fields = ['profile_picture', 'id_document', 'certification_document']
@@ -129,35 +161,58 @@ class BaseRegistrationForm(forms.ModelForm):
 
     def clean_id_number(self):
         id_number = self.cleaned_data.get('id_number', '').strip()
-        if not id_number:
-            return id_number
+        document_type = self.cleaned_data.get('id_document_type')
         
-        # Check format
-        if not id_number.isdigit() or len(id_number) != 13:
-            raise ValidationError('ID number must be exactly 13 digits.')
-        
-        # Check if already exists (exclude current instance for updates)
-        query = Member.objects.filter(id_number=id_number)
-        if self.instance and self.instance.pk:
-            query = query.exclude(pk=self.instance.pk)
-        
-        if query.exists():
-            raise ValidationError('A member with this ID number already exists.')
-        
-        # Validate ID number and extract info
-        try:
-            id_info = CustomUser.extract_id_info(id_number)
-            if not id_info['is_valid']:
-                raise ValidationError(id_info.get('error', 'Invalid ID number.'))
+        # Only validate if SA ID is selected
+        if document_type == DocumentTypes.SA_ID:
+            if not id_number:
+                raise ValidationError('SA ID number is required when SA ID document type is selected.')
             
-            # Auto-fill date of birth and gender from ID
-            self.cleaned_data['date_of_birth'] = id_info['date_of_birth']
-            self.cleaned_data['gender'] = id_info['gender']
+            # Check format
+            if not id_number.isdigit() or len(id_number) != 13:
+                raise ValidationError('ID number must be exactly 13 digits.')
             
-        except Exception as e:
-            raise ValidationError(f'ID validation failed: {str(e)}')
+            # Check if already exists (exclude current instance for updates)
+            query = Member.objects.filter(id_number=id_number)
+            if self.instance and self.instance.pk:
+                query = query.exclude(pk=self.instance.pk)
+            
+            if query.exists():
+                raise ValidationError('A member with this ID number already exists.')
+            
+            # Validate ID number and extract info
+            try:
+                id_info = CustomUser.extract_id_info(id_number)
+                if not id_info['is_valid']:
+                    raise ValidationError(id_info.get('error', 'Invalid ID number.'))
+                
+                # Auto-fill date of birth and gender from ID
+                self.cleaned_data['date_of_birth'] = id_info['date_of_birth']
+                self.cleaned_data['gender'] = id_info['gender']
+                
+            except Exception as e:
+                raise ValidationError(f'ID validation failed: {str(e)}')
         
         return id_number
+    
+    def clean_passport_number(self):
+        passport_number = self.cleaned_data.get('passport_number', '').strip()
+        document_type = self.cleaned_data.get('id_document_type')
+        
+        # Only validate if Passport is selected
+        if document_type == DocumentTypes.PASSPORT:
+            if not passport_number:
+                raise ValidationError('Passport number is required when passport document type is selected.')
+            
+            # Check if already exists
+            query = Member.objects.filter(passport_number=passport_number)
+            if self.instance and self.instance.pk:
+                query = query.exclude(pk=self.instance.pk)
+            
+            if query.exists():
+                raise ValidationError('A member with this passport number already exists.')
+        
+        return passport_number
     
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
@@ -176,21 +231,30 @@ class BaseRegistrationForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
+        document_type = cleaned_data.get('id_document_type')
         id_number = cleaned_data.get('id_number')
         passport_number = cleaned_data.get('passport_number')
         date_of_birth = cleaned_data.get('date_of_birth')
         gender = cleaned_data.get('gender')
         
-        # Either ID or passport required
-        if not id_number and not passport_number:
-            raise ValidationError('Either ID number or passport number is required.')
-        
-        # If using passport, DOB and gender are required
-        if passport_number and not id_number:
+        # Validate based on document type
+        if document_type == DocumentTypes.SA_ID:
+            # SA ID selected - clear passport fields
+            cleaned_data['passport_number'] = ''
+            
+        elif document_type == DocumentTypes.PASSPORT:
+            # Passport selected - clear SA ID and require DOB/gender
+            cleaned_data['id_number'] = ''
+            
             if not date_of_birth:
                 self.add_error('date_of_birth', 'Date of birth is required when using passport.')
+            
             if not gender:
                 self.add_error('gender', 'Gender is required when using passport.')
+        
+        else:
+            # No document type selected
+            self.add_error('id_document_type', 'Please select a document type.')
         
         return cleaned_data
 
@@ -224,7 +288,8 @@ class UniversalRegistrationForm(BaseRegistrationForm):
         fields = [
             'registration_type',
             'first_name', 'last_name', 'email', 'phone_number',
-            'date_of_birth', 'gender', 'id_number', 'passport_number',
+            'id_document_type', 'id_number', 'passport_number',  # Added document type
+            'date_of_birth', 'gender',
             'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
             'province', 'region', 'lfa', 'club', 'association',
             'profile_picture', 'id_document',
