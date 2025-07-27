@@ -191,21 +191,29 @@
                         <div class="form-step" data-step="2">
                             <h4 class="mb-4">Step 2: Identification</h4>
                             
-                            <!-- ID Number -->
+                            <!-- Document Type -->
                             <div class="mb-3">
+                                <label class="form-label required-field">Identification Type</label>
+                                <div id="id_id_document_type">
+                                    {{ form.id_document_type }}
+                                </div>
+                            </div>
+
+                            <!-- ID Number -->
+                            <div class="mb-3" id="id_number_field">
                                 <label for="id_id_number" class="form-label required-field">South African ID Number</label>
                                 <input type="text" class="form-control" id="id_id_number" name="id_number" 
-                                       pattern="[0-9]{13}" maxlength="13" inputmode="numeric" required
+                                       pattern="[0-9]{13}" maxlength="13" inputmode="numeric"
                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                        onblur="validateIdNumber(this)">
                                 <div class="field-feedback" id="id_number_feedback"></div>
                             </div>
                             
                             <!-- Alternative: Passport -->
-                            <div class="mb-3">
-                                <label for="id_passport_number" class="form-label">Passport Number</label>
+                            <div class="mb-3" id="passport_number_field" style="display: none;">
+                                <label for="id_passport_number" class="form-label required-field">Passport Number</label>
                                 <input type="text" class="form-control" id="id_passport_number" name="passport_number">
-                                <small class="text-muted">For non-SA citizens or if you don't have an SA ID</small>
+                                <small class="text-muted">For non-SA citizens.</small>
                             </div>
                             
                             <!-- Auto-filled from ID -->
@@ -788,6 +796,38 @@
             preview.style.display = 'none';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const idTypeRadios = document.querySelectorAll('input[name="id_document_type"]');
+        const idNumberField = document.getElementById('id_number_field');
+        const passportNumberField = document.getElementById('passport_number_field');
+        const idNumberInput = document.getElementById('id_id_number');
+        const passportNumberInput = document.getElementById('id_passport_number');
+
+        function toggleDocumentFields() {
+            const selectedType = document.querySelector('input[name="id_document_type"]:checked').value;
+            if (selectedType === 'ID') {
+                idNumberField.style.display = 'block';
+                idNumberInput.required = true;
+                passportNumberField.style.display = 'none';
+                passportNumberInput.required = false;
+                passportNumberInput.value = '';
+            } else if (selectedType === 'PP') {
+                idNumberField.style.display = 'none';
+                idNumberInput.required = false;
+                idNumberInput.value = '';
+                passportNumberField.style.display = 'block';
+                passportNumberInput.required = true;
+            }
+        }
+
+        idTypeRadios.forEach(radio => {
+            radio.addEventListener('change', toggleDocumentFields);
+        });
+
+        // Initial check
+        toggleDocumentFields();
+    });
 </script>
 {% endblock %}
         

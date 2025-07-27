@@ -196,8 +196,13 @@ class BaseRegistrationForm(forms.ModelForm):
         return id_number
     
     def clean_passport_number(self):
-        passport_number = self.cleaned_data.get('passport_number', '').strip()
+        passport_number = self.cleaned_data.get('passport_number')
         document_type = self.cleaned_data.get('id_document_type')
+
+        if passport_number:
+            passport_number = passport_number.strip()
+        else:
+            passport_number = ''
         
         # Only validate if Passport is selected
         if document_type == DocumentTypes.PASSPORT:
