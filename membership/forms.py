@@ -74,6 +74,7 @@ class PlayerForm(AddressFormMixin, forms.ModelForm):
             'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth',
             'gender', 'id_number', 'passport_number',
             'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
+            'association',
             'status', 'is_approved',
             'profile_picture',
             'emergency_contact', 'emergency_phone', 'medical_notes'
@@ -86,8 +87,14 @@ class PlayerForm(AddressFormMixin, forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add any user-specific customizations here if needed
-        # Note: club assignment is now handled through ClubRegistration
+        # Add association field as optional
+        self.fields['association'] = forms.ModelChoiceField(
+            queryset=Association.objects.all(),
+            required=False,
+            label=_("Football Association"),
+            help_text=_("Select your regional football association (optional)"),
+            widget=forms.Select(attrs={'class': 'form-control'})
+        )
 
     def clean_id_number(self):
         id_number = self.cleaned_data.get('id_number', '').strip()
@@ -137,6 +144,7 @@ class PlayerRegistrationForm(AddressFormMixin, forms.ModelForm):
             'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth',
             'gender', 'id_number',
             'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
+            'association',
             'emergency_contact', 'emergency_phone', 'medical_notes',
             'position', 'jersey_number',
             # Do NOT include 'club' here; set it in the view!
@@ -149,10 +157,19 @@ class PlayerRegistrationForm(AddressFormMixin, forms.ModelForm):
     def __init__(self, *args, club=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.club = club
-        # Make important fields required
-        self.fields['phone_number'].required = True
-        self.fields['emergency_contact'].required = True
-        self.fields['emergency_phone'].required = True
+     # Make important fields required
+        self.fields['phone_number'].required = False
+        self.fields['emergency_contact'].required = False
+        self.fields['emergency_phone'].required = False
+    
+    # Add association field as optional
+        self.fields['association'] = forms.ModelChoiceField(
+        queryset=Association.objects.all(),
+        required=False,
+        label=_("Football Association"),
+        help_text=_("Select your regional football association (optional)"),
+        widget=forms.Select(attrs={'class': 'form-control'})
+        )
 
     def clean_id_number(self):
         id_number = self.cleaned_data.get('id_number', '').strip()
@@ -638,6 +655,9 @@ class JuniorMemberRegistrationForm(MembershipApplicationForm):
 
 class SeniorMemberRegistrationForm(MembershipApplicationForm):
     """Form for registering a new senior member"""
+
+    class Meta(MembershipApplicationForm.Meta):
+        model = Player  # Use Player model instead of Member
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

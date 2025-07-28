@@ -1,4 +1,4 @@
-# registration/views.py
+# registration/views.py (Fixed version)
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -31,17 +31,28 @@ class RegistrationManager:
     @staticmethod
     def create_safa_invoice(member_instance, amount, descriptions, invoice_type=InvoiceConfig.MEMBERSHIP):
         """Create SAFA National Federation invoices"""
-        invoice = Invoice.objects.create(
-            # Link to appropriate member type
-            player=member_instance if hasattr(member_instance, 'member_ptr') and 'Player' in str(type(member_instance)) else None,
-            official=member_instance if hasattr(member_instance, 'member_ptr') and 'Official' in str(type(member_instance)) else None,
-            
-            # Invoice from SAFA National
-            amount=amount,
-            status=InvoiceConfig.PENDING,
-            invoice_type=invoice_type,
-            due_date=timezone.now() + timezone.timedelta(days=MembershipFees.PAYMENT_DUE_DAYS)
-        )
+        # Determine the correct fields to populate based on instance type
+        invoice_data = {
+            'amount': amount,
+            'status': InvoiceConfig.PENDING,
+            'invoice_type': invoice_type,
+            'due_date': timezone.now() + timezone.timedelta(days=MembershipFees.PAYMENT_DUE_DAYS)
+        }
+        
+        # Set the appropriate foreign key based on the instance type
+        if hasattr(member_instance, 'player') or isinstance(member_instance, Player):
+            invoice_data['player'] = member_instance
+        elif hasattr(member_instance, 'official') or isinstance(member_instance, Official):
+            invoice_data['official'] = member_instance
+        else:
+            # For base Member instances, use the member field
+            invoice_data['member'] = member_instance
+        
+        # Add club if available
+        if hasattr(member_instance, 'club') and member_instance.club:
+            invoice_data['club'] = member_instance.club
+        
+        invoice = Invoice.objects.create(**invoice_data)
         
         # Create invoice items
         if isinstance(descriptions, list):
@@ -114,92 +125,67 @@ def universal_registration(request):
                 with transaction.atomic():
                     registration_type = form.cleaned_data.get('registration_type')
                     
-                    # STEP 1: Create base Member (National Federation membership)
-                    member = Member()
+                    # STEP 1: Create the appropriate instance directly
+                    if registration_type == 'PLAYER':
+                        # Create Player instance directly (inherits from Member)
+                        instance = Player()
+                    elif registration_type == 'OFFICIAL':
+                        # Create Official instance directly (inherits from Member)
+                        instance = Official()
+                        instance.position = form.cleaned_data.get('position')
+                    else:
+                        # Create base Member for general membership
+                        instance = Member()
                     
-                    # Copy form data to member
+                    # Copy form data to instance
                     for field_name, value in form.cleaned_data.items():
-                        if hasattr(member, field_name) and field_name != 'registration_type':
-                            setattr(member, field_name, value)
+                        if hasattr(instance, field_name) and field_name not in ['registration_type', 'position']:
+                            setattr(instance, field_name, value)
                             
                     # Determine age category for fees
-                    age_category = get_age_category(member.date_of_birth)
+                    age_category = get_age_category(instance.date_of_birth)
                     
-                    # Set member defaults
-                    member.status = 'PENDING'
-                    member.member_type = age_category  # JUNIOR or SENIOR based on age
+                    # Set instance defaults
+                    instance.status = 'PENDING'
+                    instance.member_type = age_category  # JUNIOR or SENIOR based on age
+                    
+                    # Set role based on registration type
+                    if registration_type == 'PLAYER':
+                        instance.role = 'PLAYER'
+                        instance.is_approved = False
+                    elif registration_type == 'OFFICIAL':
+                        instance.role = 'OFFICIAL'
+                        instance.is_approved = False
                     
                     # Auto-generate email if not provided
-                    if not member.email:
-                        member.email = RegistrationManager.generate_unique_email(
-                            member.first_name, member.last_name
-                            )
+                    if not instance.email:
+                        instance.email = RegistrationManager.generate_unique_email(
+                            instance.first_name, instance.last_name
+                        )
                         
                     # Set geography relationships from club/organization
-                    if member.club:
-                        if not member.lfa and hasattr(member.club, 'localfootballassociation'):
-                            member.lfa = member.club.localfootballassociation
-                        if not member.region and hasattr(member.club, 'region'):
-                                member.region = member.club.region
-                        if not member.province and hasattr(member.club, 'province'):
-                                    member.province = member.club.province
+                    if instance.club:
+                        if not instance.lfa and hasattr(instance.club, 'localfootballassociation'):
+                            instance.lfa = instance.club.localfootballassociation
+                        if not instance.region and hasattr(instance.club, 'region'):
+                            instance.region = instance.club.region
+                        if not instance.province and hasattr(instance.club, 'province'):
+                            instance.province = instance.club.province
                                     
-                    # Save the National Federation Member first
-                    member.save()
-                    print(f"Created SAFA National Member: {member.get_full_name()} (ID: {member.id})")
+                    # Save the instance
+                    instance.save()
+                    print(f"Created SAFA {registration_type}: {instance.get_full_name()} (ID: {instance.id})")
                     
-                    # STEP 2: Create specific registration type with proper inheritance
-                    final_instance = member
-                    
-                    if registration_type == 'PLAYER':
-                        # Create Player registration linked to National Member
-                        from registration.models import Player as RegPlayer
-                        
-                        player = RegPlayer(
-                            member_ptr=member,
-                            is_approved=False
+                    # STEP 2: Create club registration if applicable
+                    if registration_type == 'PLAYER' and instance.club:
+                        PlayerClubRegistration.objects.create(
+                            player=instance,
+                            club=instance.club,
+                            status='PENDING'
                         )
-                        
-                        # Copy ALL Member fields for inheritance
-                        for field in Member._meta.fields:
-                            if hasattr(player, field.name) and field.name != 'id':
-                                setattr(player, field.name, getattr(member, field.name))
-                        
-                        player.save()
-                        print(f"Created Player Registration: {player.get_full_name()} (ID: {player.id})")
-                        final_instance = player
-                        
-                        # Create club registration (if club selected)
-                        if member.club:
-                            PlayerClubRegistration.objects.create(
-                                player=player,
-                                club=member.club,
-                                status='PENDING'
-                            )
-                            print(f"Created Club Registration: {member.club.name}")
+                        print(f"Created Club Registration: {instance.club.name}")
                     
-                    elif registration_type == 'OFFICIAL':
-                        # Create Official registration linked to National Member
-                        from registration.models import Official as RegOfficial
-                        
-                        official = RegOfficial(
-                            member_ptr=member,
-                            is_approved=False,
-                            position=form.cleaned_data.get('position')
-                        )
-                        
-                        # Copy ALL Member fields for inheritance
-                        for field in Member._meta.fields:
-                            if hasattr(official, field.name) and field.name != 'id':
-                                setattr(official, field.name, getattr(member, field.name))
-                        
-                        official.save()
-                        print(f"Created Official Registration: {official.get_full_name()} (ID: {official.id})")
-                        final_instance = official
-                    
-                    # STEP 3: Create SAFA National Federation Invoices
-                    invoices_created = []
-                    
+                    # STEP 3: Create SAFA National Federation Invoice
                     # Calculate total fees using constants
                     position = form.cleaned_data.get('position') if registration_type == 'OFFICIAL' else None
                     total_fees = calculate_total_fees(registration_type, position, age_category)
@@ -207,26 +193,29 @@ def universal_registration(request):
                     # Get invoice descriptions
                     descriptions = get_invoice_description(
                         registration_type, 
-                        member.club.name if member.club else None,
+                        instance.club.name if instance.club else None,
                         position
                     )
                     
-                    # Create single invoice from SAFA National (not separate invoices)
-                    invoice = Invoice.objects.create(
-                        # Link to appropriate instance
-                        player=final_instance if registration_type == 'PLAYER' else None,
-                        official=final_instance if registration_type == 'OFFICIAL' else None,
-                        club=member.club if member.club else None,
-                        
-                        # Invoice details - ALL FROM SAFA NATIONAL
-                        amount=total_fees,
-                        status=InvoiceConfig.PENDING,
-                        invoice_type=getattr(InvoiceConfig, f"{registration_type}_REGISTRATION", InvoiceConfig.MEMBERSHIP),
-                        due_date=timezone.now() + timezone.timedelta(days=MembershipFees.PAYMENT_DUE_DAYS),
-                        
-                        # Issued by SAFA National Federation
-                        issued_by=request.user if request.user.is_authenticated else None
-                    )
+                    # Create invoice with correct instance assignment
+                    invoice_data = {
+                        'club': instance.club if instance.club else None,
+                        'amount': total_fees,
+                        'status': InvoiceConfig.PENDING,
+                        'invoice_type': getattr(InvoiceConfig, f"{registration_type}_REGISTRATION", InvoiceConfig.MEMBERSHIP),
+                        'due_date': timezone.now() + timezone.timedelta(days=MembershipFees.PAYMENT_DUE_DAYS),
+                        'issued_by': request.user if request.user.is_authenticated else None
+                    }
+                    
+                    # Assign the correct foreign key based on instance type
+                    if isinstance(instance, Player):
+                        invoice_data['player'] = instance
+                    elif isinstance(instance, Official):
+                        invoice_data['official'] = instance
+                    else:
+                        invoice_data['member'] = instance
+                    
+                    invoice = Invoice.objects.create(**invoice_data)
                     
                     # Create invoice items for each component
                     for description in descriptions:
@@ -250,13 +239,11 @@ def universal_registration(request):
                             unit_price=amount
                         )
                     
-                    invoices_created.append(invoice)
-                    
                     # Success message with SAFA branding
                     messages.success(request, 
                         f'✅ SAFA Registration Successful! '
-                        f'Member: {final_instance.get_full_name()} '
-                        f'({type(final_instance).__name__.upper()}) | '
+                        f'Member: {instance.get_full_name()} '
+                        f'({type(instance).__name__.upper()}) | '
                         f'Invoice: #{invoice.invoice_number} | '
                         f'Total Fees: R{total_fees:.2f} | '
                         f'Payment due to: {SAFADetails.ORGANIZATION_NAME}'
@@ -302,15 +289,9 @@ def universal_registration(request):
     return render(request, 'registration/universal_registration.html', context)
 
 
-def registration_success(request):
-    """Success page after registration"""
-    return render(request, 'registration/registration_success.html', {
-        'title': 'Registration Successful'
-    })
-
-
+# Fixed approval functions to handle different member types correctly
 @login_required
-@role_required(allowed_roles=['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS'])
+@role_required(allowed_roles=['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL'])
 def member_approval_dashboard(request):
     """Centralized approval dashboard for all member types"""
     user = request.user
@@ -350,18 +331,55 @@ def member_approval_dashboard(request):
 
     payment_status_filter = request.GET.get('payment_status')
     if payment_status_filter == 'paid':
-        # Get members with no unpaid invoices
-        unpaid_member_ids = Invoice.objects.filter(
+        # Get members with no unpaid invoices - check all invoice types
+        unpaid_member_ids = set()
+        
+        # Check player invoices
+        player_ids = Invoice.objects.filter(
             player__in=members,
             status__in=['PENDING', 'OVERDUE']
         ).values_list('player_id', flat=True)
+        unpaid_member_ids.update(player_ids)
+        
+        # Check official invoices
+        official_ids = Invoice.objects.filter(
+            official__in=members,
+            status__in=['PENDING', 'OVERDUE']
+        ).values_list('official_id', flat=True)
+        unpaid_member_ids.update(official_ids)
+        
+        # Check general member invoices
+        member_ids = Invoice.objects.filter(
+            member__in=members,
+            status__in=['PENDING', 'OVERDUE']
+        ).values_list('member_id', flat=True)
+        unpaid_member_ids.update(member_ids)
+        
         members = members.exclude(id__in=unpaid_member_ids)
+        
     elif payment_status_filter == 'unpaid':
         # Get members with unpaid invoices
-        unpaid_member_ids = Invoice.objects.filter(
+        unpaid_member_ids = set()
+        
+        # Check all invoice types
+        player_ids = Invoice.objects.filter(
             player__in=members,
             status__in=['PENDING', 'OVERDUE']
         ).values_list('player_id', flat=True)
+        unpaid_member_ids.update(player_ids)
+        
+        official_ids = Invoice.objects.filter(
+            official__in=members,
+            status__in=['PENDING', 'OVERDUE']
+        ).values_list('official_id', flat=True)
+        unpaid_member_ids.update(official_ids)
+        
+        member_ids = Invoice.objects.filter(
+            member__in=members,
+            status__in=['PENDING', 'OVERDUE']
+        ).values_list('member_id', flat=True)
+        unpaid_member_ids.update(member_ids)
+        
         members = members.filter(id__in=unpaid_member_ids)
 
     # Separate by type for statistics
@@ -373,10 +391,12 @@ def member_approval_dashboard(request):
     # Check payment status for each member
     members_data = []
     for member in members[:50]:  # Limit to 50 for performance
+        # Check for unpaid invoices across all invoice types
         unpaid_invoices = Invoice.objects.filter(
-            player=member, 
+            Q(player=member) | Q(official=member) | Q(member=member),
             status__in=['PENDING', 'OVERDUE']
         )
+        
         members_data.append({
             'member': member,
             'member_type': type(member).__name__,
@@ -418,9 +438,9 @@ def approve_member(request, member_id):
     if missing_docs:
         return JsonResponse({'success': False, 'message': f"Cannot approve member. Missing: {', '.join(missing_docs)}"})
 
-        # Check for unpaid invoices
+    # Check for unpaid invoices across all invoice types
     unpaid_invoices = Invoice.objects.filter(
-        player=member, 
+        Q(player=member) | Q(official=member) | Q(member=member),
         status__in=['PENDING', 'OVERDUE']
     )
     if unpaid_invoices.exists():
@@ -432,7 +452,7 @@ def approve_member(request, member_id):
     member.approved_by = user
     member.approved_date = timezone.now()
 
-        # Set specific status for subtypes
+    # Set specific status for subtypes
     if isinstance(member, Player):
         member.is_approved = True
     elif isinstance(member, Official):
@@ -441,6 +461,52 @@ def approve_member(request, member_id):
     member.save()
 
     return JsonResponse({'success': True, 'message': f'{type(member).__name__} {member.get_full_name()} has been approved.'})
+
+
+def _send_payment_reminder(member):
+    """Helper function to send payment reminder"""
+    try:
+        # Check for unpaid invoices across all invoice types
+        unpaid_invoices = Invoice.objects.filter(
+            Q(player=member) | Q(official=member) | Q(member=member),
+            status__in=['PENDING', 'OVERDUE']
+        )
+        
+        if not unpaid_invoices.exists() or not member.email:
+            return False
+        
+        total_amount = sum(inv.amount for inv in unpaid_invoices)
+        
+        subject = "SAFA Registration - Payment Reminder"
+        context = {
+            'member': member,
+            'invoices': unpaid_invoices,
+            'total_amount': total_amount,
+        }
+        
+        message = render_to_string('registration/emails/payment_reminder.txt', context)
+        
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[member.email],
+            fail_silently=False
+        )
+        
+        return True
+        
+    except Exception as e:
+        print(f"Failed to send payment reminder: {str(e)}")
+        return False
+
+
+# Rest of the views remain the same...
+def registration_success(request):
+    """Success page after registration"""
+    return render(request, 'registration/registration_success.html', {
+        'title': 'Registration Successful'
+    })
 
 
 @login_required
@@ -495,8 +561,10 @@ def member_details(request, member_id):
     if not _user_can_approve_member(user, member):
         return JsonResponse({'error': 'Permission denied'}, status=403)
 
-    # Get member's invoices
-    invoices = Invoice.objects.filter(player=member)
+    # Get member's invoices across all types
+    invoices = Invoice.objects.filter(
+        Q(player=member) | Q(official=member) | Q(member=member)
+    )
 
     context = {
         'member': member,
@@ -531,7 +599,10 @@ def bulk_member_action(request):
             if action == 'approve':
                 # Check if member can be approved
                 missing_docs = RegistrationManager.validate_member_documents(member)
-                unpaid_invoices = Invoice.objects.filter(player=member, status__in=['PENDING', 'OVERDUE'])
+                unpaid_invoices = Invoice.objects.filter(
+                    Q(player=member) | Q(official=member) | Q(member=member),
+                    status__in=['PENDING', 'OVERDUE']
+                )
                 
                 if not missing_docs and not unpaid_invoices.exists():
                     member.status = 'ACTIVE'
@@ -544,7 +615,10 @@ def bulk_member_action(request):
             
             elif action == 'send_reminder':
                 # Send payment reminder
-                unpaid_invoices = Invoice.objects.filter(player=member, status__in=['PENDING', 'OVERDUE'])
+                unpaid_invoices = Invoice.objects.filter(
+                    Q(player=member) | Q(official=member) | Q(member=member),
+                    status__in=['PENDING', 'OVERDUE']
+                )
                 if unpaid_invoices.exists() and member.email:
                     _send_payment_reminder(member)
                     processed_count += 1
@@ -592,43 +666,6 @@ def _user_can_approve_member(user, member):
     elif user.role == 'ADMIN_LOCAL_FED' and user.local_federation:
         return member.lfa == user.local_federation
     return False
-
-
-def _send_payment_reminder(member):
-    """Helper function to send payment reminder"""
-    try:
-        unpaid_invoices = Invoice.objects.filter(
-            player=member,
-            status__in=['PENDING', 'OVERDUE']
-        )
-        
-        if not unpaid_invoices.exists() or not member.email:
-            return False
-        
-        total_amount = sum(inv.amount for inv in unpaid_invoices)
-        
-        subject = "SAFA Registration - Payment Reminder"
-        context = {
-            'member': member,
-            'invoices': unpaid_invoices,
-            'total_amount': total_amount,
-        }
-        
-        message = render_to_string('registration/emails/payment_reminder.txt', context)
-        
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[member.email],
-            fail_silently=False
-        )
-        
-        return True
-        
-    except Exception as e:
-        print(f"Failed to send payment reminder: {str(e)}")
-        return False
 
 
 # AJAX endpoints for form validation

@@ -486,7 +486,7 @@ def senior_registration(request):
                     invoice = Invoice.objects.create(
                         player=member, # This now works as `member` is a Player instance
                         club=form.cleaned_data.get('club'),
-                        amount=200.00,  # Assuming a static senior fee
+                        subtotal=200.00,  # Use subtotal
                         status='PENDING',
                         invoice_type='MEMBERSHIP',
                         due_date=timezone.now() + timezone.timedelta(days=30)

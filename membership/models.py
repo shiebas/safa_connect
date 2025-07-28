@@ -827,6 +827,7 @@ class Vendor(TimeStampedModel):
         return self.name
 
 
+# Replace your Invoice class with this corrected version
 class Invoice(TimeStampedModel):
     """
     Comprehensive Invoice model with VAT compliance and SAFA integration
@@ -1070,6 +1071,7 @@ class Invoice(TimeStampedModel):
         
         super().save(*args, **kwargs)
     
+    # ===== EXISTING METHODS =====
     def generate_invoice_number(self):
         """Generate unique invoice number"""
         if self.season_config:
@@ -1169,6 +1171,7 @@ class Invoice(TimeStampedModel):
             self.save()
             self.activate_member()
     
+    # ===== PROPERTIES =====
     @property
     def is_paid(self):
         """Check if invoice is fully paid"""
@@ -1191,6 +1194,54 @@ class Invoice(TimeStampedModel):
             )
         return Decimal('0.00')
     
+    # ===== NEW UNIVERSAL METHODS =====
+    def get_related_member(self):
+        """Get the member associated with this invoice regardless of type"""
+        if self.player:
+            return self.player
+        elif self.official:
+            return self.official
+        elif self.member:
+            return self.member
+        return None
+
+    def get_member_display_name(self):
+        """Get display name for the member associated with this invoice"""
+        member = self.get_related_member()
+        if member:
+            return member.get_full_name()
+        return "Unknown Member"
+
+    def get_member_type_display(self):
+        """Get the type of member for display purposes"""
+        if self.player:
+            return "Player"
+        elif self.official:
+            return "Official"
+        elif self.member:
+            return "Member"
+        return "Unknown"
+
+    def activate_related_member(self):
+        """Activate the member associated with this invoice when payment is complete"""
+        member = self.get_related_member()
+        if member:
+            member.status = 'ACTIVE'
+            if hasattr(member, 'is_approved'):
+                member.is_approved = True
+            member.save()
+            return True
+        return False
+
+    @property
+    def is_member_visible_under_club(self):
+        """Check if the member should be visible under their club (payment confirmed)"""
+        member = self.get_related_member()
+        if not member or not member.club:
+            return False
+        return self.status == 'PAID'
+    
+    # ===== CLASS METHODS =====
     @classmethod
     def create_safa_registration_invoice(cls, member, season_config=None):
         """Create a SAFA registration invoice for a member"""
@@ -1209,22 +1260,31 @@ class Invoice(TimeStampedModel):
         
         if not fee_structure:
             raise ValidationError(
-                _("No fee structure found for %(entity_type)s in season %(year)s") % {
-                    'entity_type': entity_type,
-                    'year': season_config.season_year
-                }
-            )
-        
-        # Create invoice
-        invoice = cls.objects.create(
-            season_config=season_config,
-            member=member,
-            player=member if hasattr(member, 'player') else None,
-            official=member if hasattr(member, 'official') else None,
-            invoice_type='REGISTRATION',
-            subtotal=fee_structure.annual_fee,
-            vat_rate=season_config.vat_rate,
+             *("No fee structure found for %(entity*type)s in season %(year)s") % {
+             'entity_type': entity_type,
+            'year': season_config.season_year
+
+            }
         )
+        
+        # Create invoice with correct member assignment
+        invoice_data = {
+            'season_config': season_config,
+            'invoice_type': 'REGISTRATION',
+            'subtotal': fee_structure.annual_fee,
+            'vat_rate': season_config.vat_rate,
+        }
+        
+        # Assign the correct member relationship
+        if isinstance(member, Player):
+            invoice_data['player'] = member
+        elif isinstance(member, Official):
+            invoice_data['official'] = member
+        else:
+            invoice_data['member'] = member
+        
+        # Create the invoice
+        invoice = cls.objects.create(**invoice_data)
         
         # Create line item
         InvoiceItem.objects.create(
@@ -1236,7 +1296,61 @@ class Invoice(TimeStampedModel):
         
         return invoice
 
-
+    @classmethod
+    def create_universal_invoice(cls, member_instance, amount, descriptions, invoice_type='MEMBERSHIP'):
+        """
+        Universal invoice creation method that handles all member types
+        """
+        from decimal import Decimal
+        
+        # Prepare invoice data
+        invoice_data = {
+            'subtotal': Decimal(str(amount)),
+            'status': 'PENDING',
+            'invoice_type': invoice_type,
+            'due_date': timezone.now().date() + timezone.timedelta(days=30)
+        }
+        
+        # Set the appropriate member relationship
+        if isinstance(member_instance, Player):
+            invoice_data['player'] = member_instance
+        elif isinstance(member_instance, Official):
+            invoice_data['official'] = member_instance
+        else:
+            invoice_data['member'] = member_instance
+        
+        # Add club if available
+        if hasattr(member_instance, 'club') and member_instance.club:
+            invoice_data['club'] = member_instance.club
+        
+        # Add season config if available
+        season_config = SAFASeasonConfig.get_active_season()
+        if season_config:
+            invoice_data['season_config'] = season_config
+            invoice_data['vat_rate'] = season_config.vat_rate
+        
+        # Create the invoice
+        invoice = cls.objects.create(**invoice_data)
+        
+        # Create invoice items
+        if isinstance(descriptions, list):
+            unit_price = Decimal(str(amount)) / len(descriptions)
+            for desc in descriptions:
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    description=desc,
+                    quantity=1,
+                    unit_price=unit_price
+                )
+        else:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=descriptions,
+                quantity=1,
+                unit_price=Decimal(str(amount))
+            )
+        
+        return invoice
 class InvoiceItem(models.Model):
     """Individual line items for invoices"""
     invoice = models.ForeignKey(
@@ -2040,7 +2154,7 @@ from django.dispatch import receiver
 def update_invoice_totals_on_item_save(sender, instance, **kwargs):
     """Recalculate invoice totals when line items change"""
     if instance.invoice_id:
-        instance.invoice.recalculate_totals()
+       instance.invoice.recalculate_totals()
 
 @receiver(post_delete, sender=InvoiceItem)
 def update_invoice_totals_on_item_delete(sender, instance, **kwargs):
@@ -2061,7 +2175,6 @@ def create_safa_registration_invoice(sender, instance, created, **kwargs):
                     season_config=active_season,
                     invoice_type='REGISTRATION'
                 ).first()
-                
                 if not existing_invoice:
                     Invoice.create_safa_registration_invoice(
                         member=instance,
@@ -2070,6 +2183,7 @@ def create_safa_registration_invoice(sender, instance, created, **kwargs):
         except Exception as e:
             # Log error but don't prevent member creation
             print(f"Error creating SAFA registration invoice for {instance}: {e}")
+
 
 @receiver(post_save, sender=SAFASeasonConfig)
 def handle_new_season_activation(sender, instance, **kwargs):
@@ -2086,14 +2200,14 @@ def handle_new_season_activation(sender, instance, **kwargs):
 
 class SAFAAdminMixin:
     """Mixin for Django admin to add SAFA-specific functionality"""
-    
+
     def get_safa_status(self, obj):
         """Get SAFA registration status for members"""
         if hasattr(obj, 'status'):
             return obj.get_status_display()
         return "N/A"
     get_safa_status.short_description = "SAFA Status"
-    
+
     def has_paid_invoices(self, obj):
         """Check if member has paid invoices"""
         if hasattr(obj, 'invoices'):
@@ -2101,7 +2215,7 @@ class SAFAAdminMixin:
         return False
     has_paid_invoices.boolean = True
     has_paid_invoices.short_description = "Has Paid"
-    
+
     def get_outstanding_amount(self, obj):
         """Get total outstanding amount for member"""
         if hasattr(obj, 'invoices'):
@@ -2119,9 +2233,11 @@ class SAFARegistrationError(Exception):
     """Custom exception for SAFA registration errors"""
     pass
 
+
 class SAFAInvoiceError(Exception):
     """Custom exception for SAFA invoice errors"""
     pass
+
 
 class SAFASeasonConfigError(Exception):
     """Custom exception for SAFA season configuration errors"""
@@ -2135,20 +2251,19 @@ def validate_safa_id_format(value):
     if value and (len(value) != 5 or not value.isalnum() or not value.isupper()):
         raise ValidationError(_("SAFA ID must be 5 uppercase alphanumeric characters"))
 
+
 def validate_fifa_id_format(value):
     """Validate FIFA ID format"""
     if value and (len(value) != 7 or not value.isdigit()):
         raise ValidationError(_("FIFA ID must be 7 digits"))
+
 
 def validate_sa_id_number(value):
     """Validate South African ID number"""
     if value:
         if not value.isdigit() or len(value) != 13:
             raise ValidationError(_("SA ID number must be 13 digits"))
-        
-        # Additional Luhn algorithm validation could be added here
-        # This is implemented in the Member model's _validate_id_number method
 
+# Additional Luhn algorithm validation could be added here
+# This is implemented in the Member model's _validate_id_number method
 
-
-                
