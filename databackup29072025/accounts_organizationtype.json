@@ -1,0 +1,44 @@
+[
+    {
+        "id": 1,
+        "is_active": 1,
+        "level": "NATIONAL",
+        "name": "NATIONAL FEDERATION",
+        "requires_approval": 1
+    },
+    {
+        "id": 2,
+        "is_active": 1,
+        "level": "REGION",
+        "name": "Regional Administrator",
+        "requires_approval": 1
+    },
+    {
+        "id": 3,
+        "is_active": 1,
+        "level": "LFA",
+        "name": "Local football Association",
+        "requires_approval": 1
+    },
+    {
+        "id": 4,
+        "is_active": 1,
+        "level": "PROVINCE",
+        "name": "Provincial Administrator",
+        "requires_approval": 1
+    },
+    {
+        "id": 5,
+        "is_active": 1,
+        "level": "CLUB",
+        "name": "Club Administrator",
+        "requires_approval": 1
+    },
+    {
+        "id": 6,
+        "is_active": 1,
+        "level": "ASSOCIATION",
+        "name": "Referee Association",
+        "requires_approval": 1
+    }
+]

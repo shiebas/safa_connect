@@ -1,0 +1,28 @@
+[
+    {
+        "affiliation_fees_paid": 0,
+        "club_documents": "",
+        "club_owner_type": "NPO",
+        "club_type": "AMATEUR",
+        "code": "LNGBN",
+        "colors": "",
+        "created": "2025-07-23 15:05:25.359096",
+        "description": "",
+        "fifa_id": null,
+        "founding_date": null,
+        "id": 2,
+        "localfootballassociation_id": 340,
+        "logo": "logos/langebaan_YqRso1G.png",
+        "modified": "2025-07-23 15:11:38.905227",
+        "name": "LANGEBAAN FC",
+        "payment_confirmed": 0,
+        "payment_date": null,
+        "province_id": 9,
+        "region_id": 52,
+        "registration_fee": 0,
+        "safa_id": "4T0L0",
+        "stadium": "",
+        "status": "ACTIVE",
+        "website": ""
+    }
+]

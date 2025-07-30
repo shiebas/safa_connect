@@ -1,0 +1,15 @@
+[
+    {
+        "acronym": "SAFA",
+        "country_id": 1,
+        "created": "2025-05-30 10:00:00",
+        "description": "South African Football Association",
+        "headquarters": "Johannesburg",
+        "id": 1,
+        "logo": "",
+        "modified": "2025-05-30 10:00:00",
+        "name": "South African Football Association",
+        "safa_id": "SAFA01",
+        "website": "https://www.safa.net"
+    }
+]

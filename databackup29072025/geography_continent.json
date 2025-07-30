@@ -1,0 +1,20 @@
+[
+    {
+        "code": "AF",
+        "created": "2025-05-30 10:41:11.927000",
+        "id": 1,
+        "logo": "",
+        "modified": "2025-06-06 07:15:32.398000",
+        "name": "Africa",
+        "world_sports_body_id": 1
+    },
+    {
+        "code": "AS",
+        "created": "2025-05-30 10:41:40.691000",
+        "id": 2,
+        "logo": "",
+        "modified": "2025-06-06 07:15:32.519000",
+        "name": "Asia",
+        "world_sports_body_id": 1
+    }
+]

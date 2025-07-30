@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Player, Official, PlayerClubRegistration
-from membership.admin import NewMemberAdmin
+
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
@@ -14,10 +14,10 @@ class PlayerAdmin(admin.ModelAdmin):
     has_active_club.short_description = 'Active Club'
 
 @admin.register(Official)
-class OfficialAdmin(NewMemberAdmin):
-    list_display = ('get_full_name', 'email', 'safa_id', 'position', 'primary_association', 'status', 'is_approved')
-    list_filter = ('status', 'is_approved', 'referee_level', 'primary_association')
-    search_fields = ('first_name', 'last_name', 'email', 'safa_id', 'certification_number')
+class OfficialAdmin(admin.ModelAdmin):
+    list_display = ('get_full_name', 'email', 'safa_id', 'status')
+    list_filter = ('status',)
+    search_fields = ('first_name', 'last_name', 'email', 'safa_id')
 
 @admin.register(PlayerClubRegistration)
 class PlayerClubRegistrationAdmin(admin.ModelAdmin):

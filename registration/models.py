@@ -13,8 +13,7 @@ class Player(Member):
     Physical attributes and position details are handled in club registration.
     """
     # Add approval field
-    is_approved = models.BooleanField(_("Approved"), default=False,
-                                     help_text=_("Whether the player has been approved by an admin"))
+    
 
     class Meta:
         verbose_name = _("Player")
@@ -30,13 +29,7 @@ class Player(Member):
         return f"{self.get_full_name()} - {self.safa_id or 'No SAFA ID'}"
 
     def save(self, *args, **kwargs):
-        # Force role to be PLAYER before saving
         self.role = 'PLAYER'
-        # Synchronize status with is_approved
-        if self.is_approved:
-            self.status = 'ACTIVE'
-        else:
-            self.status = 'PENDING'
         super().save(*args, **kwargs)
 
 class Official(Member):
@@ -44,52 +37,7 @@ class Official(Member):
     Official model represents club or association staff members like referees, secretaries, etc.
     """
     # Add approval field
-    is_approved = models.BooleanField(_("Approved"), default=False,
-                                     help_text=_("Whether the official has been approved by an admin"))
-
-    # Position in the club or association
-    position = models.ForeignKey(Position, on_delete=models.PROTECT,
-                                related_name='registration_officials',
-                                help_text=_("Official's position or role in the club/association"))
-
-    # Certification information
-    certification_number = models.CharField(_("Certification Number"), max_length=50, blank=True, null=True,
-                                          help_text=_("Certification or license number if applicable"))
-
-    certification_document = models.FileField(_("Certification Document"), upload_to='certification_documents/',
-                                           blank=True, null=True,
-                                           help_text=_("Upload proof of certification or qualification"))
-
-    certification_expiry_date = models.DateField(_("Certification Expiry Date"), blank=True, null=True,
-                                              help_text=_("Expiry date of the certification or license"))
-
-    # For referees
-    referee_level = models.CharField(_("Referee Level"), max_length=20, blank=True, null=True,
-                                  choices=[
-                                      ('LOCAL', 'Local'),
-                                      ('REGIONAL', 'Regional'),
-                                      ('PROVINCIAL', 'Provincial'),
-                                      ('NATIONAL', 'National'),
-                                      ('INTERNATIONAL', 'International'),
-                                  ],
-                                  help_text=_("Level of referee qualification if applicable"))
-
-    # Primary association (foreign key)
-    primary_association = models.ForeignKey(
-        Association,
-        on_delete=models.SET_NULL,
-        related_name='registration_primary_officials',
-        blank=True,
-        null=True,
-        help_text=_("Primary association this official belongs to")
-    )
-
-    # Link to referee associations (many-to-many)
-    associations = models.ManyToManyField(
-        Association,
-        related_name='member_officials_registration',
-        blank=True,
-        help_text=_("Referee or coaching associations this official belongs to"))
+    
 
     class Meta:
         verbose_name = _("Official")
@@ -98,38 +46,14 @@ class Official(Member):
 
     def clean(self):
         super().clean()
-        # Force role to be OFFICIAL
         self.role = 'OFFICIAL'
 
     def __str__(self):
-        position_name = self.position.title if self.position else "No Position"
-        return f"{self.get_full_name()} - {position_name}"
+        return f"{self.get_full_name()}"
 
     def save(self, *args, **kwargs):
-        # Force role to be OFFICIAL before saving
         self.role = 'OFFICIAL'
-
-        # Sync associations between CustomUser and Official
-        if hasattr(self, 'user') and self.user:
-            # If user has an association but official doesn't have a primary, set it
-            if self.user.association and not self.primary_association:
-                self.primary_association = self.user.association
-                print(f"[DEBUG - OFFICIAL SAVE] Setting primary_association from user: {self.user.association}")
-
-            # If official has a primary association but user doesn't have one, set it
-            elif self.primary_association and not self.user.association:
-                self.user.association = self.primary_association
-                self.user.save(update_fields=['association'])
-                print(f"[DEBUG - OFFICIAL SAVE] Setting user.association from primary: {self.primary_association}")
-
-        # Now save the official
         super().save(*args, **kwargs)
-
-        # Add primary association to associations M2M if it exists and isn't already there
-        if self.primary_association:
-            if not self.associations.filter(id=self.primary_association.id).exists():
-                self.associations.add(self.primary_association)
-                print(f"[DEBUG - OFFICIAL SAVE] Added primary_association to associations M2M")
 
 
 class OfficialCertification(TimeStampedModel):

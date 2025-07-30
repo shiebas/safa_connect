@@ -8,7 +8,7 @@ from .models import (
 )
 from django.utils.crypto import get_random_string
 from django.contrib import messages
-from membership.admin import PlayerClubRegistrationInline, OfficialInline
+
 
 # Admin classes for models that inherit from ModelWithLogo
 class ContinentFederationAdmin(ModelWithLogoAdmin):
@@ -74,7 +74,7 @@ class AssociationAdmin(ModelWithLogoAdmin):
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym', 'safa_id']
     readonly_fields = ('safa_id',)
-    inlines = [OfficialInline]
+    
     
 @admin.action(description="Generate and assign unique SAFA IDs to selected regions")
 def generate_safa_ids(modeladmin, request, queryset):
@@ -116,7 +116,7 @@ class ClubAdmin(ModelWithLogoAdmin):
         'name', 'localfootballassociation__name', 'region__name', 'province__name', 'safa_id'
     ]
     list_editable = []
-    inlines = [PlayerClubRegistrationInline]
+    
     
 # Register models
 admin.site.register(WorldSportsBody)

@@ -1,124 +1,196 @@
+# membership/urls.py - CORRECTED VERSION
+# Updated to work with the new SAFA membership system
+
 from django.urls import path, include
-from . import views, registration_views, transfer_views, appeal_views, invoice_views, api_views
-from . import outstanding_report, membership_registration_views, junior_registration_views
-from . import dashboard_views
-from .views import MembershipListView, MembershipCreateView, MembershipDetailView, MembershipUpdateView, MembershipDeleteView
-from rest_framework import routers
-from .views import MemberViewSet
+from rest_framework.routers import DefaultRouter
+from . import views, api_views
+from .views import RegistrationSelectorView
+from .admin_views import (
+    national_admin_dashboard, financial_dashboard, member_statistics,
+    season_management, member_approval_queue, invoice_management,
+    transfer_management, workflow_monitoring, system_health_check,
+    ajax_member_search, ajax_invoice_details
+)
 
 app_name = 'membership'
 
-router = routers.DefaultRouter()
-router.register(r'members', MemberViewSet)
+# DRF Router for API endpoints
+router = DefaultRouter()
+router.register(r'members', views.MemberViewSet, basename='member')
+router.register(r'invoices', api_views.InvoiceViewSet, basename='invoice')
+router.register(r'transfers', api_views.TransferViewSet, basename='transfer')
+router.register(r'seasons', api_views.SeasonConfigViewSet, basename='season')
 
 urlpatterns = [
-    # Registration Type Selector (MAIN ENTRY POINT)
-    path('', views.registration_selector, name='registration_selector'),
-
-    # Senior Registration
-    path('senior/', views.senior_registration, name='senior_registration'),
-
-    # Junior Registration
-    path('junior/', junior_registration_views.JuniorRegistrationView.as_view(), name='junior_registration'),
-    path('junior/register/', junior_registration_views.JuniorRegistrationView.as_view(),
-         name='junior_registration_alt'),
-    path('junior/register/success/', junior_registration_views.JuniorRegistrationSuccessView.as_view(),
-         name='junior_registration_success'),
-
-    # Member and Player Management
+    # ========================================================================
+    # MAIN REGISTRATION ENTRY POINTS
+    # ========================================================================
+    
+    # Main registration selector
+    path('', views.RegistrationSelectorView.as_view(), name='registration_selector'),
+    
+    # Member registration (unified system)
+    path('register/', views.MemberRegistrationView.as_view(), name='member_registration'),
+    path('register/success/', views.RegistrationSuccessView.as_view(), name='registration_success'),
+    path('register/status/', views.RegistrationStatusView.as_view(), name='registration_status'),
+    
+    # Member management
     path('members/', views.MemberListView.as_view(), name='member_list'),
-    path('members/add/', views.MemberCreateView.as_view(), name='member_create'),
-    path('members/<int:pk>/', views.MemberDetailView.as_view(), name='member_detail'),
+    path('members/create/', views.MemberCreateView.as_view(), name='member_create'),
     path('members/<int:pk>/', views.MemberDetailView.as_view(), name='member_detail'),
     path('members/<int:pk>/edit/', views.MemberUpdateView.as_view(), name='member_update'),
-    path('players/', views.PlayerListView.as_view(), name='player_list'),
-    path('players/add/', views.PlayerCreateView.as_view(), name='player_create'),
-    path('players/<int:pk>/', views.PlayerDetailView.as_view(), name='player_detail'),
-    path('players/<int:pk>/', views.PlayerDetailView.as_view(), name='player_detail'),
-    path('players/<int:pk>/edit/', views.PlayerUpdateView.as_view(), name='player_update'),
-
-    # Club Management
-    path('clubs/', views.ClubListView.as_view(), name='club_list'),
-    path('clubs/add/', views.ClubCreateView.as_view(), name='club_create'),
-    path('clubs/<int:pk>/', views.ClubDetailView.as_view(), name='club_detail'),
-    path('clubs/<int:pk>/edit/', views.ClubUpdateView.as_view(), name='club_update'),
-
-    # Registration Flow
-    path('register/player/', registration_views.PlayerRegistrationView.as_view(), name='player_registration'),
-    path('register/payment/', registration_views.PaymentSelectionView.as_view(), name='payment_selection'),
-    path('register/confirm/', registration_views.PaymentConfirmationView.as_view(), name='payment_confirmation'),
-
-    # Transfer Management
-    path('transfers/', transfer_views.TransferListView.as_view(), name='transfer_list'),
-    path('transfers/request/', transfer_views.TransferRequestView.as_view(), name='transfer_request'),
-    path('transfers/<int:pk>/', transfer_views.TransferDetailView.as_view(), name='transfer_detail'),
-    path('transfers/<int:pk>/approve/', transfer_views.TransferApproveView.as_view(), name='transfer_approve'),
-    path('transfers/<int:pk>/reject/', transfer_views.TransferRejectView.as_view(), name='transfer_reject'),
-
-    # Appeal Management
-    path('appeals/', appeal_views.AppealListView.as_view(), name='appeal_list'),
-    path('appeals/review/', appeal_views.ReviewAppealListView.as_view(), name='review_appeals'),
-    path('appeals/create/<int:transfer_id>/', appeal_views.AppealCreateView.as_view(), name='appeal_create'),
-    path('appeals/<int:pk>/', appeal_views.AppealDetailView.as_view(), name='appeal_detail'),
-    path('appeals/<int:pk>/review/', appeal_views.AppealReviewView.as_view(), name='appeal_review'),
-    path('appeals/federation/', appeal_views.FederationAppealListView.as_view(), name='federation_appeals'),
-    path('appeals/federation/history/', appeal_views.FederationAppealHistoryView.as_view(),
-         name='federation_appeal_history'),
-
-    # Membership
-    path('memberships/', MembershipListView.as_view(), name='membership-list'),
-    path('memberships/add/', MembershipCreateView.as_view(), name='membership-create'),
-    path('memberships/<int:pk>/', MembershipDetailView.as_view(), name='membership-detail'),
-    path('memberships/<int:pk>/edit/', MembershipUpdateView.as_view(), name='membership-update'),
-    path('memberships/<int:pk>/delete/', MembershipDeleteView.as_view(), name='membership-delete'),
-
-    # Payment and Invoices
-    path('register/success/', registration_views.RegistrationSuccessView.as_view(), name='registration_success'),
-    path('register/payment/return/', views.PaymentReturnView.as_view(), name='payment_return'),
-    path('register/payment/cancel/', views.PaymentCancelView.as_view(), name='payment_cancel'),
-
-    # Invoice Management
-    path('invoices/', invoice_views.InvoiceListView.as_view(), name='invoice_list'),
-    path('invoices/<uuid:uuid>/', invoice_views.InvoiceDetailView.as_view(), name='invoice_detail'),
-    path('invoices/<uuid:uuid>/pdf/', invoice_views.InvoicePDFView.as_view(), name='invoice_pdf'),
-    path('invoices/<uuid:uuid>/mark-paid/', invoice_views.mark_invoice_paid, name='mark_invoice_paid'),
-    path('invoices/export/<str:format>/', invoice_views.export_invoices, name='export_invoices'),
-    path('payments/<uuid:uuid>/process/', views.ProcessCardPaymentView.as_view(), name='process_card_payment'),
-
-    # Reports
-    path('reports/outstanding-balance/', invoice_views.OutstandingReportView.as_view(), name='outstanding_report'),
-    path('reports/outstanding-balance/export/<str:format>/', outstanding_report.export_outstanding_report, name='export_outstanding_report'),
-    path('reports/payment-reminders/<str:entity_type>/<int:entity_id>/', views.send_payment_reminder, name='send_payment_reminder'),
-
-    # New Two-Tier Membership System
-    path('apply/', membership_registration_views.membership_application, name='membership_application'),
-    path('apply/submitted/', membership_registration_views.ApplicationSubmittedView.as_view(), name='application_submitted'),
-    path('admin/pending/', membership_registration_views.membership_dashboard, name='pending_applications'),
-    path('admin/approve/<int:member_id>/', membership_registration_views.approve_member, name='approve_member'),
-    path('admin/reject/<int:member_id>/', membership_registration_views.reject_member, name='reject_member'),
-    path('admin/dashboard/', membership_registration_views.membership_dashboard, name='membership_dashboard'),
-    path('club-registration/<int:member_id>/', membership_registration_views.register_with_club, name='register_with_club'),
-    path('check-status/', membership_registration_views.check_member_status, name='check_member_status'),
-
-    # Legacy membership application (keeping for compatibility)
-    path('membership-application/', views.membership_application, name='legacy_membership_application'),
-
-    # API and other endpoints
-    path('api/', include(router.urls)),
-    path('api/regions_by_province/<int:province_id>/', api_views.regions_by_province, name='regions_by_province'),
-    path('api/lfas_by_region/<int:region_id>/', api_views.lfas_by_region, name='lfas_by_region'),
-    path('api/clubs_by_lfa/<int:lfa_id>/', api_views.clubs_by_lfa, name='clubs_by_lfa'),
-    path('api/associations_by_lfa/<int:lfa_id>/', api_views.associations_by_lfa, name='associations_by_lfa'),
-    path('verify/', views.verify_view, name='verify'),
-
-    # Custom admin dashboards
-    path('dashboard/senior/', dashboard_views.SeniorMembershipDashboardView.as_view(), name='senior_membership_dashboard'),
-    path('members/<int:member_id>/approve/', dashboard_views.approve_membership, name='approve_membership'),
-    path('members/<int:member_id>/reject/', dashboard_views.reject_membership, name='reject_membership'),
-    path('dashboard/junior/', dashboard_views.JuniorMembershipDashboardView.as_view(), name='junior_membership_dashboard'),
-]
-
-# AJAX URLs
-urlpatterns += [
-    path('ajax/check_email/', views.check_email, name='check_email'),
+    path('members/<int:pk>/approve/', views.MemberApproveView.as_view(), name='member_approve'),
+    path('members/<int:pk>/reject/', views.MemberRejectView.as_view(), name='member_reject'),
+    path('members/<int:pk>/documents/', views.MemberDocumentListView.as_view(), name='member_documents'),
+    path('members/<int:pk>/history/', views.MemberHistoryView.as_view(), name='member_history'),
+    
+    # ========================================================================
+    # TRANSFER MANAGEMENT
+    # ========================================================================
+    
+    path('transfers/', views.TransferListView.as_view(), name='transfer_list'),
+    path('transfers/request/', views.TransferRequestView.as_view(), name='transfer_request'),
+    path('transfers/<int:pk>/', views.TransferDetailView.as_view(), name='transfer_detail'),
+    path('transfers/<int:pk>/approve/', views.TransferApproveView.as_view(), name='transfer_approve'),
+    path('transfers/<int:pk>/reject/', views.TransferRejectView.as_view(), name='transfer_reject'),
+    
+    # ========================================================================
+    # INVOICE AND PAYMENT MANAGEMENT
+    # ========================================================================
+    
+    path('invoices/', views.InvoiceListView.as_view(), name='invoice_list'),
+    path('invoices/<uuid:uuid>/', views.InvoiceDetailView.as_view(), name='invoice_detail'),
+    path('invoices/<uuid:uuid>/pdf/', views.InvoicePDFView.as_view(), name='invoice_pdf'),
+    path('invoices/<uuid:uuid>/pay/', views.InvoicePaymentView.as_view(), name='invoice_payment'),
+    path('invoices/<uuid:uuid>/mark-paid/', views.MarkInvoicePaidView.as_view(), name='mark_invoice_paid'),
+    
+    # Payment processing
+    path('payments/process/', views.ProcessPaymentView.as_view(), name='process_payment'),
+    path('payments/return/', views.PaymentReturnView.as_view(), name='payment_return'),
+    path('payments/cancel/', views.PaymentCancelView.as_view(), name='payment_cancel'),
+    path('payments/notify/', views.PaymentNotifyView.as_view(), name='payment_notify'),
+    
+    # ========================================================================
+    # DOCUMENT MANAGEMENT
+    # ========================================================================
+    
+    path('documents/', views.DocumentListView.as_view(), name='document_list'),
+    path('documents/upload/', views.DocumentUploadView.as_view(), name='document_upload'),
+    path('documents/<int:pk>/', views.DocumentDetailView.as_view(), name='document_detail'),
+    path('documents/<int:pk>/approve/', views.DocumentApproveView.as_view(), name='document_approve'),
+    path('documents/<int:pk>/reject/', views.DocumentRejectView.as_view(), name='document_reject'),
+    
+    # ========================================================================
+    # SEASON MANAGEMENT (Admin Only)
+    # ========================================================================
+    
+    path('seasons/', views.SeasonListView.as_view(), name='season_list'),
+    path('seasons/create/', views.SeasonCreateView.as_view(), name='season_create'),
+    path('seasons/<int:pk>/', views.SeasonDetailView.as_view(), name='season_detail'),
+    path('seasons/<int:pk>/activate/', views.SeasonActivateView.as_view(), name='season_activate'),
+    path('seasons/<int:pk>/fees/', views.SeasonFeeStructureView.as_view(), name='season_fees'),
+    
+    # ========================================================================
+    # REPORTS AND ANALYTICS
+    # ========================================================================
+    
+    path('reports/', views.ReportsIndexView.as_view(), name='reports_index'),
+    path('reports/members/', views.MemberReportView.as_view(), name='member_report'),
+    path('reports/invoices/', views.InvoiceReportView.as_view(), name='invoice_report'),
+    path('reports/transfers/', views.TransferReportView.as_view(), name='transfer_report'),
+    path('reports/outstanding/', views.OutstandingReportView.as_view(), name='outstanding_report'),
+    path('reports/export/<str:report_type>/', views.ExportReportView.as_view(), name='export_report'),
+    
+    # ========================================================================
+    # ADMIN DASHBOARDS
+    # ========================================================================
+    
+    path('admin/dashboard/', national_admin_dashboard, name='admin_dashboard'),
+    path('admin/dashboard/financial/', financial_dashboard, name='financial_dashboard'),
+    path('admin/dashboard/members/', member_statistics, name='member_statistics'),
+    path('admin/dashboard/seasons/', season_management, name='season_management'),
+    path('admin/dashboard/approvals/', member_approval_queue, name='member_approvals'),
+    path('admin/dashboard/invoices/', invoice_management, name='invoice_management'),
+    path('admin/dashboard/transfers/', transfer_management, name='transfer_management'),
+    path('admin/dashboard/workflows/', workflow_monitoring, name='workflow_monitoring'),
+    path('admin/dashboard/health/', system_health_check, name='system_health'),
+    
+    # ========================================================================
+    # AJAX AND API ENDPOINTS
+    # ========================================================================
+    
+    # Geographic API endpoints
+    path('api/geography/regions/<int:province_id>/', api_views.regions_by_province, name='regions_by_province'),
+    path('api/geography/lfas/<int:region_id>/', api_views.lfas_by_region, name='lfas_by_region'),
+    path('api/geography/clubs/<int:lfa_id>/', api_views.clubs_by_lfa, name='clubs_by_lfa'),
+    path('api/geography/clubs/search/', api_views.club_search, name='club_search'),
+    
+    # Member API endpoints
+    path('api/members/search/', api_views.member_search, name='member_search'),
+    path('api/members/validate-id/', api_views.validate_id_number, name='validate_id_number'),
+    path('api/members/check-email/', api_views.check_email_availability, name='check_email'),
+    
+    # AJAX endpoints for admin interface
+    path('ajax/member-search/', ajax_member_search, name='ajax_member_search'),
+    path('ajax/invoice-details/<int:invoice_id>/', ajax_invoice_details, name='ajax_invoice_details'),
+    path('ajax/workflow-progress/', api_views.workflow_progress, name='ajax_workflow_progress'),
+    
+    # Fee calculation
+    path('api/fees/calculate/', api_views.calculate_fees, name='calculate_fees'),
+    
+    # Dashboard data endpoints
+    path('api/dashboard/stats/', api_views.dashboard_stats, name='dashboard_stats'),
+    path('api/dashboard/charts/', api_views.dashboard_charts, name='dashboard_charts'),
+    
+    # ========================================================================
+    # BULK OPERATIONS
+    # ========================================================================
+    
+    path('bulk/approve/', views.BulkApproveView.as_view(), name='bulk_approve'),
+    path('bulk/reject/', views.BulkRejectView.as_view(), name='bulk_reject'),
+    path('bulk/invoices/', views.BulkInvoiceView.as_view(), name='bulk_invoices'),
+    path('bulk/reminders/', views.BulkReminderView.as_view(), name='bulk_reminders'),
+    
+    # ========================================================================
+    # WORKFLOW AND STATUS TRACKING
+    # ========================================================================
+    
+    path('workflow/<int:member_id>/', views.WorkflowDetailView.as_view(), name='workflow_detail'),
+    path('workflow/<int:member_id>/update/', views.WorkflowUpdateView.as_view(), name='workflow_update'),
+    path('status/check/', views.StatusCheckView.as_view(), name='status_check'),
+    
+    # ========================================================================
+    # NOTIFICATIONS AND COMMUNICATIONS
+    # ========================================================================
+    
+    path('notifications/', views.NotificationListView.as_view(), name='notification_list'),
+    path('notifications/send/', views.SendNotificationView.as_view(), name='send_notification'),
+    path('reminders/payment/', views.PaymentReminderView.as_view(), name='payment_reminder'),
+    
+    # ========================================================================
+    # REST API
+    # ========================================================================
+    
+    path('api/v1/', include(router.urls)),
+    path('api/v1/auth/', include('rest_framework.urls')),
+    
+    # ========================================================================
+    # LEGACY COMPATIBILITY (Keep for migration period)
+    # ========================================================================
+    
+    # Legacy senior registration (redirect to new system)
+    path('senior/', views.LegacyRedirectView.as_view(), {'target': 'member_registration'}, name='senior_registration'),
+    path('junior/', views.LegacyRedirectView.as_view(), {'target': 'member_registration'}, name='junior_registration'),
+    
+    # Legacy membership application (redirect)
+    path('apply/', views.LegacyRedirectView.as_view(), {'target': 'member_registration'}, name='membership_application'),
+    path('membership-application/', views.LegacyRedirectView.as_view(), {'target': 'member_registration'}, name='legacy_membership_application'),
+    
+    # ========================================================================
+    # UTILITY ENDPOINTS
+    # ========================================================================
+    
+    path('health/', views.HealthCheckView.as_view(), name='health_check'),
+    path('version/', views.VersionView.as_view(), name='version'),
+    path('test-email/', views.TestEmailView.as_view(), name='test_email'),
 ]

@@ -1,0 +1,15 @@
+[
+    {
+        "acronym": "CAF",
+        "continent_id": 1,
+        "created": "2025-06-16 00:00:00",
+        "description": "",
+        "id": 1,
+        "logo": "",
+        "modified": "2025-06-16 00:00:00",
+        "name": "Confederation of African Football",
+        "sport_code": "SOCCER",
+        "website": "https://www.cafonline.com",
+        "world_body_id": 1
+    }
+]

@@ -1,0 +1,13 @@
+[
+    {
+        "code": "SAF",
+        "continent_federation_id": 1,
+        "continent_id": 1,
+        "created": "2025-06-16 00:00:00",
+        "description": "Southern Africa region within Africa",
+        "id": 1,
+        "logo": "",
+        "modified": "2025-06-16 00:00:00",
+        "name": "Southern Africa"
+    }
+]

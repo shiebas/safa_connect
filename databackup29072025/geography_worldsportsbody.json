@@ -1,0 +1,14 @@
+[
+    {
+        "acronym": "FIFA",
+        "created": "2025-05-30 10:15:40.122000",
+        "description": "",
+        "headquarters": "",
+        "id": 1,
+        "logo": "logos/fifa_LDTViZv.png",
+        "modified": "2025-06-06 07:15:32.252000",
+        "name": "Fédération Internationale de Football Association",
+        "sport_code": "SOCCER",
+        "website": "https://www.fifa.com"
+    }
+]

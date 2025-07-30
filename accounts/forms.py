@@ -774,7 +774,6 @@ class PlayerUpdateForm(forms.ModelForm):
         model = Player
         fields = [
             'email', 'phone_number', 'profile_picture', 'id_document',
-            'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
             'street_address', 'suburb', 'city', 'state', 'postal_code',
         ]
         
@@ -959,22 +958,11 @@ class ClubAdminOfficialRegistrationForm(forms.ModelForm):
                             </div>
                         </div>
                     """),
-                    'position',
-                    Div('referee_level', css_class='referee-field', style='display:none;'),
                     css_class='col-md-6'
                 ),
                 css_class='row'
             ),
-            Fieldset(
-                'Certification Information',
-                Div(
-                    Div('certification_number', css_class='col-md-4'),
-                    Div('certification_document', css_class='col-md-4'),
-                    Div('certification_expiry_date', css_class='col-md-4'),
-                    css_class='row'
-                ),
-                css_id='certification-section'
-            ),
+            
             Fieldset(
                 'Documents & Official Information',
                 Div(
@@ -1027,21 +1015,15 @@ class ClubAdminOfficialRegistrationForm(forms.ModelForm):
             'placeholder': 'e.g. 1234567'
         })
         
-        # Filter positions to only show positions available at club level
-        self.fields['position'].queryset = self.fields['position'].queryset.filter(
-            levels__contains='CLUB', is_active=True)
-        self.fields['position'].help_text = "Select the official's role or position in the club"
-        self.fields['position'].required = True
+        
 
     class Meta:
         model = Official
         fields = [
             'first_name', 'last_name',
-            'id_document_type', 'id_number', 'passport_number',
+            'id_number', 'passport_number',
             'gender', 'date_of_birth', 'email',
-            'position', 'certification_number', 'certification_document',
-            'certification_expiry_date', 'referee_level',
-            'safa_id', 'fifa_id',
+            'safa_id',
             'profile_picture', 'id_document',
             'popi_consent',
         ]
@@ -1255,36 +1237,17 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
             'title': '7-digit FIFA identification number',
             'placeholder': 'e.g. 1234567'
         })
-        # Filter positions to only show positions available at association level
-        self.fields['position'].queryset = self.fields['position'].queryset.filter(
-            levels__contains='ASSOCIATION', is_active=True)
-        self.fields['position'].help_text = "Select the official's role or position in the association"
-        self.fields['position'].required = True
         
-        # Add a field to select the official's primary referee association
-        from geography.models import Association
-        self.fields['primary_association'] = forms.ModelChoiceField(
-            queryset=Association.objects.all(),  # Remove is_active filter as it doesn't exist in the model
-            required=True,
-            widget=forms.Select(attrs={'class': 'form-select'}),
-            help_text="Select the referee association for this official"
-        )
-        # Prepopulate on edit
-        if self.instance and self.instance.primary_association_id:
-            self.initial['primary_association'] = self.instance.primary_association_id
 
     class Meta:
         model = Official
         fields = [
             'first_name', 'last_name', 'email',
-            'id_document_type', 'id_number', 'passport_number',
+            'id_number', 'passport_number',
             'gender', 'date_of_birth', 'email', 'phone_number',
-            'position', 'certification_number', 'certification_document',
-            'certification_expiry_date', 'referee_level',
-            'safa_id', 'fifa_id',
+            'safa_id',
             'profile_picture', 'id_document',
             'popi_consent',
-            'primary_association',  # Primary referee association
          ]
 
     # Keep server-side validation for names, ID/passport uniqueness, etc.

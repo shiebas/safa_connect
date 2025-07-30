@@ -296,7 +296,7 @@ class UniversalRegistrationForm(BaseRegistrationForm):
             'id_document_type', 'id_number', 'passport_number',  # Added document type
             'date_of_birth', 'gender',
             'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
-            'province', 'region', 'lfa', 'club', 'association',
+            'province', 'region', 'lfa',
             'profile_picture', 'id_document',
             'emergency_contact', 'emergency_phone', 'medical_notes',
             'position',  # For officials
@@ -392,7 +392,7 @@ class PlayerRegistrationForm(BaseRegistrationForm):
             'first_name', 'last_name', 'email', 'phone_number',
             'date_of_birth', 'gender', 'id_number', 'passport_number',
             'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
-            'province', 'region', 'lfa', 'club',
+            'province', 'region', 'lfa',
             'profile_picture', 'id_document',
             'emergency_contact', 'emergency_phone', 'medical_notes',
             'playing_position', 'jersey_number',
@@ -467,7 +467,7 @@ class OfficialRegistrationForm(BaseRegistrationForm):
             'first_name', 'last_name', 'email', 'phone_number',
             'date_of_birth', 'gender', 'id_number', 'passport_number',
             'street_address', 'suburb', 'city', 'state', 'postal_code', 'country',
-            'province', 'region', 'lfa', 'club', 'association',
+            'province', 'region', 'lfa',
             'profile_picture', 'id_document',
             'emergency_contact', 'emergency_phone', 'medical_notes',
             'position', 'certification_number', 'certification_document',

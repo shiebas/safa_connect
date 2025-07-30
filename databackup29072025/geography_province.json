@@ -1,0 +1,101 @@
+[
+    {
+        "code": "EC",
+        "created": "2025-06-09 10:29:56.981541",
+        "description": "",
+        "id": 1,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.981558",
+        "name": "SAFA Eastern Cape",
+        "national_federation_id": 1,
+        "safa_id": "T8JPH"
+    },
+    {
+        "code": "FS",
+        "created": "2025-06-09 10:29:56.982569",
+        "description": "",
+        "id": 2,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.982586",
+        "name": "SAFA Free State",
+        "national_federation_id": 1,
+        "safa_id": "I65U1"
+    },
+    {
+        "code": "GP",
+        "created": "2025-06-09 10:29:56.983604",
+        "description": "",
+        "id": 3,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.983620",
+        "name": "SAFA Gauteng",
+        "national_federation_id": 1,
+        "safa_id": "JCICS"
+    },
+    {
+        "code": "",
+        "created": "2025-06-09 10:29:56.984618",
+        "description": "",
+        "id": 4,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.984634",
+        "name": "SAFA KwaZulu-Natal",
+        "national_federation_id": 1,
+        "safa_id": "KZN"
+    },
+    {
+        "code": "LP",
+        "created": "2025-06-09 10:29:56.985625",
+        "description": "",
+        "id": 5,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.985641",
+        "name": "SAFA Limpopo",
+        "national_federation_id": 1,
+        "safa_id": "BFIJO"
+    },
+    {
+        "code": "MP",
+        "created": "2025-06-09 10:29:56.986606",
+        "description": "",
+        "id": 6,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.986623",
+        "name": "SAFA Mpumalanga",
+        "national_federation_id": 1,
+        "safa_id": "9M1ZR"
+    },
+    {
+        "code": "NC",
+        "created": "2025-06-09 10:29:56.987694",
+        "description": "",
+        "id": 7,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.987710",
+        "name": "SAFA Northern Cape",
+        "national_federation_id": 1,
+        "safa_id": "2PCS8"
+    },
+    {
+        "code": "NW",
+        "created": "2025-06-09 10:29:56.988688",
+        "description": "",
+        "id": 8,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.988714",
+        "name": "SAFA North West",
+        "national_federation_id": 1,
+        "safa_id": "IP9AZ"
+    },
+    {
+        "code": "WC",
+        "created": "2025-06-09 10:29:56.989670",
+        "description": "",
+        "id": 9,
+        "logo": "",
+        "modified": "2025-06-09 10:29:56.989689",
+        "name": "SAFA Western Cape",
+        "national_federation_id": 1,
+        "safa_id": "QXGCS"
+    }
+]

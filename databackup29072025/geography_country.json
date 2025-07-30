@@ -1,0 +1,22 @@
+[
+    {
+        "code": null,
+        "continent_region_id": 1,
+        "created": "2025-05-30 20:35:52.890000",
+        "description": "",
+        "id": 1,
+        "logo": "logos/southafrica_75cr3vg.png",
+        "modified": "2025-05-30 20:35:52.890000",
+        "name": "South Africa"
+    },
+    {
+        "code": null,
+        "continent_region_id": 1,
+        "created": "2025-05-30 20:37:22.251000",
+        "description": "",
+        "id": 2,
+        "logo": "logos/Flag_of_Namibia_cWhlItz.svg.png",
+        "modified": "2025-05-30 20:37:42.530000",
+        "name": "Namibia"
+    }
+]

@@ -202,3 +202,5 @@ os.makedirs(os.path.join(BASE_DIR, 'credentials'), exist_ok=True)
 BASE_URL = 'https://safaglobaladmin.co.za'  # Replace with actual domain in production
 if DEBUG:
     BASE_URL = 'http://localhost:8000'
+
+GDAL_LIBRARY_PATH = r'C:\Users\User\documents\safa_global\venv\Lib\site-packages\osgeo\gdal.dll'

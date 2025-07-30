@@ -1,0 +1,7353 @@
+[
+{
+  "model": "sites.site",
+  "fields": {
+    "domain": "example.com",
+    "name": "example.com"
+  }
+},
+{
+  "model": "geography.worldsportsbody",
+  "pk": 1,
+  "fields": {
+    "created": "2025-05-30T10:15:40.122Z",
+    "modified": "2025-06-06T07:15:32.252Z",
+    "logo": "logos/fifa_LDTViZv.png",
+    "name": "Fédération Internationale de Football Association",
+    "acronym": "FIFA",
+    "website": "https://www.fifa.com",
+    "headquarters": "",
+    "description": "",
+    "sport_code": "SOCCER"
+  }
+},
+{
+  "model": "geography.continent",
+  "pk": 1,
+  "fields": {
+    "created": "2025-05-30T10:41:11.927Z",
+    "modified": "2025-06-06T07:15:32.398Z",
+    "logo": "",
+    "name": "Africa",
+    "code": "AF",
+    "world_sports_body": 1
+  }
+},
+{
+  "model": "geography.continent",
+  "pk": 2,
+  "fields": {
+    "created": "2025-05-30T10:41:40.691Z",
+    "modified": "2025-06-06T07:15:32.519Z",
+    "logo": "",
+    "name": "Asia",
+    "code": "AS",
+    "world_sports_body": 1
+  }
+},
+{
+  "model": "geography.continentfederation",
+  "pk": 1,
+  "fields": {
+    "created": "2025-06-16T00:00:00Z",
+    "modified": "2025-06-16T00:00:00Z",
+    "logo": "",
+    "name": "Confederation of African Football",
+    "acronym": "CAF",
+    "continent": 1,
+    "world_body": 1,
+    "description": "",
+    "website": "https://www.cafonline.com",
+    "sport_code": "SOCCER"
+  }
+},
+{
+  "model": "geography.continentregion",
+  "pk": 1,
+  "fields": {
+    "created": "2025-06-16T00:00:00Z",
+    "modified": "2025-06-16T00:00:00Z",
+    "logo": "",
+    "name": "Southern Africa",
+    "code": "SAF",
+    "continent": 1,
+    "continent_federation": 1,
+    "description": "Southern Africa region within Africa"
+  }
+},
+{
+  "model": "geography.country",
+  "pk": 1,
+  "fields": {
+    "created": "2025-05-30T20:35:52.890Z",
+    "modified": "2025-05-30T20:35:52.890Z",
+    "logo": "logos/southafrica_75cr3vg.png",
+    "name": "South Africa",
+    "code": null,
+    "description": "",
+    "continent_region": 1
+  }
+},
+{
+  "model": "geography.country",
+  "pk": 2,
+  "fields": {
+    "created": "2025-05-30T20:37:22.251Z",
+    "modified": "2025-05-30T20:37:42.530Z",
+    "logo": "logos/Flag_of_Namibia_cWhlItz.svg.png",
+    "name": "Namibia",
+    "code": null,
+    "description": "",
+    "continent_region": 1
+  }
+},
+{
+  "model": "geography.motherbody",
+  "pk": 1,
+  "fields": {
+    "name": "SAFAM",
+    "country": 1
+  }
+},
+{
+  "model": "geography.nationalfederation",
+  "pk": 1,
+  "fields": {
+    "created": "2025-05-30T10:00:00Z",
+    "modified": "2025-05-30T10:00:00Z",
+    "logo": "",
+    "safa_id": "SAFA01",
+    "name": "South African Football Association",
+    "acronym": "SAFA",
+    "country": 1,
+    "website": "https://www.safa.net",
+    "headquarters": "Johannesburg",
+    "description": "South African Football Association"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 1,
+  "fields": {
+    "created": "2025-06-09T10:29:56.981Z",
+    "modified": "2025-06-09T10:29:56.981Z",
+    "logo": "",
+    "name": "SAFA Eastern Cape",
+    "code": "EC",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "T8JPH"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 2,
+  "fields": {
+    "created": "2025-06-09T10:29:56.982Z",
+    "modified": "2025-06-09T10:29:56.982Z",
+    "logo": "",
+    "name": "SAFA Free State",
+    "code": "FS",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "I65U1"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 3,
+  "fields": {
+    "created": "2025-06-09T10:29:56.983Z",
+    "modified": "2025-06-09T10:29:56.983Z",
+    "logo": "",
+    "name": "SAFA Gauteng",
+    "code": "GP",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "JCICS"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 4,
+  "fields": {
+    "created": "2025-06-09T10:29:56.984Z",
+    "modified": "2025-06-09T10:29:56.984Z",
+    "logo": "",
+    "name": "SAFA KwaZulu-Natal",
+    "code": "",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "KZN"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 5,
+  "fields": {
+    "created": "2025-06-09T10:29:56.985Z",
+    "modified": "2025-06-09T10:29:56.985Z",
+    "logo": "",
+    "name": "SAFA Limpopo",
+    "code": "LP",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "BFIJO"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 6,
+  "fields": {
+    "created": "2025-06-09T10:29:56.986Z",
+    "modified": "2025-06-09T10:29:56.986Z",
+    "logo": "",
+    "name": "SAFA Mpumalanga",
+    "code": "MP",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "9M1ZR"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 7,
+  "fields": {
+    "created": "2025-06-09T10:29:56.987Z",
+    "modified": "2025-06-09T10:29:56.987Z",
+    "logo": "",
+    "name": "SAFA Northern Cape",
+    "code": "NC",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "2PCS8"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 8,
+  "fields": {
+    "created": "2025-06-09T10:29:56.988Z",
+    "modified": "2025-06-09T10:29:56.988Z",
+    "logo": "",
+    "name": "SAFA North West",
+    "code": "NW",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "IP9AZ"
+  }
+},
+{
+  "model": "geography.province",
+  "pk": 9,
+  "fields": {
+    "created": "2025-06-09T10:29:56.989Z",
+    "modified": "2025-06-09T10:29:56.989Z",
+    "logo": "",
+    "name": "SAFA Western Cape",
+    "code": "WC",
+    "national_federation": 1,
+    "description": "",
+    "safa_id": "QXGCS"
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 1,
+  "fields": {
+    "created": "2025-06-09T12:53:29.406Z",
+    "modified": "2025-06-17T16:53:27.263Z",
+    "logo": "",
+    "safa_id": "RTSOS",
+    "name": "Alfred Nzo",
+    "code": "ANZ",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 2,
+  "fields": {
+    "created": "2025-06-09T12:53:29.423Z",
+    "modified": "2025-06-16T20:00:53.708Z",
+    "logo": "",
+    "safa_id": "EYXYH",
+    "name": "Amathole",
+    "code": "",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 3,
+  "fields": {
+    "created": "2025-06-09T12:53:29.446Z",
+    "modified": "2025-06-16T20:00:54.009Z",
+    "logo": "",
+    "safa_id": "W16RH",
+    "name": "Buffalo City",
+    "code": "",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 4,
+  "fields": {
+    "created": "2025-06-09T12:53:29.476Z",
+    "modified": "2025-06-16T20:00:54.355Z",
+    "logo": "",
+    "safa_id": "KQBMV",
+    "name": "Chris Hani",
+    "code": "",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 5,
+  "fields": {
+    "created": "2025-06-09T12:53:29.503Z",
+    "modified": "2025-06-16T20:00:54.583Z",
+    "logo": "",
+    "safa_id": "B4MU4",
+    "name": "Joe Gqabi",
+    "code": "",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 6,
+  "fields": {
+    "created": "2025-06-09T12:53:29.515Z",
+    "modified": "2025-06-16T20:00:54.876Z",
+    "logo": "",
+    "safa_id": "LTTQJ",
+    "name": "Nelson Mandela Bay",
+    "code": "",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 7,
+  "fields": {
+    "created": "2025-06-09T12:53:29.553Z",
+    "modified": "2025-06-16T20:00:55.855Z",
+    "logo": "",
+    "safa_id": "CRUX1",
+    "name": "OR Tambo",
+    "code": "",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 8,
+  "fields": {
+    "created": "2025-06-09T12:53:29.569Z",
+    "modified": "2025-06-16T20:00:56.246Z",
+    "logo": "",
+    "safa_id": "H4P0Y",
+    "name": "Sarah Baartman",
+    "code": "",
+    "province": 1,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 9,
+  "fields": {
+    "created": "2025-06-09T12:53:29.596Z",
+    "modified": "2025-06-16T20:00:56.534Z",
+    "logo": "",
+    "safa_id": "N9V2E",
+    "name": "Fezile Dabi",
+    "code": "",
+    "province": 2,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 10,
+  "fields": {
+    "created": "2025-06-09T12:53:29.611Z",
+    "modified": "2025-06-16T20:00:56.815Z",
+    "logo": "",
+    "safa_id": "P3KRV",
+    "name": "Lejweleputswa",
+    "code": "",
+    "province": 2,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 11,
+  "fields": {
+    "created": "2025-06-09T12:53:29.627Z",
+    "modified": "2025-06-16T20:00:57.069Z",
+    "logo": "",
+    "safa_id": "61JK9",
+    "name": "Mangaung",
+    "code": "",
+    "province": 2,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 12,
+  "fields": {
+    "created": "2025-06-09T12:53:29.637Z",
+    "modified": "2025-06-16T20:00:57.353Z",
+    "logo": "",
+    "safa_id": "TPLX6",
+    "name": "Thabo Mofutsanyana",
+    "code": "",
+    "province": 2,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 13,
+  "fields": {
+    "created": "2025-06-09T12:53:29.655Z",
+    "modified": "2025-06-16T20:00:57.592Z",
+    "logo": "",
+    "safa_id": "DJ41O",
+    "name": "Xhariep",
+    "code": "",
+    "province": 2,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 14,
+  "fields": {
+    "created": "2025-06-09T12:53:29.668Z",
+    "modified": "2025-06-16T20:00:57.783Z",
+    "logo": "",
+    "safa_id": "CPQH5",
+    "name": "Ekurhuleni",
+    "code": "",
+    "province": 3,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 15,
+  "fields": {
+    "created": "2025-06-09T12:53:29.707Z",
+    "modified": "2025-06-16T20:00:58.031Z",
+    "logo": "",
+    "safa_id": "ANMZN",
+    "name": "Johannesburg",
+    "code": "",
+    "province": 3,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 16,
+  "fields": {
+    "created": "2025-06-09T12:53:29.738Z",
+    "modified": "2025-06-16T20:00:58.302Z",
+    "logo": "",
+    "safa_id": "HKAYO",
+    "name": "Sedibeng",
+    "code": "",
+    "province": 3,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 17,
+  "fields": {
+    "created": "2025-06-09T12:53:29.747Z",
+    "modified": "2025-06-16T20:00:58.594Z",
+    "logo": "",
+    "safa_id": "4DH37",
+    "name": "Tshwane",
+    "code": "",
+    "province": 3,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 18,
+  "fields": {
+    "created": "2025-06-09T12:53:29.813Z",
+    "modified": "2025-06-16T20:00:58.836Z",
+    "logo": "",
+    "safa_id": "LUEO5",
+    "name": "West Rand",
+    "code": "",
+    "province": 3,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 19,
+  "fields": {
+    "created": "2025-06-09T13:20:51.670Z",
+    "modified": "2025-06-16T20:00:59.434Z",
+    "logo": "",
+    "safa_id": "OOLHL",
+    "name": "SAFA Amajuba",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 20,
+  "fields": {
+    "created": "2025-06-09T13:20:51.675Z",
+    "modified": "2025-06-16T20:00:59.719Z",
+    "logo": "",
+    "safa_id": "6X0AM",
+    "name": "SAFA ETHEKWINI",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 21,
+  "fields": {
+    "created": "2025-06-09T13:20:51.681Z",
+    "modified": "2025-06-16T20:00:59.134Z",
+    "logo": "",
+    "safa_id": "UYKKK",
+    "name": "Harry Gwala",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 22,
+  "fields": {
+    "created": "2025-06-09T13:20:51.690Z",
+    "modified": "2025-06-16T20:00:59.978Z",
+    "logo": "",
+    "safa_id": "I3KB8",
+    "name": "SAFA ILEMBE",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 23,
+  "fields": {
+    "created": "2025-06-09T13:20:51.695Z",
+    "modified": "2025-06-16T20:01:00.217Z",
+    "logo": "",
+    "safa_id": "Q77LH",
+    "name": "SAFA KING CETSHWAYO",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 24,
+  "fields": {
+    "created": "2025-06-09T13:20:51.704Z",
+    "modified": "2025-06-16T20:01:00.432Z",
+    "logo": "",
+    "safa_id": "3FOJV",
+    "name": "SAFA UGU",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 25,
+  "fields": {
+    "created": "2025-06-09T13:20:51.709Z",
+    "modified": "2025-06-16T20:01:00.733Z",
+    "logo": "",
+    "safa_id": "W453C",
+    "name": "SAFA UMGUNGUNDLOVU",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 26,
+  "fields": {
+    "created": "2025-06-09T13:20:51.717Z",
+    "modified": "2025-06-16T20:01:01.053Z",
+    "logo": "",
+    "safa_id": "0RL50",
+    "name": "SAFA UMKHANYAKHUDE",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 27,
+  "fields": {
+    "created": "2025-06-09T13:20:51.722Z",
+    "modified": "2025-06-16T20:01:01.676Z",
+    "logo": "",
+    "safa_id": "I470X",
+    "name": "SAFA UMZINYATHI",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 28,
+  "fields": {
+    "created": "2025-06-09T13:20:51.728Z",
+    "modified": "2025-06-16T20:01:01.941Z",
+    "logo": "",
+    "safa_id": "Q2FXR",
+    "name": "SAFA UTHUKELA",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 29,
+  "fields": {
+    "created": "2025-06-09T13:20:51.733Z",
+    "modified": "2025-06-16T20:01:02.194Z",
+    "logo": "",
+    "safa_id": "51DSD",
+    "name": "SAFA ZULULAND",
+    "code": "",
+    "province": 4,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 30,
+  "fields": {
+    "created": "2025-06-09T13:38:32.427Z",
+    "modified": "2025-06-16T20:01:02.487Z",
+    "logo": "",
+    "safa_id": "Q89LU",
+    "name": "SAFA Capricorn",
+    "code": "",
+    "province": 5,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 31,
+  "fields": {
+    "created": "2025-06-09T13:38:32.430Z",
+    "modified": "2025-06-16T20:01:02.776Z",
+    "logo": "",
+    "safa_id": "8HBFF",
+    "name": "SAFA Mopani",
+    "code": "",
+    "province": 5,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 32,
+  "fields": {
+    "created": "2025-06-09T13:38:32.433Z",
+    "modified": "2025-06-16T20:01:03.103Z",
+    "logo": "",
+    "safa_id": "UVBLJ",
+    "name": "SAFA Sekhukhune",
+    "code": "",
+    "province": 5,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 33,
+  "fields": {
+    "created": "2025-06-09T13:38:32.437Z",
+    "modified": "2025-06-16T20:01:03.383Z",
+    "logo": "",
+    "safa_id": "AHSF0",
+    "name": "SAFA Vhembe",
+    "code": "",
+    "province": 5,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 34,
+  "fields": {
+    "created": "2025-06-09T13:38:32.440Z",
+    "modified": "2025-06-16T20:01:03.672Z",
+    "logo": "",
+    "safa_id": "MGNHM",
+    "name": "SAFA Waterberg",
+    "code": "",
+    "province": 5,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 35,
+  "fields": {
+    "created": "2025-06-09T13:48:25.979Z",
+    "modified": "2025-06-16T20:01:03.976Z",
+    "logo": "",
+    "safa_id": "PA4XE",
+    "name": "SAFA Ehlanzeni",
+    "code": "",
+    "province": 6,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 36,
+  "fields": {
+    "created": "2025-06-09T13:48:25.983Z",
+    "modified": "2025-06-16T20:01:04.243Z",
+    "logo": "",
+    "safa_id": "MXVRP",
+    "name": "SAFA Gert Sibande",
+    "code": "",
+    "province": 6,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 37,
+  "fields": {
+    "created": "2025-06-09T13:48:25.986Z",
+    "modified": "2025-06-16T20:01:04.509Z",
+    "logo": "",
+    "safa_id": "XH3BE",
+    "name": "SAFA Nkangala",
+    "code": "",
+    "province": 6,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 38,
+  "fields": {
+    "created": "2025-06-09T13:58:49.572Z",
+    "modified": "2025-06-16T20:01:04.779Z",
+    "logo": "",
+    "safa_id": "8UVEZ",
+    "name": "SAFA Bojanala",
+    "code": "",
+    "province": 8,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 39,
+  "fields": {
+    "created": "2025-06-09T13:58:49.575Z",
+    "modified": "2025-06-16T20:01:05.047Z",
+    "logo": "",
+    "safa_id": "S92LP",
+    "name": "SAFA Dr Kenneth Kaunda",
+    "code": "",
+    "province": 8,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 40,
+  "fields": {
+    "created": "2025-06-09T13:58:49.578Z",
+    "modified": "2025-06-16T20:01:05.315Z",
+    "logo": "",
+    "safa_id": "FZIKA",
+    "name": "SAFA Dr Ruth Segomotsi Mompati",
+    "code": "",
+    "province": 8,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 41,
+  "fields": {
+    "created": "2025-06-09T13:58:49.581Z",
+    "modified": "2025-06-16T20:01:05.637Z",
+    "logo": "",
+    "safa_id": "6C4YA",
+    "name": "SAFA Ngaka Modiri Molema",
+    "code": "",
+    "province": 8,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 42,
+  "fields": {
+    "created": "2025-06-09T14:03:57.685Z",
+    "modified": "2025-06-16T20:01:05.898Z",
+    "logo": "",
+    "safa_id": "JCHDD",
+    "name": "SAFA Frances Baard",
+    "code": "",
+    "province": 7,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 43,
+  "fields": {
+    "created": "2025-06-09T14:03:57.691Z",
+    "modified": "2025-06-16T20:01:06.159Z",
+    "logo": "",
+    "safa_id": "82H3D",
+    "name": "SAFA John Taolo Gaetsewe",
+    "code": "",
+    "province": 7,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 44,
+  "fields": {
+    "created": "2025-06-09T14:03:57.698Z",
+    "modified": "2025-06-16T20:01:06.486Z",
+    "logo": "",
+    "safa_id": "M3R80",
+    "name": "SAFA Namakwa",
+    "code": "",
+    "province": 7,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 45,
+  "fields": {
+    "created": "2025-06-09T14:03:57.703Z",
+    "modified": "2025-06-16T20:01:06.743Z",
+    "logo": "",
+    "safa_id": "03JM1",
+    "name": "SAFA Pixley ka Seme",
+    "code": "",
+    "province": 7,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 46,
+  "fields": {
+    "created": "2025-06-09T14:03:57.708Z",
+    "modified": "2025-06-16T20:01:07.014Z",
+    "logo": "",
+    "safa_id": "61GFL",
+    "name": "SAFA ZF Mgcawu",
+    "code": "",
+    "province": 7,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 47,
+  "fields": {
+    "created": "2025-06-09T14:10:53.448Z",
+    "modified": "2025-06-16T20:01:07.302Z",
+    "logo": "",
+    "safa_id": "UGWSB",
+    "name": "SAFA Cape Town",
+    "code": "",
+    "province": 9,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 48,
+  "fields": {
+    "created": "2025-06-09T14:10:53.451Z",
+    "modified": "2025-06-16T20:01:07.583Z",
+    "logo": "",
+    "safa_id": "BBMJT",
+    "name": "SAFA Cape Winelands",
+    "code": "",
+    "province": 9,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 49,
+  "fields": {
+    "created": "2025-06-09T14:10:53.454Z",
+    "modified": "2025-06-16T20:01:07.912Z",
+    "logo": "",
+    "safa_id": "S5EJO",
+    "name": "SAFA Central Karoo",
+    "code": "",
+    "province": 9,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 50,
+  "fields": {
+    "created": "2025-06-09T14:10:53.457Z",
+    "modified": "2025-06-16T20:01:08.157Z",
+    "logo": "",
+    "safa_id": "2XIYH",
+    "name": "SAFA Eden",
+    "code": "",
+    "province": 9,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 51,
+  "fields": {
+    "created": "2025-06-09T14:10:53.461Z",
+    "modified": "2025-06-16T20:01:30.492Z",
+    "logo": "",
+    "safa_id": "06CK4",
+    "name": "SAFA Overberg",
+    "code": "",
+    "province": 9,
+    "description": ""
+  }
+},
+{
+  "model": "geography.region",
+  "pk": 52,
+  "fields": {
+    "created": "2025-06-09T14:10:53.464Z",
+    "modified": "2025-06-16T20:01:30.784Z",
+    "logo": "",
+    "safa_id": "B2NFT",
+    "name": "SAFA West Coast",
+    "code": "",
+    "province": 9,
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 1,
+  "fields": {
+    "created": "2025-05-30T21:35:25.829Z",
+    "modified": "2025-05-31T00:10:27.772Z",
+    "logo": "logos/SAFA_logo_SQTlCvb.svg.png",
+    "safa_id": "4ZHFL",
+    "name": "South African Deaf Football Association",
+    "acronym": "SADFA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": "Manage all the referees appointments"
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 3,
+  "fields": {
+    "created": "2025-05-30T21:51:49.946Z",
+    "modified": "2025-05-31T00:09:51.667Z",
+    "logo": "",
+    "safa_id": "CVK1I",
+    "name": "Industrial Football Association of South Africa",
+    "acronym": "IFASA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 4,
+  "fields": {
+    "created": "2025-05-31T00:10:57.459Z",
+    "modified": "2025-05-31T00:10:57.459Z",
+    "logo": "",
+    "safa_id": "OV29D",
+    "name": "South African Football Coaches Association",
+    "acronym": "SAFCA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 5,
+  "fields": {
+    "created": "2025-05-31T00:11:49.381Z",
+    "modified": "2025-05-31T00:11:49.381Z",
+    "logo": "",
+    "safa_id": "EUHSY",
+    "name": "South African National Defence Force Football Association",
+    "acronym": "SANDFFA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 6,
+  "fields": {
+    "created": "2025-05-31T00:12:20.655Z",
+    "modified": "2025-05-31T00:12:20.655Z",
+    "logo": "",
+    "safa_id": "37UAD",
+    "name": "University Sport South Africa – Football",
+    "acronym": "USSA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 7,
+  "fields": {
+    "created": "2025-05-31T00:12:50.325Z",
+    "modified": "2025-05-31T00:12:50.325Z",
+    "logo": "",
+    "safa_id": "4Z08I",
+    "name": "South African Intellectually Impaired Football Association",
+    "acronym": "SAIIFA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 8,
+  "fields": {
+    "created": "2025-05-31T00:13:22.530Z",
+    "modified": "2025-06-07T19:05:50.634Z",
+    "logo": "",
+    "safa_id": "A773J",
+    "name": "South African Masters and Legends Football Association",
+    "acronym": "SAMLFA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 9,
+  "fields": {
+    "created": "2025-05-31T00:13:51.220Z",
+    "modified": "2025-05-31T00:13:51.220Z",
+    "logo": "",
+    "safa_id": "3UWP9",
+    "name": "South African Indoor Football Association",
+    "acronym": "SAIFA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 10,
+  "fields": {
+    "created": "2025-05-31T00:14:22.496Z",
+    "modified": "2025-05-31T00:14:22.496Z",
+    "logo": "",
+    "safa_id": "TZD5U",
+    "name": "South African Police Services Football Association",
+    "acronym": "SAPSFA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 11,
+  "fields": {
+    "created": "2025-06-20T08:23:16.619Z",
+    "modified": "2025-06-21T08:01:27.067Z",
+    "logo": "",
+    "safa_id": "PTCPX",
+    "name": "SAFA Referee Association",
+    "acronym": "SAFRA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.association",
+  "pk": 12,
+  "fields": {
+    "created": "2025-07-22T05:56:10.971Z",
+    "modified": "2025-07-22T05:56:10.971Z",
+    "logo": "",
+    "safa_id": "RJY0V",
+    "name": "SAFA Referees Association",
+    "acronym": "SRA",
+    "national_federation": 1,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 1,
+  "fields": {
+    "created": "2025-06-09T12:53:29.409Z",
+    "modified": "2025-06-09T12:53:29.409Z",
+    "logo": "",
+    "safa_id": "L7Q12",
+    "name": "MATATIELE LFA",
+    "acronym": "",
+    "region": 1,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 2,
+  "fields": {
+    "created": "2025-06-09T12:53:29.412Z",
+    "modified": "2025-06-09T12:53:29.412Z",
+    "logo": "",
+    "safa_id": "2CYF8",
+    "name": "MBIZANA LFA",
+    "acronym": "",
+    "region": 1,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 3,
+  "fields": {
+    "created": "2025-06-09T12:53:29.414Z",
+    "modified": "2025-06-09T12:53:29.414Z",
+    "logo": "",
+    "safa_id": "QHCXN",
+    "name": "NTABANKULU LFA",
+    "acronym": "",
+    "region": 1,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 4,
+  "fields": {
+    "created": "2025-06-09T12:53:29.418Z",
+    "modified": "2025-06-09T12:53:29.418Z",
+    "logo": "",
+    "safa_id": "AN2RE",
+    "name": "UMZIMVUBU LFA",
+    "acronym": "",
+    "region": 1,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 5,
+  "fields": {
+    "created": "2025-06-09T12:53:29.426Z",
+    "modified": "2025-06-09T12:53:29.426Z",
+    "logo": "",
+    "safa_id": "GOKLU",
+    "name": "SAFA AMAHLATHI LFA",
+    "acronym": "",
+    "region": 2,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 6,
+  "fields": {
+    "created": "2025-06-09T12:53:29.428Z",
+    "modified": "2025-06-09T12:53:29.428Z",
+    "logo": "",
+    "safa_id": "6AKFQ",
+    "name": "SAFA GREAT KEI LFA",
+    "acronym": "",
+    "region": 2,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 7,
+  "fields": {
+    "created": "2025-06-09T12:53:29.430Z",
+    "modified": "2025-06-09T12:53:29.430Z",
+    "logo": "",
+    "safa_id": "F5EUW",
+    "name": "SAFA MBASHE LFA",
+    "acronym": "",
+    "region": 2,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 8,
+  "fields": {
+    "created": "2025-06-09T12:53:29.432Z",
+    "modified": "2025-06-09T12:53:29.432Z",
+    "logo": "",
+    "safa_id": "ZUN0Y",
+    "name": "SAFA MNGUMA LFA",
+    "acronym": "",
+    "region": 2,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 9,
+  "fields": {
+    "created": "2025-06-09T12:53:29.437Z",
+    "modified": "2025-06-09T12:53:29.437Z",
+    "logo": "",
+    "safa_id": "OG1JB",
+    "name": "SAFA NGQUSHWA LFA",
+    "acronym": "",
+    "region": 2,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 10,
+  "fields": {
+    "created": "2025-06-09T12:53:29.441Z",
+    "modified": "2025-06-09T12:53:29.441Z",
+    "logo": "",
+    "safa_id": "SOWZI",
+    "name": "SAFA NKONKOBE LFA",
+    "acronym": "",
+    "region": 2,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 11,
+  "fields": {
+    "created": "2025-06-09T12:53:29.444Z",
+    "modified": "2025-06-09T12:53:29.444Z",
+    "logo": "",
+    "safa_id": "LVI0U",
+    "name": "SAFA NXUBA LFA",
+    "acronym": "",
+    "region": 2,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 12,
+  "fields": {
+    "created": "2025-06-09T12:53:29.449Z",
+    "modified": "2025-06-09T12:53:29.449Z",
+    "logo": "",
+    "safa_id": "A8TI7",
+    "name": "SAFA BUNKERS WEST LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 13,
+  "fields": {
+    "created": "2025-06-09T12:53:29.454Z",
+    "modified": "2025-06-09T12:53:29.454Z",
+    "logo": "",
+    "safa_id": "UG7BO",
+    "name": "SAFA EAST LONDON CENTRAL LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 14,
+  "fields": {
+    "created": "2025-06-09T12:53:29.458Z",
+    "modified": "2025-06-09T12:53:29.458Z",
+    "logo": "",
+    "safa_id": "AVA7Q",
+    "name": "SAFA EAST LONDON NORTH LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 15,
+  "fields": {
+    "created": "2025-06-09T12:53:29.461Z",
+    "modified": "2025-06-09T12:53:29.461Z",
+    "logo": "",
+    "safa_id": "IVN2O",
+    "name": "SAFA EAST LONDON WEST LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 16,
+  "fields": {
+    "created": "2025-06-09T12:53:29.463Z",
+    "modified": "2025-06-09T12:53:29.463Z",
+    "logo": "",
+    "safa_id": "A39JB",
+    "name": "SAFA KING CENTRAL LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 17,
+  "fields": {
+    "created": "2025-06-09T12:53:29.465Z",
+    "modified": "2025-06-09T12:53:29.465Z",
+    "logo": "",
+    "safa_id": "XWCC6",
+    "name": "SAFA KING EAST LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 18,
+  "fields": {
+    "created": "2025-06-09T12:53:29.470Z",
+    "modified": "2025-06-09T12:53:29.470Z",
+    "logo": "",
+    "safa_id": "GAYZ5",
+    "name": "SAFA MDANTSANE LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 19,
+  "fields": {
+    "created": "2025-06-09T12:53:29.473Z",
+    "modified": "2025-06-09T12:53:29.473Z",
+    "logo": "",
+    "safa_id": "6QERE",
+    "name": "SAFA ROYAL RHARHABE LFA",
+    "acronym": "",
+    "region": 3,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 20,
+  "fields": {
+    "created": "2025-06-09T12:53:29.478Z",
+    "modified": "2025-06-09T12:53:29.478Z",
+    "logo": "",
+    "safa_id": "B670W",
+    "name": "SAFA EMALAHLENI LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 21,
+  "fields": {
+    "created": "2025-06-09T12:53:29.480Z",
+    "modified": "2025-06-09T12:53:29.480Z",
+    "logo": "",
+    "safa_id": "1PXFE",
+    "name": "SAFA ENGCOBO LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 22,
+  "fields": {
+    "created": "2025-06-09T12:53:29.484Z",
+    "modified": "2025-06-09T12:53:29.484Z",
+    "logo": "",
+    "safa_id": "Q5K5S",
+    "name": "SAFA INKWANCA LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 23,
+  "fields": {
+    "created": "2025-06-09T12:53:29.488Z",
+    "modified": "2025-06-09T12:53:29.488Z",
+    "logo": "",
+    "safa_id": "VO4YX",
+    "name": "SAFA INTSIKA YETHU LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 24,
+  "fields": {
+    "created": "2025-06-09T12:53:29.491Z",
+    "modified": "2025-06-09T12:53:29.491Z",
+    "logo": "",
+    "safa_id": "GCX8N",
+    "name": "SAFA INXUBA YETHEMBA LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 25,
+  "fields": {
+    "created": "2025-06-09T12:53:29.493Z",
+    "modified": "2025-06-09T12:53:29.493Z",
+    "logo": "",
+    "safa_id": "0C7DG",
+    "name": "SAFA LUKHANJI LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 26,
+  "fields": {
+    "created": "2025-06-09T12:53:29.496Z",
+    "modified": "2025-06-09T12:53:29.496Z",
+    "logo": "",
+    "safa_id": "V2EXP",
+    "name": "SAFA SAKHISIZWE LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 27,
+  "fields": {
+    "created": "2025-06-09T12:53:29.500Z",
+    "modified": "2025-06-09T12:53:29.500Z",
+    "logo": "",
+    "safa_id": "FE9VK",
+    "name": "SAFA TSOLWANA LFA",
+    "acronym": "",
+    "region": 4,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 28,
+  "fields": {
+    "created": "2025-06-09T12:53:29.506Z",
+    "modified": "2025-06-09T12:53:29.506Z",
+    "logo": "",
+    "safa_id": "3EO8Q",
+    "name": "SAFA ELUNDI LFA",
+    "acronym": "",
+    "region": 5,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 29,
+  "fields": {
+    "created": "2025-06-09T12:53:29.508Z",
+    "modified": "2025-06-09T12:53:29.508Z",
+    "logo": "",
+    "safa_id": "17EXV",
+    "name": "SAFA GARIEP LFA",
+    "acronym": "",
+    "region": 5,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 30,
+  "fields": {
+    "created": "2025-06-09T12:53:29.510Z",
+    "modified": "2025-06-09T12:53:29.510Z",
+    "logo": "",
+    "safa_id": "8FIBY",
+    "name": "SAFA MALETSWAI LFA",
+    "acronym": "",
+    "region": 5,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 31,
+  "fields": {
+    "created": "2025-06-09T12:53:29.512Z",
+    "modified": "2025-06-09T12:53:29.512Z",
+    "logo": "",
+    "safa_id": "UZ5LR",
+    "name": "SAFA SENQU LFA",
+    "acronym": "",
+    "region": 5,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 32,
+  "fields": {
+    "created": "2025-06-09T12:53:29.519Z",
+    "modified": "2025-06-09T12:53:29.519Z",
+    "logo": "",
+    "safa_id": "T8D0F",
+    "name": "SAFA KUYGA LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 33,
+  "fields": {
+    "created": "2025-06-09T12:53:29.521Z",
+    "modified": "2025-06-09T12:53:29.521Z",
+    "logo": "",
+    "safa_id": "6ERO4",
+    "name": "SAFA LAROFA LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 34,
+  "fields": {
+    "created": "2025-06-09T12:53:29.524Z",
+    "modified": "2025-06-09T12:53:29.524Z",
+    "logo": "",
+    "safa_id": "5G70H",
+    "name": "SAFA MOTHERWELL LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 35,
+  "fields": {
+    "created": "2025-06-09T12:53:29.526Z",
+    "modified": "2025-06-09T12:53:29.526Z",
+    "logo": "",
+    "safa_id": "OJ3LH",
+    "name": "SAFA NAFA LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 36,
+  "fields": {
+    "created": "2025-06-09T12:53:29.528Z",
+    "modified": "2025-06-09T12:53:29.528Z",
+    "logo": "",
+    "safa_id": "YXDB1",
+    "name": "SAFA NEW BRIGHTON LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 37,
+  "fields": {
+    "created": "2025-06-09T12:53:29.530Z",
+    "modified": "2025-06-09T12:53:29.530Z",
+    "logo": "",
+    "safa_id": "0X0Q0",
+    "name": "SAFA NODEFA LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 38,
+  "fields": {
+    "created": "2025-06-09T12:53:29.533Z",
+    "modified": "2025-06-09T12:53:29.533Z",
+    "logo": "",
+    "safa_id": "W6CR2",
+    "name": "SAFA PEEFA LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 39,
+  "fields": {
+    "created": "2025-06-09T12:53:29.536Z",
+    "modified": "2025-06-09T12:53:29.536Z",
+    "logo": "",
+    "safa_id": "QXO7R",
+    "name": "SAFA PENFA LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 40,
+  "fields": {
+    "created": "2025-06-09T12:53:29.540Z",
+    "modified": "2025-06-09T12:53:29.540Z",
+    "logo": "",
+    "safa_id": "LIZJY",
+    "name": "SAFA PORT ELIZABETH LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 41,
+  "fields": {
+    "created": "2025-06-09T12:53:29.543Z",
+    "modified": "2025-06-09T12:53:29.543Z",
+    "logo": "",
+    "safa_id": "W5OKL",
+    "name": "SAFA WALMER LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 42,
+  "fields": {
+    "created": "2025-06-09T12:53:29.547Z",
+    "modified": "2025-06-09T12:53:29.547Z",
+    "logo": "",
+    "safa_id": "WVFXT",
+    "name": "SAFA ZAFA LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 43,
+  "fields": {
+    "created": "2025-06-09T12:53:29.549Z",
+    "modified": "2025-06-09T12:53:29.550Z",
+    "logo": "",
+    "safa_id": "RN1U3",
+    "name": "SAFA ZWIDE LFA",
+    "acronym": "",
+    "region": 6,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 44,
+  "fields": {
+    "created": "2025-06-09T12:53:29.556Z",
+    "modified": "2025-06-09T12:53:29.556Z",
+    "logo": "",
+    "safa_id": "MAUPN",
+    "name": "SAFA INGQUZA HILL LFA",
+    "acronym": "",
+    "region": 7,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 45,
+  "fields": {
+    "created": "2025-06-09T12:53:29.558Z",
+    "modified": "2025-06-09T12:53:29.558Z",
+    "logo": "",
+    "safa_id": "GUWZK",
+    "name": "SAFA KING SABATA DALINDYEBO LFA",
+    "acronym": "",
+    "region": 7,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 46,
+  "fields": {
+    "created": "2025-06-09T12:53:29.561Z",
+    "modified": "2025-06-09T12:53:29.561Z",
+    "logo": "",
+    "safa_id": "52UN6",
+    "name": "SAFA MHLONTLO LFA",
+    "acronym": "",
+    "region": 7,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 47,
+  "fields": {
+    "created": "2025-06-09T12:53:29.563Z",
+    "modified": "2025-06-09T12:53:29.563Z",
+    "logo": "",
+    "safa_id": "UKCLF",
+    "name": "SAFA NYANDENI LFA",
+    "acronym": "",
+    "region": 7,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 48,
+  "fields": {
+    "created": "2025-06-09T12:53:29.566Z",
+    "modified": "2025-06-09T12:53:29.566Z",
+    "logo": "",
+    "safa_id": "AAP9A",
+    "name": "SAFA PORT ST JOHN’S LFA",
+    "acronym": "",
+    "region": 7,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 49,
+  "fields": {
+    "created": "2025-06-09T12:53:29.572Z",
+    "modified": "2025-06-09T12:53:29.572Z",
+    "logo": "",
+    "safa_id": "QGUQB",
+    "name": "SAFA BLUE CRANE LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 50,
+  "fields": {
+    "created": "2025-06-09T12:53:29.575Z",
+    "modified": "2025-06-09T12:53:29.575Z",
+    "logo": "",
+    "safa_id": "DIN05",
+    "name": "SAFA CAMDEBOO LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 51,
+  "fields": {
+    "created": "2025-06-09T12:53:29.577Z",
+    "modified": "2025-06-09T12:53:29.577Z",
+    "logo": "",
+    "safa_id": "WHQOF",
+    "name": "SAFA IKQWEZI LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 52,
+  "fields": {
+    "created": "2025-06-09T12:53:29.580Z",
+    "modified": "2025-06-09T12:53:29.580Z",
+    "logo": "",
+    "safa_id": "HBX2E",
+    "name": "SAFA KOUGA LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 53,
+  "fields": {
+    "created": "2025-06-09T12:53:29.583Z",
+    "modified": "2025-06-09T12:53:29.583Z",
+    "logo": "",
+    "safa_id": "O4HKK",
+    "name": "SAFA KOUKAMA LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 54,
+  "fields": {
+    "created": "2025-06-09T12:53:29.586Z",
+    "modified": "2025-06-09T12:53:29.586Z",
+    "logo": "",
+    "safa_id": "SCMOB",
+    "name": "SAFA MAKANA LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 55,
+  "fields": {
+    "created": "2025-06-09T12:53:29.589Z",
+    "modified": "2025-06-09T12:53:29.589Z",
+    "logo": "",
+    "safa_id": "WGF87",
+    "name": "SAFA NDLAMBE LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 56,
+  "fields": {
+    "created": "2025-06-09T12:53:29.592Z",
+    "modified": "2025-06-09T12:53:29.592Z",
+    "logo": "",
+    "safa_id": "YCDEK",
+    "name": "SAFA SUNDAY`S RIVER LFA",
+    "acronym": "",
+    "region": 8,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 57,
+  "fields": {
+    "created": "2025-06-09T12:53:29.598Z",
+    "modified": "2025-06-09T12:53:29.598Z",
+    "logo": "",
+    "safa_id": "G7OEV",
+    "name": "SAFA MAFUBE LFA",
+    "acronym": "",
+    "region": 9,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 58,
+  "fields": {
+    "created": "2025-06-09T12:53:29.602Z",
+    "modified": "2025-06-09T12:53:29.602Z",
+    "logo": "",
+    "safa_id": "TIJD7",
+    "name": "SAFA METSIMAHOLO LFA",
+    "acronym": "",
+    "region": 9,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 59,
+  "fields": {
+    "created": "2025-06-09T12:53:29.606Z",
+    "modified": "2025-06-09T12:53:29.606Z",
+    "logo": "",
+    "safa_id": "6IJU4",
+    "name": "SAFA MOQHAKA LFA",
+    "acronym": "",
+    "region": 9,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 60,
+  "fields": {
+    "created": "2025-06-09T12:53:29.609Z",
+    "modified": "2025-06-09T12:53:29.609Z",
+    "logo": "",
+    "safa_id": "STDZ4",
+    "name": "SAFA NGWATHE LFA",
+    "acronym": "",
+    "region": 9,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 61,
+  "fields": {
+    "created": "2025-06-09T12:53:29.614Z",
+    "modified": "2025-06-09T12:53:29.614Z",
+    "logo": "",
+    "safa_id": "E85M3",
+    "name": "SAFA MASILONYANA LFA",
+    "acronym": "",
+    "region": 10,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 62,
+  "fields": {
+    "created": "2025-06-09T12:53:29.616Z",
+    "modified": "2025-06-09T12:53:29.616Z",
+    "logo": "",
+    "safa_id": "28KF0",
+    "name": "SAFA MATJHABENG LFA",
+    "acronym": "",
+    "region": 10,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 63,
+  "fields": {
+    "created": "2025-06-09T12:53:29.620Z",
+    "modified": "2025-06-09T12:53:29.620Z",
+    "logo": "",
+    "safa_id": "EQV06",
+    "name": "SAFA NALA LFA",
+    "acronym": "",
+    "region": 10,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 64,
+  "fields": {
+    "created": "2025-06-09T12:53:29.622Z",
+    "modified": "2025-06-09T12:53:29.622Z",
+    "logo": "",
+    "safa_id": "XOA0G",
+    "name": "SAFA TOKOLOGO LFA",
+    "acronym": "",
+    "region": 10,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 65,
+  "fields": {
+    "created": "2025-06-09T12:53:29.625Z",
+    "modified": "2025-06-09T12:53:29.625Z",
+    "logo": "",
+    "safa_id": "P4O69",
+    "name": "SAFA TSWELOPELE LFA",
+    "acronym": "",
+    "region": 10,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 66,
+  "fields": {
+    "created": "2025-06-09T12:53:29.630Z",
+    "modified": "2025-06-09T12:53:29.630Z",
+    "logo": "",
+    "safa_id": "TM7RJ",
+    "name": "SAFA BLOEMFONTEIN LFA",
+    "acronym": "",
+    "region": 11,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 67,
+  "fields": {
+    "created": "2025-06-09T12:53:29.632Z",
+    "modified": "2025-06-09T12:53:29.632Z",
+    "logo": "",
+    "safa_id": "HLOTG",
+    "name": "SAFA BOTSHABELO LFA",
+    "acronym": "",
+    "region": 11,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 68,
+  "fields": {
+    "created": "2025-06-09T12:53:29.635Z",
+    "modified": "2025-06-09T12:53:29.635Z",
+    "logo": "",
+    "safa_id": "2RIT5",
+    "name": "SAFA THABA NCHU LFA",
+    "acronym": "",
+    "region": 11,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 69,
+  "fields": {
+    "created": "2025-06-09T12:53:29.640Z",
+    "modified": "2025-06-09T12:53:29.640Z",
+    "logo": "",
+    "safa_id": "1OT5Y",
+    "name": "SAFA DIHLABENG LFA",
+    "acronym": "",
+    "region": 12,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 70,
+  "fields": {
+    "created": "2025-06-09T12:53:29.642Z",
+    "modified": "2025-06-09T12:53:29.642Z",
+    "logo": "",
+    "safa_id": "QC1VD",
+    "name": "SAFA MALUTI-A-PHOFUNG LFA",
+    "acronym": "",
+    "region": 12,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 71,
+  "fields": {
+    "created": "2025-06-09T12:53:29.644Z",
+    "modified": "2025-06-09T12:53:29.644Z",
+    "logo": "",
+    "safa_id": "NB2D7",
+    "name": "SAFA MANTSOPA LFA",
+    "acronym": "",
+    "region": 12,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 72,
+  "fields": {
+    "created": "2025-06-09T12:53:29.646Z",
+    "modified": "2025-06-09T12:53:29.646Z",
+    "logo": "",
+    "safa_id": "6M8MC",
+    "name": "SAFA NKETOANE LFA",
+    "acronym": "",
+    "region": 12,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 73,
+  "fields": {
+    "created": "2025-06-09T12:53:29.649Z",
+    "modified": "2025-06-09T12:53:29.649Z",
+    "logo": "",
+    "safa_id": "EBG5K",
+    "name": "SAFA PHUMELELA LFA",
+    "acronym": "",
+    "region": 12,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 74,
+  "fields": {
+    "created": "2025-06-09T12:53:29.652Z",
+    "modified": "2025-06-09T12:53:29.652Z",
+    "logo": "",
+    "safa_id": "6T7AD",
+    "name": "SAFA SETSOTO LFA",
+    "acronym": "",
+    "region": 12,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 75,
+  "fields": {
+    "created": "2025-06-09T12:53:29.657Z",
+    "modified": "2025-06-09T12:53:29.657Z",
+    "logo": "",
+    "safa_id": "FNOF6",
+    "name": "SAFA KOPANONG LFA",
+    "acronym": "",
+    "region": 13,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 76,
+  "fields": {
+    "created": "2025-06-09T12:53:29.659Z",
+    "modified": "2025-06-09T12:53:29.659Z",
+    "logo": "",
+    "safa_id": "N5O38",
+    "name": "SAFA LETSEMENG LFA",
+    "acronym": "",
+    "region": 13,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 77,
+  "fields": {
+    "created": "2025-06-09T12:53:29.662Z",
+    "modified": "2025-06-09T12:53:29.662Z",
+    "logo": "",
+    "safa_id": "GLAH2",
+    "name": "SAFA MOHOKARE LFA",
+    "acronym": "",
+    "region": 13,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 78,
+  "fields": {
+    "created": "2025-06-09T12:53:29.664Z",
+    "modified": "2025-06-09T12:53:29.664Z",
+    "logo": "",
+    "safa_id": "J97E7",
+    "name": "SAFA NALEDI LFA",
+    "acronym": "",
+    "region": 13,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 79,
+  "fields": {
+    "created": "2025-06-09T12:53:29.671Z",
+    "modified": "2025-06-09T12:53:29.671Z",
+    "logo": "",
+    "safa_id": "LAWM2",
+    "name": "SAFA BENONI NORTH LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 80,
+  "fields": {
+    "created": "2025-06-09T12:53:29.673Z",
+    "modified": "2025-06-09T12:53:29.673Z",
+    "logo": "",
+    "safa_id": "TABTK",
+    "name": "SAFA BENONI SOUTH LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 81,
+  "fields": {
+    "created": "2025-06-09T12:53:29.675Z",
+    "modified": "2025-06-09T12:53:29.675Z",
+    "logo": "",
+    "safa_id": "AAGRM",
+    "name": "SAFA BOKSBURG & CENTRAL LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 82,
+  "fields": {
+    "created": "2025-06-09T12:53:29.678Z",
+    "modified": "2025-06-09T12:53:29.678Z",
+    "logo": "",
+    "safa_id": "8XE5K",
+    "name": "SAFA BRAKPAN LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 83,
+  "fields": {
+    "created": "2025-06-09T12:53:29.680Z",
+    "modified": "2025-06-09T12:53:29.680Z",
+    "logo": "",
+    "safa_id": "YBBQ9",
+    "name": "SAFA DUKATHOLE LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 84,
+  "fields": {
+    "created": "2025-06-09T12:53:29.682Z",
+    "modified": "2025-06-09T12:53:29.682Z",
+    "logo": "",
+    "safa_id": "TPFX7",
+    "name": "SAFA EASTERNS LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 85,
+  "fields": {
+    "created": "2025-06-09T12:53:29.685Z",
+    "modified": "2025-06-09T12:53:29.685Z",
+    "logo": "",
+    "safa_id": "MW9TB",
+    "name": "SAFA EDEN PARK LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 86,
+  "fields": {
+    "created": "2025-06-09T12:53:29.688Z",
+    "modified": "2025-06-09T12:53:29.688Z",
+    "logo": "",
+    "safa_id": "815Y7",
+    "name": "SAFA KATLEHONG LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 87,
+  "fields": {
+    "created": "2025-06-09T12:53:29.690Z",
+    "modified": "2025-06-09T12:53:29.690Z",
+    "logo": "",
+    "safa_id": "FZO5Y",
+    "name": "SAFA NIGEL LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 88,
+  "fields": {
+    "created": "2025-06-09T12:53:29.692Z",
+    "modified": "2025-06-09T12:53:29.692Z",
+    "logo": "",
+    "safa_id": "NPT5F",
+    "name": "SAFA PAYNEVILLE LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 89,
+  "fields": {
+    "created": "2025-06-09T12:53:29.695Z",
+    "modified": "2025-06-09T12:53:29.695Z",
+    "logo": "",
+    "safa_id": "U6U77",
+    "name": "SAFA SPRINGS LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 90,
+  "fields": {
+    "created": "2025-06-09T12:53:29.697Z",
+    "modified": "2025-06-09T12:53:29.697Z",
+    "logo": "",
+    "safa_id": "2ZH8C",
+    "name": "SAFA THEMBISA LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 91,
+  "fields": {
+    "created": "2025-06-09T12:53:29.699Z",
+    "modified": "2025-06-09T12:53:29.699Z",
+    "logo": "",
+    "safa_id": "QE5SZ",
+    "name": "SAFA THOKOZA LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 92,
+  "fields": {
+    "created": "2025-06-09T12:53:29.702Z",
+    "modified": "2025-06-09T12:53:29.702Z",
+    "logo": "",
+    "safa_id": "G1JT4",
+    "name": "SAFA VOSLOORUS LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 93,
+  "fields": {
+    "created": "2025-06-09T12:53:29.704Z",
+    "modified": "2025-06-09T12:53:29.704Z",
+    "logo": "",
+    "safa_id": "FWFYV",
+    "name": "SAFA ZONKEZIZWE LFA",
+    "acronym": "",
+    "region": 14,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 94,
+  "fields": {
+    "created": "2025-06-09T12:53:29.709Z",
+    "modified": "2025-06-09T12:53:29.709Z",
+    "logo": "",
+    "safa_id": "0OBWF",
+    "name": "SAFA ALEX NORTH RAND LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 95,
+  "fields": {
+    "created": "2025-06-09T12:53:29.711Z",
+    "modified": "2025-06-09T12:53:29.711Z",
+    "logo": "",
+    "safa_id": "GOODF",
+    "name": "SAFA DEEP SOUTH LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 96,
+  "fields": {
+    "created": "2025-06-09T12:53:29.714Z",
+    "modified": "2025-06-09T12:53:29.714Z",
+    "logo": "",
+    "safa_id": "6QGAM",
+    "name": "SAFA ELDORADO LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 97,
+  "fields": {
+    "created": "2025-06-09T12:53:29.716Z",
+    "modified": "2025-06-09T12:53:29.716Z",
+    "logo": "",
+    "safa_id": "3VCQV",
+    "name": "SAFA GREATER MAYFAIR LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 98,
+  "fields": {
+    "created": "2025-06-09T12:53:29.719Z",
+    "modified": "2025-06-09T12:53:29.719Z",
+    "logo": "",
+    "safa_id": "BN4ZU",
+    "name": "SAFA JOWEST LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 99,
+  "fields": {
+    "created": "2025-06-09T12:53:29.722Z",
+    "modified": "2025-06-09T12:53:29.722Z",
+    "logo": "",
+    "safa_id": "16AO4",
+    "name": "SAFA MIDRAND LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 100,
+  "fields": {
+    "created": "2025-06-09T12:53:29.724Z",
+    "modified": "2025-06-09T12:53:29.724Z",
+    "logo": "",
+    "safa_id": "EYJN6",
+    "name": "SAFA ORANGE FARM LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 101,
+  "fields": {
+    "created": "2025-06-09T12:53:29.726Z",
+    "modified": "2025-06-09T12:53:29.726Z",
+    "logo": "",
+    "safa_id": "YGKDO",
+    "name": "SAFA RAND CENTRAL LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 102,
+  "fields": {
+    "created": "2025-06-09T12:53:29.728Z",
+    "modified": "2025-06-09T12:53:29.728Z",
+    "logo": "",
+    "safa_id": "LZR3I",
+    "name": "SAFA ROODEPOORT LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 103,
+  "fields": {
+    "created": "2025-06-09T12:53:29.731Z",
+    "modified": "2025-06-09T12:53:29.731Z",
+    "logo": "",
+    "safa_id": "Q8B0I",
+    "name": "SAFA SOUTHERN LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 104,
+  "fields": {
+    "created": "2025-06-09T12:53:29.733Z",
+    "modified": "2025-06-09T12:53:29.733Z",
+    "logo": "",
+    "safa_id": "QNZDA",
+    "name": "SAFA SOWETO LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 105,
+  "fields": {
+    "created": "2025-06-09T12:53:29.735Z",
+    "modified": "2025-06-09T12:53:29.735Z",
+    "logo": "",
+    "safa_id": "TDYGZ",
+    "name": "SAFA UPPER SOWETO LFA",
+    "acronym": "",
+    "region": 15,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 106,
+  "fields": {
+    "created": "2025-06-09T12:53:29.740Z",
+    "modified": "2025-06-09T12:53:29.740Z",
+    "logo": "",
+    "safa_id": "EB07X",
+    "name": "SAFA EMFULENI LFA",
+    "acronym": "",
+    "region": 16,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 107,
+  "fields": {
+    "created": "2025-06-09T12:53:29.742Z",
+    "modified": "2025-06-09T12:53:29.742Z",
+    "logo": "",
+    "safa_id": "ZAN42",
+    "name": "SAFA LESEDI LFA",
+    "acronym": "",
+    "region": 16,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 108,
+  "fields": {
+    "created": "2025-06-09T12:53:29.744Z",
+    "modified": "2025-06-09T12:53:29.744Z",
+    "logo": "",
+    "safa_id": "PY6LK",
+    "name": "SAFA MIDVAAL LFA",
+    "acronym": "",
+    "region": 16,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 109,
+  "fields": {
+    "created": "2025-06-09T12:53:29.749Z",
+    "modified": "2025-06-09T12:53:29.749Z",
+    "logo": "",
+    "safa_id": "8ICLL",
+    "name": "SAFA EERSTERUS LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 110,
+  "fields": {
+    "created": "2025-06-09T12:53:29.751Z",
+    "modified": "2025-06-09T12:53:29.751Z",
+    "logo": "",
+    "safa_id": "BNQBR",
+    "name": "SAFA GA-RANKUWA LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 111,
+  "fields": {
+    "created": "2025-06-09T12:53:29.755Z",
+    "modified": "2025-06-09T12:53:29.755Z",
+    "logo": "",
+    "safa_id": "TGHT3",
+    "name": "SAFA HAMMANSKRAAL LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 112,
+  "fields": {
+    "created": "2025-06-09T12:53:29.759Z",
+    "modified": "2025-06-09T12:53:29.759Z",
+    "logo": "",
+    "safa_id": "AGKPL",
+    "name": "SAFA KULFA LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 113,
+  "fields": {
+    "created": "2025-06-09T12:53:29.764Z",
+    "modified": "2025-06-09T12:53:29.764Z",
+    "logo": "",
+    "safa_id": "4YVT4",
+    "name": "SAFA LAUDIUM LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 114,
+  "fields": {
+    "created": "2025-06-09T12:53:29.768Z",
+    "modified": "2025-06-09T12:53:29.768Z",
+    "logo": "",
+    "safa_id": "OVE5O",
+    "name": "SAFA LOTUS GARDEN LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 115,
+  "fields": {
+    "created": "2025-06-09T12:53:29.773Z",
+    "modified": "2025-06-09T12:53:29.773Z",
+    "logo": "",
+    "safa_id": "W860F",
+    "name": "SAFA MABOPANE LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 116,
+  "fields": {
+    "created": "2025-06-09T12:53:29.777Z",
+    "modified": "2025-06-09T12:53:29.777Z",
+    "logo": "",
+    "safa_id": "1I8Y3",
+    "name": "SAFA MAMELODI LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 117,
+  "fields": {
+    "created": "2025-06-09T12:53:29.781Z",
+    "modified": "2025-06-09T12:53:29.781Z",
+    "logo": "",
+    "safa_id": "B1ZIQ",
+    "name": "SAFA NOLFA LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 118,
+  "fields": {
+    "created": "2025-06-09T12:53:29.785Z",
+    "modified": "2025-06-09T12:53:29.785Z",
+    "logo": "",
+    "safa_id": "QWKJY",
+    "name": "SAFA OLFA LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 119,
+  "fields": {
+    "created": "2025-06-09T12:53:29.789Z",
+    "modified": "2025-06-09T12:53:29.789Z",
+    "logo": "",
+    "safa_id": "64IJ7",
+    "name": "SAFA PHELINDABA LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 120,
+  "fields": {
+    "created": "2025-06-09T12:53:29.793Z",
+    "modified": "2025-06-09T12:53:29.793Z",
+    "logo": "",
+    "safa_id": "U2ETT",
+    "name": "SAFA PRETORIA LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 121,
+  "fields": {
+    "created": "2025-06-09T12:53:29.797Z",
+    "modified": "2025-06-09T12:53:29.797Z",
+    "logo": "",
+    "safa_id": "ZRVHK",
+    "name": "SAFA SELFA LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 122,
+  "fields": {
+    "created": "2025-06-09T12:53:29.801Z",
+    "modified": "2025-06-09T12:53:29.801Z",
+    "logo": "",
+    "safa_id": "S3X4H",
+    "name": "SAFA SOSHANGUVE LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 123,
+  "fields": {
+    "created": "2025-06-09T12:53:29.805Z",
+    "modified": "2025-06-09T12:53:29.805Z",
+    "logo": "",
+    "safa_id": "BK7R6",
+    "name": "SAFA WEST END LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 124,
+  "fields": {
+    "created": "2025-06-09T12:53:29.809Z",
+    "modified": "2025-06-09T12:53:29.809Z",
+    "logo": "",
+    "safa_id": "GGEP9",
+    "name": "SAFA WINTERVELDT LFA",
+    "acronym": "",
+    "region": 17,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 125,
+  "fields": {
+    "created": "2025-06-09T12:53:29.818Z",
+    "modified": "2025-06-09T12:53:29.818Z",
+    "logo": "",
+    "safa_id": "TRZZ0",
+    "name": "SAFA MERAFONG LFA",
+    "acronym": "",
+    "region": 18,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 126,
+  "fields": {
+    "created": "2025-06-09T12:53:29.821Z",
+    "modified": "2025-06-09T12:53:29.821Z",
+    "logo": "",
+    "safa_id": "WJO4G",
+    "name": "SAFA MOGALE LFA",
+    "acronym": "",
+    "region": 18,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 127,
+  "fields": {
+    "created": "2025-06-09T12:53:29.824Z",
+    "modified": "2025-06-09T12:53:29.824Z",
+    "logo": "",
+    "safa_id": "3SV4M",
+    "name": "SAFA RANDFONTEIN LFA",
+    "acronym": "",
+    "region": 18,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 128,
+  "fields": {
+    "created": "2025-06-09T12:53:29.827Z",
+    "modified": "2025-06-09T12:53:29.827Z",
+    "logo": "",
+    "safa_id": "GTI5F",
+    "name": "SAFA WESTONARIA LFA",
+    "acronym": "",
+    "region": 18,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 129,
+  "fields": {
+    "created": "2025-06-09T13:21:59.222Z",
+    "modified": "2025-06-09T13:21:59.222Z",
+    "logo": "",
+    "safa_id": "MGJMH",
+    "name": "SAFA DANNHAUSER LFA",
+    "acronym": "",
+    "region": 19,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 130,
+  "fields": {
+    "created": "2025-06-09T13:21:59.239Z",
+    "modified": "2025-06-09T13:21:59.239Z",
+    "logo": "",
+    "safa_id": "KZW8V",
+    "name": "SAFA EMANDLANGENI LFA",
+    "acronym": "",
+    "region": 19,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 131,
+  "fields": {
+    "created": "2025-06-09T13:21:59.243Z",
+    "modified": "2025-06-09T13:21:59.243Z",
+    "logo": "",
+    "safa_id": "POP8I",
+    "name": "SAFA NEWCASTLE LFA",
+    "acronym": "",
+    "region": 19,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 132,
+  "fields": {
+    "created": "2025-06-09T13:24:17.831Z",
+    "modified": "2025-06-09T13:24:17.831Z",
+    "logo": "",
+    "safa_id": "IFJSO",
+    "name": "SAFA AMANZIMTOTI LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 133,
+  "fields": {
+    "created": "2025-06-09T13:24:17.834Z",
+    "modified": "2025-06-09T13:24:17.834Z",
+    "logo": "",
+    "safa_id": "WKBK5",
+    "name": "SAFA CHATSWORTH LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 134,
+  "fields": {
+    "created": "2025-06-09T13:24:17.836Z",
+    "modified": "2025-06-09T13:24:17.836Z",
+    "logo": "",
+    "safa_id": "MGXDM",
+    "name": "SAFA CLERMONT LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 135,
+  "fields": {
+    "created": "2025-06-09T13:24:17.838Z",
+    "modified": "2025-06-09T13:24:17.838Z",
+    "logo": "",
+    "safa_id": "R3CLK",
+    "name": "SAFA DURBAN CENTRAL LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 136,
+  "fields": {
+    "created": "2025-06-09T13:24:17.841Z",
+    "modified": "2025-06-09T13:24:17.841Z",
+    "logo": "",
+    "safa_id": "Y8U4Q",
+    "name": "SAFA DURBAN SOUTH LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 137,
+  "fields": {
+    "created": "2025-06-09T13:24:17.843Z",
+    "modified": "2025-06-09T13:24:17.843Z",
+    "logo": "",
+    "safa_id": "T9GPH",
+    "name": "SAFA GREATER CATO RIDGE LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 138,
+  "fields": {
+    "created": "2025-06-09T13:24:17.846Z",
+    "modified": "2025-06-09T13:24:17.846Z",
+    "logo": "",
+    "safa_id": "PQRFG",
+    "name": "SAFA GREATER HILLCREST LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 139,
+  "fields": {
+    "created": "2025-06-09T13:24:17.848Z",
+    "modified": "2025-06-09T13:24:17.848Z",
+    "logo": "",
+    "safa_id": "BUXJ3",
+    "name": "SAFA HAMMARSDALE LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 140,
+  "fields": {
+    "created": "2025-06-09T13:24:17.850Z",
+    "modified": "2025-06-09T13:24:17.850Z",
+    "logo": "",
+    "safa_id": "W0E40",
+    "name": "SAFA INANDA LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 141,
+  "fields": {
+    "created": "2025-06-09T13:24:17.852Z",
+    "modified": "2025-06-09T13:24:17.852Z",
+    "logo": "",
+    "safa_id": "B10W2",
+    "name": "SAFA KWAMASHU LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 142,
+  "fields": {
+    "created": "2025-06-09T13:24:17.854Z",
+    "modified": "2025-06-09T13:24:17.854Z",
+    "logo": "",
+    "safa_id": "0HBZF",
+    "name": "SAFA NTUZUMA LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 143,
+  "fields": {
+    "created": "2025-06-09T13:24:17.857Z",
+    "modified": "2025-06-09T13:24:17.857Z",
+    "logo": "",
+    "safa_id": "OOPGV",
+    "name": "SAFA PHOENIX LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 144,
+  "fields": {
+    "created": "2025-06-09T13:24:17.859Z",
+    "modified": "2025-06-09T13:24:17.859Z",
+    "logo": "",
+    "safa_id": "8MVEA",
+    "name": "SAFA PINETOWN LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 145,
+  "fields": {
+    "created": "2025-06-09T13:24:17.861Z",
+    "modified": "2025-06-09T13:24:17.861Z",
+    "logo": "",
+    "safa_id": "DJHCS",
+    "name": "SAFA PINETOWN SOUTH LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 146,
+  "fields": {
+    "created": "2025-06-09T13:24:17.864Z",
+    "modified": "2025-06-09T13:24:17.864Z",
+    "logo": "",
+    "safa_id": "62194",
+    "name": "SAFA REUNION LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 147,
+  "fields": {
+    "created": "2025-06-09T13:24:17.866Z",
+    "modified": "2025-06-09T13:24:17.866Z",
+    "logo": "",
+    "safa_id": "XLAYA",
+    "name": "SAFA TONGAAT LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 148,
+  "fields": {
+    "created": "2025-06-09T13:24:17.868Z",
+    "modified": "2025-06-09T13:24:17.868Z",
+    "logo": "",
+    "safa_id": "W2WCA",
+    "name": "SAFA UMBUMBULU LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 149,
+  "fields": {
+    "created": "2025-06-09T13:24:17.870Z",
+    "modified": "2025-06-09T13:24:17.870Z",
+    "logo": "",
+    "safa_id": "KQA6V",
+    "name": "SAFA UMLAZI LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 150,
+  "fields": {
+    "created": "2025-06-09T13:24:17.872Z",
+    "modified": "2025-06-09T13:24:17.872Z",
+    "logo": "",
+    "safa_id": "3LE2L",
+    "name": "SAFA UMKHOMAZI LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 151,
+  "fields": {
+    "created": "2025-06-09T13:24:17.874Z",
+    "modified": "2025-06-09T13:24:17.874Z",
+    "logo": "",
+    "safa_id": "KEJLU",
+    "name": "SAFA VERULAM LF LFA",
+    "acronym": "",
+    "region": 20,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 152,
+  "fields": {
+    "created": "2025-06-09T13:25:25.999Z",
+    "modified": "2025-06-09T13:25:25.999Z",
+    "logo": "",
+    "safa_id": "UM88U",
+    "name": "SAFA EBUHLEBEZWE LFA",
+    "acronym": "",
+    "region": 21,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 153,
+  "fields": {
+    "created": "2025-06-09T13:25:26.002Z",
+    "modified": "2025-06-09T13:25:26.002Z",
+    "logo": "",
+    "safa_id": "EQ7PN",
+    "name": "SAFA GREATER KOKSTAD LFA",
+    "acronym": "",
+    "region": 21,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 154,
+  "fields": {
+    "created": "2025-06-09T13:25:26.004Z",
+    "modified": "2025-06-09T13:25:26.004Z",
+    "logo": "",
+    "safa_id": "1T5O9",
+    "name": "SAFA INGWE LFA",
+    "acronym": "",
+    "region": 21,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 155,
+  "fields": {
+    "created": "2025-06-09T13:25:26.007Z",
+    "modified": "2025-06-09T13:25:26.007Z",
+    "logo": "",
+    "safa_id": "QSU59",
+    "name": "SAFA KWA SANI LFA",
+    "acronym": "",
+    "region": 21,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 156,
+  "fields": {
+    "created": "2025-06-09T13:25:26.010Z",
+    "modified": "2025-06-09T13:25:26.010Z",
+    "logo": "",
+    "safa_id": "MJUY1",
+    "name": "SAFA UMZIMKHULU LFA",
+    "acronym": "",
+    "region": 21,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 157,
+  "fields": {
+    "created": "2025-06-09T13:26:15.222Z",
+    "modified": "2025-06-09T13:26:15.222Z",
+    "logo": "",
+    "safa_id": "L73FZ",
+    "name": "SAFA KWADUKUZA LFA",
+    "acronym": "",
+    "region": 22,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 158,
+  "fields": {
+    "created": "2025-06-09T13:26:15.225Z",
+    "modified": "2025-06-09T13:26:15.225Z",
+    "logo": "",
+    "safa_id": "7VNVF",
+    "name": "SAFA MANDENI LFA",
+    "acronym": "",
+    "region": 22,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 159,
+  "fields": {
+    "created": "2025-06-09T13:26:15.227Z",
+    "modified": "2025-06-09T13:26:15.227Z",
+    "logo": "",
+    "safa_id": "FP6R6",
+    "name": "SAFA MAPHUMULO LFA",
+    "acronym": "",
+    "region": 22,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 160,
+  "fields": {
+    "created": "2025-06-09T13:26:15.230Z",
+    "modified": "2025-06-09T13:26:15.230Z",
+    "logo": "",
+    "safa_id": "LUR5A",
+    "name": "SAFA NDWENDWE LFA",
+    "acronym": "",
+    "region": 22,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 161,
+  "fields": {
+    "created": "2025-06-09T13:27:11.256Z",
+    "modified": "2025-06-09T13:27:11.256Z",
+    "logo": "",
+    "safa_id": "IJ1QW",
+    "name": "SAFA MFOLOZI LFA",
+    "acronym": "",
+    "region": 23,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 162,
+  "fields": {
+    "created": "2025-06-09T13:27:11.260Z",
+    "modified": "2025-06-09T13:27:11.260Z",
+    "logo": "",
+    "safa_id": "E2LQI",
+    "name": "SAFA MTAMBANANA LFA",
+    "acronym": "",
+    "region": 23,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 163,
+  "fields": {
+    "created": "2025-06-09T13:27:11.263Z",
+    "modified": "2025-06-09T13:27:11.263Z",
+    "logo": "",
+    "safa_id": "HAR13",
+    "name": "SAFA MTHONJANENI LFA",
+    "acronym": "",
+    "region": 23,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 164,
+  "fields": {
+    "created": "2025-06-09T13:27:11.265Z",
+    "modified": "2025-06-09T13:27:11.265Z",
+    "logo": "",
+    "safa_id": "X5IXX",
+    "name": "SAFA NKANDLA LFA",
+    "acronym": "",
+    "region": 23,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 165,
+  "fields": {
+    "created": "2025-06-09T13:27:11.267Z",
+    "modified": "2025-06-09T13:27:11.267Z",
+    "logo": "",
+    "safa_id": "Q32B0",
+    "name": "SAFA UMLALAZI LFA",
+    "acronym": "",
+    "region": 23,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 166,
+  "fields": {
+    "created": "2025-06-09T13:27:11.269Z",
+    "modified": "2025-06-09T13:27:11.269Z",
+    "logo": "",
+    "safa_id": "XW5R2",
+    "name": "SAFA UMHLATHUZE LFA",
+    "acronym": "",
+    "region": 23,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 167,
+  "fields": {
+    "created": "2025-06-09T13:28:11.027Z",
+    "modified": "2025-06-09T13:28:11.027Z",
+    "logo": "",
+    "safa_id": "UWPTR",
+    "name": "SAFA EZINGOLENI LFA",
+    "acronym": "",
+    "region": 24,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 168,
+  "fields": {
+    "created": "2025-06-09T13:28:11.030Z",
+    "modified": "2025-06-09T13:28:11.030Z",
+    "logo": "",
+    "safa_id": "CVFTX",
+    "name": "SAFA HIBISCUS LFA",
+    "acronym": "",
+    "region": 24,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 169,
+  "fields": {
+    "created": "2025-06-09T13:28:11.033Z",
+    "modified": "2025-06-09T13:28:11.033Z",
+    "logo": "",
+    "safa_id": "5AYHX",
+    "name": "SAFA UMDONI LFA",
+    "acronym": "",
+    "region": 24,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 170,
+  "fields": {
+    "created": "2025-06-09T13:28:11.035Z",
+    "modified": "2025-06-09T13:28:11.035Z",
+    "logo": "",
+    "safa_id": "QR0VO",
+    "name": "SAFA UMUZIWABANTU LFA",
+    "acronym": "",
+    "region": 24,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 171,
+  "fields": {
+    "created": "2025-06-09T13:28:11.038Z",
+    "modified": "2025-06-09T13:28:11.038Z",
+    "logo": "",
+    "safa_id": "MXO7P",
+    "name": "SAFA UMZUMBE LFA",
+    "acronym": "",
+    "region": 24,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 172,
+  "fields": {
+    "created": "2025-06-09T13:29:45.710Z",
+    "modified": "2025-06-09T13:29:45.710Z",
+    "logo": "",
+    "safa_id": "RXUQS",
+    "name": "SAFA IMPENDLE LFA",
+    "acronym": "",
+    "region": 25,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 173,
+  "fields": {
+    "created": "2025-06-09T13:29:45.713Z",
+    "modified": "2025-06-09T13:29:45.713Z",
+    "logo": "",
+    "safa_id": "4XZKV",
+    "name": "SAFA MKHAMBATHINI LFA",
+    "acronym": "",
+    "region": 25,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 174,
+  "fields": {
+    "created": "2025-06-09T13:29:45.716Z",
+    "modified": "2025-06-09T13:29:45.716Z",
+    "logo": "",
+    "safa_id": "V5MU5",
+    "name": "SAFA MPOFANA LFA",
+    "acronym": "",
+    "region": 25,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 175,
+  "fields": {
+    "created": "2025-06-09T13:29:45.718Z",
+    "modified": "2025-06-09T13:29:45.718Z",
+    "logo": "",
+    "safa_id": "R50U9",
+    "name": "SAFA MSUNDUZI LFA",
+    "acronym": "",
+    "region": 25,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 176,
+  "fields": {
+    "created": "2025-06-09T13:29:45.721Z",
+    "modified": "2025-06-09T13:29:45.721Z",
+    "logo": "",
+    "safa_id": "BQ9FX",
+    "name": "SAFA RICHMOND LFA",
+    "acronym": "",
+    "region": 25,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 177,
+  "fields": {
+    "created": "2025-06-09T13:29:45.724Z",
+    "modified": "2025-06-09T13:29:45.724Z",
+    "logo": "",
+    "safa_id": "UU3BN",
+    "name": "SAFA UMNGENI LFA",
+    "acronym": "",
+    "region": 25,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 178,
+  "fields": {
+    "created": "2025-06-09T13:29:45.726Z",
+    "modified": "2025-06-09T13:29:45.727Z",
+    "logo": "",
+    "safa_id": "5QDVC",
+    "name": "SAFA UMSHWATI LFA",
+    "acronym": "",
+    "region": 25,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 179,
+  "fields": {
+    "created": "2025-06-09T13:30:46.730Z",
+    "modified": "2025-06-09T13:30:46.730Z",
+    "logo": "",
+    "safa_id": "QKHKS",
+    "name": "SAFA HLABISA LFA",
+    "acronym": "",
+    "region": 26,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 180,
+  "fields": {
+    "created": "2025-06-09T13:30:46.734Z",
+    "modified": "2025-06-09T13:30:46.734Z",
+    "logo": "",
+    "safa_id": "XVWYM",
+    "name": "SAFA JOZINI LFA",
+    "acronym": "",
+    "region": 26,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 181,
+  "fields": {
+    "created": "2025-06-09T13:30:46.736Z",
+    "modified": "2025-06-09T13:30:46.736Z",
+    "logo": "",
+    "safa_id": "1WKBD",
+    "name": "SAFA MTUBATUBA LFA",
+    "acronym": "",
+    "region": 26,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 182,
+  "fields": {
+    "created": "2025-06-09T13:30:46.738Z",
+    "modified": "2025-06-09T13:30:46.738Z",
+    "logo": "",
+    "safa_id": "BATUP",
+    "name": "SAFA THE BIG 5 FALSE BAY LFA",
+    "acronym": "",
+    "region": 26,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 183,
+  "fields": {
+    "created": "2025-06-09T13:30:46.740Z",
+    "modified": "2025-06-09T13:30:46.740Z",
+    "logo": "",
+    "safa_id": "N4SGM",
+    "name": "SAFA UMHLABUYALINGANA LFA",
+    "acronym": "",
+    "region": 26,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 184,
+  "fields": {
+    "created": "2025-06-09T13:31:37.045Z",
+    "modified": "2025-06-09T13:31:37.045Z",
+    "logo": "",
+    "safa_id": "IA4Y4",
+    "name": "SAFA EMDUMENI LFA",
+    "acronym": "",
+    "region": 27,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 185,
+  "fields": {
+    "created": "2025-06-09T13:31:37.051Z",
+    "modified": "2025-06-09T13:31:37.051Z",
+    "logo": "",
+    "safa_id": "DY5L3",
+    "name": "SAFA MSINGA LFA",
+    "acronym": "",
+    "region": 27,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 186,
+  "fields": {
+    "created": "2025-06-09T13:31:37.055Z",
+    "modified": "2025-06-09T13:31:37.055Z",
+    "logo": "",
+    "safa_id": "6UYFW",
+    "name": "SAFA NQUTHU LFA",
+    "acronym": "",
+    "region": 27,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 187,
+  "fields": {
+    "created": "2025-06-09T13:31:37.060Z",
+    "modified": "2025-06-09T13:31:37.060Z",
+    "logo": "",
+    "safa_id": "P9WRD",
+    "name": "SAFA UMVOTI LFA",
+    "acronym": "",
+    "region": 27,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 188,
+  "fields": {
+    "created": "2025-06-09T13:33:00.565Z",
+    "modified": "2025-06-09T13:33:00.565Z",
+    "logo": "",
+    "safa_id": "BES0N",
+    "name": "SAFA EMNAMBITHI LFA",
+    "acronym": "",
+    "region": 28,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 189,
+  "fields": {
+    "created": "2025-06-09T13:33:00.568Z",
+    "modified": "2025-06-09T13:33:00.568Z",
+    "logo": "",
+    "safa_id": "LUW2V",
+    "name": "SAFA IMBABAZANE LFA",
+    "acronym": "",
+    "region": 28,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 190,
+  "fields": {
+    "created": "2025-06-09T13:33:00.571Z",
+    "modified": "2025-06-09T13:33:00.571Z",
+    "logo": "",
+    "safa_id": "GKU8T",
+    "name": "SAFA INDAKA LFA",
+    "acronym": "",
+    "region": 28,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 191,
+  "fields": {
+    "created": "2025-06-09T13:33:00.573Z",
+    "modified": "2025-06-09T13:33:00.573Z",
+    "logo": "",
+    "safa_id": "50IL8",
+    "name": "SAFA UKHAHLAMBA LFA",
+    "acronym": "",
+    "region": 28,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 192,
+  "fields": {
+    "created": "2025-06-09T13:33:00.575Z",
+    "modified": "2025-06-09T13:33:00.575Z",
+    "logo": "",
+    "safa_id": "ICJUF",
+    "name": "SAFA UMTSHEZI LFA",
+    "acronym": "",
+    "region": 28,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 193,
+  "fields": {
+    "created": "2025-06-09T13:33:56.702Z",
+    "modified": "2025-06-09T13:33:56.702Z",
+    "logo": "",
+    "safa_id": "OW77Q",
+    "name": "SAFA ABAQULUSI LFA",
+    "acronym": "",
+    "region": 29,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 194,
+  "fields": {
+    "created": "2025-06-09T13:33:56.705Z",
+    "modified": "2025-06-09T13:33:56.705Z",
+    "logo": "",
+    "safa_id": "GML3S",
+    "name": "SAFA EDUMBE LFA",
+    "acronym": "",
+    "region": 29,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 195,
+  "fields": {
+    "created": "2025-06-09T13:33:56.708Z",
+    "modified": "2025-06-09T13:33:56.708Z",
+    "logo": "",
+    "safa_id": "7DLNI",
+    "name": "SAFA NONGOMA LFA",
+    "acronym": "",
+    "region": 29,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 196,
+  "fields": {
+    "created": "2025-06-09T13:33:56.710Z",
+    "modified": "2025-06-09T13:33:56.710Z",
+    "logo": "",
+    "safa_id": "OA7PE",
+    "name": "SAFA ULUNDI LFA",
+    "acronym": "",
+    "region": 29,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 197,
+  "fields": {
+    "created": "2025-06-09T13:33:56.713Z",
+    "modified": "2025-06-09T13:33:56.713Z",
+    "logo": "",
+    "safa_id": "41TQA",
+    "name": "SAFA UPHONGOLO LFA",
+    "acronym": "",
+    "region": 29,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 198,
+  "fields": {
+    "created": "2025-06-09T13:40:21.522Z",
+    "modified": "2025-06-09T13:40:21.522Z",
+    "logo": "",
+    "safa_id": "5GK9A",
+    "name": "SAFA AGANANG LFA",
+    "acronym": "",
+    "region": 30,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 199,
+  "fields": {
+    "created": "2025-06-09T13:40:21.525Z",
+    "modified": "2025-06-09T13:40:21.525Z",
+    "logo": "",
+    "safa_id": "SHPUQ",
+    "name": "SAFA BLOUBERG LFA",
+    "acronym": "",
+    "region": 30,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 200,
+  "fields": {
+    "created": "2025-06-09T13:40:21.528Z",
+    "modified": "2025-06-09T13:40:21.528Z",
+    "logo": "",
+    "safa_id": "85QFL",
+    "name": "SAFA LEPELLE-NKUMPI LFA",
+    "acronym": "",
+    "region": 30,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 201,
+  "fields": {
+    "created": "2025-06-09T13:40:21.530Z",
+    "modified": "2025-06-09T13:40:21.530Z",
+    "logo": "",
+    "safa_id": "VPI1Q",
+    "name": "SAFA MOLEMOLE LFA",
+    "acronym": "",
+    "region": 30,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 202,
+  "fields": {
+    "created": "2025-06-09T13:40:21.532Z",
+    "modified": "2025-06-09T13:40:21.532Z",
+    "logo": "",
+    "safa_id": "YIJAE",
+    "name": "SAFA POLOKWANE LFA",
+    "acronym": "",
+    "region": 30,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 203,
+  "fields": {
+    "created": "2025-06-09T13:41:10.797Z",
+    "modified": "2025-06-09T13:41:10.797Z",
+    "logo": "",
+    "safa_id": "M3A8G",
+    "name": "SAFA BA-PHALABORWA LFA",
+    "acronym": "",
+    "region": 31,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 204,
+  "fields": {
+    "created": "2025-06-09T13:41:10.802Z",
+    "modified": "2025-06-09T13:41:10.802Z",
+    "logo": "",
+    "safa_id": "93IB2",
+    "name": "SAFA GREATER GIYANE LFA",
+    "acronym": "",
+    "region": 31,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 205,
+  "fields": {
+    "created": "2025-06-09T13:41:10.806Z",
+    "modified": "2025-06-09T13:41:10.806Z",
+    "logo": "",
+    "safa_id": "7BZWW",
+    "name": "SAFA GREATER LETABA LFA",
+    "acronym": "",
+    "region": 31,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 206,
+  "fields": {
+    "created": "2025-06-09T13:41:10.811Z",
+    "modified": "2025-06-09T13:41:10.811Z",
+    "logo": "",
+    "safa_id": "TDWWW",
+    "name": "SAFA GREATER TZANEEN LFA",
+    "acronym": "",
+    "region": 31,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 207,
+  "fields": {
+    "created": "2025-06-09T13:41:10.815Z",
+    "modified": "2025-06-09T13:41:10.815Z",
+    "logo": "",
+    "safa_id": "V3ZE5",
+    "name": "SAFA MARULENG LFA",
+    "acronym": "",
+    "region": 31,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 208,
+  "fields": {
+    "created": "2025-06-09T13:41:54.931Z",
+    "modified": "2025-06-09T13:41:54.931Z",
+    "logo": "",
+    "safa_id": "RNTGA",
+    "name": "SAFA ELIAS MOTSOALEDI LFA",
+    "acronym": "",
+    "region": 32,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 209,
+  "fields": {
+    "created": "2025-06-09T13:41:54.935Z",
+    "modified": "2025-06-09T13:41:54.935Z",
+    "logo": "",
+    "safa_id": "9NYE2",
+    "name": "SAFA FETAKGOMO LFA",
+    "acronym": "",
+    "region": 32,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 210,
+  "fields": {
+    "created": "2025-06-09T13:41:54.937Z",
+    "modified": "2025-06-09T13:41:54.937Z",
+    "logo": "",
+    "safa_id": "1HFMZ",
+    "name": "SAFA GREATER MARBLE LFA",
+    "acronym": "",
+    "region": 32,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 211,
+  "fields": {
+    "created": "2025-06-09T13:41:54.940Z",
+    "modified": "2025-06-09T13:41:54.940Z",
+    "logo": "",
+    "safa_id": "XDYR7",
+    "name": "SAFA GREATER TUBATSE LFA",
+    "acronym": "",
+    "region": 32,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 212,
+  "fields": {
+    "created": "2025-06-09T13:41:54.942Z",
+    "modified": "2025-06-09T13:41:54.942Z",
+    "logo": "",
+    "safa_id": "GFO3E",
+    "name": "SAFA MAKHUDUTHAMAGA LFA",
+    "acronym": "",
+    "region": 32,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 213,
+  "fields": {
+    "created": "2025-06-09T13:42:49.621Z",
+    "modified": "2025-06-09T13:42:49.621Z",
+    "logo": "",
+    "safa_id": "2MFJ0",
+    "name": "SAFA MAKHADO LFA",
+    "acronym": "",
+    "region": 33,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 214,
+  "fields": {
+    "created": "2025-06-09T13:42:49.627Z",
+    "modified": "2025-06-09T13:42:49.627Z",
+    "logo": "",
+    "safa_id": "YCOII",
+    "name": "SAFA MUSINA LFA",
+    "acronym": "",
+    "region": 33,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 215,
+  "fields": {
+    "created": "2025-06-09T13:42:49.631Z",
+    "modified": "2025-06-09T13:42:49.631Z",
+    "logo": "",
+    "safa_id": "HOSE3",
+    "name": "SAFA MUTALE LFA",
+    "acronym": "",
+    "region": 33,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 216,
+  "fields": {
+    "created": "2025-06-09T13:42:49.635Z",
+    "modified": "2025-06-09T13:42:49.635Z",
+    "logo": "",
+    "safa_id": "T02Q1",
+    "name": "SAFA THULAMELA LFA",
+    "acronym": "",
+    "region": 33,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 217,
+  "fields": {
+    "created": "2025-06-09T13:43:42.426Z",
+    "modified": "2025-06-09T13:43:42.426Z",
+    "logo": "",
+    "safa_id": "9O3RH",
+    "name": "SAFA BELA-BELA LFA",
+    "acronym": "",
+    "region": 34,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 218,
+  "fields": {
+    "created": "2025-06-09T13:43:42.429Z",
+    "modified": "2025-06-09T13:43:42.429Z",
+    "logo": "",
+    "safa_id": "PB14M",
+    "name": "SAFA LEPHALALE LFA",
+    "acronym": "",
+    "region": 34,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 219,
+  "fields": {
+    "created": "2025-06-09T13:43:42.431Z",
+    "modified": "2025-06-09T13:43:42.431Z",
+    "logo": "",
+    "safa_id": "CXE10",
+    "name": "SAFA MODIMOLLE LFA",
+    "acronym": "",
+    "region": 34,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 220,
+  "fields": {
+    "created": "2025-06-09T13:43:42.433Z",
+    "modified": "2025-06-09T13:43:42.433Z",
+    "logo": "",
+    "safa_id": "W4WKY",
+    "name": "SAFA MOGALAKWENA LFA",
+    "acronym": "",
+    "region": 34,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 221,
+  "fields": {
+    "created": "2025-06-09T13:43:42.436Z",
+    "modified": "2025-06-09T13:43:42.436Z",
+    "logo": "",
+    "safa_id": "1ZJWT",
+    "name": "SAFA MOOKGOPHONG LFA",
+    "acronym": "",
+    "region": 34,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 222,
+  "fields": {
+    "created": "2025-06-09T13:43:42.439Z",
+    "modified": "2025-06-09T13:43:42.439Z",
+    "logo": "",
+    "safa_id": "HMXVL",
+    "name": "SAFA THABAZIMBI LFA",
+    "acronym": "",
+    "region": 34,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 223,
+  "fields": {
+    "created": "2025-06-09T13:50:17.146Z",
+    "modified": "2025-06-09T13:50:17.146Z",
+    "logo": "",
+    "safa_id": "4JDZF",
+    "name": "SAFA BUSHBUCKRIDGE LFA",
+    "acronym": "",
+    "region": 35,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 224,
+  "fields": {
+    "created": "2025-06-09T13:50:17.149Z",
+    "modified": "2025-06-09T13:50:17.149Z",
+    "logo": "",
+    "safa_id": "8BAFO",
+    "name": "SAFA MBOMBELA LFA",
+    "acronym": "",
+    "region": 35,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 225,
+  "fields": {
+    "created": "2025-06-09T13:50:17.152Z",
+    "modified": "2025-06-09T13:50:17.152Z",
+    "logo": "",
+    "safa_id": "D407T",
+    "name": "SAFA NKOMAZI LFA",
+    "acronym": "",
+    "region": 35,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 226,
+  "fields": {
+    "created": "2025-06-09T13:50:17.155Z",
+    "modified": "2025-06-09T13:50:17.155Z",
+    "logo": "",
+    "safa_id": "J4NEE",
+    "name": "SAFA THABA CHWEU LFA",
+    "acronym": "",
+    "region": 35,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 227,
+  "fields": {
+    "created": "2025-06-09T13:50:17.157Z",
+    "modified": "2025-06-09T13:50:17.157Z",
+    "logo": "",
+    "safa_id": "NF2FX",
+    "name": "SAFA UMJINDI LFA",
+    "acronym": "",
+    "region": 35,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 228,
+  "fields": {
+    "created": "2025-06-09T13:51:23.635Z",
+    "modified": "2025-06-09T13:51:23.635Z",
+    "logo": "",
+    "safa_id": "ZWWOX",
+    "name": "SAFA ALBERT LUTHULI LFA",
+    "acronym": "",
+    "region": 36,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 229,
+  "fields": {
+    "created": "2025-06-09T13:51:23.638Z",
+    "modified": "2025-06-09T13:51:23.638Z",
+    "logo": "",
+    "safa_id": "A7R0G",
+    "name": "SAFA DIPALESENG LFA",
+    "acronym": "",
+    "region": 36,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 230,
+  "fields": {
+    "created": "2025-06-09T13:51:23.640Z",
+    "modified": "2025-06-09T13:51:23.640Z",
+    "logo": "",
+    "safa_id": "UR2XS",
+    "name": "SAFA GOVAN MBEKI LFA",
+    "acronym": "",
+    "region": 36,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 231,
+  "fields": {
+    "created": "2025-06-09T13:51:23.642Z",
+    "modified": "2025-06-09T13:51:23.642Z",
+    "logo": "",
+    "safa_id": "NQ8YG",
+    "name": "SAFA LEKWA LFA",
+    "acronym": "",
+    "region": 36,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 232,
+  "fields": {
+    "created": "2025-06-09T13:51:23.645Z",
+    "modified": "2025-06-09T13:51:23.645Z",
+    "logo": "",
+    "safa_id": "R3XYA",
+    "name": "SAFA MKHONDO LFA",
+    "acronym": "",
+    "region": 36,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 233,
+  "fields": {
+    "created": "2025-06-09T13:51:23.647Z",
+    "modified": "2025-06-09T13:51:23.647Z",
+    "logo": "",
+    "safa_id": "2CVGG",
+    "name": "SAFA MSUKWALINGWA LFA",
+    "acronym": "",
+    "region": 36,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 234,
+  "fields": {
+    "created": "2025-06-09T13:51:23.649Z",
+    "modified": "2025-06-09T13:51:23.649Z",
+    "logo": "",
+    "safa_id": "50UDR",
+    "name": "SAFA PIXLEY KA SEME LFA",
+    "acronym": "",
+    "region": 36,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 235,
+  "fields": {
+    "created": "2025-06-09T13:55:45.982Z",
+    "modified": "2025-06-09T13:55:45.982Z",
+    "logo": "",
+    "safa_id": "Q17EM",
+    "name": "SAFA DR JS MOROKA LFA",
+    "acronym": "",
+    "region": 37,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 236,
+  "fields": {
+    "created": "2025-06-09T13:55:45.985Z",
+    "modified": "2025-06-09T13:55:45.985Z",
+    "logo": "",
+    "safa_id": "5KPFI",
+    "name": "SAFA EMAKHAZENI LFA",
+    "acronym": "",
+    "region": 37,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 237,
+  "fields": {
+    "created": "2025-06-09T13:55:45.987Z",
+    "modified": "2025-06-09T13:55:45.987Z",
+    "logo": "",
+    "safa_id": "GUGP6",
+    "name": "SAFA EMALAHLENI LFA",
+    "acronym": "",
+    "region": 37,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 238,
+  "fields": {
+    "created": "2025-06-09T13:55:45.990Z",
+    "modified": "2025-06-09T13:55:45.990Z",
+    "logo": "",
+    "safa_id": "YVE9O",
+    "name": "SAFA STEVE TSHWETE LFA",
+    "acronym": "",
+    "region": 37,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 239,
+  "fields": {
+    "created": "2025-06-09T13:55:45.992Z",
+    "modified": "2025-06-09T13:55:45.992Z",
+    "logo": "",
+    "safa_id": "3RV88",
+    "name": "SAFA THEMBISILE HANI LFA",
+    "acronym": "",
+    "region": 37,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 240,
+  "fields": {
+    "created": "2025-06-09T13:55:45.995Z",
+    "modified": "2025-06-09T13:55:45.995Z",
+    "logo": "",
+    "safa_id": "2X9DQ",
+    "name": "SAFA VICTOR KHANYE LFA",
+    "acronym": "",
+    "region": 37,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 241,
+  "fields": {
+    "created": "2025-06-09T14:00:03.084Z",
+    "modified": "2025-06-09T14:00:03.084Z",
+    "logo": "",
+    "safa_id": "HZMFO",
+    "name": "SAFA KGETLENG RIVER LFA",
+    "acronym": "",
+    "region": 38,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 242,
+  "fields": {
+    "created": "2025-06-09T14:00:03.089Z",
+    "modified": "2025-06-09T14:00:03.089Z",
+    "logo": "",
+    "safa_id": "OTXUY",
+    "name": "SAFA MADIBENG LFA",
+    "acronym": "",
+    "region": 38,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 243,
+  "fields": {
+    "created": "2025-06-09T14:00:03.094Z",
+    "modified": "2025-06-09T14:00:03.095Z",
+    "logo": "",
+    "safa_id": "L0I4X",
+    "name": "SAFA MORETELE LFA",
+    "acronym": "",
+    "region": 38,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 244,
+  "fields": {
+    "created": "2025-06-09T14:00:03.098Z",
+    "modified": "2025-06-09T14:00:03.098Z",
+    "logo": "",
+    "safa_id": "9KC6K",
+    "name": "SAFA MOSES KOTANE LFA",
+    "acronym": "",
+    "region": 38,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 245,
+  "fields": {
+    "created": "2025-06-09T14:00:03.102Z",
+    "modified": "2025-06-09T14:00:03.102Z",
+    "logo": "",
+    "safa_id": "LP4XX",
+    "name": "SAFA RUSTENBURG LFA",
+    "acronym": "",
+    "region": 38,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 246,
+  "fields": {
+    "created": "2025-06-09T14:00:56.878Z",
+    "modified": "2025-06-09T14:00:56.878Z",
+    "logo": "",
+    "safa_id": "VM3KT",
+    "name": "SAFA MAQUASSI-HILLS LFA",
+    "acronym": "",
+    "region": 39,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 247,
+  "fields": {
+    "created": "2025-06-09T14:00:56.881Z",
+    "modified": "2025-06-09T14:00:56.881Z",
+    "logo": "",
+    "safa_id": "9FBEF",
+    "name": "SAFA MATLOSANA LFA",
+    "acronym": "",
+    "region": 39,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 248,
+  "fields": {
+    "created": "2025-06-09T14:00:56.883Z",
+    "modified": "2025-06-09T14:00:56.883Z",
+    "logo": "",
+    "safa_id": "AE97A",
+    "name": "SAFA POTCHEFSTROOM LFA",
+    "acronym": "",
+    "region": 39,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 249,
+  "fields": {
+    "created": "2025-06-09T14:00:56.886Z",
+    "modified": "2025-06-09T14:00:56.886Z",
+    "logo": "",
+    "safa_id": "X02MQ",
+    "name": "SAFA VENTERSDORP LFA",
+    "acronym": "",
+    "region": 39,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 250,
+  "fields": {
+    "created": "2025-06-09T14:01:48.594Z",
+    "modified": "2025-06-09T14:01:48.594Z",
+    "logo": "",
+    "safa_id": "0Y6NQ",
+    "name": "SAFA GREATER TAUNG LFA",
+    "acronym": "",
+    "region": 40,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 251,
+  "fields": {
+    "created": "2025-06-09T14:01:48.597Z",
+    "modified": "2025-06-09T14:01:48.597Z",
+    "logo": "",
+    "safa_id": "4ODBV",
+    "name": "SAFA KAGISANO MOLOPO LFA",
+    "acronym": "",
+    "region": 40,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 252,
+  "fields": {
+    "created": "2025-06-09T14:01:48.599Z",
+    "modified": "2025-06-09T14:01:48.599Z",
+    "logo": "",
+    "safa_id": "P4QRG",
+    "name": "SAFA LEKWA-TEEMANE LFA",
+    "acronym": "",
+    "region": 40,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 253,
+  "fields": {
+    "created": "2025-06-09T14:01:48.601Z",
+    "modified": "2025-06-09T14:01:48.601Z",
+    "logo": "",
+    "safa_id": "7AB4Y",
+    "name": "SAFA MAMUSA LFA",
+    "acronym": "",
+    "region": 40,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 254,
+  "fields": {
+    "created": "2025-06-09T14:01:48.603Z",
+    "modified": "2025-06-09T14:01:48.603Z",
+    "logo": "",
+    "safa_id": "JI7XX",
+    "name": "SAFA NALEDI LFA",
+    "acronym": "",
+    "region": 40,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 255,
+  "fields": {
+    "created": "2025-06-09T14:02:37.181Z",
+    "modified": "2025-06-09T14:02:37.181Z",
+    "logo": "",
+    "safa_id": "WU4RX",
+    "name": "SAFA DITSOBOTLA LFA",
+    "acronym": "",
+    "region": 41,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 256,
+  "fields": {
+    "created": "2025-06-09T14:02:37.186Z",
+    "modified": "2025-06-09T14:02:37.186Z",
+    "logo": "",
+    "safa_id": "W6COQ",
+    "name": "SAFA MAFIKENG LFA",
+    "acronym": "",
+    "region": 41,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 257,
+  "fields": {
+    "created": "2025-06-09T14:02:37.189Z",
+    "modified": "2025-06-09T14:02:37.189Z",
+    "logo": "",
+    "safa_id": "6IU2I",
+    "name": "SAFA RAMOTSHERE MOILOA LFA",
+    "acronym": "",
+    "region": 41,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 258,
+  "fields": {
+    "created": "2025-06-09T14:02:37.191Z",
+    "modified": "2025-06-09T14:02:37.191Z",
+    "logo": "",
+    "safa_id": "GWNP6",
+    "name": "SAFA RATLOU LFA",
+    "acronym": "",
+    "region": 41,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 259,
+  "fields": {
+    "created": "2025-06-09T14:02:37.196Z",
+    "modified": "2025-06-09T14:02:37.196Z",
+    "logo": "",
+    "safa_id": "SYTJ4",
+    "name": "SAFA TSWAING LFA",
+    "acronym": "",
+    "region": 41,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 260,
+  "fields": {
+    "created": "2025-06-09T14:05:07.295Z",
+    "modified": "2025-06-09T14:05:07.295Z",
+    "logo": "",
+    "safa_id": "1NTCB",
+    "name": "SAFA DIKGATLONG LFA",
+    "acronym": "",
+    "region": 42,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 261,
+  "fields": {
+    "created": "2025-06-09T14:05:07.298Z",
+    "modified": "2025-06-09T14:05:07.298Z",
+    "logo": "",
+    "safa_id": "MJCE4",
+    "name": "SAFA MAGARENG LFA",
+    "acronym": "",
+    "region": 42,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 262,
+  "fields": {
+    "created": "2025-06-09T14:05:07.300Z",
+    "modified": "2025-06-09T14:05:07.300Z",
+    "logo": "",
+    "safa_id": "PDRRZ",
+    "name": "SAFA PHOKWANE LFA",
+    "acronym": "",
+    "region": 42,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 263,
+  "fields": {
+    "created": "2025-06-09T14:05:07.302Z",
+    "modified": "2025-06-09T14:05:07.302Z",
+    "logo": "",
+    "safa_id": "NJRBF",
+    "name": "SAFA SOL PLAATJIE LFA",
+    "acronym": "",
+    "region": 42,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 264,
+  "fields": {
+    "created": "2025-06-09T14:06:09.054Z",
+    "modified": "2025-06-09T14:06:09.054Z",
+    "logo": "",
+    "safa_id": "N1KZP",
+    "name": "SAFA GAMAGARA LFA",
+    "acronym": "",
+    "region": 43,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 265,
+  "fields": {
+    "created": "2025-06-09T14:06:09.057Z",
+    "modified": "2025-06-09T14:06:09.057Z",
+    "logo": "",
+    "safa_id": "X42XF",
+    "name": "SAFA GA-SEGONYANA LFA",
+    "acronym": "",
+    "region": 43,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 266,
+  "fields": {
+    "created": "2025-06-09T14:06:09.059Z",
+    "modified": "2025-06-09T14:06:09.059Z",
+    "logo": "",
+    "safa_id": "5YNCL",
+    "name": "SAFA JOE MOROLONG LFA",
+    "acronym": "",
+    "region": 43,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 267,
+  "fields": {
+    "created": "2025-06-09T14:07:00.885Z",
+    "modified": "2025-06-09T14:07:00.885Z",
+    "logo": "",
+    "safa_id": "Q9CK6",
+    "name": "SAFA HANTAM LFA",
+    "acronym": "",
+    "region": 44,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 268,
+  "fields": {
+    "created": "2025-06-09T14:07:00.888Z",
+    "modified": "2025-06-09T14:07:00.888Z",
+    "logo": "",
+    "safa_id": "4T082",
+    "name": "SAFA KAMIESBERG LFA",
+    "acronym": "",
+    "region": 44,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 269,
+  "fields": {
+    "created": "2025-06-09T14:07:00.890Z",
+    "modified": "2025-06-09T14:07:00.890Z",
+    "logo": "",
+    "safa_id": "HE17F",
+    "name": "SAFA KAROO HOOGLAND LFA",
+    "acronym": "",
+    "region": 44,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 270,
+  "fields": {
+    "created": "2025-06-09T14:07:00.892Z",
+    "modified": "2025-06-09T14:07:00.892Z",
+    "logo": "",
+    "safa_id": "G9QM6",
+    "name": "SAFA KHAI-MA LFA",
+    "acronym": "",
+    "region": 44,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 271,
+  "fields": {
+    "created": "2025-06-09T14:07:00.894Z",
+    "modified": "2025-06-09T14:07:00.894Z",
+    "logo": "",
+    "safa_id": "44SP1",
+    "name": "SAFA NAMA KHOI LFA",
+    "acronym": "",
+    "region": 44,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 272,
+  "fields": {
+    "created": "2025-06-09T14:07:00.897Z",
+    "modified": "2025-06-09T14:07:00.897Z",
+    "logo": "",
+    "safa_id": "CX0TS",
+    "name": "SAFA RICHTERSVELD LFA",
+    "acronym": "",
+    "region": 44,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 273,
+  "fields": {
+    "created": "2025-06-09T14:07:53.870Z",
+    "modified": "2025-06-09T14:07:53.870Z",
+    "logo": "",
+    "safa_id": "656GF",
+    "name": "SAFA EMTHANJENI LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 274,
+  "fields": {
+    "created": "2025-06-09T14:07:53.873Z",
+    "modified": "2025-06-09T14:07:53.873Z",
+    "logo": "",
+    "safa_id": "QG3IX",
+    "name": "SAFA KAREESBERG LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 275,
+  "fields": {
+    "created": "2025-06-09T14:07:53.875Z",
+    "modified": "2025-06-09T14:07:53.875Z",
+    "logo": "",
+    "safa_id": "PMUO4",
+    "name": "SAFA RENOSTERBERG LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 276,
+  "fields": {
+    "created": "2025-06-09T14:07:53.878Z",
+    "modified": "2025-06-09T14:07:53.878Z",
+    "logo": "",
+    "safa_id": "9D7NF",
+    "name": "SAFA SIYANCUMA LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 277,
+  "fields": {
+    "created": "2025-06-09T14:07:53.880Z",
+    "modified": "2025-06-09T14:07:53.880Z",
+    "logo": "",
+    "safa_id": "AHOGJ",
+    "name": "SAFA SIYATHEMBA LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 278,
+  "fields": {
+    "created": "2025-06-09T14:07:53.882Z",
+    "modified": "2025-06-09T14:07:53.882Z",
+    "logo": "",
+    "safa_id": "NR612",
+    "name": "SAFA THEMBELIHLE LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 279,
+  "fields": {
+    "created": "2025-06-09T14:07:53.884Z",
+    "modified": "2025-06-09T14:07:53.884Z",
+    "logo": "",
+    "safa_id": "3FNAA",
+    "name": "SAFA UBUNTU LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 280,
+  "fields": {
+    "created": "2025-06-09T14:07:53.886Z",
+    "modified": "2025-06-09T14:07:53.886Z",
+    "logo": "",
+    "safa_id": "8JUPS",
+    "name": "SAFA UMSOBOMVU LFA",
+    "acronym": "",
+    "region": 45,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 281,
+  "fields": {
+    "created": "2025-06-09T14:08:43.979Z",
+    "modified": "2025-06-09T14:08:43.979Z",
+    "logo": "",
+    "safa_id": "VSE13",
+    "name": "SAFA KAI !GARIB LFA",
+    "acronym": "",
+    "region": 46,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 282,
+  "fields": {
+    "created": "2025-06-09T14:08:43.982Z",
+    "modified": "2025-06-09T14:08:43.982Z",
+    "logo": "",
+    "safa_id": "R7YZQ",
+    "name": "SAFA KGATELOPELE LFA",
+    "acronym": "",
+    "region": 46,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 283,
+  "fields": {
+    "created": "2025-06-09T14:08:43.984Z",
+    "modified": "2025-06-09T14:08:43.984Z",
+    "logo": "",
+    "safa_id": "9UF3V",
+    "name": "SAFA KHARA HAIS LFA",
+    "acronym": "",
+    "region": 46,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 284,
+  "fields": {
+    "created": "2025-06-09T14:08:43.986Z",
+    "modified": "2025-06-09T14:08:43.986Z",
+    "logo": "",
+    "safa_id": "XU93C",
+    "name": "SAFA !KHEIS LFA",
+    "acronym": "",
+    "region": 46,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 285,
+  "fields": {
+    "created": "2025-06-09T14:08:43.990Z",
+    "modified": "2025-06-09T14:08:43.990Z",
+    "logo": "",
+    "safa_id": "6DTTX",
+    "name": "SAFA MIER LFA",
+    "acronym": "",
+    "region": 46,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 286,
+  "fields": {
+    "created": "2025-06-09T14:08:43.992Z",
+    "modified": "2025-06-09T14:08:43.992Z",
+    "logo": "",
+    "safa_id": "4KDKA",
+    "name": "SAFA TSANTSABANE LFA",
+    "acronym": "",
+    "region": 46,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 287,
+  "fields": {
+    "created": "2025-06-09T14:13:29.331Z",
+    "modified": "2025-06-09T14:13:29.331Z",
+    "logo": "",
+    "safa_id": "RKO1W",
+    "name": "SAFA ATHLONE HEIDEVELD LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 288,
+  "fields": {
+    "created": "2025-06-09T14:13:29.334Z",
+    "modified": "2025-06-09T14:13:29.334Z",
+    "logo": "",
+    "safa_id": "H467N",
+    "name": "SAFA ATLANTIS LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 289,
+  "fields": {
+    "created": "2025-06-09T14:13:29.336Z",
+    "modified": "2025-06-09T14:13:29.336Z",
+    "logo": "",
+    "safa_id": "KEQPZ",
+    "name": "SAFA BLOEKOMBOS LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 290,
+  "fields": {
+    "created": "2025-06-09T14:13:29.338Z",
+    "modified": "2025-06-09T14:13:29.338Z",
+    "logo": "",
+    "safa_id": "8RVH7",
+    "name": "SAFA BLUEDOWNS LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 291,
+  "fields": {
+    "created": "2025-06-09T14:13:29.340Z",
+    "modified": "2025-06-09T14:13:29.340Z",
+    "logo": "",
+    "safa_id": "NTRBW",
+    "name": "SAFA CAPE DISTRICT LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 292,
+  "fields": {
+    "created": "2025-06-09T14:13:29.343Z",
+    "modified": "2025-06-09T14:13:29.343Z",
+    "logo": "",
+    "safa_id": "523DQ",
+    "name": "SAFA CAPE TOWN TYGERBERG LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 293,
+  "fields": {
+    "created": "2025-06-09T14:13:29.345Z",
+    "modified": "2025-06-09T14:13:29.345Z",
+    "logo": "",
+    "safa_id": "OMCT2",
+    "name": "SAFA CROSSROADS LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 294,
+  "fields": {
+    "created": "2025-06-09T14:13:29.348Z",
+    "modified": "2025-06-09T14:13:29.348Z",
+    "logo": "",
+    "safa_id": "F45QX",
+    "name": "SAFA DELFT LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 295,
+  "fields": {
+    "created": "2025-06-09T14:13:29.350Z",
+    "modified": "2025-06-09T14:13:29.350Z",
+    "logo": "",
+    "safa_id": "6EOZC",
+    "name": "SAFA DUNOON LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 296,
+  "fields": {
+    "created": "2025-06-09T14:13:29.352Z",
+    "modified": "2025-06-09T14:13:29.352Z",
+    "logo": "",
+    "safa_id": "12IOR",
+    "name": "SAFA GOODHOPE LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 297,
+  "fields": {
+    "created": "2025-06-09T14:13:29.354Z",
+    "modified": "2025-06-09T14:13:29.354Z",
+    "logo": "",
+    "safa_id": "CLBRH",
+    "name": "SAFA GUGULETHU LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 298,
+  "fields": {
+    "created": "2025-06-09T14:13:29.357Z",
+    "modified": "2025-06-09T14:13:29.357Z",
+    "logo": "",
+    "safa_id": "DSRJW",
+    "name": "SAFA HELDERBERG LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 299,
+  "fields": {
+    "created": "2025-06-09T14:13:29.359Z",
+    "modified": "2025-06-09T14:13:29.359Z",
+    "logo": "",
+    "safa_id": "UILR9",
+    "name": "SAFA KHAYELITSHA LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 300,
+  "fields": {
+    "created": "2025-06-09T14:13:29.361Z",
+    "modified": "2025-06-09T14:13:29.361Z",
+    "logo": "",
+    "safa_id": "E2LSP",
+    "name": "SAFA LANGA NDABENI LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 301,
+  "fields": {
+    "created": "2025-06-09T14:13:29.363Z",
+    "modified": "2025-06-09T14:13:29.363Z",
+    "logo": "",
+    "safa_id": "590O5",
+    "name": "SAFA LINGELETHU LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 302,
+  "fields": {
+    "created": "2025-06-09T14:13:29.365Z",
+    "modified": "2025-06-09T14:13:29.365Z",
+    "logo": "",
+    "safa_id": "ABANQ",
+    "name": "SAFA MAKHAZA LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 303,
+  "fields": {
+    "created": "2025-06-09T14:13:29.368Z",
+    "modified": "2025-06-09T14:13:29.368Z",
+    "logo": "",
+    "safa_id": "IISCW",
+    "name": "SAFA MANDALAY LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 304,
+  "fields": {
+    "created": "2025-06-09T14:13:29.370Z",
+    "modified": "2025-06-09T14:13:29.370Z",
+    "logo": "",
+    "safa_id": "L3GW6",
+    "name": "SAFA MANDELA PARK LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 305,
+  "fields": {
+    "created": "2025-06-09T14:13:29.372Z",
+    "modified": "2025-06-09T14:13:29.372Z",
+    "logo": "",
+    "safa_id": "EGLYE",
+    "name": "SAFA MANENBERG LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 306,
+  "fields": {
+    "created": "2025-06-09T14:13:29.374Z",
+    "modified": "2025-06-09T14:13:29.374Z",
+    "logo": "",
+    "safa_id": "HOMCY",
+    "name": "SAFA METROPOLITAN LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 307,
+  "fields": {
+    "created": "2025-06-09T14:13:29.376Z",
+    "modified": "2025-06-09T14:13:29.376Z",
+    "logo": "",
+    "safa_id": "4RVBK",
+    "name": "SAFA MFULENI LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 308,
+  "fields": {
+    "created": "2025-06-09T14:13:29.378Z",
+    "modified": "2025-06-09T14:13:29.378Z",
+    "logo": "",
+    "safa_id": "KS6JZ",
+    "name": "SAFA MITCHELLS PLAIN LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 309,
+  "fields": {
+    "created": "2025-06-09T14:13:29.380Z",
+    "modified": "2025-06-09T14:13:29.380Z",
+    "logo": "",
+    "safa_id": "ZIZHX",
+    "name": "SAFA NEW CROSSROADS LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 310,
+  "fields": {
+    "created": "2025-06-09T14:13:29.382Z",
+    "modified": "2025-06-09T14:13:29.382Z",
+    "logo": "",
+    "safa_id": "BVD1E",
+    "name": "SAFA NORTHERN SUBURBS LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 311,
+  "fields": {
+    "created": "2025-06-09T14:13:29.385Z",
+    "modified": "2025-06-09T14:13:29.385Z",
+    "logo": "",
+    "safa_id": "PSU6G",
+    "name": "SAFA NYANGA LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 312,
+  "fields": {
+    "created": "2025-06-09T14:13:29.387Z",
+    "modified": "2025-06-09T14:13:29.387Z",
+    "logo": "",
+    "safa_id": "APM8A",
+    "name": "SAFA OOSTENBERG LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 313,
+  "fields": {
+    "created": "2025-06-09T14:13:29.389Z",
+    "modified": "2025-06-09T14:13:29.389Z",
+    "logo": "",
+    "safa_id": "4BM7J",
+    "name": "SAFA PHILLIPI LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 314,
+  "fields": {
+    "created": "2025-06-09T14:13:29.391Z",
+    "modified": "2025-06-09T14:13:29.391Z",
+    "logo": "",
+    "safa_id": "DVZ51",
+    "name": "SAFA RYGATE LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 315,
+  "fields": {
+    "created": "2025-06-09T14:13:29.393Z",
+    "modified": "2025-06-09T14:13:29.393Z",
+    "logo": "",
+    "safa_id": "7ZPYL",
+    "name": "SAFA SOUTH PENINSULA LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 316,
+  "fields": {
+    "created": "2025-06-09T14:13:29.396Z",
+    "modified": "2025-06-09T14:13:29.396Z",
+    "logo": "",
+    "safa_id": "5SOLF",
+    "name": "SAFA SIMUNYE LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 317,
+  "fields": {
+    "created": "2025-06-09T14:13:29.398Z",
+    "modified": "2025-06-09T14:13:29.398Z",
+    "logo": "",
+    "safa_id": "ACB4C",
+    "name": "SAFA TWO OCEANS LFA",
+    "acronym": "",
+    "region": 47,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 318,
+  "fields": {
+    "created": "2025-06-09T14:16:36.589Z",
+    "modified": "2025-06-09T14:16:36.589Z",
+    "logo": "",
+    "safa_id": "X58R6",
+    "name": "SAFA BREEDE VALLEY LFA",
+    "acronym": "",
+    "region": 48,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 319,
+  "fields": {
+    "created": "2025-06-09T14:16:36.596Z",
+    "modified": "2025-06-09T14:16:36.596Z",
+    "logo": "",
+    "safa_id": "647EG",
+    "name": "SAFA DRAKENSTEIN LFA",
+    "acronym": "",
+    "region": 48,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 320,
+  "fields": {
+    "created": "2025-06-09T14:16:36.601Z",
+    "modified": "2025-06-09T14:16:36.601Z",
+    "logo": "",
+    "safa_id": "2L9N3",
+    "name": "SAFA LANGEBERG LFA",
+    "acronym": "",
+    "region": 48,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 321,
+  "fields": {
+    "created": "2025-06-09T14:16:36.606Z",
+    "modified": "2025-06-09T14:16:36.606Z",
+    "logo": "",
+    "safa_id": "DRUOW",
+    "name": "SAFA STELLENBOSCH LFA",
+    "acronym": "",
+    "region": 48,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 322,
+  "fields": {
+    "created": "2025-06-09T14:16:36.611Z",
+    "modified": "2025-06-09T14:16:36.611Z",
+    "logo": "",
+    "safa_id": "BT9YX",
+    "name": "SAFA WITZENBERG LFA",
+    "acronym": "",
+    "region": 48,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 323,
+  "fields": {
+    "created": "2025-06-09T14:18:28.528Z",
+    "modified": "2025-06-09T14:18:28.528Z",
+    "logo": "",
+    "safa_id": "PED7X",
+    "name": "SAFA BEAUFORT WEST LFA",
+    "acronym": "",
+    "region": 49,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 324,
+  "fields": {
+    "created": "2025-06-09T14:18:28.533Z",
+    "modified": "2025-06-09T14:18:28.533Z",
+    "logo": "",
+    "safa_id": "OAKE2",
+    "name": "SAFA LAINGSBURG LFA",
+    "acronym": "",
+    "region": 49,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 325,
+  "fields": {
+    "created": "2025-06-09T14:18:28.537Z",
+    "modified": "2025-06-09T14:18:28.537Z",
+    "logo": "",
+    "safa_id": "QC9WC",
+    "name": "SAFA PRINCE ALBERT LFA",
+    "acronym": "",
+    "region": 49,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 326,
+  "fields": {
+    "created": "2025-06-09T14:19:45.996Z",
+    "modified": "2025-06-09T14:19:45.996Z",
+    "logo": "",
+    "safa_id": "IEYER",
+    "name": "SAFA HESSEQUA LFA",
+    "acronym": "",
+    "region": 50,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 327,
+  "fields": {
+    "created": "2025-06-09T14:19:46.001Z",
+    "modified": "2025-06-09T14:19:46.001Z",
+    "logo": "",
+    "safa_id": "P1FY3",
+    "name": "SAFA GEORGE LFA",
+    "acronym": "",
+    "region": 50,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 328,
+  "fields": {
+    "created": "2025-06-09T14:19:46.006Z",
+    "modified": "2025-06-09T14:19:46.006Z",
+    "logo": "",
+    "safa_id": "EE3DL",
+    "name": "SAFA KANNALAND LFA",
+    "acronym": "",
+    "region": 50,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 329,
+  "fields": {
+    "created": "2025-06-09T14:19:46.011Z",
+    "modified": "2025-06-09T14:19:46.011Z",
+    "logo": "",
+    "safa_id": "F8NGO",
+    "name": "SAFA KNYSNA LFA",
+    "acronym": "",
+    "region": 50,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 330,
+  "fields": {
+    "created": "2025-06-09T14:19:46.015Z",
+    "modified": "2025-06-09T14:19:46.015Z",
+    "logo": "",
+    "safa_id": "SF4XR",
+    "name": "SAFA MOSSEL BAY LFA",
+    "acronym": "",
+    "region": 50,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 331,
+  "fields": {
+    "created": "2025-06-09T14:19:46.019Z",
+    "modified": "2025-06-09T14:19:46.019Z",
+    "logo": "",
+    "safa_id": "NHKQC",
+    "name": "SAFA OUDTSHOORN LFA",
+    "acronym": "",
+    "region": 50,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 332,
+  "fields": {
+    "created": "2025-06-09T14:19:46.023Z",
+    "modified": "2025-06-09T14:19:46.023Z",
+    "logo": "",
+    "safa_id": "0PDAB",
+    "name": "SAFA PLETTENBERG BAY LFA",
+    "acronym": "",
+    "region": 50,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 333,
+  "fields": {
+    "created": "2025-06-09T14:20:35.496Z",
+    "modified": "2025-06-09T14:20:35.496Z",
+    "logo": "",
+    "safa_id": "LXJRD",
+    "name": "SAFA CAPE ALGULHAS LFA",
+    "acronym": "",
+    "region": 51,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 334,
+  "fields": {
+    "created": "2025-06-09T14:20:35.499Z",
+    "modified": "2025-06-09T14:20:35.499Z",
+    "logo": "",
+    "safa_id": "55S3D",
+    "name": "SAFA GAANSBAY LFA",
+    "acronym": "",
+    "region": 51,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 335,
+  "fields": {
+    "created": "2025-06-09T14:20:35.502Z",
+    "modified": "2025-06-09T14:20:35.502Z",
+    "logo": "",
+    "safa_id": "JQAVN",
+    "name": "SAFA SWELLENDAM LFA",
+    "acronym": "",
+    "region": 51,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 336,
+  "fields": {
+    "created": "2025-06-09T14:20:35.504Z",
+    "modified": "2025-06-09T14:20:35.504Z",
+    "logo": "",
+    "safa_id": "16AY9",
+    "name": "SAFA THREEWATERSKLOOF LFA",
+    "acronym": "",
+    "region": 51,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 337,
+  "fields": {
+    "created": "2025-06-09T14:21:46.637Z",
+    "modified": "2025-06-09T14:21:46.637Z",
+    "logo": "",
+    "safa_id": "JZM2S",
+    "name": "SAFA BERGRIVIER LFA",
+    "acronym": "",
+    "region": 52,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 338,
+  "fields": {
+    "created": "2025-06-09T14:21:46.642Z",
+    "modified": "2025-06-09T14:21:46.642Z",
+    "logo": "",
+    "safa_id": "792MY",
+    "name": "SAFA CEDERBERG LFA",
+    "acronym": "",
+    "region": 52,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 339,
+  "fields": {
+    "created": "2025-06-09T14:21:46.647Z",
+    "modified": "2025-06-09T14:21:46.647Z",
+    "logo": "",
+    "safa_id": "6KHTX",
+    "name": "SAFA MATZIKAMA LFA",
+    "acronym": "",
+    "region": 52,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 340,
+  "fields": {
+    "created": "2025-06-09T14:21:46.651Z",
+    "modified": "2025-06-17T17:48:57.508Z",
+    "logo": "",
+    "safa_id": "JGQ1M",
+    "name": "SAFA SALDANHA LFA",
+    "acronym": "SALDAN",
+    "region": 52,
+    "association": 4,
+    "website": "",
+    "headquarters": "SALDANHA",
+    "description": ""
+  }
+},
+{
+  "model": "geography.localfootballassociation",
+  "pk": 341,
+  "fields": {
+    "created": "2025-06-09T14:21:46.655Z",
+    "modified": "2025-06-09T14:21:46.656Z",
+    "logo": "",
+    "safa_id": "X459O",
+    "name": "SAFA SWARTLAND LFA",
+    "acronym": "",
+    "region": 52,
+    "association": 4,
+    "website": "",
+    "headquarters": "",
+    "description": ""
+  }
+},
+{
+  "model": "geography.club",
+  "pk": 2,
+  "fields": {
+    "created": "2025-07-23T15:05:25.359Z",
+    "modified": "2025-07-23T15:11:38.905Z",
+    "logo": "logos/langebaan_YqRso1G.png",
+    "name": "LANGEBAAN FC",
+    "code": "LNGBN",
+    "province": 9,
+    "region": 52,
+    "localfootballassociation": 340,
+    "status": "ACTIVE",
+    "founding_date": null,
+    "website": "",
+    "stadium": "",
+    "description": "",
+    "colors": "",
+    "safa_id": "4T0L0",
+    "fifa_id": null,
+    "payment_confirmed": false,
+    "payment_date": null,
+    "registration_fee": "0.00",
+    "club_type": "AMATEUR",
+    "club_owner_type": "NPO",
+    "club_documents": "",
+    "affiliation_fees_paid": false
+  }
+},
+{
+  "model": "accounts.organizationtype",
+  "pk": 1,
+  "fields": {
+    "name": "NATIONAL FEDERATION",
+    "level": "NATIONAL",
+    "requires_approval": true,
+    "is_active": true
+  }
+},
+{
+  "model": "accounts.organizationtype",
+  "pk": 2,
+  "fields": {
+    "name": "Regional Administrator",
+    "level": "REGION",
+    "requires_approval": true,
+    "is_active": true
+  }
+},
+{
+  "model": "accounts.organizationtype",
+  "pk": 3,
+  "fields": {
+    "name": "Local football Association",
+    "level": "LFA",
+    "requires_approval": true,
+    "is_active": true
+  }
+},
+{
+  "model": "accounts.organizationtype",
+  "pk": 4,
+  "fields": {
+    "name": "Provincial Administrator",
+    "level": "PROVINCE",
+    "requires_approval": true,
+    "is_active": true
+  }
+},
+{
+  "model": "accounts.organizationtype",
+  "pk": 5,
+  "fields": {
+    "name": "Club Administrator",
+    "level": "CLUB",
+    "requires_approval": true,
+    "is_active": true
+  }
+},
+{
+  "model": "accounts.organizationtype",
+  "pk": 6,
+  "fields": {
+    "name": "Referee Association",
+    "level": "ASSOCIATION",
+    "requires_approval": true,
+    "is_active": true
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$Oq0m6Pssji27v475EoVwCI$mMa8hdDmW8+lNMt76CgL4uzZDgV5n00OWxREQx+idF8=",
+    "last_login": "2025-07-29T18:16:43.878Z",
+    "is_superuser": true,
+    "is_staff": true,
+    "date_joined": "2025-06-16T19:58:54Z",
+    "logo": "",
+    "email": "shaunqjohannes@gmail.com",
+    "registration_type": null,
+    "role": "ADMIN_NATIONAL",
+    "name": "",
+    "middle_name": "",
+    "surname": "",
+    "alias": "",
+    "date_of_birth": "1968-05-31",
+    "gender": "M",
+    "nationality": "South African",
+    "birth_country": "ZAF",
+    "popi_act_consent": true,
+    "country_code": "ZAF",
+    "id_number": null,
+    "id_number_other": null,
+    "passport_number": null,
+    "id_document_type": "PP",
+    "is_active": true,
+    "membership_card": false,
+    "payment_required": true,
+    "safa_id": "UXOIM",
+    "fifa_id": null,
+    "profile_photo": "images/profile_photos/southafrica_GI8hJci.png",
+    "id_document": "",
+    "registration_date": "2025-06-16",
+    "membership_status": "ACTIVE",
+    "membership_paid_date": "2025-06-17T19:50:31.395Z",
+    "membership_activated_date": null,
+    "membership_expires_date": null,
+    "membership_fee_amount": null,
+    "card_delivery_preference": "DIGITAL_ONLY",
+    "physical_card_requested": false,
+    "physical_card_delivery_address": "",
+    "first_name": "Shaun",
+    "last_name": "Johannes",
+    "employment_status": "",
+    "club_membership_verified": true,
+    "club_membership_number": "",
+    "supporting_club": null,
+    "driver_license_number": null,
+    "national_federation": 1,
+    "province": null,
+    "region": null,
+    "local_federation": null,
+    "club": null,
+    "association": null,
+    "organization_type": 1,
+    "mother_body": 1,
+    "groups": [],
+    "user_permissions": [],
+    "positions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$O3zGVKZIws2TfhGJxzcp08$HikRnXC4zG+oSZCP0rLzjazmP5b1XdcTnXJ6KK7et9w=",
+    "last_login": "2025-07-25T10:19:27.586Z",
+    "is_superuser": false,
+    "is_staff": true,
+    "date_joined": "2025-07-15T19:47:59Z",
+    "logo": "",
+    "email": "gerald.don@safa.net",
+    "registration_type": null,
+    "role": "ADMIN_NATIONAL",
+    "name": "",
+    "middle_name": "",
+    "surname": "",
+    "alias": "",
+    "date_of_birth": "1961-11-29",
+    "gender": "M",
+    "nationality": "South African",
+    "birth_country": "ZAF",
+    "popi_act_consent": true,
+    "country_code": "ZAF",
+    "id_number": "6111295077084",
+    "id_number_other": null,
+    "passport_number": null,
+    "id_document_type": "ID",
+    "is_active": true,
+    "membership_card": false,
+    "payment_required": true,
+    "safa_id": "Z1T28",
+    "fifa_id": null,
+    "profile_photo": "",
+    "id_document": "",
+    "registration_date": "2025-07-15",
+    "membership_status": "PENDING",
+    "membership_paid_date": null,
+    "membership_activated_date": null,
+    "membership_expires_date": null,
+    "membership_fee_amount": null,
+    "card_delivery_preference": "DIGITAL_ONLY",
+    "physical_card_requested": false,
+    "physical_card_delivery_address": "",
+    "first_name": "Gerald",
+    "last_name": "Don",
+    "employment_status": "MEMBER",
+    "club_membership_verified": false,
+    "club_membership_number": "",
+    "supporting_club": null,
+    "driver_license_number": null,
+    "national_federation": 1,
+    "province": null,
+    "region": null,
+    "local_federation": null,
+    "club": null,
+    "association": null,
+    "organization_type": 1,
+    "mother_body": null,
+    "groups": [],
+    "user_permissions": [],
+    "positions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$t1q1KXF1zFbBi5jjjArGux$Mq3/NPRtdSLNdjQjghMgcGbqfQ/aFQNlNH/m1K88ZsU=",
+    "last_login": "2025-07-27T17:17:24.029Z",
+    "is_superuser": false,
+    "is_staff": true,
+    "date_joined": "2025-07-22T06:13:22Z",
+    "logo": "",
+    "email": "club@gmail.com",
+    "registration_type": null,
+    "role": "CLUB_ADMIN",
+    "name": "",
+    "middle_name": "",
+    "surname": "",
+    "alias": "",
+    "date_of_birth": "2000-10-10",
+    "gender": "M",
+    "nationality": "South African",
+    "birth_country": "ZAF",
+    "popi_act_consent": true,
+    "country_code": "ZAF",
+    "id_number": null,
+    "id_number_other": null,
+    "passport_number": "A05591007",
+    "id_document_type": "PP",
+    "is_active": true,
+    "membership_card": false,
+    "payment_required": true,
+    "safa_id": "QJIRA",
+    "fifa_id": null,
+    "profile_photo": "",
+    "id_document": "",
+    "registration_date": "2025-07-22",
+    "membership_status": "PENDING",
+    "membership_paid_date": null,
+    "membership_activated_date": null,
+    "membership_expires_date": null,
+    "membership_fee_amount": null,
+    "card_delivery_preference": "DIGITAL_ONLY",
+    "physical_card_requested": false,
+    "physical_card_delivery_address": "",
+    "first_name": "Raphael",
+    "last_name": "Lawrence",
+    "employment_status": "",
+    "club_membership_verified": false,
+    "club_membership_number": "",
+    "supporting_club": null,
+    "driver_license_number": null,
+    "national_federation": 1,
+    "province": 9,
+    "region": 52,
+    "local_federation": 340,
+    "club": 2,
+    "association": null,
+    "organization_type": 5,
+    "mother_body": null,
+    "groups": [],
+    "user_permissions": [],
+    "positions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$fAtO9huRlGkOR5UpHUCKDG$ObO79MsLpCM4XIGlLSiuSRgGpkhsFLUN5ZQ/FYrv1Gk=",
+    "last_login": "2025-07-25T10:18:44.419Z",
+    "is_superuser": false,
+    "is_staff": false,
+    "date_joined": "2025-07-23T08:40:39.145Z",
+    "logo": "",
+    "email": "accounts@safa.net",
+    "registration_type": null,
+    "role": "ADMIN_NATIONAL_ACCOUNTS",
+    "name": "",
+    "middle_name": "",
+    "surname": "",
+    "alias": "",
+    "date_of_birth": "2000-10-10",
+    "gender": "F",
+    "nationality": "South African",
+    "birth_country": "ZAF",
+    "popi_act_consent": true,
+    "country_code": "ZAF",
+    "id_number": null,
+    "id_number_other": null,
+    "passport_number": "A05591009",
+    "id_document_type": "PP",
+    "is_active": true,
+    "membership_card": false,
+    "payment_required": true,
+    "safa_id": "ZWOQF",
+    "fifa_id": null,
+    "profile_photo": "",
+    "id_document": "",
+    "registration_date": "2025-07-23",
+    "membership_status": "PENDING",
+    "membership_paid_date": null,
+    "membership_activated_date": null,
+    "membership_expires_date": null,
+    "membership_fee_amount": null,
+    "card_delivery_preference": "DIGITAL_ONLY",
+    "physical_card_requested": false,
+    "physical_card_delivery_address": "",
+    "first_name": "Accounts",
+    "last_name": "Administrtaor",
+    "employment_status": "",
+    "club_membership_verified": false,
+    "club_membership_number": "",
+    "supporting_club": null,
+    "driver_license_number": null,
+    "national_federation": 1,
+    "province": null,
+    "region": null,
+    "local_federation": null,
+    "club": null,
+    "association": null,
+    "organization_type": 1,
+    "mother_body": null,
+    "groups": [],
+    "user_permissions": [],
+    "positions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$bT1JR8TYVmIA6Z0kQtR05a$6goQ5kOncZ5Nz+7ovBnv3qinh+f2DpIMa5z21Ed7L/I=",
+    "last_login": "2025-07-23T13:35:02.634Z",
+    "is_superuser": false,
+    "is_staff": true,
+    "date_joined": "2025-07-23T09:24:40Z",
+    "logo": "",
+    "email": "province@gmail.com",
+    "registration_type": null,
+    "role": "ADMIN_PROVINCE",
+    "name": "",
+    "middle_name": "",
+    "surname": "",
+    "alias": "",
+    "date_of_birth": "2000-06-12",
+    "gender": "M",
+    "nationality": "South African",
+    "birth_country": "ZAF",
+    "popi_act_consent": true,
+    "country_code": "ZAF",
+    "id_number": null,
+    "id_number_other": null,
+    "passport_number": "A05591011",
+    "id_document_type": "PP",
+    "is_active": true,
+    "membership_card": false,
+    "payment_required": true,
+    "safa_id": "79J6S",
+    "fifa_id": null,
+    "profile_photo": "",
+    "id_document": "",
+    "registration_date": "2025-07-23",
+    "membership_status": "PENDING",
+    "membership_paid_date": null,
+    "membership_activated_date": null,
+    "membership_expires_date": null,
+    "membership_fee_amount": null,
+    "card_delivery_preference": "DIGITAL_ONLY",
+    "physical_card_requested": false,
+    "physical_card_delivery_address": "",
+    "first_name": "Gauteng",
+    "last_name": "Province",
+    "employment_status": "",
+    "club_membership_verified": false,
+    "club_membership_number": "",
+    "supporting_club": null,
+    "driver_license_number": null,
+    "national_federation": 1,
+    "province": 9,
+    "region": null,
+    "local_federation": null,
+    "club": null,
+    "association": null,
+    "organization_type": 4,
+    "mother_body": null,
+    "groups": [],
+    "user_permissions": [],
+    "positions": []
+  }
+}
