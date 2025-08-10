@@ -14,13 +14,7 @@ from .models import (
     OrganizationSeasonRegistration
 )
 
-# Try to import existing models if they exist
-try:
-    from registration.models import Player, Official
-    from geography.models import Club, Province, Region, LocalFootballAssociation, Association
-    EXTERNAL_MODELS_AVAILABLE = True
-except ImportError:
-    EXTERNAL_MODELS_AVAILABLE = False
+
 
 
 # ============================================================================

@@ -13,12 +13,11 @@ from django.contrib.contenttypes.models import ContentType
 from .constants import JUNIOR_FEE_ZAR, SENIOR_FEE_ZAR, BANK_DETAILS
 
 from .forms import PaymentSelectionForm, PlayerRegistrationForm
-from registration.models import (
-    Player,
-    PlayerClubRegistration
-)
+
 from .models import (
     Member,
+    Player,
+    PlayerClubRegistration
 )
 from .models import Invoice, InvoiceItem
 from geography.models import Club

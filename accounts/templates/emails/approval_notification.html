@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Approved - SAFA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .btn {
+            display: inline-block;
+            background: #006633;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 8px;
+        }
+        .success-box {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .safa-id-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 Congratulations!</h1>
+        <p>Your SAFA Application has been Approved</p>
+    </div>
+    
+    <div class="content">
+        <p>Dear {{ member.get_full_name }},</p>
+        
+        <div class="success-box">
+            <h2 style="color: #059669; margin-top: 0;">Application Approved!</h2>
+            <p>Your registration as a <strong>{{ member.get_role_display }}</strong> has been successfully approved.</p>
+        </div>
+        
+        {% if safa_id %}
+        <div class="safa-id-box">
+            <h3 style="color: #92400e; margin-top: 0;">Your Official SAFA ID</h3>
+            <div style="font-size: 24px; font-weight: bold; color: #92400e;">{{ safa_id }}</div>
+            <p style="margin-bottom: 0;">Please keep this ID safe - you'll need it for all SAFA activities.</p>
+        </div>
+        {% endif %}
+        
+        <h3>You now have access to:</h3>
+        <ul>
+            <li>Your personalized member dashboard</li>
+            <li>Digital membership card download</li>
+            <li>SAFA events and tournaments</li>
+            <li>Official SAFA communications</li>
+            <li>Member support services</li>
+            {% if member.role == 'CLUB_ADMIN' %}
+            <li>Club member management tools</li>
+            <li>Player and official registration</li>
+            {% elif member.role == 'ASSOCIATION_ADMIN' %}
+            <li>Association management tools</li>
+            <li>Official certification management</li>
+            {% elif member.role == 'PLAYER' %}
+            <li>Tournament registration</li>
+            <li>Performance tracking</li>
+            {% elif member.role == 'OFFICIAL' %}
+            <li>Match assignment system</li>
+            <li>Certification tracking</li>
+            {% endif %}
+        </ul>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ login_url }}" class="btn">Access Your Dashboard</a>
+            {% if card_url %}
+            <a href="{{ card_url }}" class="btn">Download Digital Card</a>
+            {% endif %}
+        </div>
+        
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+            <li>Log in to your account using the button above</li>
+            <li>Complete your profile if any information is missing</li>
+            <li>Download your digital membership card</li>
+            <li>Explore the available features for your role</li>
+        </ol>
+        
+        <p>If you have any questions or need support, please contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+        
+        <p>Welcome to the SAFA Soccer Community!</p>
+        
+        <p>Best regards,<br>
+        <strong>The SAFA Registration Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>{{ site_name }} | South African Football Association</p>
+        <p>SAFA House, Johannesburg | <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+    </div>
+</body>
+</html>

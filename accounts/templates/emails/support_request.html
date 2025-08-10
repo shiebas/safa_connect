@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Request - SAFA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #006633, #008844);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .info-table th,
+        .info-table td {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            text-align: left;
+        }
+        .info-table th {
+            background: #f9fafb;
+            font-weight: bold;
+        }
+        .message-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Support Request Received</h1>
+        <p>SAFA Registration System</p>
+    </div>
+    
+    <div class="content">
+        <p>A new support request has been submitted through the SAFA Registration System.</p>
+        
+        <h3>Request Details:</h3>
+        <table class="info-table">
+            <tr>
+                <th>Name</th>
+                <td>{{ form_data.name }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ form_data.email }}</td>
+            </tr>
+            {% if form_data.phone %}
+            <tr>
+                <th>Phone</th>
+                <td>{{ form_data.phone }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Inquiry Type</th>
+                <td>{{ form_data.inquiry_type|title }}</td>
+            </tr>
+            <tr>
+                <th>Subject</th>
+                <td>{{ form_data.subject }}</td>
+            </tr>
+            {% if form_data.safa_id %}
+            <tr>
+                <th>SAFA ID</th>
+                <td>{{ form_data.safa_id }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Submitted</th>
+                <td>{{ timestamp|date:"F d, Y \a\t H:i" }}</td>
+            </tr>
+        </table>
+        
+        <h3>Message:</h3>
+        <div class="message-box">
+            {{ form_data.message|linebreaks }}
+        </div>
+        
+        {% if user.is_authenticated %}
+        <h3>User Information:</h3>
+        <table class="info-table">
+            <tr>
+                <th>User ID</th>
+                <td>{{ user.id }}</td>
+            </tr>
+            <tr>
+                <th>Role</th>
+                <td>{{ user.get_role_display }}</td>
+            </tr>
+            <tr>
+                <th>Registration Date</th>
+                <td>{{ user.date_joined|date:"F d, Y" }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ user.membership_status|title }}</td>
+            </tr>
+        </table>
+        {% endif %}
+        
+        <p><strong>Response Required:</strong> Please respond to this support request within 24 hours.</p>
+    </div>
+</body>
+</html>

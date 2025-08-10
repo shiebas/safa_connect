@@ -13,17 +13,9 @@ from decimal import Decimal
 # Import models from the corrected models.py
 from .models import (
     SAFASeasonConfig, SAFAFeeStructure, OrganizationSeasonRegistration,
-    Member, MemberDocument, RegistrationWorkflow, MemberSeasonHistory, 
-    MemberProfile, ClubMemberQuota, Invoice, InvoiceItem, Transfer
+    Member, 
+    Invoice, InvoiceItem, Transfer
 )
-
-# Try to import existing models if they exist
-try:
-    from registration.models import Player, Official
-    REGISTRATION_MODELS_AVAILABLE = True
-except ImportError:
-    REGISTRATION_MODELS_AVAILABLE = False
-
 
 class SAFAAccountsAdminMixin:
     """Mixin to restrict admin access to SAFA accounts staff only"""
@@ -55,7 +47,7 @@ class SAFAAccountsAdminMixin:
     def has_delete_permission(self, request, obj=None):
         return (
             request.user.is_superuser or 
-            getattr(request.user, 'role', None) == 'ADMIN_NATIONAL'
+            getattr(request.user, 'role', None) in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS']
         )
 
 
@@ -213,25 +205,6 @@ class OrganizationSeasonRegistrationAdmin(SAFAAccountsAdminMixin, admin.ModelAdm
 # MEMBER MANAGEMENT ADMINS
 # ============================================================================
 
-class MemberDocumentInline(admin.TabularInline):
-    model = MemberDocument
-    extra = 0
-    fields = ('document_type', 'document_file', 'verification_status', 'is_required')
-    readonly_fields = ('file_size', 'file_type', 'verified_by', 'verified_date')
-
-
-class RegistrationWorkflowInline(admin.StackedInline):
-    model = RegistrationWorkflow
-    extra = 0
-    readonly_fields = ['completion_percentage', 'current_step']
-    fields = (
-        'current_step', 'completion_percentage',
-        ('personal_info_status', 'club_selection_status'),
-        ('document_upload_status', 'payment_status'),
-        ('club_approval_status', 'safa_approval_status')
-    )
-
-
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
     """Enhanced Member admin with SAFA integration"""
@@ -240,7 +213,7 @@ class MemberAdmin(admin.ModelAdmin):
         'safa_id_link', 'get_full_name', 'email', 'role', 'status', 
         'current_club', 'current_season', 'age_display', 'registration_complete'
     )
-    list_display_links = ('get_full_name',)
+    list_display_links = ('safa_id_link', 'get_full_name',)
     list_filter = (
         'status', 'role', 'current_season', 'registration_complete',
         'province', 'current_club', 'registration_method'
@@ -250,7 +223,6 @@ class MemberAdmin(admin.ModelAdmin):
         'current_club__name'
     )
     actions = ['approve_selected', 'reject_selected', 'generate_invoices']
-    inlines = [MemberDocumentInline, RegistrationWorkflowInline]
     
     fieldsets = (
         ('SAFA Identification', {
@@ -381,81 +353,7 @@ class MemberAdmin(admin.ModelAdmin):
         return qs.none()
 
 
-@admin.register(MemberProfile)
-class MemberProfileAdmin(admin.ModelAdmin):
-    list_display = ['member', 'player_position', 'referee_level', 'certification_number']
-    list_filter = ['player_position', 'referee_level']
-    search_fields = ['member__first_name', 'member__last_name', 'certification_number']
-    raw_id_fields = ['member', 'official_position']
 
-
-@admin.register(MemberDocument)
-class MemberDocumentAdmin(admin.ModelAdmin):
-    list_display = [
-        'member', 'document_type', 'verification_status', 'is_required',
-        'file_size_display', 'verified_by', 'verified_date'
-    ]
-    list_filter = ['document_type', 'verification_status', 'is_required']
-    search_fields = ['member__first_name', 'member__last_name']
-    readonly_fields = ['file_size', 'file_type', 'verified_by', 'verified_date']
-    actions = ['approve_documents', 'reject_documents']
-    
-    def file_size_display(self, obj):
-        if obj.file_size:
-            return f"{obj.file_size // 1024} KB"
-        return "Unknown"
-    file_size_display.short_description = "File Size"
-    
-    def approve_documents(self, request, queryset):
-        count = 0
-        for doc in queryset.filter(verification_status='PENDING'):
-            doc.approve(request.user)
-            count += 1
-        self.message_user(request, f'Approved {count} documents')
-    approve_documents.short_description = 'Approve selected documents'
-    
-    def reject_documents(self, request, queryset):
-        count = 0
-        for doc in queryset.filter(verification_status='PENDING'):
-            doc.reject(request.user, "Rejected by admin")
-            count += 1
-        self.message_user(request, f'Rejected {count} documents')
-    reject_documents.short_description = 'Reject selected documents'
-
-
-@admin.register(RegistrationWorkflow)
-class RegistrationWorkflowAdmin(admin.ModelAdmin):
-    list_display = [
-        'member', 'current_step', 'completion_percentage', 'personal_info_status',
-        'club_selection_status', 'payment_status'
-    ]
-    list_filter = ['current_step', 'completion_percentage']
-    search_fields = ['member__first_name', 'member__last_name']
-    readonly_fields = ['completion_percentage']
-
-
-@admin.register(ClubMemberQuota)
-class ClubMemberQuotaAdmin(admin.ModelAdmin):
-    list_display = [
-        'club', 'season_year', 'max_senior_players', 'current_senior_players',
-        'max_junior_players', 'current_junior_players', 'max_officials', 'current_officials'
-    ]
-    list_filter = ['season_config__season_year']
-    search_fields = ['club__name']
-    readonly_fields = ['current_senior_players', 'current_junior_players', 'current_officials']
-    actions = ['update_member_counts']
-    
-    def season_year(self, obj):
-        return obj.season_config.season_year
-    season_year.short_description = "Season"
-    
-    def update_member_counts(self, request, queryset):
-        count = 0
-        for quota in queryset:
-            quota.update_counts()
-            count += 1
-        self.message_user(request, f'Updated counts for {count} club quotas')
-    update_member_counts.short_description = 'Update member counts'
 
 
 # ============================================================================
@@ -651,25 +549,6 @@ class TransferAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'Rejected {count} transfers')
     reject_transfers.short_description = 'Reject selected transfers'
-
-
-# ============================================================================
-# SEASON HISTORY
-# ============================================================================
-
-@admin.register(MemberSeasonHistory)
-class MemberSeasonHistoryAdmin(admin.ModelAdmin):
-    list_display = [
-        'member', 'season_year', 'club', 'status', 'invoice_paid',
-        'safa_approved', 'registration_date'
-    ]
-    list_filter = ['season_config__season_year', 'status', 'invoice_paid', 'safa_approved']
-    search_fields = ['member__first_name', 'member__last_name', 'club__name']
-    readonly_fields = ['member', 'season_config']
-    
-    def season_year(self, obj):
-        return obj.season_config.season_year
-    season_year.short_description = "Season"
 
 
 # ============================================================================

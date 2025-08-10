@@ -16,12 +16,6 @@ from .models import (
 )
 
 # Try to import existing models if they exist
-try:
-    from registration.models import Official
-    REGISTRATION_MODELS_AVAILABLE = True
-except ImportError:
-    REGISTRATION_MODELS_AVAILABLE = False
-
 
 def is_safa_admin(user):
     """Check if user has SAFA admin privileges"""

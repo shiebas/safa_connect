@@ -1,22 +1,39 @@
-from django.contrib import messages
-from django.shortcuts import redirect
+from functools import wraps
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import login_required
 
-def role_required(allowed_roles=None, allow_superuser=False, allow_staff=False):
+def role_required(allowed_roles=None, allow_superuser=True, allow_staff=False):
+    """
+    Decorator to check if user has required role
+    
+    Args:
+        allowed_roles (list): List of allowed role strings
+        allow_superuser (bool): Whether to allow superusers
+        allow_staff (bool): Whether to allow staff users
+    """
     if allowed_roles is None:
         allowed_roles = []
-
+    
     def decorator(view_func):
-        def wrapper_func(request, *args, **kwargs):
-            if not request.user.is_authenticated:
-                messages.error(request, 'You must be logged in to access this page.')
-                return redirect('accounts:login') # Redirect to login if not authenticated
-
-            if (allow_superuser and request.user.is_superuser) or \
-               (allow_staff and request.user.is_staff) or \
-               (hasattr(request.user, 'role') and request.user.role in allowed_roles):
+        @wraps(view_func)
+        @login_required
+        def wrapped_view(request, *args, **kwargs):
+            user = request.user
+            
+            # Allow superusers if specified
+            if allow_superuser and user.is_superuser:
                 return view_func(request, *args, **kwargs)
-            else:
-                messages.error(request, 'You do not have permission to access this page.')
-                return redirect('accounts:dashboard') # Or a more appropriate redirect
-        return wrapper_func
+            
+            # Allow staff if specified
+            if allow_staff and user.is_staff:
+                return view_func(request, *args, **kwargs)
+            
+            # Check if user has required role
+            if hasattr(user, 'role') and user.role in allowed_roles:
+                return view_func(request, *args, **kwargs)
+            
+            # Deny access if none of the conditions are met
+            raise PermissionDenied("You don't have permission to access this page.")
+        
+        return wrapped_view
     return decorator

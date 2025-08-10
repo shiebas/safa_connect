@@ -6,7 +6,6 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.contrib.contenttypes.models import ContentType
 from .models import Invoice, InvoiceItem, InvoicePayment, InvoiceInstallment
 from .config_models import SAFASeasonConfig, SAFAFeeStructure, SAFAPaymentPlan
-from registration.models import Player, Official
 from geography.models import Association, Province, Region, LocalFootballAssociation, Club
 
 class SAFAInvoiceManager:

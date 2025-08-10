@@ -1,0 +1,717 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SAFA Administration{% endblock %}</title>
+    
+    <!-- SAFA Favicon from file -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/default_logo.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/safa_logo_small.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/safa_logo_small.png' %}">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% url 'pwa:manifest' %}">
+    <meta name="theme-color" content="#006633">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SAFA Membership Registration">
+    <link rel="apple-touch-icon" href="{% static 'images/safa-logo-192.png' %}">
+    
+{% include 'base_includes/global_validators.html' %}
+
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+<style>
+    /* Standardized Design System */
+    :root {
+        --primary-blue: #1e3a8a;
+        --primary-blue-hover: #1e40af;
+        --primary-blue-light: #3b82f6;
+        --secondary-blue: #1e40af;
+        --accent-blue: #60a5fa;
+        --light-blue: #dbeafe;
+        --very-light-blue: #eff6ff;
+        --dark-text: #1f2937;
+        --medium-text: #4b5563;
+        --light-text: #6b7280;
+        --success-green: #10b981;
+        --warning-orange: #f59e0b;
+        --danger-red: #ef4444;
+        --white: #ffffff;
+        --light-gray: #f9fafb;
+        --border-gray: #e5e7eb;
+    }
+
+    /* Global Styles */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-text);
+        line-height: 1.6;
+    }
+
+    /* Container Styles */
+    .main-container {
+        background-color: var(--light-gray);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    /* Card Styles */
+    .modern-card {
+        background-color: var(--white);
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(30, 58, 138, 0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .modern-card:hover {
+        box-shadow: 0 15px 35px rgba(30, 58, 138, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .modern-card-header {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
+        padding: 1.5rem 2rem;
+        border-bottom: none;
+        border-radius: 0;
+    }
+
+    .modern-card-header h1,
+    .modern-card-header h2,
+    .modern-card-header h3 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .modern-card-body {
+        padding: 2rem;
+    }
+
+    /* Form Styles */
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-text);
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 0.75rem;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-gray);
+        background-color: var(--very-light-blue);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-blue);
+        background-color: var(--white);
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.15);
+        transform: translateY(-1px);
+    }
+
+    /* Button Styles */
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-blue-hover);
+        border-color: var(--primary-blue-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(30, 58, 138, 0.25);
+    }
+
+    .btn-secondary {
+        background-color: var(--medium-text);
+        border-color: var(--medium-text);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary {
+        color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    /* Section Headers */
+    .section-header {
+        background: linear-gradient(135deg, var(--dark-blue), var(--light-blue));
+        padding: 1rem 1.5rem;
+        margin: 2rem 0 1.5rem 0;
+        border-radius: 0.75rem;
+        border-left: 4px solid var(--primary-blue);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .section-header:hover {
+        transform: translateX(3px);
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.1);
+    }
+
+    .section-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: var(--dark-text);
+    }
+
+    .section-header i {
+        margin-right: 10px;
+        color: var(--primary-blue);
+        font-size: 1.2rem;
+    }
+
+    /* Status Badges */
+    .badge {
+        border-radius: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .badge.bg-success {
+        background-color: var(--success-green) !important;
+    }
+
+    .badge.bg-warning {
+        background-color: var(--warning-orange) !important;
+    }
+
+    .badge.bg-danger {
+        background-color: var(--danger-red) !important;
+    }
+
+    .badge.bg-primary {
+        background-color: var(--primary-blue) !important;
+    }
+
+    /* Table Styles */
+    .table {
+        background-color: var(--white);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.05);
+    }
+
+    .table thead th {
+        background-color: var(--very-light-blue);
+        color: var(--dark-text);
+        font-weight: 600;
+        border: none;
+        padding: 1rem;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        border-color: var(--border-gray);
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: var(--very-light-blue);
+    }
+
+    /* Alert Styles */
+    .alert {
+        border-radius: 0.75rem;
+        border: none;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .alert-info {
+        background-color: var(--very-light-blue);
+        color: var(--dark-text);
+        border-left: 4px solid var(--primary-blue);
+    }
+
+    .alert-success {
+        background-color: #d1fae5;
+        color: #065f46;
+        border-left: 4px solid var(--success-green);
+    }
+
+    .alert-warning {
+        background-color: #fef3c7;
+        color: #92400e;
+        border-left: 4px solid var(--warning-orange);
+    }
+
+    .alert-danger {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border-left: 4px solid var(--danger-red);
+    }
+
+    /* Dashboard Stats Cards */
+    .stat-card {
+        text-align: center;
+        background: linear-gradient(135deg, var(--white), var(--very-light-blue));
+        border: 1px solid var(--light-blue);
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(30, 58, 138, 0.15);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        color: var(--medium-text);
+        font-weight: 500;
+    }
+
+    /* Navigation & Header */
+    .navbar {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue)) !important;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+    }
+
+    /* Footer Styles */
+    .footer-safa {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue)) !important;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+        color: var(--white); /* Ensure text is readable on dark background */
+    }
+
+    /* Input Groups */
+    .input-group-text {
+        background-color: var(--light-blue);
+        color: var(--primary-blue);
+        border: 1px solid var(--border-gray);
+        border-radius: 0.75rem 0 0 0.75rem;
+        font-weight: 600;
+    }
+
+    .input-group .form-control {
+        border-radius: 0 0.75rem 0.75rem 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .modern-card-body {
+            padding: 1.5rem;
+        }
+        
+        .section-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+
+    /* Animation Classes */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Required Field Indicator */
+    .required-field::after {
+        content: ' *';
+        color: var(--danger-red);
+        font-weight: bold;
+    }
+
+    /* Form Tips */
+    .form-tip {
+        font-size: 0.85rem;
+        color: var(--light-text);
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+
+    /* Loading States */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--light-gray);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary-blue);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-blue-hover);
+    }
+</style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-safa">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <!--<strong>SAFA Registration</strong>-->
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2" href="{% url 'home' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    {% if user.is_staff and user.role in 'ADMIN_LOCAL_FED,ADMIN_REGION,ADMIN_PROVINCE,ADMIN_NATIONAL' %}
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2" href="{% url 'registration:member_approval_dashboard' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                            <i class="fas fa-user-check me-1"></i>Member Approvals
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2" href="{% url 'merchandise:store_home' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                            <i class="fas fa-shopping-bag me-1"></i>SAFA Store
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff and user.role != 'CLUB_ADMIN' %}
+                            
+                            {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold px-3 py-2" href="/admin/" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                    <i class="fas fa-cog me-1"></i>Administration
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold px-3 py-2" href="{% url 'membership_cards:dashboard' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                    <i class="fas fa-credit-card me-1"></i>Card Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:test_download' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                    <i class="fas fa-shield-lock me-1"></i>Test Document Protection
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% if user.is_superuser or user.role == 'ADMIN_LOCAL_FED' %}
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:lfa_admin_approvals' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                    <i class="fas fa-user-check me-1"></i>Approve Club Admins
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <!-- Connection Status -->
+                    <li class="nav-item me-2">
+                        <span id="connection-status" class="badge bg-success navbar-text">
+                            <i class="fas fa-wifi me-1"></i>Online
+                        </span>
+                    </li>
+                    
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>{{ user.get_full_name|default:user.email }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                    <i class="fas fa-user me-2"></i>Profile
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Member Portal Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="memberDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-id-card me-1"></i> Member Portal
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'membership_cards:my_card' %}">
+                                    <i class="fas fa-id-card me-2"></i>My Digital Card
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'membership_cards:verify_qr' %}">
+                                    <i class="fas fa-qrcode me-2"></i>Scan QR Code
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'merchandise:store_home' %}">
+                                    <i class="fas fa-shopping-bag me-2"></i>SAFA Store
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'merchandise:cart' %}">
+                                    <i class="fas fa-shopping-cart me-2"></i>Shopping Cart
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'merchandise:wishlist' %}">
+                                    <i class="fas fa-heart me-2"></i>My Wishlist
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'merchandise:order_history' %}">
+                                    <i class="fas fa-history me-2"></i>Order History
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:login' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; margin-right: 8px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                       <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'accounts:registration_portal' %}" style="background-color: rgba(255,255,255,0.2); border-radius: 6px; margin-right: 8px; color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                       <!-- <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'supporters:register' %}" style="background-color: rgba(255,105,180,0.9); border-radius: 6px; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                <i class="fas fa-heart me-1"></i>Register Supporter
+                            </a>
+                        </li>-->
+    </ul>  
+    </div>  
+
+    </div>
+    </nav>
+    <body style="display: flex; flex-direction: column; min-height: 100vh;">
+   
+                       <!-- <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2" href="{% url 'supporters:register' %}" style="background-color: rgba(255,105,180,0.9); border-radius: 6px; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                <i class="fas fa-heart me-1"></i>Register Supporter
+                            </a>
+                        </li>-->
+
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+                <!-- Footer -->
+    <footer class="footer-safa mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    
+                    <p class="mb-2">South African Football Association Registration System</p>
+                    <p class="mb-0">
+                        <small class="text-light">
+                            Powered by <strong>LS SPECIAL PROJECTS PTY LTD</strong> t/a <strong>ESJ Sports Solutions</strong>
+                        </small>
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="mb-2">
+                        <small>
+                            <a href="/legal/terms/" class="text-light text-decoration-none me-2">Terms & Conditions</a> |
+                            <a href="/legal/privacy/" class="text-light text-decoration-none me-2 ms-2">Privacy Policy</a>
+                        </small>
+                    </div>
+                    <div class="mb-2">
+                        <small>
+                            <a href="/legal/cookies/" class="text-light text-decoration-none me-2">Cookie Policy</a> |
+                            <a href="/legal/paia/" class="text-light text-decoration-none me-2 ms-2">PAIA Act</a>
+                        </small>
+                    </div>
+                    <div class="mb-2">
+                        <small>
+                            <a href="/legal/refund/" class="text-light text-decoration-none">Refund Policy</a>
+                        </small>
+                    </div>
+                    <p class="mb-0">
+                        <small>&copy; 2025 SAFA. All rights reserved.</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{% url "pwa:service_worker" %}')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available
+                                    if (confirm('New version available! Reload to update?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+        
+        // PWA Install Banner
+        let deferredPrompt;
+        let installBannerShown = localStorage.getItem('pwa-install-banner-shown');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install banner if not shown before
+            if (!installBannerShown) {
+                showInstallBanner();
+            }
+        });
+        
+        function showInstallBanner() {
+            const banner = document.createElement('div');
+            banner.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x';
+            banner.style.cssText = 'z-index: 9999; max-width: 400px; margin-top: 20px;';
+            banner.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-download me-2"></i>
+                    <div class="flex-grow-1">
+                        <strong>Install SAFA App</strong><br>
+                        <small>Get offline access and desktop experience</small>
+                    </div>
+                    <button class="btn btn-sm btn-light ms-2" onclick="installPWA()">Install</button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="dismissInstallBanner()"></button>
+                </div>
+            `;
+            document.body.appendChild(banner);
+        }
+        
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            const result = await deferredPrompt.userChoice;
+            
+            if (result.outcome === 'accepted') {
+                console.log('PWA installation accepted');
+            }
+            
+            deferredPrompt = null;
+            dismissInstallBanner();
+        }
+        
+        function dismissInstallBanner() {
+            localStorage.setItem('pwa-install-banner-shown', 'true');
+        }
+        
+        // Connection status monitoring
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connection-status');
+            if (statusElement) {
+                if (navigator.onLine) {
+                    statusElement.className = 'badge bg-success';
+                    statusElement.innerHTML = '<i class="fas fa-wifi me-1"></i>Online';
+                } else {
+                    statusElement.className = 'badge bg-warning';
+                    statusElement.innerHTML = '<i class="fas fa-wifi-slash me-1"></i>Offline';
+                }
+            }
+        }
+        
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        document.addEventListener('DOMContentLoaded', updateConnectionStatus);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

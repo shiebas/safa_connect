@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Update - SAFA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .btn {
+            display: inline-block;
+            background: #006633;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 8px;
+        }
+        .warning-box {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .help-box {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Application Update Required</h1>
+        <p>SAFA Registration System</p>
+    </div>
+    
+    <div class="content">
+        <p>Dear {{ member.get_full_name }},</p>
+        
+        <p>Thank you for your interest in joining the South African Football Association. We have reviewed your application for <strong>{{ member.get_role_display }}</strong> registration.</p>
+        
+        <div class="warning-box">
+            <h3 style="color: #dc2626; margin-top: 0;">Application Requires Attention</h3>
+            <p><strong>Reason:</strong> {{ reason }}</p>
+        </div>
+        
+        <h3>What you can do:</h3>
+        <ul>
+            <li>Review the reason provided above</li>
+            <li>Address any missing or incorrect information</li>
+            <li>Submit a new application with the required corrections</li>
+            <li>Contact our support team if you need clarification</li>
+        </ul>
+        
+        <div class="help-box">
+            <h4 style="color: #1e40af; margin-top: 0;">Need Help?</h4>
+            <p>Our support team is here to assist you with any questions about the registration process or requirements.</p>
+            <p><strong>Contact Information:</strong></p>
+            <ul>
+                <li>Email: <a href="mailto:{{ support_email }}">{{ support_email }}</a></li>
+                <li>Support Hours: Monday - Friday, 8:00 AM - 5:00 PM</li>
+                <li>Response Time: Within 24 hours</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ register_url }}" class="btn">Submit New Application</a>
+            <a href="{{ contact_url }}" class="btn">Contact Support</a>
+        </div>
+        
+        <p>We encourage you to reapply once you've addressed the issues mentioned above. SAFA is committed to building an inclusive football community, and we look forward to welcoming you as a member.</p>
+        
+        <p>Thank you for your understanding.</p>
+        
+        <p>Best regards,<br>
+        <strong>The SAFA Registration Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>{{ site_name }} | South African Football Association</p>
+        <p>SAFA House, Johannesburg | <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to SAFA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #006633, #008844);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .btn {
+            display: inline-block;
+            background: #006633;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 16px 0;
+        }
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to SAFA!</h1>
+        <p>South African Football Association</p>
+    </div>
+    
+    <div class="content">
+        <p>Dear {{ user.get_full_name|default:user.email }},</p>
+        
+        <p>Thank you for registering with the South African Football Association (SAFA)! Your registration as a <strong>{{ user.get_role_display }}</strong> has been received and is currently being processed.</p>
+        
+        <div class="highlight">
+            <h3>What happens next?</h3>
+            <ul>
+                <li><strong>Review Process:</strong> Our team will review your application within 2-3 business days</li>
+                <li><strong>Document Verification:</strong> We'll verify your uploaded documents</li>
+                <li><strong>Approval Notification:</strong> You'll receive an email once your application is approved</li>
+                <li><strong>Access Granted:</strong> Upon approval, you'll gain full access to SAFA services</li>
+            </ul>
+        </div>
+        
+        <h3>Your Registration Details:</h3>
+        <ul>
+            <li><strong>Name:</strong> {{ user.get_full_name }}</li>
+            <li><strong>Email:</strong> {{ user.email }}</li>
+            <li><strong>Role:</strong> {{ user.get_role_display }}</li>
+            <li><strong>Registration Date:</strong> {{ user.date_joined|date:"F d, Y" }}</li>
+            {% if user.safa_id %}
+            <li><strong>SAFA ID:</strong> {{ user.safa_id }}</li>
+            {% endif %}
+        </ul>
+        
+        <p>While you wait for approval, you can:</p>
+        <ul>
+            <li>Log in to check your application status</li>
+            <li>Update your profile information if needed</li>
+            <li>Contact our support team if you have questions</li>
+        </ul>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ login_url }}" class="btn">Login to Your Account</a>
+        </div>
+        
+        <p>If you have any questions or need assistance, please don't hesitate to contact our support team at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+        
+        <p>Welcome to the SAFA family!</p>
+        
+        <p>Best regards,<br>
+        <strong>The SAFA Registration Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>This email was sent from the SAFA Registration System. Please do not reply to this email.</p>
+        <p>South African Football Association | SAFA House, Johannesburg</p>
+    </div>
+</body>
+</html>
+

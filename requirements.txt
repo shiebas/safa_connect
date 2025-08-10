@@ -3,37 +3,37 @@ google-auth>=2.10.0
 google-api-python-client>=2.50.0
 google-auth-oauthlib>=1.0.0
 
-crispy-bootstrap5        0.7
-cryptography             45.0.3
-cssselect2               0.8.0
-defusedxml               0.7.1
-dj-database-url          3.0.0
-django-allauth           0.57.0
-django-cors-headers      4.3.1
-django-crispy-forms      2.0
-django-debug-toolbar     4.2.0
-django-extensions        3.2.3
-django-filter            23.3
-django-model-utils       4.3.1
-django-modelcluster      6.1
-django-permissionedforms 0.1
-django-storages          1.14.2
-django-stubs-ext         4.2.5
-django-tasks             0.1.1
-django-widget-tweaks     1.5.0
-djangorestframework      3.14.0
+crispy-bootstrap5==0.7
+cryptography==45.0.3
+cssselect2==0.8.0
+defusedxml==0.7.1
+dj-database-url==3.0.0
+django-allauth==0.57.0
+django-cors-headers==4.3.1
+django-crispy-forms==2.0
+django-debug-toolbar==4.2.0
+django-extensions==3.2.3
+django-filter==23.3
+django-model-utils==4.3.1
+django-modelcluster==6.1
+django-permissionedforms==0.1
+django-storages==1.14.2
+django-stubs-ext==4.2.5
+django-tasks==0.1.1
+django-widget-tweaks==1.5.0
+djangorestframework==3.14.0
 djangorestframework-authtoken
-fonttools                4.58.2
-gunicorn                 21.2.0
-idna                     3.10
-laces                    0.1.0
-oauthlib                 3.2.2
-packaging                25.0
-Pillow                   10.0.1
-pip                      25.1.1
-psycopg                  3.2.9
-psycopg2-binary          2.9.10
-pycparser                2.22
+fonttools==4.58.2
+gunicorn==21.2.0
+idna==3.10
+laces==0.1.0
+oauthlib==3.2.2
+packaging==25.0
+Pillow==10.0.1
+pip==25.1.1
+psycopg==3.2.9
+psycopg2-binary==2.9.10
+pycparser==2.22
 pydyf                    0.11.0
 PyJWT                    2.10.1
 pyphen                   0.17.2

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Registration Successful</h1>
+    <p>Thank you for registering with SAFA. Your registration is now being processed.</p>
+    <p>You will receive an email notification once your registration has been approved.</p>
+    <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a>
+</div>
+{% endblock %}

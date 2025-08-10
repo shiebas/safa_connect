@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Registration Update - SAFA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .btn {
+            display: inline-block;
+            background: #006633;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 8px;
+        }
+        .info-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Player Registration Update</h1>
+        <p>SAFA Registration System</p>
+    </div>
+    
+    <div class="content">
+        <p>Dear {{ player.get_full_name }},</p>
+        
+        <p>Thank you for your player registration with SAFA. We have reviewed your application and need to address some concerns before we can proceed with approval.</p>
+        
+        <div class="info-box">
+            <h3 style="color: #92400e; margin-top: 0;">Registration Status Update</h3>
+            <p><strong>Reason:</strong> {{ reason }}</p>
+        </div>
+        
+        <h3>What this means:</h3>
+        <ul>
+            <li>Your player registration is currently on hold</li>
+            <li>You may need to provide additional documentation</li>
+            <li>Your club administrator can help resolve any issues</li>
+            <li>No fees will be charged while your application is under review</li>
+        </ul>
+        
+        <h3>Next steps:</h3>
+        <ol>
+            <li>Contact your club administrator for assistance</li>
+            <li>Provide any missing or corrected documentation</li>
+            <li>Wait for your club to resubmit your application</li>
+            <li>Our team will review the updated application</li>
+        </ol>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="mailto:{{ contact_email }}" class="btn">Contact Support</a>
+        </div>
+        
+        <p>If you believe this decision was made in error or if you have questions about the registration process, please don't hesitate to contact our support team.</p>
+        
+        <p>We appreciate your patience and look forward to welcoming you to SAFA once all requirements are met.</p>
+        
+        <p>Best regards,<br>
+        <strong>The SAFA Player Registration Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>SAFA Registration System | South African Football Association</p>
+        <p>SAFA House, Johannesburg | <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+    </div>
+</body>
+</html>

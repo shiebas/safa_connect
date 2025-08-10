@@ -13,7 +13,33 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 # Update imports to include new models
-from .models import CustomUser, ModelWithLogo, RegistrationType, Position, OrganizationType, LFAAdministrator, DocumentAccessLog
+from .models import CustomUser, ModelWithLogo, Position, OrganizationType, DocumentAccessLog
+from membership.models import Member
+
+class PlayerInline(admin.TabularInline):
+    model = Member
+    fk_name = "user"
+    extra = 0
+    fields = ['user__first_name', 'user__last_name', 'user__safa_id', 'status']
+    verbose_name = "Player"
+    verbose_name_plural = "Players"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(role='PLAYER')
+
+class OfficialInline(admin.TabularInline):
+    model = Member
+    fk_name = "user"
+    extra = 0
+    fields = ['user__first_name', 'user__last_name', 'user__safa_id', 'status']
+    verbose_name = "Official"
+    verbose_name_plural = "Officials"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(role='OFFICIAL')
+
 
 # Import directly from geography models
 try:
@@ -75,7 +101,7 @@ class CustomUserCreationForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'role', 'first_name', 'last_name', 'name', 'surname')
+        fields = ('email', 'role', 'first_name', 'last_name')
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -159,20 +185,21 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     
     list_display = [
-        'email', 'get_full_name', 'role', 'get_organization', 'display_positions', 'employment_status', 'popi_act_consent',
-        'id_document_type', 'id_number', 'passport_number', 'driver_license_number', 'id_number_other',
-        'membership_status', 'club_membership_verified', 'safa_id', 'is_active', 'date_joined'  # removed 'age'
+        'email', 'get_full_name', 'role', 'get_organization', 'display_positions', 'popi_act_consent',
+        'id_document_type', 'id_number', 'passport_number', 'id_number_other',
+        'membership_status',  'safa_id', 'is_active', 'date_joined'  # removed 'age'
     ]
     
     list_filter = [
-        'role', 'employment_status', 'popi_act_consent', 'membership_status', 'club_membership_verified',
-        'is_active', 'is_staff', 'date_joined', 'organization_type', 'association'
+        'role', 'popi_act_consent', 'membership_status', 
+        'is_active', 'is_staff', 'date_joined', 'association'
     ]
     
     search_fields = ['email', 'first_name', 'last_name', 'id_number', 'safa_id']
     ordering = ['email']
     
     actions = ['activate_users', 'deactivate_users']
+    inlines = [PlayerInline, OfficialInline]
 
     def display_positions(self, obj):
         return ", ".join([position.title for position in obj.positions.all()])
@@ -376,15 +403,7 @@ class OrganizationTypeAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Position.objects.filter(is_active=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-# Fix the RegistrationType registration by using only one method
-@admin.register(RegistrationType)
-class RegistrationTypeAdmin(admin.ModelAdmin):
-    """Admin configuration for the RegistrationType model."""
-    list_display = ('name', 'allowed_user_roles')
-    search_fields = ('name', 'allowed_user_roles')
 
-# Register the LFAAdministrator model
-admin.site.register(LFAAdministrator)
 
 """
 # This section is commented out as Membership model is not available

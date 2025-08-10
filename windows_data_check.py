@@ -37,16 +37,7 @@ def check_database_state():
                 except Exception as e:
                     print(f"      Has Membership Player: ERROR - {e}")
                 
-                try:
-                    from registration.models import Player as RegPlayer
-                    player = RegPlayer.objects.filter(id=member.id).first()
-                    if player:
-                        print(f"      Has Registration Player: YES (ID: {player.id})")
-                    else:
-                        print(f"      Has Registration Player: NO")
-                except Exception as e:
-                    print(f"      Has Registration Player: ERROR - {e}")
-                
+             
                 # Check Officials
                 try:
                     from membership.models import Official as MemOfficial
@@ -58,32 +49,13 @@ def check_database_state():
                 except Exception as e:
                     print(f"      Has Membership Official: ERROR - {e}")
                 
-                try:
-                    from registration.models import Official as RegOfficial
-                    official = RegOfficial.objects.filter(id=member.id).first()
-                    if official:
-                        print(f"      Has Registration Official: YES (ID: {official.id})")
-                    else:
-                        print(f"      Has Registration Official: NO")
-                except Exception as e:
-                    print(f"      Has Registration Official: ERROR - {e}")
-                
-                print()  # Empty line
                 
     except ImportError as e:
         print(f"Cannot import Member model: {e}")
 
     # Check Player counts
     print("PLAYER MODEL COUNTS:")
-    try:
-        from registration.models import Player as RegPlayer
-        reg_players = RegPlayer.objects.count()
-        print(f"   Registration App Players: {reg_players}")
-        if reg_players > 0:
-            for player in RegPlayer.objects.all():
-                print(f"      - {player.get_full_name()} (ID: {player.id})")
-    except ImportError as e:
-        print(f"   Registration Players: Import Error - {e}")
+   
 
     try:
         from membership.models import Player as MemPlayer  
@@ -97,12 +69,6 @@ def check_database_state():
 
     # Check Officials
     print("\nOFFICIAL MODEL COUNTS:")
-    try:
-        from registration.models import Official as RegOfficial
-        reg_officials = RegOfficial.objects.count()
-        print(f"   Registration App Officials: {reg_officials}")
-    except ImportError as e:
-        print(f"   Registration Officials: Import Error - {e}")
 
     try:
         from membership.models import Official as MemOfficial

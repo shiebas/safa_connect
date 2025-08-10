@@ -174,7 +174,7 @@ def check_member_data_integrity():
         
         # Check for Players
         try:
-            from registration.models import Player
+            from membership.models import Player
             total_players = Player.objects.count()
             
             # Check for Members who should be Players but aren't
@@ -193,7 +193,7 @@ def check_member_data_integrity():
         
         # Check for Officials
         try:
-            from registration.models import Official
+            from membership.models import Official
             total_officials = Official.objects.count()
             
             # Check for Members who should be Officials but aren't
@@ -231,7 +231,7 @@ def generate_fix_priority():
     
     try:
         # Check Player issues
-        from registration.models import Player
+        from membership.models import Player
         from membership.models import Member, Invoice
         
         player_invoice_issues = Invoice.objects.filter(
@@ -258,7 +258,7 @@ def generate_fix_priority():
     
     try:
         # Check Official issues
-        from registration.models import Official
+        from membership.models import Official
         
         official_invoice_issues = Invoice.objects.filter(
             invoice_type='OFFICIAL_REGISTRATION',

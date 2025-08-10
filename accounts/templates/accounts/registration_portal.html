@@ -1,0 +1,88 @@
+<!-- accounts/registration_portal.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SAFA Registration Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold text-safa-green mb-3">Choose Your Registration Type</h1>
+            <p class="lead text-muted">Join the South African Football Association family in your preferred capacity</p>
+        </div>
+    </div>
+
+    <!-- Registration Types -->
+    <div class="row g-4">
+        {% for reg_type in registration_types %}
+        <div class="col-lg-6 col-md-6">
+            <div class="card h-100 shadow-sm border-0 registration-type-card">
+                <div class="card-header bg-safa-green text-white text-center py-4">
+                    <i class="{{ reg_type.icon }} fa-3x mb-3"></i>
+                    <h3 class="card-title mb-0">{{ reg_type.title }}</h3>
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <p class="text-muted mb-4">{{ reg_type.description }}</p>
+                    
+                    <div class="features-list mb-4">
+                        {% for feature in reg_type.features %}
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <span>{{ feature }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <a href="{% url 'accounts:register_type' reg_type.type %}" 
+                           class="btn btn-safa-primary w-100 btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i>Start Registration
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Additional Information -->
+    <div class="row mt-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center p-4">
+                    <h4 class="text-safa-green mb-3">Need Help?</h4>
+                    <p class="mb-3">Not sure which registration type is right for you? Our support team is here to help.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'accounts:contact_support' %}" class="btn btn-outline-safa">
+                            <i class="fas fa-envelope me-2"></i>Contact Support
+                        </a>
+                        <a href="{% url 'accounts:help_center' %}" class="btn btn-outline-safa">
+                            <i class="fas fa-question-circle me-2"></i>Help Center
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.registration-type-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.registration-type-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 102, 51, 0.15) !important;
+}
+
+.features-list {
+    min-height: 120px;
+}
+</style>
+{% endblock %}
+
+
+

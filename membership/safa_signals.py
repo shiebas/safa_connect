@@ -1,5 +1,4 @@
 from .models import Invoice, InvoiceItem, InvoicePayment
-from registration.models import Player, Official
 from geography.models import Club
 from accounts.models import CustomUser
 from django.db.models.signals import post_save, pre_save

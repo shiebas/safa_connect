@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',
     'membership_cards',
-    'registration.apps.RegistrationConfig',
+    
     'league_management',  # Competition management system
     # 'tools',  # REMOVED - functionality moved to other apps
     'supporters',
@@ -172,8 +172,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development, use console backend
-DEFAULT_FROM_EMAIL = 'shaunqjohannes@gmail.com'  # Change to your default email address
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # or your SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-app-password'
+DEFAULT_FROM_EMAIL = 'SAFA Registration <noreply@safa.net>'
+
+# Site Configuration
+#SITE_URL = 'https://registration.safa.net'  # Your production URL
+
 
 ACCOUNT_LOGIN_METHODS = {'email'}  # Or {'username', 'email'} if you want both options
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Asterisk means required
@@ -204,3 +214,23 @@ if DEBUG:
     BASE_URL = 'http://localhost:8000'
 
 GDAL_LIBRARY_PATH = r'C:\Users\User\documents\safa_global\venv\Lib\site-packages\osgeo\gdal.dll'
+
+# File Upload Settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+# SAFA Specific Settings
+SAFA_DEFAULT_REGISTRATION_FEE = 200.00
+SAFA_ENABLE_AUTO_APPROVAL = False
+SAFA_REQUIRE_DOCUMENT_VALIDATION = True
+
+# Pagination Settings
+PAGINATE_BY = 10
+
+# Security Settings for Production
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+

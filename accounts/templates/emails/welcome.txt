@@ -1,0 +1,33 @@
+Welcome to SAFA Registration System!
+
+Dear {{ user.get_full_name|default:user.email }},
+
+Thank you for registering with the South African Football Association (SAFA)! Your registration as a {{ user.get_role_display }} has been received and is currently being processed.
+
+What happens next?
+- Review Process: Our team will review your application within 2-3 business days
+- Document Verification: We'll verify your uploaded documents  
+- Approval Notification: You'll receive an email once your application is approved
+- Access Granted: Upon approval, you'll gain full access to SAFA services
+
+Your Registration Details:
+- Name: {{ user.get_full_name }}
+- Email: {{ user.email }}
+- Role: {{ user.get_role_display }}
+- Registration Date: {{ user.date_joined|date:"F d, Y" }}
+{% if user.safa_id %}
+- SAFA ID: {{ user.safa_id }}
+{% endif %}
+
+While you wait for approval, you can:
+- Log in to check your application status: {{ login_url }}
+- Update your profile information if needed
+- Contact our support team if you have questions: {{ support_email }}
+
+Welcome to the SAFA family!
+
+Best regards,
+The SAFA Registration Team
+
+South African Football Association
+SAFA House, Johannesburg

@@ -26,9 +26,8 @@ from crispy_forms.bootstrap import FormActions
 
 class RegistrationForm(UserCreationForm):
     # Personal information
-    name = forms.CharField(max_length=50, required=True)
-    surname = forms.CharField(max_length=100, required=True)
-    middle_name = forms.CharField(max_length=100, required=False)
+    first_name = forms.CharField(max_length=150, required=True)
+    last_name = forms.CharField(max_length=150, required=True)
     date_of_birth = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
         required=True
@@ -40,7 +39,7 @@ class RegistrationForm(UserCreationForm):
         choices=CustomUser._meta.get_field('id_document_type').choices,
         required=True
     )
-    id_number = forms.CharField(max_length=20, required=False)
+    id_number = forms.CharField(max_length=13, required=False)
     passport_number = forms.CharField(max_length=25, required=False)
 
     # Location
@@ -51,14 +50,18 @@ class RegistrationForm(UserCreationForm):
     )
 
     # Profile photo
-    profile_photo = forms.ImageField(required=False)
+    profile_picture = forms.ImageField(required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'name', 'middle_name', 'surname',
+        fields = ['email', 'first_name', 'last_name',
                   'date_of_birth', 'gender',
                   'id_document_type', 'id_number', 'passport_number',
-                  'profile_photo']
+                  'profile_picture', 'phone_number', 'safa_id', 'fifa_id',
+                  'country_code', 'nationality', 'popi_act_consent',
+                  'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+                  'street_address', 'suburb', 'city', 'state', 'postal_code',
+                  'national_federation', 'province', 'region', 'local_federation', 'club', 'association', 'mother_body']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -69,7 +72,7 @@ class RegistrationForm(UserCreationForm):
         # Validate identification based on document type
         if id_document_type == 'PP' and not passport_number:
             self.add_error('passport_number', 'Passport number is required when document type is Passport')
-        elif id_document_type in ['ID', 'BC', 'DL'] and not id_number:
+        elif id_document_type == 'ID' and not id_number:
             self.add_error('id_number', 'ID number is required for this document type')
 
         return cleaned_data
@@ -85,10 +88,14 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'name', 'middle_name', 'surname', 'alias',
+        fields = ['email', 'first_name', 'last_name',
                   'date_of_birth', 'gender',
                   'id_document_type', 'id_number', 'passport_number',
-                  'profile_photo']
+                  'profile_picture', 'phone_number', 'safa_id', 'fifa_id',
+                  'country_code', 'nationality', 'popi_act_consent',
+                  'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+                  'street_address', 'suburb', 'city', 'state', 'postal_code',
+                  'national_federation', 'province', 'region', 'local_federation', 'club', 'association', 'mother_body']
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
         }

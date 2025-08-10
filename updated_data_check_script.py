@@ -32,16 +32,7 @@ try:
                 print(f"      Has Membership Player: ERROR - {e}")
             
             # Check registration app Player  
-            try:
-                from registration.models import Player as RegPlayer
-                player = RegPlayer.objects.filter(id=member.id).first()
-                if player:
-                    print(f"      Has Registration Player: YES (ID: {player.id})")
-                else:
-                    print(f"      Has Registration Player: NO")
-            except Exception as e:
-                print(f"      Has Registration Player: ERROR - {e}")
-            
+        
             # Check membership app Official
             try:
                 from membership.models import Official as MemOfficial
@@ -54,32 +45,13 @@ try:
                 print(f"      Has Membership Official: ERROR - {e}")
             
             # Check registration app Official
-            try:
-                from registration.models import Official as RegOfficial
-                official = RegOfficial.objects.filter(id=member.id).first()
-                if official:
-                    print(f"      Has Registration Official: YES (ID: {official.id})")
-                else:
-                    print(f"      Has Registration Official: NO")
-            except Exception as e:
-                print(f"      Has Registration Official: ERROR - {e}")
-            
-            print()  # Empty line between members
+          
             
 except ImportError as e:
     print(f"❌ Cannot import Member model: {e}")
 
 # Check Player counts (both locations)
 print(f"⚽ PLAYER MODEL COUNTS:")
-try:
-    from registration.models import Player as RegPlayer
-    reg_players = RegPlayer.objects.count()
-    print(f"   Registration App Players: {reg_players}")
-    if reg_players > 0:
-        for player in RegPlayer.objects.all():
-            print(f"      - {player.get_full_name()} (ID: {player.id})")
-except ImportError as e:
-    print(f"   Registration Players: Import Error - {e}")
 
 try:
     from membership.models import Player as MemPlayer  
@@ -93,15 +65,7 @@ except ImportError as e:
 
 # Check Official counts (both locations)
 print(f"\n🏅 OFFICIAL MODEL COUNTS:")
-try:
-    from registration.models import Official as RegOfficial
-    reg_officials = RegOfficial.objects.count()
-    print(f"   Registration App Officials: {reg_officials}")
-    if reg_officials > 0:
-        for official in RegOfficial.objects.all():
-            print(f"      - {official.get_full_name()} (ID: {official.id})")
-except ImportError as e:
-    print(f"   Registration Officials: Import Error - {e}")
+
 
 try:
     from membership.models import Official as MemOfficial

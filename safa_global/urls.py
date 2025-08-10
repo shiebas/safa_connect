@@ -10,10 +10,13 @@ admin.site.site_header = "SAFA Administration"
 admin.site.site_title = "SAFA Admin Portal"
 admin.site.index_title = "Welcome to SAFA Administration Portal"
 
+# Error handlers
+handler404 = 'accounts.views.custom_404_view'
+handler500 = 'accounts.views.custom_500_view'
+handler403 = 'accounts.views.custom_403_view'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('registration/', include('registration.urls')),
     path('accounts/', include('accounts.urls')),
     path('geography/', include(('geography.urls', 'geography'), namespace='geography')),
     path('membership/', include('membership.urls')),
