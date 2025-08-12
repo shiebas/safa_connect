@@ -1,5 +1,4 @@
 import os
-import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -86,8 +85,10 @@ ROOT_URLCONF = 'safa_global.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),  # Global templates
+        ],
+        'APP_DIRS': True,  # This enables app-specific template directories
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',

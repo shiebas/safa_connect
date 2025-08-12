@@ -1,13 +1,646 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Add Player to Club{% endblock %}
 
-{% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>{{ title }}</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Add Player</button>
-    </form>
+<div class="container mt-4">
+    <!-- Navigation Bar with links -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Player Registration</h2>
+                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+            <hr>
+            <div class="btn-toolbar mt-3">
+                <a href="{% url 'accounts:player_approval_list' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-people"></i> Player List
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card" style="border: 2px solid var(--safa-black);">
+                <div class="card-header text-center">
+                    <h2 class="mb-0">Register New Player</h2>
+                    <p class="text-muted">Register player for {{ request.user.club.name }}</p>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if player_form.errors %}
+                        <div class="alert alert-danger">
+                            <h5><i class="bi bi-exclamation-triangle-fill"></i> Please correct the errors below:</h5>
+                            {% for field in player_form %}
+                                {% for error in field.errors %}
+                                    <div class="mb-1">{{ field.label }}: {{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in player_form.non_field_errors %}
+                                <div class="mb-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form id="registration-form" 
+                        method="post" 
+                        enctype="multipart/form-data" 
+                        novalidate
+                        data-id-number-id="id_id_number"
+                        data-country-id="id_country" 
+                        data-dob-id="id_date_of_birth"
+                        data-gender-id="id_gender"
+                        data-id-doc-type-id="id_id_document_type">
+                        {% csrf_token %}
+                        
+                        {% crispy player_form %}
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary" id="submit-btn">Register Player</button>
+                            <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div> <!-- card-body -->
+            </div> <!-- card -->
+        </div>
+    </div>
 </div>
+
+<!-- POPI Modal -->
+<div class="modal fade" id="popiModal" tabindex="-1" aria-labelledby="popiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="popiModalLabel">POPI Act Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>Protection of Personal Information Act (POPIA) Consent</h5>
+                <p>I consent to SAFA collecting and processing my personal information for the purpose of registration and participation in football activities. I understand that:</p>
+                <ul>
+                    <li>My information will be used for registration, verification, and administrative purposes</li>
+                    <li>SAFA may share my information with relevant sporting bodies and associations</li>
+                    <li>I have the right to access and request correction of my personal information</li>
+                    <li>My information will be stored securely for the duration of my membership</li>
+                </ul>
+                <p>For junior registrations (under 18), this consent is provided by a parent or legal guardian on behalf of the minor.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/registration_form.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ID Document Type Toggling
+    const idTypeField = document.getElementById('id_id_document_type');
+    const idNumberField = document.getElementById('id_id_number');
+    const passportFields = document.querySelectorAll('.passport-field');
+    const dobField = document.getElementById('id_date_of_birth');
+    const genderField = document.getElementById('id_gender');
+    const safaIdField = document.getElementById('id_safa_id');
+    const fifaIdField = document.getElementById('id_fifa_id');
+    
+    function toggleFields() {
+        const idNumberField = document.querySelector('.id-number-field');
+        const saPassportSection = document.querySelector('.sa-passport-section');
+        const saPassportDocumentField = document.querySelector('.sa-passport-document-field');
+        const saPassportExpiryField = document.querySelector('.sa-passport-expiry-field');
+        
+        console.log("ID document type:", idTypeField.value);
+        
+        // Reset all fields first
+        document.getElementById('id_id_number').value = '';
+        document.getElementById('id_passport_number').value = '';
+        document.getElementById('id_sa_passport_number').value = '';
+        if (document.getElementById('id_sa_passport_document')) {
+            document.getElementById('id_sa_passport_document').value = '';
+        }
+        if (document.getElementById('id_sa_passport_expiry_date')) {
+            document.getElementById('id_sa_passport_expiry_date').value = '';
+        }
+        
+        // Handle case of ID (South African citizen)
+        if (idTypeField.value === 'ID') {
+            console.log("ID selected - showing ID fields");
+            // Show ID field
+            if (idNumberField) idNumberField.style.display = 'block';
+            // Hide passport fields
+            passportFields.forEach(f => f.style.display = 'none');
+            // Show SA passport section for possible SA passport
+            if (saPassportSection) saPassportSection.style.display = 'block';
+            
+            // Set required fields
+            document.getElementById('id_id_number').disabled = false;
+            document.getElementById('id_id_number').required = true;
+            document.getElementById('id_passport_number').required = false;
+            document.getElementById('id_passport_number').disabled = true;
+            
+            // Enable SA passport checkbox for SA citizens
+            document.getElementById('id_has_sa_passport').disabled = false;
+            
+            // Auto-populate and hide fields for SA ID
+            dobField.disabled = true;
+            genderField.disabled = true;
+            // Hide DOB and gender fields when using SA ID (they're auto-populated)
+            document.getElementById('div_id_date_of_birth').style.display = 'none';
+            document.getElementById('div_id_gender').style.display = 'none';
+            
+            // Initialize the SA passport fields based on checkbox
+            toggleSaPassportField();
+            
+        } 
+        // Handle case of foreign passport
+        else if (idTypeField.value === 'PP') {
+            console.log("Passport selected - showing passport fields");
+            // Hide ID field
+            if (idNumberField) idNumberField.style.display = 'none';
+            // Show passport fields
+            passportFields.forEach(f => f.style.display = 'block');
+            // Hide SA passport section (not applicable for foreigners)
+            if (saPassportSection) saPassportSection.style.display = 'none';
+            // Hide SA passport related fields
+            if (saPassportNumberField) saPassportNumberField.style.display = 'none';
+            if (saPassportDocumentField) saPassportDocumentField.style.display = 'none';
+            if (saPassportExpiryField) saPassportExpiryField.style.display = 'none';
+            
+            // Set required fields
+            document.getElementById('id_id_number').disabled = true;
+            document.getElementById('id_id_number').required = false;
+            document.getElementById('id_passport_number').required = true;
+            document.getElementById('id_passport_number').disabled = false;
+            
+            // Disable SA passport fields for foreigners
+            document.getElementById('id_has_sa_passport').disabled = true;
+            document.getElementById('id_has_sa_passport').checked = false;
+            document.getElementById('id_sa_passport_number').disabled = true;
+            document.getElementById('id_sa_passport_number').required = false;
+            if (document.getElementById('id_sa_passport_document')) {
+                document.getElementById('id_sa_passport_document').disabled = true;
+                document.getElementById('id_sa_passport_document').required = false;
+            }
+            if (document.getElementById('id_sa_passport_expiry_date')) {
+                document.getElementById('id_sa_passport_expiry_date').disabled = true;
+                document.getElementById('id_sa_passport_expiry_date').required = false;
+            }
+            
+            // Manual entry for DOB and gender with foreign passport
+            dobField.disabled = false;
+            genderField.disabled = false;
+            // Show DOB and gender fields for passport (manual entry required)
+            document.getElementById('div_id_date_of_birth').style.display = 'block';
+            document.getElementById('div_id_gender').style.display = 'block';
+        }
+        // Default case - nothing selected yet
+        else {
+            console.log("No ID type selected");
+            if (idNumberField) idNumberField.style.display = 'none';
+            passportFields.forEach(f => f.style.display = 'none');
+            if (saPassportSection) saPassportSection.style.display = 'none';
+            // Hide DOB and gender fields initially
+            document.getElementById('div_id_date_of_birth').style.display = 'none';
+            document.getElementById('div_id_gender').style.display = 'none';
+        }
+        
+        console.log("Toggle fields called. Document type:", idTypeField.value);
+        console.log("ID field visible:", idNumberField ? idNumberField.style.display : "N/A");
+        console.log("Passport fields visible:", passportFields.length ? passportFields[0].style.display : "N/A");
+        console.log("SA Passport section visible:", saPassportSection ? saPassportSection.style.display : "N/A");
+    }
+    
+    // SA Passport toggle for SA citizens
+    const hasSaPassportCheckbox = document.getElementById('id_has_sa_passport');
+    const saPassportNumberField = document.querySelector('.sa-passport-number-field');
+    const saPassportDocumentField = document.querySelector('.sa-passport-document-field');
+    const saPassportExpiryField = document.querySelector('.sa-passport-expiry-field');
+    
+    function toggleSaPassportField() {
+        if (hasSaPassportCheckbox) {
+            const isChecked = hasSaPassportCheckbox.checked;
+            
+            // Toggle SA passport number field
+            if (saPassportNumberField) {
+                saPassportNumberField.style.display = isChecked ? 'block' : 'none';
+                document.getElementById('id_sa_passport_number').required = false; // Always optional
+                document.getElementById('id_sa_passport_number').disabled = !isChecked;
+                if (!isChecked) document.getElementById('id_sa_passport_number').value = '';
+            }
+            
+            // Toggle SA passport document field
+            if (saPassportDocumentField) {
+                saPassportDocumentField.style.display = isChecked ? 'block' : 'none';
+                document.getElementById('id_sa_passport_document').required = false; // Always optional
+                document.getElementById('id_sa_passport_document').disabled = !isChecked;
+            }
+            
+            // Toggle SA passport expiry date field
+            if (saPassportExpiryField) {
+                saPassportExpiryField.style.display = isChecked ? 'block' : 'none';
+                document.getElementById('id_sa_passport_expiry_date').required = false; // Always optional
+                document.getElementById('id_sa_passport_expiry_date').disabled = !isChecked;
+            }
+        }
+    }
+    
+    // Initialize fields
+    if (idTypeField) {
+        toggleFields();
+        idTypeField.addEventListener('change', toggleFields);
+    }
+    
+    if (hasSaPassportCheckbox) {
+        toggleSaPassportField(); // Initialize
+        hasSaPassportCheckbox.addEventListener('change', toggleSaPassportField);
+    }
+    
+    // Only allow digits in the ID number field
+    if (idNumberField) {
+        idNumberField.addEventListener('input', function(e) {
+            // Remove any non-digit characters
+            this.value = this.value.replace(/\D/g, '');
+            
+            // Limit to 13 digits
+            if (this.value.length > 13) {
+                this.value = this.value.slice(0, 13);
+            }
+        });
+        
+        idNumberField.addEventListener('blur', function() {
+            const idNumber = this.value.trim();
+            if (idNumber && idNumber.length === 13) {
+                // Use the validateSAIdNumber from registration_form.js
+                const result = validateSAIdNumber(idNumber);
+                
+                if (result.valid) {
+                    // Extract DOB and gender from validation result
+                    const dobParts = result.details.dateOfBirth.split('/');
+                    if (dobParts.length === 3) {
+                        // Format as YYYY-MM-DD for the input field
+                        const formattedDate = `${dobParts[2]}-${dobParts[1].padStart(2, '0')}-${dobParts[0].padStart(2, '0')}`;
+                        dobField.value = formattedDate;
+                        
+                        // Create a hidden input to ensure the DOB is submitted with the form
+                        let hiddenDobInput = document.getElementById('hidden_dob_input');
+                        if (!hiddenDobInput) {
+                            hiddenDobInput = document.createElement('input');
+                            hiddenDobInput.type = 'hidden';
+                            hiddenDobInput.id = 'hidden_dob_input';
+                            hiddenDobInput.name = 'date_of_birth';
+                            document.getElementById('registration-form').appendChild(hiddenDobInput);
+                        }
+                        hiddenDobInput.value = formattedDate;
+                    }
+                    
+                    genderField.value = result.details.gender === 'Male' ? 'M' : 'F';
+                    
+                    // Create a hidden input to ensure the gender is submitted with the form
+                    let hiddenGenderInput = document.getElementById('hidden_gender_input');
+                    if (!hiddenGenderInput) {
+                        hiddenGenderInput = document.createElement('input');
+                        hiddenGenderInput.type = 'hidden';
+                        hiddenGenderInput.id = 'hidden_gender_input';
+                        hiddenGenderInput.name = 'gender';
+                        document.getElementById('registration-form').appendChild(hiddenGenderInput);
+                    }
+                    hiddenGenderInput.value = genderField.value;
+                    
+                    // Remove any validation errors
+                    idNumberField.classList.remove('is-invalid');
+                    const existingError = idNumberField.parentElement.querySelector('.invalid-feedback');
+                    if (existingError) existingError.remove();
+                    
+                    // Check if ID number exists in database
+                    fetch(`/accounts/ajax/check-id-number/?id_number=${idNumber}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                // Show error message for duplicate ID
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'invalid-feedback d-block';
+                                errorDiv.textContent = 'A player with this ID number already exists.';
+                                
+                                // Remove any existing error
+                                const existingError = idNumberField.parentElement.querySelector('.invalid-feedback');
+                                if (existingError) existingError.remove();
+                                
+                                idNumberField.classList.add('is-invalid');
+                                idNumberField.parentElement.appendChild(errorDiv);
+                            }
+                        })
+                        .catch(error => console.error('Error checking ID number:', error));
+                } else {
+                    // Show validation error for invalid ID number
+                    idNumberField.classList.add('is-invalid');
+                    
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback d-block';
+                    errorDiv.textContent = result.message;
+                    
+                    // Remove any existing error
+                    const existingError = idNumberField.parentElement.querySelector('.invalid-feedback');
+                    if (existingError) existingError.remove();
+                    
+                    idNumberField.parentElement.appendChild(errorDiv);
+                }
+            }
+        });
+    }
+    
+    // SA Passport document upload and validation
+    const saPassportDocument = document.getElementById('id_sa_passport_document');
+    const saPassportNumber = document.getElementById('id_sa_passport_number');
+    const saPassportExpiryDate = document.getElementById('id_sa_passport_expiry_date');
+    
+    if (saPassportDocument) {
+        saPassportDocument.addEventListener('change', function() {
+            const file = saPassportDocument.files[0];
+            
+            if (!file) return;
+            
+            // Basic validation of file type
+            const fileType = file.type;
+            const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+            
+            if (!validTypes.includes(fileType)) {
+                alert('Please upload a valid file (PDF, JPG, PNG).');
+                saPassportDocument.value = '';
+                return;
+            }
+            
+            // Add a message that we are checking the document
+            const statusDiv = document.createElement('div');
+            statusDiv.id = 'passport-document-status';
+            statusDiv.className = 'form-text text-info';
+            statusDiv.innerHTML = '<i class="bi bi-info-circle"></i> Document uploaded. Please complete the form and submit.';
+            
+            // Remove any existing status
+            const existingStatus = document.getElementById('passport-document-status');
+            if (existingStatus) existingStatus.remove();
+            
+            saPassportDocument.parentElement.appendChild(statusDiv);
+            
+            // TODO: In a real implementation, we would use OCR to extract the Machine Readable Zone (MRZ)
+            // from the passport image and validate it. This would require server-side processing.
+            // For now, we'll just show a message that the document has been uploaded.
+        });
+    }
+    
+    // SA Passport number validation
+    if (saPassportNumber) {
+        saPassportNumber.addEventListener('blur', function() {
+            const passport = saPassportNumber.value.trim();
+            
+            if (!passport) return;
+            
+            // Basic validation - SA passports typically have 9 characters (A00000000 format)
+            const passportRegex = /^[A-Za-z]\d{8}$/;
+            
+            if (!passportRegex.test(passport)) {
+                // Show validation error
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback d-block';
+                errorDiv.textContent = 'SA passport numbers typically have a letter followed by 8 digits (e.g., A12345678)';
+                
+                // Remove any existing feedback
+                const existingFeedback = saPassportNumber.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                saPassportNumber.classList.add('is-invalid');
+                saPassportNumber.parentElement.appendChild(errorDiv);
+            } else {
+                saPassportNumber.classList.remove('is-invalid');
+                saPassportNumber.classList.add('is-valid');
+                
+                // Remove any existing feedback
+                const existingFeedback = saPassportNumber.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                // Check if passport number exists in database
+                fetch(`/accounts/ajax/check-sa-passport-number/?sa_passport_number=${passport}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            // Show error message for duplicate passport
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'invalid-feedback d-block';
+                            errorDiv.textContent = 'This SA passport number is already registered in the system.';
+                            
+                            saPassportNumber.classList.remove('is-valid');
+                            saPassportNumber.classList.add('is-invalid');
+                            saPassportNumber.parentElement.appendChild(errorDiv);
+                        } else {
+                            // Show success message
+                            const successDiv = document.createElement('div');
+                            successDiv.className = 'valid-feedback d-block';
+                            successDiv.textContent = 'Valid SA passport number format.';
+                            
+                            saPassportNumber.parentElement.appendChild(successDiv);
+                        }
+                    })
+                    .catch(error => console.error('Error checking passport number:', error));
+            }
+        });
+    }
+    
+    // Validate passport expiry date
+    if (saPassportExpiryDate) {
+        // Set min attribute to today's date to prevent past dates
+        const today = new Date();
+        const todayFormatted = today.toISOString().split('T')[0];
+        saPassportExpiryDate.setAttribute('min', todayFormatted);
+        
+        saPassportExpiryDate.addEventListener('change', function() {
+            const expiryDate = new Date(saPassportExpiryDate.value);
+            const today = new Date();
+            
+            // Set the time part to 0 for both dates to compare only dates
+            today.setHours(0, 0, 0, 0);
+            expiryDate.setHours(0, 0, 0, 0);
+            
+            if (expiryDate < today) {
+                // Show validation error for expired passport
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback d-block';
+                errorDiv.textContent = 'The passport has expired. Please provide a valid passport with a future expiry date.';
+                
+                // Remove any existing feedback
+                const existingFeedback = saPassportExpiryDate.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                saPassportExpiryDate.classList.add('is-invalid');
+                saPassportExpiryDate.parentElement.appendChild(errorDiv);
+                
+                // Force a future date by setting the value to today + 1 day
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowFormatted = tomorrow.toISOString().split('T')[0];
+                saPassportExpiryDate.value = tomorrowFormatted;
+            } else {
+                saPassportExpiryDate.classList.remove('is-invalid');
+                saPassportExpiryDate.classList.add('is-valid');
+                
+                // Remove any existing feedback
+                const existingFeedback = saPassportExpiryDate.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'valid-feedback d-block';
+                successDiv.textContent = 'Valid future expiry date.';
+                
+                saPassportExpiryDate.parentElement.appendChild(successDiv);
+            }
+        });
+    }
+    
+    // Validate SAFA ID and FIFA ID fields
+    if (safaIdField) {
+        safaIdField.addEventListener('blur', function() {
+            const safaId = this.value.trim().toUpperCase();
+            
+            // If not empty, validate SAFA ID format (5 alphanumeric characters)
+            if (safaId) {
+                this.value = safaId; // Convert to uppercase
+                
+                // Check format: should be 5 alphanumeric characters
+                const safaIdRegex = /^[A-Z0-9]{5}$/;
+                if (!safaIdRegex.test(safaId)) {
+                    // Show validation error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback d-block';
+                    errorDiv.textContent = 'SAFA ID must be exactly 5 alphanumeric characters (letters and numbers only)';
+                    
+                    // Remove any existing feedback
+                    const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                    if (existingFeedback) existingFeedback.remove();
+                    
+                    this.classList.add('is-invalid');
+                    this.parentElement.appendChild(errorDiv);
+                } else {
+                    // Check if SAFA ID exists in database
+                    fetch(`/accounts/ajax/check-safa-id/?safa_id=${safaId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Remove any existing feedback
+                            const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                            if (existingFeedback) existingFeedback.remove();
+                            
+                            if (data.exists) {
+                                // Show error message for duplicate SAFA ID
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'invalid-feedback d-block';
+                                errorDiv.textContent = 'This SAFA ID is already registered in the system.';
+                                
+                                this.classList.add('is-invalid');
+                                this.parentElement.appendChild(errorDiv);
+                            } else {
+                                // Show success message
+                                const successDiv = document.createElement('div');
+                                successDiv.className = 'valid-feedback d-block';
+                                successDiv.textContent = 'Valid SAFA ID format.';
+                                
+                                this.classList.remove('is-invalid');
+                                this.classList.add('is-valid');
+                                this.parentElement.appendChild(successDiv);
+                            }
+                        })
+                        .catch(error => console.error('Error checking SAFA ID:', error));
+                }
+            } else {
+                // Remove any existing feedback since empty is valid (will be auto-generated)
+                const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                this.classList.remove('is-invalid');
+                this.classList.remove('is-valid');
+                
+                // Show info message about auto-generation
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'form-text text-info';
+                infoDiv.innerHTML = '<i class="bi bi-info-circle"></i> SAFA ID will be auto-generated if left blank.';
+                this.parentElement.appendChild(infoDiv);
+            }
+        });
+    }
+    
+    if (fifaIdField) {
+        fifaIdField.addEventListener('blur', function() {
+            const fifaId = this.value.trim();
+            
+            // If not empty, validate FIFA ID format (7 digits)
+            if (fifaId) {
+                // Check format: should be 7 digits
+                const fifaIdRegex = /^[0-9]{7}$/;
+                if (!fifaIdRegex.test(fifaId)) {
+                    // Show validation error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback d-block';
+                    errorDiv.textContent = 'FIFA ID must be exactly 7 digits';
+                    
+                    // Remove any existing feedback
+                    const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                    if (existingFeedback) existingFeedback.remove();
+                    
+                    this.classList.add('is-invalid');
+                    this.parentElement.appendChild(errorDiv);
+                } else {
+                    // Check if FIFA ID exists in database
+                    fetch(`/accounts/ajax/check-fifa-id/?fifa_id=${fifaId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Remove any existing feedback
+                            const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                            if (existingFeedback) existingFeedback.remove();
+                            
+                            if (data.exists) {
+                                // Show error message for duplicate FIFA ID
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'invalid-feedback d-block';
+                                errorDiv.textContent = 'This FIFA ID is already registered in the system.';
+                                
+                                this.classList.add('is-invalid');
+                                this.parentElement.appendChild(errorDiv);
+                            } else {
+                                // Show success message
+                                const successDiv = document.createElement('div');
+                                successDiv.className = 'valid-feedback d-block';
+                                successDiv.textContent = 'Valid FIFA ID format.';
+                                
+                                this.classList.remove('is-invalid');
+                                this.classList.add('is-valid');
+                                this.parentElement.appendChild(successDiv);
+                            }
+                        })
+                        .catch(error => console.error('Error checking FIFA ID:', error));
+                }
+            } else {
+                // Remove any existing feedback
+                const existingFeedback = this.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+                if (existingFeedback) existingFeedback.remove();
+                
+                this.classList.remove('is-invalid');
+                this.classList.remove('is-valid');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
