@@ -185,11 +185,7 @@ class SAFAFeeStructure(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.description} (x{self.quantity})"
-    
-    @property
-    def sub_total(self):
-        return self.quantity * self.unit_price
+        return f"{self.get_entity_type_display()} - {self.annual_fee}"
 
 
 class Transfer(TimeStampedModel):
@@ -943,4 +939,70 @@ class InvoiceItem(models.Model):
         ]
     
     def __str__(self):
-        return
+        return f'{self.description} - {self.quantity} x {self.unit_price}'
+
+
+class MembershipSeasonHistory(models.Model):
+    """Tracks the seasonal history of a member"""
+    member = models.ForeignKey(
+        'Member',
+        on_delete=models.CASCADE,
+        related_name='season_histories'
+    )
+    season_config = models.ForeignKey(
+        SAFASeasonConfig,
+        on_delete=models.CASCADE,
+        related_name='member_season_histories'
+    )
+    club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='member_season_histories'
+    )
+    province = models.ForeignKey(
+        'geography.Province',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    region = models.ForeignKey(
+        'geography.Region',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    lfa = models.ForeignKey(
+        'geography.LocalFootballAssociation',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Member.MEMBERSHIP_STATUS,
+        default='PENDING'
+    )
+    registration_date = models.DateTimeField(null=True, blank=True)
+    registration_method = models.CharField(max_length=50, blank=True)
+    invoice_paid = models.BooleanField(default=False)
+    safa_approved = models.BooleanField(default=False)
+    safa_approved_date = models.DateTimeField(null=True, blank=True)
+    transferred_from_club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transferred_members'
+    )
+    transfer_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Membership Season History"
+        verbose_name_plural = "Membership Season Histories"
+        unique_together = ('member', 'season_config')
+        ordering = ['-season_config__season_year', 'member__user__last_name']
+
+    def __str__(self):
+        return f"{self.member.user.get_full_name()} - {self.season_config.season_year}"

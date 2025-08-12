@@ -79,3 +79,27 @@ class JuniorMembershipDashboardView(LoginRequiredMixin, TemplateView):
         context['members'] = members
         context['approval_status'] = approval_status
         return context
+
+def approve_junior_membership(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    if member.member_type != 'JUNIOR':
+        messages.error(request, 'This action is only valid for junior members.')
+        return redirect('membership:junior_membership_dashboard')
+    
+    member.status = 'ACTIVE'
+    member.approved_by = request.user
+    member.approved_date = timezone.now()
+    member.save()
+    messages.success(request, f'Junior membership for {member.get_full_name()} has been approved.')
+    return redirect('membership:junior_membership_dashboard')
+
+def reject_junior_membership(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    if member.member_type != 'JUNIOR':
+        messages.error(request, 'This action is only valid for junior members.')
+        return redirect('membership:junior_membership_dashboard')
+    
+    member.status = 'REJECTED'
+    member.save()
+    messages.success(request, f'Junior membership for {member.get_full_name()} has been rejected.')
+    return redirect('membership:junior_membership_dashboard')

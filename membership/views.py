@@ -1,7 +1,10 @@
 # membership/views.py
-from django.shortcuts import render, redirect
-from django.views.generic import CreateView
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import CreateView, ListView
 from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
+from django.utils import timezone
 from .forms import PlayerRegistrationForm, OfficialRegistrationForm, AdminRegistrationForm
 from .models import Member
 from accounts.models import CustomUser
@@ -75,3 +78,38 @@ class AdminRegistrationView(CreateView):
 
 def registration_success(request):
     return render(request, 'membership/registration_success.html')
+
+class MemberApprovalListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Member
+    template_name = 'membership/member_approval_list.html'
+    context_object_name = 'members'
+    
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.role in ['ADMIN_NATIONAL', 'ADMIN_PROVINCE', 'CLUB_ADMIN']
+    
+    def get_queryset(self):
+        return Member.objects.filter(status='PENDING').order_by('-created')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Member Approvals'
+        return context
+
+def approve_member(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    if request.method == 'POST':
+        member.status = 'ACTIVE'
+        member.approved_by = request.user
+        member.approved_date = timezone.now()
+        member.save()
+        messages.success(request, f'Member {member.get_full_name()} has been approved.')
+    return redirect('membership:member_approval_list')
+
+def reject_member(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    if request.method == 'POST':
+        member.status = 'REJECTED'
+        member.rejection_reason = request.POST.get('reason', '')
+        member.save()
+        messages.success(request, f'Member {member.get_full_name()} has been rejected.')
+    return redirect('membership:member_approval_list')

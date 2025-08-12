@@ -340,7 +340,7 @@ class MemberAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         user = request.user
 
-        if user.is_superuser or getattr(user, 'role', None) == 'ADMIN_NATIONAL':
+        if user.is_superuser or getattr(user, 'role', None) in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS']:
             return qs
         elif getattr(user, 'role', None) == 'ADMIN_PROVINCE' and hasattr(user, 'province'):
             return qs.filter(province=user.province)

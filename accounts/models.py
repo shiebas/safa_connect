@@ -12,6 +12,7 @@ from geography.models import (
     Club, Region, Association, LocalFootballAssociation,
     NationalFederation, MotherBody, Province
 )
+from membership.models import Member
 
 
 class CustomUserManager(BaseUserManager):

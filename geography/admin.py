@@ -6,8 +6,66 @@ from .models import (
     ContinentRegion, Country, NationalFederation, Province, Region,
     Association, Club, LocalFootballAssociation, OrganizationType, OrganizationLevel
 )
+from membership.models import Member
 from django.utils.crypto import get_random_string
 from django.contrib import messages
+
+
+class PlayerInline(admin.TabularInline):
+    model = Member
+    extra = 0
+    fields = ('first_name', 'last_name', 'safa_id', 'membership_status')
+    readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_membership_status')
+    verbose_name = 'Player'
+    verbose_name_plural = 'Players'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(role='PLAYER')
+
+    def get_first_name(self, obj):
+        return obj.user.first_name
+    get_first_name.short_description = 'First Name'
+
+    def get_last_name(self, obj):
+        return obj.user.last_name
+    get_last_name.short_description = 'Last Name'
+
+    def get_safa_id(self, obj):
+        return obj.safa_id
+    get_safa_id.short_description = 'SAFA ID'
+
+    def get_membership_status(self, obj):
+        return obj.membership_status
+    get_membership_status.short_description = 'Status'
+
+class OfficialInline(admin.TabularInline):
+    model = Member
+    extra = 0
+    fields = ('first_name', 'last_name', 'safa_id', 'membership_status')
+    readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_membership_status')
+    verbose_name = 'Official'
+    verbose_name_plural = 'Officials'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(role='OFFICIAL')
+
+    def get_first_name(self, obj):
+        return obj.user.first_name
+    get_first_name.short_description = 'First Name'
+
+    def get_last_name(self, obj):
+        return obj.user.last_name
+    get_last_name.short_description = 'Last Name'
+
+    def get_safa_id(self, obj):
+        return obj.safa_id
+    get_safa_id.short_description = 'SAFA ID'
+
+    def get_membership_status(self, obj):
+        return obj.membership_status
+    get_membership_status.short_description = 'Status'
 
 
 # Admin classes for models that inherit from ModelWithLogo
@@ -40,7 +98,7 @@ class ProvinceAdmin(ModelWithLogoAdmin):
     actions = ['generate_safa_ids']
     
     def generate_safa_ids(self, request, queryset):
-        """Generate unique SAFA IDs for selected provinces"""
+        """Generate unique SAFA IDs for selected provinces""" 
         import string
         import random
         
@@ -74,6 +132,7 @@ class AssociationAdmin(ModelWithLogoAdmin):
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym', 'safa_id']
     readonly_fields = ('safa_id',)
+    inlines = [PlayerInline, OfficialInline]
     
     
 @admin.action(description="Generate and assign unique SAFA IDs to selected regions")
@@ -116,6 +175,7 @@ class ClubAdmin(ModelWithLogoAdmin):
         'name', 'localfootballassociation__name', 'region__name', 'province__name', 'safa_id'
     ]
     list_editable = []
+    inlines = [PlayerInline, OfficialInline]
     
     
 # Register models
