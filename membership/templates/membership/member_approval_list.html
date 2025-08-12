@@ -2,39 +2,39 @@
 
 {% block content %}
 <div class="container">
-    <h1>{{ title }}</h1>
-    
-    {% if members %}
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
+    <h1>Member Approvals</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
                     <tr>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Date Applied</th>
-                        <th>Actions</th>
+                        <td>{{ member.get_full_name }}</td>
+                        <td>{{ member.get_role_display }}</td>
+                        <td>{{ member.membership_status }}</td>
+                        <td>
+                            <form method="post" action="{% url 'membership:approve_member' member.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ member.id }}">
+                                Reject
+                            </button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for member in members %}
-                        <tr>
-                            <td>{{ member.get_full_name }}</td>
-                            <td>{{ member.get_role_display }}</td>
-                            <td>{{ member.created|date:"d M Y" }}</td>
-                            <td>
-                                <form method="post" action="{% url 'membership:approve_member' member.id %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                </form>
-                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ member.id }}">
-                                    Reject
-                                </button>
-                            </td>
-                        </tr>
-                        
-                        <!-- Reject Modal -->
-                        <div class="modal fade" id="rejectModal{{ member.id }}" tabindex="-1">
-                            <div class="modal-dialog">
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
                                 <div class="modal-content">
                                     <form method="post" action="{% url 'membership:reject_member' member.id %}">
                                         {% csrf_token %}

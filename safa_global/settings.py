@@ -88,7 +88,7 @@ TEMPLATES = [
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),  # Global templates
         ],
-        'APP_DIRS': True,  # This enables app-specific template directories
+        'APP_DIRS': True,  # Enables app-specific template directories
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',

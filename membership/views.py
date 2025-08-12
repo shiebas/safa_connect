@@ -77,7 +77,10 @@ class AdminRegistrationView(CreateView):
         return redirect(self.success_url)
 
 def registration_success(request):
-    return render(request, 'membership/registration_success.html')
+    context = {
+        'title': 'Registration Successful',
+    }
+    return render(request, 'membership/registration_success.html', context)
 
 class MemberApprovalListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Member
