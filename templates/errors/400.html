@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="error-page">
+        <h1 class="display-1">400</h1>
+        <h2>Bad Request</h2>
+        <p>Sorry, your request contains invalid syntax and cannot be fulfilled.</p>
+        <div class="mt-4">
+            <a href="{% url 'accounts:modern_home' %}" class="btn btn-primary">Return Home</a>
+            <a href="{% url 'accounts:contact_support' %}" class="btn btn-outline-secondary">Contact Support</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

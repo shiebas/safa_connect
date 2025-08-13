@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ club.name }}</h1>
+    {% if club.logo %}
+        <img src="{{ club.logo.url }}" alt="{{ club.name }} logo" class="club-logo">
+    {% endif %}
+    
+    <div class="club-details">
+        <p><strong>LFA:</strong> {{ club.localfootballassociation }}</p>
+        <p><strong>Region:</strong> {{ club.region }}</p>
+        <p><strong>Province:</strong> {{ club.province }}</p>
+        <p><strong>Status:</strong> {{ club.get_status_display }}</p>
+        <p><strong>SAFA ID:</strong> {{ club.safa_id|default:"Not Assigned" }}</p>
+    </div>
+
+    {% if club.players.exists %}
+    <h2>Players</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>SAFA ID</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in club.players.all %}
+                    <tr>
+                        <td>{{ player.get_full_name }}</td>
+                        <td>{{ player.safa_id|default:"Not Assigned" }}</td>
+                        <td>{{ player.get_status_display }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

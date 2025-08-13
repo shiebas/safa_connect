@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="alert alert-success">
+        <h1>Registration Successful!</h1>
+        <p>Your registration has been submitted successfully.</p>
+        <p>Please check your email for further instructions.</p>
+    </div>
+
+    <div class="mt-4">
+        <h2>Next Steps:</h2>
+        <ol class="list-group list-group-numbered">
+            <li class="list-group-item">Complete your profile</li>
+            <li class="list-group-item">Upload required documents</li>
+            <li class="list-group-item">Wait for SAFA approval</li>
+        </ol>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'accounts:modern_home' %}" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

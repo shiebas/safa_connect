@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="error-page">
+        <h1 class="display-1">500</h1>
+        <h2>Server Error</h2>
+        <p>Sorry, something went wrong on our servers.</p>
+        <p class="text-muted">Our technical team has been notified and is working on the issue.</p>
+        <div class="mt-4">
+            <a href="{% url 'accounts:modern_home' %}" class="btn btn-primary">Return Home</a>
+            <a href="{% url 'accounts:contact_support' %}" class="btn btn-outline-secondary">Contact Support</a>
+        </div>
+        {% if contact_email %}
+            <div class="mt-3">
+                <p>Support Email: <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

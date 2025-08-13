@@ -1,39 +1,60 @@
 # membership/models.py - CORRECTED and Complete Implementation
 
 from django.db import models, transaction
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.validators import RegexValidator
-from model_utils.models import TimeStampedModel
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from model_utils.models import TimeStampedModel
 from decimal import Decimal, ROUND_HALF_UP
 import uuid
-import re
 from datetime import date, timedelta
 
-# Conditional GIS import (avoid errors if PostGIS not set up)
+# Constants
+MEMBER_ROLES = [
+    ('PLAYER', _('Player')),
+    ('OFFICIAL', _('Official')),
+    ('ADMIN', _('Administrator')),
+]
+
+MEMBERSHIP_STATUS = [
+    ('PENDING', _('Pending SAFA Approval')),
+    ('ACTIVE', _('SAFA Approved - Active')),
+    ('INACTIVE', _('Inactive')),
+    ('SUSPENDED', _('Suspended')),
+    ('REJECTED', _('Rejected by SAFA')),
+    ('TRANSFERRED', _('Transferred from another club')),
+]
+
+REGISTRATION_METHODS = [
+    ('SELF', _('Self Registration Online')),
+    ('CLUB', _('Club Registration')),
+    ('ADMIN', _('Admin Registration')),
+]
+
+# GIS imports
 try:
     from django.contrib.gis.db import models as gis_models
     from django.contrib.gis.geos import Point
     GIS_AVAILABLE = True
 except ImportError:
-    # Fallback if GIS not available
     gis_models = models
     Point = None
     GIS_AVAILABLE = False
 
-# Conditional geocoder import
 try:
     import geocoder
     GEOCODER_AVAILABLE = True
 except ImportError:
     GEOCODER_AVAILABLE = False
 
-
+# Models
 class SAFASeasonConfig(models.Model):
     """Configuration for SAFA seasons and fee structures"""
     season_year = models.PositiveIntegerField(
@@ -48,23 +69,19 @@ class SAFASeasonConfig(models.Model):
     # Registration periods
     organization_registration_start = models.DateField(
         _("Organization Registration Start"),
-        help_text=_("When organizations can start paying membership fees"),
-        default=date(2020, 1, 1) # Default for existing rows
+        help_text=_("When organizations can start paying membership fees")
     )
     organization_registration_end = models.DateField(
         _("Organization Registration End"),
-        help_text=_("Deadline for organization membership payments"),
-        default=date(2099, 12, 31) # Default for existing rows
+        help_text=_("Deadline for organization membership payments")
     )
     member_registration_start = models.DateField(
         _("Member Registration Start"),
-        help_text=_("When individual members can start registering"),
-        default=date(2020, 1, 1) # Default for existing rows
+        help_text=_("When individual members can start registering")
     )
     member_registration_end = models.DateField(
         _("Member Registration End"),
-        help_text=_("Deadline for individual member registrations"),
-        default=date(2099, 12, 31) # Default for existing rows
+        help_text=_("Deadline for individual member registrations")
     )
     
     vat_rate = models.DecimalField(
@@ -185,7 +202,527 @@ class SAFAFeeStructure(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.get_entity_type_display()} - {self.annual_fee}"
+        return f"{self.get_entity_type_display()} - R{self.annual_fee} ({self.season_config.season_year})"
+    
+    def save(self, *args, **kwargs):
+        # Auto-set is_organization based on entity_type
+        self.is_organization = self.entity_type in ['ASSOCIATION', 'PROVINCE', 'REGION', 'LFA', 'CLUB']
+        super().save(*args, **kwargs)
+
+
+class Member(TimeStampedModel):
+    """
+    Centralized Member model - handles all member types
+    CORRECTED: Members belong to ONE club only, selected during registration
+    """
+    
+    safa_id = models.CharField(
+        _("SAFA ID"), 
+        max_length=5, 
+        unique=True,
+        help_text=_("5-digit unique SAFA identification number")
+    )
+    
+    # Track if this is existing member or new registration
+    is_existing_member = models.BooleanField(
+        _("Existing SAFA Member"),
+        default=False,
+        help_text=_("Whether this member already had a SAFA ID from previous registration")
+    )
+    previous_safa_id = models.CharField(
+        _("Previous SAFA ID"),
+        max_length=5,
+        blank=True, null=True,
+        help_text=_("Previous SAFA ID if this is a transfer/renewal")
+    )
+    
+    # Personal Information
+    first_name = models.CharField(_("First Name"), max_length=100)
+    last_name = models.CharField(_("Last Name"), max_length=100)
+    email = models.EmailField(_("Email Address"))
+    phone_number = models.CharField(
+        _("Phone Number"), 
+        max_length=20, 
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r'^\+?[\d\s\-\(\)]{10,20}$',
+                message=_('Enter a valid phone number')
+            )
+        ]
+    )
+    date_of_birth = models.DateField(_("Date of Birth"))
+    gender = models.CharField(_("Gender"), max_length=1, choices=[('M', 'Male'), ('F', 'Female')], blank=True)
+    
+    # ID Information
+    id_number = models.CharField(
+        _("ID Number"), 
+        max_length=13, 
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{13}$',
+                message=_('ID number must be exactly 13 digits')
+            )
+        ]
+    )
+    passport_number = models.CharField(_('Passport Number'), max_length=25, blank=True, null=True)
+    
+    # Address Information
+    street_address = models.CharField(_("Street Address"), max_length=255, blank=True)
+    suburb = models.CharField(_("Suburb"), max_length=100, blank=True)
+    city = models.CharField(_("City"), max_length=100, blank=True)
+    state = models.CharField(_("State/Province"), max_length=100, blank=True)
+    postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True)
+    country = models.CharField(_("Country"), max_length=100, blank=True)
+
+    # SAFA Registration Details
+    role = models.CharField(_("Member Role"), max_length=20, choices=MEMBER_ROLES)
+    status = models.CharField(_("SAFA Status"), max_length=20, choices=MEMBERSHIP_STATUS, default='PENDING')
+    nationality = models.CharField(
+        _("Nationality"), 
+        max_length=100, blank=True, 
+        default="South African"
+    )
+    registration_complete = models.BooleanField(
+        _("Registration Complete"), 
+        default=False,
+        help_text=_("All required documents and information provided")
+    )
+    
+    # Registration method and current season
+    registration_method = models.CharField(
+        _("Registration Method"),
+        max_length=10,
+        choices=REGISTRATION_METHODS,
+        default='SELF'
+    )
+    current_season = models.ForeignKey(
+        SAFASeasonConfig,
+        on_delete=models.PROTECT,
+        related_name='current_season_members',
+        help_text=_("Season this member is registered for")
+    )
+    
+    # CORRECTED: Single club membership (mandatory during registration)
+    current_club = models.ForeignKey(
+        'geography.Club',  # String reference to avoid circular imports
+        on_delete=models.SET_NULL,
+        null=True, blank=False,  # Club selection is mandatory
+        related_name='current_members',
+        help_text=_("Current club this member belongs to (MANDATORY)")
+    )
+    
+    # Approval tracking
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='approved_members'
+    )
+    approved_date = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(_("Rejection Reason"), blank=True)
+
+    # Geographic/Organizational Hierarchy (auto-detected or selected)
+    province = models.ForeignKey(
+        'geography.Province', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True
+    )
+    region = models.ForeignKey(
+        'geography.Region', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True
+    )
+    lfa = models.ForeignKey(
+        'geography.LocalFootballAssociation', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True
+    )
+    national_federation = models.ForeignKey(
+        'geography.NationalFederation',
+        on_delete=models.PROTECT,
+        default=1
+    )
+
+    # CORRECTED: Multiple associations for officials (referee, coaching, etc.)
+    associations = models.ManyToManyField(
+        'geography.Association',
+        blank=True,
+        related_name='member_officials',
+        help_text=_("Associations this member belongs to (referee, coaching, etc.)")
+    )
+
+    # Location-based organization detection (for self-registration)
+    registration_address = models.CharField(
+        _("Registration Address"),
+        max_length=255,
+        blank=True,
+        help_text=_("Address used to determine organization jurisdiction")
+    )
+    
+    # Geographic coordinates for automatic organization assignment
+    location = gis_models.PointField(
+        _("Geographic Location"),
+        null=True, blank=True,
+        help_text=_("GPS coordinates for organization assignment")
+    ) if GIS_AVAILABLE else models.CharField(
+        _("Location Placeholder"), 
+        max_length=100, 
+        blank=True, 
+        help_text=_("Install PostGIS for full geographic support")
+    )
+
+    # Self-registration validation
+    terms_accepted = models.BooleanField(_("Terms and Conditions Accepted"), default=False)
+    privacy_accepted = models.BooleanField(_("Privacy Policy Accepted"), default=False)
+    marketing_consent = models.BooleanField(_("Marketing Consent"), default=False)
+    
+    # Documents and Images
+    profile_picture = models.ImageField(
+        _("Profile Picture"), 
+        upload_to='member_profiles/', 
+        null=True, blank=True
+    )
+    id_document = models.FileField(
+        upload_to='documents/member_documents/', 
+        null=True, blank=True
+    )
+
+    # Emergency Contact
+    emergency_contact = models.CharField(_("Emergency Contact"), max_length=100, blank=True)
+    emergency_phone = models.CharField(_("Emergency Contact Phone"), max_length=20, blank=True)
+    medical_notes = models.TextField(_("Medical Notes"), blank=True)
+
+    class Meta:
+        verbose_name = _("Member")
+        verbose_name_plural = _("Members")
+        ordering = ['-created']
+        indexes = [
+            models.Index(fields=['safa_id']),
+            models.Index(fields=['email']),
+            models.Index(fields=['current_club', 'status']),
+            models.Index(fields=['current_season', 'status']),
+            models.Index(fields=['role', 'status']),
+        ]
+
+    def __str__(self):
+        club_name = self.current_club.name if self.current_club else "No Club"
+        return f"{self.first_name} {self.last_name} ({self.safa_id}) - {club_name}"
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def is_junior(self):
+        """Check if member is under 18"""
+        if self.date_of_birth:
+            age = (timezone.now().date() - self.date_of_birth).days // 365
+            return age < 18
+        return False
+
+    @property
+    def age(self):
+        """Calculate member's age"""
+        if self.date_of_birth:
+            return (timezone.now().date() - self.date_of_birth).days // 365
+        return None
+
+    def clean(self):
+        super().clean()
+        
+        # CORRECTED: Club selection is mandatory
+        if not self.current_club:
+            raise ValidationError(_("Club selection is mandatory during registration"))
+        
+        # Validate club is within member's geographic area
+        self.validate_club_geography()
+        
+        # Validate SA ID number if provided
+        if self.id_number:
+            self.validate_sa_id_number()
+        
+        # Check if member can register based on organization payment status
+        if not self.pk:  # New member
+            if not self.can_register_with_organization():
+                raise ValidationError(_(
+                    "Cannot register member. The organization must be paid up for the current season first."
+                ))
+
+    def save(self, *args, **kwargs):
+        # Set current season if not set
+        if not self.current_season_id:
+            self.current_season = SAFASeasonConfig.get_active_season()
+        
+        # Handle SAFA ID
+        if not self.safa_id:
+            self.generate_safa_id()
+        elif self.is_existing_member and not self.previous_safa_id:
+            self.validate_existing_safa_id()
+        
+        # Auto-detect organization if doing self-registration
+        if self.registration_method == 'SELF' and self.registration_address and GIS_AVAILABLE:
+            if not self.location:
+                self.geocode_address()
+            
+            if self.location and not (self.province or self.region or self.lfa):
+                self.assign_organization_by_location()
+        
+        super().save(*args, **kwargs)
+
+    def geocode_address(self):
+        """Convert address to GPS coordinates"""
+        if not GEOCODER_AVAILABLE or not GIS_AVAILABLE:
+            return
+        
+        try:
+            g = geocoder.google(self.registration_address)
+            if g.ok:
+                self.location = Point(g.lng, g.lat)
+        except Exception as e:
+            print(f"Geocoding failed for {self.registration_address}: {e}")
+
+    def assign_organization_by_location(self):
+        """Assign organization based on geographic location"""
+        if not self.location or not GIS_AVAILABLE:
+            return
+        
+        try:
+            # Import here to avoid circular imports
+            from geography.models import LocalFootballAssociation, Region, Province
+            
+            # Check for LFA (most specific)
+            lfa = LocalFootballAssociation.objects.filter(
+                boundary__contains=self.location,
+                is_active=True
+            ).first()
+            
+            if lfa:
+                self.lfa = lfa
+                self.region = lfa.region
+                self.province = lfa.region.province if lfa.region else None
+                return
+            
+            # Check for Region
+            region = Region.objects.filter(
+                boundary__contains=self.location,
+                is_active=True
+            ).first()
+            
+            if region:
+                self.region = region
+                self.province = region.province
+                return
+            
+            # Check for Province
+            province = Province.objects.filter(
+                boundary__contains=self.location,
+                is_active=True
+            ).first()
+            
+            if province:
+                self.province = province
+                
+        except Exception as e:
+            print(f"Organization assignment failed: {e}")
+
+    def generate_safa_id(self):
+        """Generate a unique 5-character SAFA ID"""
+        while True:
+            code = get_random_string(
+                length=5,
+                allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            )
+            if not Member.objects.filter(safa_id=code).exists():
+                self.safa_id = code
+                break
+
+    def validate_existing_safa_id(self):
+        """Validate that the provided SAFA ID exists in previous seasons"""
+        if not self.safa_id or len(self.safa_id) != 5:
+            raise ValidationError(_("Invalid existing SAFA ID format"))
+
+    def can_register_with_organization(self):
+        """Check if member can register based on organization payment status"""
+        if not self.current_season:
+            return False
+        
+        # Get the organization this member belongs to
+        organization = self.get_primary_organization()
+        if not organization:
+            return True  # If no organization specified, allow registration
+        
+        # Check if organization is paid up for the season
+        content_type = ContentType.objects.get_for_model(organization)
+        try:
+            org_registration = OrganizationSeasonRegistration.objects.get(
+                season_config=self.current_season,
+                content_type=content_type,
+                object_id=organization.pk
+            )
+            return org_registration.can_register_members()
+        except OrganizationSeasonRegistration.DoesNotExist:
+            return False
+
+    def get_primary_organization(self):
+        """Get the primary organization this member belongs to"""
+        # Priority: LFA > Region > Province
+        if self.lfa:
+            return self.lfa
+        elif self.region:
+            return self.region
+        elif self.province:
+            return self.province
+        return None
+
+    def approve_safa_membership(self, approved_by):
+        """Approve the member's SAFA registration"""
+        self.status = 'ACTIVE'
+        self.approved_by = approved_by
+        self.approved_date = timezone.now()
+        self.save()
+
+    def reject_safa_membership(self, rejected_by, reason):
+        """Reject the member's SAFA registration"""
+        self.status = 'REJECTED'
+        self.rejection_reason = reason
+        self.save()
+
+    def get_entity_type_for_fees(self):
+        """Get the entity type for fee calculation"""
+        if self.role == 'PLAYER':
+            return 'PLAYER_JUNIOR' if self.is_junior else 'PLAYER_SENIOR'
+        elif self.role == 'OFFICIAL':
+            # Try to get specific official type from MemberProfile
+            try:
+                profile = self.profile
+                if profile.official_position:
+                    position_title = profile.official_position.title.lower()
+                    if 'referee' in position_title:
+                        return 'OFFICIAL_REFEREE'
+                    elif 'coach' in position_title:
+                        return 'OFFICIAL_COACH'
+                    elif 'secretary' in position_title:
+                        return 'OFFICIAL_SECRETARY'
+                    elif 'treasurer' in position_title:
+                        return 'OFFICIAL_TREASURER'
+                    elif 'committee' in position_title:
+                        return 'OFFICIAL_COMMITTEE'
+            except (AttributeError, ObjectDoesNotExist):
+                # Handle cases where profile or official_position doesn't exist
+                pass
+            return 'OFFICIAL_GENERAL'
+        return 'PLAYER_SENIOR'  # Default fallback
+
+    def validate_club_geography(self):
+        """Ensure selected club is within member's geographic area"""
+        if not self.current_club:
+            return
+            
+        club = self.current_club
+        
+        # Check if club is in member's LFA/Region/Province
+        if self.lfa and club.lfa != self.lfa:
+            raise ValidationError(_(
+                f"Selected club {club.name} is not in your Local Football Association area"
+            ))
+        elif self.region and club.region != self.region:
+            raise ValidationError(_(
+                f"Selected club {club.name} is not in your Regional area"
+            ))
+        elif self.province and club.province != self.province:
+            raise ValidationError(_(
+                f"Selected club {club.name} is not in your Provincial area"
+            ))
+
+    def validate_sa_id_number(self):
+        """Validate South African ID number and extract birth date"""
+        if not self.id_number or len(self.id_number) != 13:
+            return
+            
+        try:
+            # Extract birth date from ID (YYMMDD format)
+            year = int(self.id_number[:2])
+            month = int(self.id_number[2:4])
+            day = int(self.id_number[4:6])
+            
+            # Determine century (assume < 25 = 2000s, >= 25 = 1900s)
+            if year < 25:
+                year += 2000
+            else:
+                year += 1900
+            
+            id_birth_date = date(year, month, day)
+            
+            # If no birth date set, use ID date
+            if not self.date_of_birth:
+                self.date_of_birth = id_birth_date
+            # If birth date differs from ID, flag for review
+            elif self.date_of_birth != id_birth_date:
+                raise ValidationError(_(
+                    "Birth date doesn't match ID number. Please verify your information."
+                ))
+                
+            # Extract gender from ID (7th digit: 0-4=Female, 5-9=Male)
+            gender_digit = int(self.id_number[6])
+            id_gender = 'M' if gender_digit >= 5 else 'F'
+            
+            if not self.gender:
+                self.gender = id_gender
+            elif self.gender != id_gender:
+                raise ValidationError(_(
+                    "Gender doesn't match ID number. Please verify your information."
+                ))
+                
+        except (ValueError, IndexError):
+            raise ValidationError(_("Invalid South African ID number format"))
+
+    def get_available_clubs(self):
+        """Get clubs available for this member based on geography"""
+        from geography.models import Club
+        
+        if self.lfa:
+            return Club.objects.filter(lfa=self.lfa, is_active=True)
+        elif self.region:
+            return Club.objects.filter(region=self.region, is_active=True)
+        elif self.province:
+            return Club.objects.filter(province=self.province, is_active=True)
+        else:
+            # If no geography set, return all active clubs
+            return Club.objects.filter(is_active=True)
+    
+    def calculate_registration_fee(self, season_config=None):
+        """Calculate member's registration fee including pro-rata if applicable"""
+        if not season_config:
+            season_config = self.current_season or SAFASeasonConfig.get_active_season()
+        
+        entity_type = self.get_entity_type_for_fees()
+        fee_structure = SAFAFeeStructure.objects.filter(
+            season_config=season_config,
+            entity_type=entity_type
+        ).first()
+        
+        if not fee_structure:
+            return Decimal('0.00')
+        
+        base_fee = fee_structure.annual_fee
+        
+        # Apply pro-rata if applicable and registration is after season start
+        if fee_structure.is_pro_rata and season_config:
+            today = timezone.now().date()
+            if today > season_config.season_start_date:
+                # Calculate months remaining
+                season_days = (season_config.season_end_date - season_config.season_start_date).days
+                remaining_days = (season_config.season_end_date - today).days
+                
+                if remaining_days > 0:
+                    pro_rata_fee = base_fee * (remaining_days / season_days)
+                    # Apply minimum fee if set
+                    if fee_structure.minimum_fee:
+                        pro_rata_fee = max(pro_rata_fee, fee_structure.minimum_fee)
+                    return pro_rata_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        return base_fee
 
 
 class Transfer(TimeStampedModel):
@@ -200,10 +737,9 @@ class Transfer(TimeStampedModel):
     ]
 
     member = models.ForeignKey(
-        'Member', 
+        'membership.Member',  # Use consistent string reference
         on_delete=models.CASCADE, 
-        related_name='transfers',
-        null=True, blank=True # Temporarily allow nulls for migration
+        related_name='transfers'
     )
     from_club = models.ForeignKey(
         'geography.Club', 
@@ -317,7 +853,11 @@ class Membership(TimeStampedModel):
     DEPRECATED: Use Member model instead
     Kept for backward compatibility only
     """
-    member = models.OneToOneField('Member', on_delete=models.CASCADE, related_name='legacy_membership')
+    member = models.OneToOneField(
+        'membership.Member',  # Use consistent string reference
+        on_delete=models.CASCADE,
+        related_name='legacy_membership'
+    )
     membership_type = models.CharField(max_length=20, default='STANDARD')
     
     class Meta:
@@ -326,6 +866,85 @@ class Membership(TimeStampedModel):
     
     def __str__(self):
         return f"Legacy: {self.member.get_full_name()}"
+
+
+# ============================================================================
+# DJANGO SIGNALS FOR DATA CONSISTENCY
+# ============================================================================
+
+@receiver(post_save, sender='membership.Member')
+def create_member_workflow(sender, instance, created, **kwargs):
+    """Create workflow tracker for new members"""
+    if created:
+        RegistrationWorkflow.objects.get_or_create(member=instance)
+
+@receiver(post_save, sender='membership.Member')
+def update_club_quotas(sender, instance, **kwargs):
+    """Update club member quotas when member is saved"""
+    if instance.current_club and instance.current_season:
+        quota, created = ClubMemberQuota.objects.get_or_create(
+            club=instance.current_club,
+            season_config=instance.current_season
+        )
+        quota.update_counts()
+
+@receiver(post_delete, sender='membership.Member')
+def update_club_quotas_on_delete(sender, instance, **kwargs):
+    """Update club quotas when member is deleted"""
+    if instance.current_club and instance.current_season:
+        try:
+            quota = ClubMemberQuota.objects.get(
+                club=instance.current_club,
+                season_config=instance.current_season
+            )
+            quota.update_counts()
+        except ClubMemberQuota.DoesNotExist:
+            pass
+
+@receiver(post_save, sender=SAFASeasonConfig)
+def handle_season_activation(sender, instance, **kwargs):
+    """Handle season activation - deactivate other seasons"""
+    if instance.is_active:
+        # Deactivate all other seasons
+        SAFASeasonConfig.objects.exclude(pk=instance.pk).update(is_active=False)
+
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+def get_current_season():
+    """Utility function to get current active season"""
+    return SAFASeasonConfig.get_active_season()
+
+def calculate_member_fee(member, season_config=None):
+    """Utility function to calculate member registration fee"""
+    if not season_config:
+        season_config = get_current_season()
+    
+    if not season_config or not member:
+        return Decimal('0.00')
+    
+    return member.calculate_registration_fee(season_config)
+
+def check_organization_payment_status(organization, season_config=None):
+    """Check if organization has paid for the season"""
+    if not season_config:
+        season_config = get_current_season()
+    
+    if not season_config or not organization:
+        return False
+    
+    content_type = ContentType.objects.get_for_model(organization)
+    try:
+        registration = OrganizationSeasonRegistration.objects.get(
+            season_config=season_config,
+            content_type=content_type,
+            object_id=organization.pk
+        )
+        return registration.can_register_members()
+    except OrganizationSeasonRegistration.DoesNotExist:
+        return False
 
 
 class OrganizationSeasonRegistration(TimeStampedModel):
@@ -342,7 +961,7 @@ class OrganizationSeasonRegistration(TimeStampedModel):
     
     season_config = models.ForeignKey(
         SAFASeasonConfig, 
-        on_delete=models.CASCADE, null = True, 
+        on_delete=models.CASCADE, 
         related_name='organization_registrations'
     )
     
@@ -399,191 +1018,464 @@ class OrganizationSeasonRegistration(TimeStampedModel):
         return self.status == 'PAID'
 
 
-class Member(TimeStampedModel):
-    """
-    Centralized Member model - handles all member types (players, officials, etc.)
-    """
-    
-    MEMBER_ROLES = [
-        ('PLAYER', _('Player')),
-        ('OFFICIAL', _('Official')),
-        ('ADMIN', _('Administrator')),
-    ]
-
-    MEMBERSHIP_STATUS = [
-        ('PENDING', _('Pending SAFA Approval')),
-        ('ACTIVE', _('SAFA Approved - Active')),
-        ('INACTIVE', _('Inactive')),
-        ('SUSPENDED', _('Suspended')),
-        ('REJECTED', _('Rejected by SAFA')),
-        ('TRANSFERRED', _('Transferred from another club')),
-    ]
-
-    GENDER_CHOICES = [
-        ('M', 'Male'),
-        ('F', 'Female'),
-    ]
-
-    DOCUMENT_TYPES = (
-        ('BC', _('Birth Certificate')),
-        ('PP', _('Passport')),
-        ('ID', _('National ID')),
-        ('DL', _('Driver License')),
-        ('OT', _('Other')),
-    )
-
-    # Link to the authentication user
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
+class ClubMemberQuota(models.Model):
+    """Track member quotas and limits per club per season"""
+    club = models.ForeignKey(
+        'geography.Club',
         on_delete=models.CASCADE,
-        related_name='member_profile'
+        related_name='member_quotas'
     )
-
-    # Personal Information
-    middle_name = models.CharField(max_length=100, blank=True)
-    alias = models.CharField(max_length=100, blank=True)
-    date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
-    nationality = models.CharField(max_length=50, default='South African')
-    birth_country = models.CharField(max_length=3, default='ZAF')
+    season_config = models.ForeignKey(
+        SAFASeasonConfig,
+        on_delete=models.CASCADE,
+        related_name='club_quotas'
+    )
     
-    # Identification
-    id_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
-    passport_number = models.CharField(max_length=25, blank=True, null=True, unique=True)
-    id_document_type = models.CharField(max_length=2, choices=DOCUMENT_TYPES, default='ID')
+    # Quota limits
+    max_senior_players = models.PositiveIntegerField(
+        _("Max Senior Players"), 
+        default=30,
+        help_text=_("Maximum senior players allowed")
+    )
+    max_junior_players = models.PositiveIntegerField(
+        _("Max Junior Players"), 
+        default=50,
+        help_text=_("Maximum junior players allowed")
+    )
+    max_officials = models.PositiveIntegerField(
+        _("Max Officials"), 
+        default=20,
+        help_text=_("Maximum officials allowed")
+    )
     
-    # SAFA specific
-    safa_id = models.CharField(max_length=5, unique=True, blank=True, null=True)
-    fifa_id = models.CharField(max_length=7, unique=True, blank=True, null=True)
+    # Current counts (updated via signals)
+    current_senior_players = models.PositiveIntegerField(default=0)
+    current_junior_players = models.PositiveIntegerField(default=0)
+    current_officials = models.PositiveIntegerField(default=0)
     
-    # Contact
-    phone_number = models.CharField(max_length=20, blank=True)
+    class Meta:
+        unique_together = [('club', 'season_config')]
+        verbose_name = _("Club Member Quota")
+        verbose_name_plural = _("Club Member Quotas")
     
-    # Address
-    street_address = models.CharField(max_length=255, blank=True)
-    suburb = models.CharField(max_length=100, blank=True)
-    city = models.CharField(max_length=100, blank=True)
-    state = models.CharField(max_length=100, blank=True)
-    postal_code = models.CharField(max_length=20, blank=True)
-    country = models.CharField(max_length=100, blank=True, default='South Africa')
-
-    # Media
-    profile_photo = models.ImageField(upload_to='images/profile_photos/', blank=True, null=True)
-    id_document = models.FileField(upload_to='documents/user_documents/', null=True, blank=True)
-
-    # Compliance
-    popi_act_consent = models.BooleanField(default=False)
-
-    # Membership Status
-    membership_status = models.CharField(max_length=20, choices=MEMBERSHIP_STATUS, default='PENDING')
+    def __str__(self):
+        return f"{self.club.name} - Season {self.season_config.season_year} Quotas"
     
-    # Geographical and Organizational relationships
-    national_federation = models.ForeignKey('geography.NationalFederation', on_delete=models.SET_NULL, null=True, blank=True)
-    province = models.ForeignKey('geography.Province', on_delete=models.SET_NULL, null=True, blank=True)
-    region = models.ForeignKey('geography.Region', on_delete=models.SET_NULL, null=True, blank=True)
-    lfa = models.ForeignKey('geography.LocalFootballAssociation', on_delete=models.SET_NULL, null=True, blank=True)
-    club = models.ForeignKey('geography.Club', on_delete=models.SET_NULL, null=True, blank=True)
-    association = models.ForeignKey('geography.Association', on_delete=models.SET_NULL, null=True, blank=True)
+    def can_register_member(self, member_type):
+        """Check if club can register another member of given type"""
+        if member_type == 'senior_player':
+            return self.current_senior_players < self.max_senior_players
+        elif member_type == 'junior_player':
+            return self.current_junior_players < self.max_junior_players
+        elif member_type == 'official':
+            return self.current_officials < self.max_officials
+        return False
+    
+    def update_counts(self):
+        """Update current member counts"""
+        # Get current season members for this club
+        members = Member.objects.filter(
+            current_club=self.club,
+            current_season=self.season_config,
+            status='ACTIVE'
+        )
+        
+        self.current_senior_players = members.filter(
+            role='PLAYER',
+            date_of_birth__lt=timezone.now().date().replace(
+                year=timezone.now().year - 18
+            )
+        ).count()
+        
+        self.current_junior_players = members.filter(
+            role='PLAYER',
+            date_of_birth__gte=timezone.now().date().replace(
+                year=timezone.now().year - 18
+            )
+        ).count()
+        
+        self.current_officials = members.filter(
+            role='OFFICIAL'
+        ).count()
+        
+        self.save()
 
-    # Player specific fields
-    position = models.CharField(max_length=50, blank=True)
+
+class MemberDocument(TimeStampedModel):
+    """Enhanced document management for members"""
+    DOCUMENT_TYPES = [
+        ('ID_COPY', _('ID Document Copy')),
+        ('BIRTH_CERT', _('Birth Certificate')),
+        ('PASSPORT', _('Passport Copy')),
+        ('MEDICAL_CERT', _('Medical Certificate')),
+        ('CLEARANCE_CERT', _('Clearance Certificate')),
+        ('PHOTO', _('Passport Photo')),
+        ('PARENT_CONSENT', _('Parental Consent (Under 18)')),
+        ('PROOF_RESIDENCE', _('Proof of Residence')),
+        ('QUALIFICATION_CERT', _('Qualification Certificate')),
+        ('OTHER', _('Other Document')),
+    ]
+    
+    VERIFICATION_STATUS = [
+        ('PENDING', _('Pending Verification')),
+        ('APPROVED', _('Approved')),
+        ('REJECTED', _('Rejected - Resubmission Required')),
+    ]
+    
+    member = models.ForeignKey(
+        'membership.Member',  # Use consistent string reference
+        on_delete=models.CASCADE,
+        related_name='documents'
+    )
+    document_type = models.CharField(
+        _("Document Type"),
+        max_length=20,
+        choices=DOCUMENT_TYPES
+    )
+    document_file = models.FileField(
+        _("Document File"),
+        upload_to='member_documents/%Y/%m/'
+    )
+    verification_status = models.CharField(
+        _("Verification Status"),
+        max_length=20,
+        choices=VERIFICATION_STATUS,
+        default='PENDING'
+    )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='verified_documents'
+    )
+    verified_date = models.DateTimeField(null=True, blank=True)
+    rejection_notes = models.TextField(_("Rejection Notes"), blank=True)
+    
+    # Document metadata
+    file_size = models.PositiveIntegerField(_("File Size (bytes)"), null=True, blank=True)
+    file_type = models.CharField(_("File Type"), max_length=50, blank=True)
+    is_required = models.BooleanField(_("Required Document"), default=False)
+    expiry_date = models.DateField(_("Document Expiry"), null=True, blank=True)
+    
+    class Meta:
+        unique_together = [('member', 'document_type')]
+        verbose_name = _("Member Document")
+        verbose_name_plural = _("Member Documents")
+        indexes = [
+            models.Index(fields=['member', 'document_type']),
+            models.Index(fields=['verification_status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.member.get_full_name()} - {self.get_document_type_display()}"
+    
+    def save(self, *args, **kwargs):
+        if self.document_file:
+            self.file_size = self.document_file.size
+            self.file_type = self.document_file.name.split('.')[-1].upper()
+        super().save(*args, **kwargs)
+    
+    def approve(self, verified_by):
+        """Approve the document"""
+        self.verification_status = 'APPROVED'
+        self.verified_by = verified_by
+        self.verified_date = timezone.now()
+        self.rejection_notes = ''
+        self.save()
+    
+    def reject(self, verified_by, notes):
+        """Reject the document with notes"""
+        self.verification_status = 'REJECTED'
+        self.verified_by = verified_by
+        self.verified_date = timezone.now()
+        self.rejection_notes = notes
+        self.save()
+
+
+class RegistrationWorkflow(TimeStampedModel):
+    """Track member registration progress through required steps"""
+    WORKFLOW_STEPS = [
+        ('PERSONAL_INFO', _('Personal Information')),
+        ('CLUB_SELECTION', _('Club Selection')),
+        ('DOCUMENT_UPLOAD', _('Document Upload')),
+        ('PAYMENT', _('Payment Processing')),
+        ('CLUB_APPROVAL', _('Club Approval')),
+        ('SAFA_APPROVAL', _('SAFA Approval')),
+        ('COMPLETE', _('Registration Complete')),
+    ]
+    
+    STEP_STATUS = [
+        ('NOT_STARTED', _('Not Started')),
+        ('IN_PROGRESS', _('In Progress')),
+        ('COMPLETED', _('Completed')),
+        ('BLOCKED', _('Blocked')),
+    ]
+    
+    member = models.OneToOneField(
+        'membership.Member',  # Use consistent string reference
+        on_delete=models.CASCADE,
+        related_name='workflow'
+    )
+    
+    # Step statuses
+    personal_info_status = models.CharField(
+        max_length=20, choices=STEP_STATUS, default='NOT_STARTED'
+    )
+    club_selection_status = models.CharField(
+        max_length=20, choices=STEP_STATUS, default='NOT_STARTED'
+    )
+    document_upload_status = models.CharField(
+        max_length=20, choices=STEP_STATUS, default='NOT_STARTED'
+    )
+    payment_status = models.CharField(
+        max_length=20, choices=STEP_STATUS, default='NOT_STARTED'
+    )
+    club_approval_status = models.CharField(
+        max_length=20, choices=STEP_STATUS, default='NOT_STARTED'
+    )
+    safa_approval_status = models.CharField(
+        max_length=20, choices=STEP_STATUS, default='NOT_STARTED'
+    )
+    
+    current_step = models.CharField(
+        _("Current Step"),
+        max_length=20,
+        choices=WORKFLOW_STEPS,
+        default='PERSONAL_INFO'
+    )
+    
+    completion_percentage = models.PositiveIntegerField(
+        _("Completion %"),
+        default=0
+    )
+    
+    class Meta:
+        verbose_name = _("Registration Workflow")
+        verbose_name_plural = _("Registration Workflows")
+    
+    def __str__(self):
+        return f"{self.member.get_full_name()} - {self.completion_percentage}% Complete"
+    
+    def update_progress(self):
+        """Update workflow progress based on completed steps"""
+        steps = [
+            self.personal_info_status,
+            self.club_selection_status,
+            self.document_upload_status,
+            self.payment_status,
+            self.club_approval_status,
+            self.safa_approval_status,
+        ]
+        
+        completed_steps = sum(1 for status in steps if status == 'COMPLETED')
+        self.completion_percentage = int((completed_steps / len(steps)) * 100)
+        
+        # Update current step
+        if self.personal_info_status != 'COMPLETED':
+            self.current_step = 'PERSONAL_INFO'
+        elif self.club_selection_status != 'COMPLETED':
+            self.current_step = 'CLUB_SELECTION'
+        elif self.document_upload_status != 'COMPLETED':
+            self.current_step = 'DOCUMENT_UPLOAD'
+        elif self.payment_status != 'COMPLETED':
+            self.current_step = 'PAYMENT'
+        elif self.club_approval_status != 'COMPLETED':
+            self.current_step = 'CLUB_APPROVAL'
+        elif self.safa_approval_status != 'COMPLETED':
+            self.current_step = 'SAFA_APPROVAL'
+        else:
+            self.current_step = 'COMPLETE'
+        
+        self.save()
+    
+    def get_next_required_actions(self):
+        """Get list of actions needed to progress registration"""
+        actions = []
+        
+        if self.personal_info_status != 'COMPLETED':
+            actions.append(_("Complete personal information"))
+        if self.club_selection_status != 'COMPLETED':
+            actions.append(_("Select a club"))
+        if self.document_upload_status != 'COMPLETED':
+            actions.append(_("Upload required documents"))
+        if self.payment_status != 'COMPLETED':
+            actions.append(_("Complete payment"))
+        if self.club_approval_status == 'BLOCKED':
+            actions.append(_("Contact club for approval status"))
+        if self.safa_approval_status == 'BLOCKED':
+            actions.append(_("Contact SAFA for approval status"))
+        
+        return actions
+
+
+class MemberSeasonHistory(TimeStampedModel):
+    """
+    Track member's history across seasons
+    Maintains complete historical record of member's club affiliations and status
+    """
+    member = models.ForeignKey(
+        'membership.Member',  # Use consistent string reference
+        on_delete=models.CASCADE, 
+        related_name='season_history'
+    )
+    season_config = models.ForeignKey(
+        SAFASeasonConfig, 
+        on_delete=models.CASCADE, 
+        related_name='member_histories'
+    )
+    
+    # Status during this season
+    status = models.CharField(
+        _("Status"), 
+        max_length=20, 
+        choices=MEMBERSHIP_STATUS
+    )
+    
+    # Club affiliation during this season
+    club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='historical_members'
+    )
+    
+    # Geographic affiliations during this season
+    province = models.ForeignKey(
+        'geography.Province', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True
+    )
+    region = models.ForeignKey(
+        'geography.Region', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True
+    )
+    lfa = models.ForeignKey(
+        'geography.LocalFootballAssociation', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True
+    )
+    
+    # Associations during this season (for officials)
+    associations = models.ManyToManyField(
+        'geography.Association',
+        blank=True,
+        related_name='historical_member_officials'
+    )
+    
+    # Registration details for this season
+    registration_date = models.DateTimeField()
+    registration_method = models.CharField(
+        _("Registration Method"), 
+        max_length=10, 
+        choices=Member.REGISTRATION_METHODS
+    )
+    
+    # Payment and approval details
+    invoice_paid = models.BooleanField(_("Invoice Paid"), default=False)
+    safa_approved = models.BooleanField(_("SAFA Approved"), default=False)
+    safa_approved_date = models.DateTimeField(null=True, blank=True)
+    
+    # Season-specific details
     jersey_number = models.PositiveIntegerField(null=True, blank=True)
-    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-
+    position = models.CharField(_("Position"), max_length=50, blank=True)
+    
+    # Transfer tracking
+    transferred_from_club = models.ForeignKey(
+        'geography.Club',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='transferred_from_members'
+    )
+    transfer_date = models.DateTimeField(null=True, blank=True)
+    
     class Meta:
-        verbose_name = _("Member")
-        verbose_name_plural = _("Members")
+        verbose_name = _("Member Season History")
+        verbose_name_plural = _("Member Season Histories")
+        unique_together = [('member', 'season_config')]
+        ordering = ['-season_config__season_year']
+        indexes = [
+            models.Index(fields=['member', 'season_config']),
+            models.Index(fields=['season_config', 'status']),
+            models.Index(fields=['club', 'season_config']),
+        ]
+    
+    def __str__(self):
+        club_name = self.club.name if self.club else 'No Club'
+        return f"{self.member.get_full_name()} - Season {self.season_config.season_year} - {club_name}"
+
+
+class MemberProfile(models.Model):
+    """Extended profile for role-specific information"""
+    member = models.OneToOneField(
+        'membership.Member',  # Use consistent string reference
+        on_delete=models.CASCADE, 
+        related_name='profile'
+    )
+    
+    # Player-specific fields
+    player_position = models.CharField(
+        _("Playing Position"), 
+        max_length=50, 
+        blank=True,
+        choices=[
+            ('GK', 'Goalkeeper'),
+            ('DF', 'Defender'), 
+            ('MF', 'Midfielder'),
+            ('FW', 'Forward'),
+        ]
+    )
+    
+    # Official-specific fields
+    official_position = models.ForeignKey(
+        'accounts.Position',  # String reference to avoid circular imports
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='member_profiles'
+    )
+    certification_number = models.CharField(
+        _("Certification Number"), 
+        max_length=50, 
+        blank=True
+    )
+    certification_document = models.FileField(
+        _("Certification Document"), 
+        upload_to='certification_documents/',
+        blank=True, null=True
+    )
+    certification_expiry_date = models.DateField(
+        _("Certification Expiry Date"), 
+        blank=True, null=True
+    )
+    referee_level = models.CharField(
+        _("Referee Level"), 
+        max_length=20, 
+        blank=True,
+        choices=[
+            ('LOCAL', 'Local'),
+            ('REGIONAL', 'Regional'), 
+            ('PROVINCIAL', 'Provincial'),
+            ('NATIONAL', 'National'),
+            ('INTERNATIONAL', 'International'),
+        ]
+    )
+    
+    # Guardian information for juniors
+    guardian_name = models.CharField(_("Guardian Name"), max_length=100, blank=True)
+    guardian_email = models.EmailField(_("Guardian Email"), blank=True)
+    guardian_phone = models.CharField(_("Guardian Phone"), max_length=20, blank=True)
+    birth_certificate = models.ImageField(
+        _("Birth Certificate"), 
+        upload_to='documents/birth_certificates/', 
+        null=True, blank=True
+    )
+    
+    class Meta:
+        verbose_name = _("Member Profile")
+        verbose_name_plural = _("Member Profiles")
 
     def __str__(self):
-        return self.user.get_full_name()
-
-class OfficialCertification(TimeStampedModel):
-    """
-    Tracks certification history for officials (referees, coaches, etc.)
-    Allows recording multiple certifications with dates obtained
-    """
-    CERTIFICATION_TYPES = [
-        ('REFEREE', _('Referee Certification')),
-        ('COACH', _('Coaching Certification')),
-        ('ADMIN', _('Administrative Certification')),
-        ('OTHER', _('Other Certification')),
-    ]
-
-    LEVEL_CHOICES = [
-        ('LOCAL', _('Local')),
-        ('REGIONAL', _('Regional')),
-        ('PROVINCIAL', _('Provincial')),
-        ('NATIONAL', _('National')),
-        ('INTERNATIONAL', _('International')),
-    ]
-
-    member = models.ForeignKey(Member, on_delete=models.CASCADE,
-                              related_name='certifications',
-                              help_text=_("The official who holds this certification"))
-
-    certification_type = models.CharField(_("Certification Type"), max_length=20,
-                                       choices=CERTIFICATION_TYPES,
-                                       help_text=_("Type of certification"))
-
-    level = models.CharField(_("Level"), max_length=20,
-                          choices=LEVEL_CHOICES,
-                          help_text=_("Level or grade of the certification"))
-
-    name = models.CharField(_("Certification Name"), max_length=100,
-                         help_text=_("Name of the specific certification or qualification"))
-
-    issuing_body = models.CharField(_("Issuing Organization"), max_length=100,
-                                 help_text=_("Organization that issued this certification"))
-
-    certification_number = models.CharField(_("Certification Number"), max_length=50,
-                                         blank=True, null=True,
-                                         help_text=_("Unique identifier for this certification"))
-
-    obtained_date = models.DateField(_("Date Obtained"),
-                                  help_text=_("When the certification was first obtained"))
-
-    expiry_date = models.DateField(_("Expiry Date"),
-                                blank=True, null=True,
-                                help_text=_("When the certification expires (if applicable)"))
-
-    document = models.FileField(_("Certificate Document"),
-                             upload_to='certification_documents/history/',
-                             blank=True, null=True,
-                             help_text=_("Upload proof of certification"))
-
-    notes = models.TextField(_("Notes"), blank=True,
-                          help_text=_("Additional information about this certification"))
-
-    is_verified = models.BooleanField(_("Verified"), default=False,
-                                   help_text=_("Whether this certification has been verified by an administrator"))
-
-    class Meta:
-        verbose_name = _("Official Certification")
-        verbose_name_plural = _("Official Certifications")
-        ordering = ['-obtained_date']
-
-    def __str__(self):
-        return f"{self.member.user.get_full_name()} - {self.name} ({self.level})"
-
-    @property
-    def is_active(self):
-        """Check if certification is currently active based on expiry date"""
-        if not self.expiry_date:
-            return True  # Certifications without expiry dates are considered active
-        return self.expiry_date >= timezone.now().date()
-
-    @property
-    def validity_status(self):
-        """Return the validity status of the certification"""
-        if not self.is_verified:
-            return "Pending Verification"
-        if not self.expiry_date:
-            return "Active (No Expiration)"
-        if self.is_active:
-            return "Active"
-        return "Expired"
-
+        return f"Profile for {self.member.get_full_name()}"
 
 
 class Invoice(TimeStampedModel):
@@ -613,13 +1505,12 @@ class Invoice(TimeStampedModel):
     season_config = models.ForeignKey(
         SAFASeasonConfig,
         on_delete=models.PROTECT,
-        related_name='invoices',
-        null=True, blank=True # Temporarily allow nulls for migration
+        related_name='invoices'
     )
     
     # For member invoices
     member = models.ForeignKey(
-        'Member', 
+        'membership.Member',  # Use consistent string reference
         on_delete=models.CASCADE, 
         related_name='invoices',
         null=True, blank=True
@@ -818,191 +1709,45 @@ class Invoice(TimeStampedModel):
                 'registration_method': self.member.registration_method,
                 'invoice_paid': True,
                 'safa_approved': self.member.status == 'ACTIVE',
-                'safa_approved_date': self.member.approved_date,
+                'safa_approved_date': timezone.now()
             }
         )
         
         if not created:
-            # Update existing history
+            # Update existing history record
+            history.club = self.member.current_club
+            history.province = self.member.province
+            history.region = self.member.region
+            history.lfa = self.member.lfa
+            history.status = self.member.status
+            history.registration_date = self.member.created
+            history.registration_method = self.member.registration_method
             history.invoice_paid = True
+            history.safa_approved = self.member.status == 'ACTIVE'
+            history.safa_approved_date = timezone.now()
             history.save()
-        
-        # Copy associations for officials
-        if self.member.role == 'OFFICIAL':
-            history.associations.set(self.member.associations.all())
-    
-    @classmethod
-    def create_member_invoice(cls, member, season_config=None):
-        """Create member registration invoice"""
-        if not season_config:
-            season_config = member.current_season or SAFASeasonConfig.get_active_season()
-        
-        if not season_config:
-            raise ValidationError(_("No active SAFA season configuration found"))
-        
-        # Get fee structure
-        entity_type = member.get_entity_type_for_fees()
-        fee_structure = SAFAFeeStructure.objects.filter(
-            season_config=season_config,
-            entity_type=entity_type
-        ).first()
-        
-        if not fee_structure:
-            raise ValidationError(
-                f"No fee structure found for {entity_type} in season {season_config.season_year}"
-            )
-        
-        # Create invoice
-        invoice = cls.objects.create(
-            member=member,
-            season_config=season_config,
-            invoice_type='MEMBER_REGISTRATION',
-            subtotal=fee_structure.annual_fee,
-            vat_rate=season_config.vat_rate
-        )
-        
-        # Create line item
-        InvoiceItem.objects.create(
-            invoice=invoice,
-            description=f"SAFA Registration - {fee_structure.get_entity_type_display()}",
-            quantity=1,
-            unit_price=fee_structure.annual_fee
-        )
-        
-        return invoice
-    
-    def create_payment_plan(self, installments=3):
-        """Create payment plan with multiple invoices"""
-        if self.status != 'DRAFT':
-            raise ValidationError(_("Can only create payment plan for draft invoices"))
-        
-        if installments < 2:
-            raise ValidationError(_("Payment plan must have at least 2 installments"))
-        
-        # Calculate installment amounts
-        installment_amount = (self.total_amount / installments).quantize(
-            Decimal('0.01'), rounding=ROUND_HALF_UP
-        )
-        
-        # Adjust last installment for rounding differences
-        last_amount = self.total_amount - (installment_amount * (installments - 1))
-        
-        # Create installment invoices
-        for i in range(installments):
-            amount = last_amount if i == installments - 1 else installment_amount
-            
-            installment_invoice = Invoice.objects.create(
-                member=self.member,
-                organization=self.organization,
-                season_config=self.season_config,
-                invoice_type=self.invoice_type,
-                subtotal=amount / (1 + self.vat_rate),
-                vat_rate=self.vat_rate,
-                due_date=self.due_date + timedelta(days=30 * i),
-                notes=f"Installment {i+1} of {installments} for {self.invoice_number}"
-            )
-            
-            InvoiceItem.objects.create(
-                invoice=installment_invoice,
-                description=f"Installment {i+1}/{installments} - {self.items.first().description}",
-                quantity=1,
-                unit_price=amount / (1 + self.vat_rate)
-            )
-        
-        # Mark original as payment plan
-        self.is_payment_plan = True
-        self.installments = installments
-        self.status = 'CANCELLED'  # Original invoice is replaced by installments
-        self.save()
 
 
 class InvoiceItem(models.Model):
-    """Individual line items for invoices"""
+    """Line items for invoices (membership fees, registrations, etc.)"""
     invoice = models.ForeignKey(
-        Invoice, 
-        on_delete=models.CASCADE, 
+        Invoice,
+        on_delete=models.CASCADE,
         related_name='items'
     )
-    description = models.CharField(_("Description"), max_length=200)
+    description = models.CharField(_("Description"), max_length=255)
+    amount = models.DecimalField(_("Amount (Incl. VAT)"), max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(_("Quantity"), default=1)
-    unit_price = models.DecimalField(
-        _("Unit Price (Excl. VAT)"), 
-        max_digits=10, 
-        decimal_places=2
-    )
+    total_price = models.DecimalField(_("Total Price"), max_digits=10, decimal_places=2, default=0)
     
     class Meta:
         verbose_name = _("Invoice Item")
         verbose_name_plural = _("Invoice Items")
-        indexes = [
-            models.Index(fields=['invoice']),
-        ]
     
     def __str__(self):
-        return f'{self.description} - {self.quantity} x {self.unit_price}'
-
-
-class MembershipSeasonHistory(models.Model):
-    """Tracks the seasonal history of a member"""
-    member = models.ForeignKey(
-        'Member',
-        on_delete=models.CASCADE,
-        related_name='season_histories'
-    )
-    season_config = models.ForeignKey(
-        SAFASeasonConfig,
-        on_delete=models.CASCADE,
-        related_name='member_season_histories'
-    )
-    club = models.ForeignKey(
-        'geography.Club',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='member_season_histories'
-    )
-    province = models.ForeignKey(
-        'geography.Province',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-    region = models.ForeignKey(
-        'geography.Region',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-    lfa = models.ForeignKey(
-        'geography.LocalFootballAssociation',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=Member.MEMBERSHIP_STATUS,
-        default='PENDING'
-    )
-    registration_date = models.DateTimeField(null=True, blank=True)
-    registration_method = models.CharField(max_length=50, blank=True)
-    invoice_paid = models.BooleanField(default=False)
-    safa_approved = models.BooleanField(default=False)
-    safa_approved_date = models.DateTimeField(null=True, blank=True)
-    transferred_from_club = models.ForeignKey(
-        'geography.Club',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='transferred_members'
-    )
-    transfer_date = models.DateField(null=True, blank=True)
-
-    class Meta:
-        verbose_name = "Membership Season History"
-        verbose_name_plural = "Membership Season Histories"
-        unique_together = ('member', 'season_config')
-        ordering = ['-season_config__season_year', 'member__user__last_name']
-
-    def __str__(self):
-        return f"{self.member.user.get_full_name()} - {self.season_config.season_year}"
+        return f"{self.description} - R{self.amount} x{self.quantity}"
+    
+    def save(self, *args, **kwargs):
+        # Auto-calculate total price
+        self.total_price = self.amount * self.quantity
+        super().save(*args, **kwargs)

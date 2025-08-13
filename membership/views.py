@@ -16,6 +16,13 @@ def registration_portal(request):
     }
     return render(request, 'membership/registration_portal.html', context)
 
+def registration_success(request):
+    """Registration success page"""
+    context = {
+        'title': 'Registration Successful',
+    }
+    return render(request, 'membership/registration_success.html', context)
+
 class PlayerRegistrationView(CreateView):
     model = Member
     form_class = PlayerRegistrationForm
@@ -75,12 +82,6 @@ class AdminRegistrationView(CreateView):
         member.user = user
         member.save()
         return redirect(self.success_url)
-
-def registration_success(request):
-    context = {
-        'title': 'Registration Successful',
-    }
-    return render(request, 'membership/registration_success.html', context)
 
 class MemberApprovalListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Member

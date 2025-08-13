@@ -6,15 +6,16 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.db import models
+from django.db import models  # noqa: F401
 from django.contrib import messages
-from decimal import Decimal
+from decimal import Decimal  # noqa: F401
 
 # Import models from the corrected models.py
 from .models import (
     SAFASeasonConfig, SAFAFeeStructure, OrganizationSeasonRegistration,
     Member, 
-    Invoice, InvoiceItem, Transfer
+    Invoice, InvoiceItem, Transfer,
+    NewMemberDocument
 )
 
 class SAFAAccountsAdminMixin:
@@ -325,7 +326,7 @@ class MemberAdmin(admin.ModelAdmin):
                 if existing_invoice:
                     continue
                 
-                invoice = Invoice.create_member_invoice(member)
+                invoice = Invoice.create_member_invoice(member)  # noqa: F841
                 count += 1
             except Exception as e:
                 errors.append(f"{member.get_full_name()}: {str(e)}")
@@ -549,6 +550,15 @@ class TransferAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'Rejected {count} transfers')
     reject_transfers.short_description = 'Reject selected transfers'
+
+
+@admin.register(NewMemberDocument)
+class NewMemberDocumentAdmin(admin.ModelAdmin):
+    list_display = ['member', 'document_type', 'uploaded_at', 'verified']
+    list_filter = ['document_type', 'verified', 'uploaded_at']
+    search_fields = ['member__first_name', 'member__last_name', 'notes']
+    raw_id_fields = ['member', 'verified_by']
+    readonly_fields = ['uploaded_at', 'verified_at']
 
 
 # ============================================================================

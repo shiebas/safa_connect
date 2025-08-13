@@ -86,3 +86,6 @@ android/key.properties
 !debug.keystore
 android/.cxx/
 android/app/release/
+
+# Exclude corrected codes folder
+corrected_codes/
