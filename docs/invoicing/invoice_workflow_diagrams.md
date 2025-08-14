@@ -200,4 +200,4 @@
 
 ---
 
-*These diagrams provide a visual representation of the SAFA Global invoice system workflows and relationships.*
+*These diagrams provide a visual representation of the SAFA Connect invoice system workflows and relationships.*

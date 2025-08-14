@@ -1,8 +1,8 @@
 #!/bin/bash
-# Hourly backup script for SAFA Global PostgreSQL database
+# Hourly backup script for safa_connect PostgreSQL database
 # Place this in scripts/ and add to crontab for hourly execution
 
-BACKUP_DIR="/home/shaun/safa_global/backups"
+BACKUP_DIR="/home/shaun/safa_connect/backups"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 FILENAME="$BACKUP_DIR/safa_db_$TIMESTAMP.sql"
 

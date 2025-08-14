@@ -9,7 +9,7 @@
         <div class="col-lg-8">
             <div class="text-center mb-5">
                 <img src="{% static 'images/safa-logo.png' %}" alt="SAFA Logo" class="mb-3" style="max-width: 100px;">
-                <h1 class="display-5">Install SAFA Global App</h1>
+                <h1 class="display-5">Install SAFA Connect App</h1>
                 <p class="lead text-muted">Get the full desktop and mobile experience</p>
             </div>
             
@@ -86,7 +86,7 @@
                     <div id="install-section">
                         <button id="install-button" class="btn btn-primary btn-lg px-5 py-3 d-none">
                             <i class="fas fa-download me-2"></i>
-                            Install SAFA Global App
+                            Install SAFA Connect App
                         </button>
                         
                         <div id="manual-install" class="mt-4">
@@ -125,7 +125,7 @@
                 {% else %}
                     <div class="alert alert-success">
                         <i class="fas fa-check-circle me-2"></i>
-                        SAFA Global app is already installed!
+                        SAFA Connect app is already installed!
                     </div>
                     <a href="/" class="btn btn-primary">
                         <i class="fas fa-home me-2"></i>
@@ -151,7 +151,7 @@
                                 </h6>
                                 <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                     <div class="accordion-body">
-                                        Yes, this is the official SAFA Global app. It's a Progressive Web App (PWA) that provides enhanced functionality while maintaining the same security as the website.
+                                        Yes, this is the official SAFA Connect app. It's a Progressive Web App (PWA) that provides enhanced functionality while maintaining the same security as the website.
                                     </div>
                                 </div>
                             </div>
@@ -243,7 +243,7 @@ installButton.addEventListener('click', async () => {
         document.getElementById('install-section').innerHTML = `
             <div class="alert alert-success">
                 <i class="fas fa-check-circle me-2"></i>
-                SAFA Global app installed successfully!
+                SAFA Connect app installed successfully!
             </div>
             <p class="text-muted">You can now find it in your applications menu or desktop.</p>
         `;
@@ -264,7 +264,7 @@ window.addEventListener('appinstalled', () => {
     document.getElementById('install-section').innerHTML = `
         <div class="alert alert-success">
             <i class="fas fa-check-circle me-2"></i>
-            SAFA Global app installed successfully!
+            SAFA Connect app installed successfully!
         </div>
     `;
 });

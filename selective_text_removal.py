@@ -8,7 +8,7 @@ import django
 
 # Setup Django
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_global.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_connect.settings')
 django.setup()
 
 from PIL import Image, ImageDraw

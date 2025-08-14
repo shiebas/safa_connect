@@ -12,10 +12,18 @@ from decimal import Decimal  # noqa: F401
 
 # Import models from the corrected models.py
 from .models import (
-    SAFASeasonConfig, SAFAFeeStructure, OrganizationSeasonRegistration,
-    Member, 
-    Invoice, InvoiceItem, Transfer,
-    NewMemberDocument
+    Member,
+    MemberDocument,  # Not NewMemberDocument
+    MemberProfile,
+    MemberSeasonHistory,
+    SAFASeasonConfig,
+    SAFAFeeStructure,
+    Transfer,
+    OrganizationSeasonRegistration,
+    ClubMemberQuota,
+    Invoice,
+    InvoiceItem,
+    RegistrationWorkflow
 )
 
 class SAFAAccountsAdminMixin:
@@ -484,7 +492,7 @@ class InvoiceAdmin(SAFAAccountsAdminMixin, admin.ModelAdmin):
 
 @admin.register(InvoiceItem)
 class InvoiceItemAdmin(admin.ModelAdmin):
-    list_display = ('invoice', 'description', 'quantity', 'unit_price', 'sub_total_display')
+    list_display = ('invoice', 'description', 'quantity', 'amount', 'sub_total_display')
     search_fields = ('invoice__invoice_number', 'description')
     raw_id_fields = ['invoice']
     
@@ -552,13 +560,13 @@ class TransferAdmin(admin.ModelAdmin):
     reject_transfers.short_description = 'Reject selected transfers'
 
 
-@admin.register(NewMemberDocument)
+@admin.register(MemberDocument)
 class NewMemberDocumentAdmin(admin.ModelAdmin):
-    list_display = ['member', 'document_type', 'uploaded_at', 'verified']
-    list_filter = ['document_type', 'verified', 'uploaded_at']
+    list_display = ['member', 'document_type', 'created', 'verification_status']
+    list_filter = ['document_type', 'verification_status', 'created']
     search_fields = ['member__first_name', 'member__last_name', 'notes']
     raw_id_fields = ['member', 'verified_by']
-    readonly_fields = ['uploaded_at', 'verified_at']
+    readonly_fields = ['created', 'verified_date']
 
 
 # ============================================================================

@@ -13,6 +13,7 @@ from django.contrib import messages
 
 class PlayerInline(admin.TabularInline):
     model = Member
+    fk_name = 'current_club'
     extra = 0
     fields = ('first_name', 'last_name', 'safa_id', 'membership_status')
     readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_membership_status')
@@ -41,6 +42,7 @@ class PlayerInline(admin.TabularInline):
 
 class OfficialInline(admin.TabularInline):
     model = Member
+    fk_name = 'current_club'
     extra = 0
     fields = ('first_name', 'last_name', 'safa_id', 'membership_status')
     readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_membership_status')
@@ -132,7 +134,6 @@ class AssociationAdmin(ModelWithLogoAdmin):
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym', 'safa_id']
     readonly_fields = ('safa_id',)
-    inlines = [PlayerInline, OfficialInline]
     
     
 @admin.action(description="Generate and assign unique SAFA IDs to selected regions")

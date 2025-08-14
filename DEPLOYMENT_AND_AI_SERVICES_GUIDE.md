@@ -1,8 +1,8 @@
-# SAFA Global Deployment & AI Services Integration Guide
+# safa_connect Deployment & AI Services Integration Guide
 
 ## 🤖 **Using AI Services After Deployment**
 
-When you deploy the SAFA Global system to a production server, you can still integrate AI services for ongoing development, support, and enhancement. Here are the best options:
+When you deploy the safa_connect system to a production server, you can still integrate AI services for ongoing development, support, and enhancement. Here are the best options:
 
 ### **1. GitHub Copilot Integration**
 
@@ -36,7 +36,7 @@ def ai_customer_support(user_question):
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are a SAFA Global support assistant."},
+            {"role": "system", "content": "You are a safa_connect support assistant."},
             {"role": "user", "content": user_question}
         ]
     )
@@ -56,7 +56,7 @@ def ai_customer_support(user_question):
 # Connect to your server via SSH
 # Use VS Code with Remote-SSH extension
 ssh user@your-server.com
-code --remote ssh-remote+your-server.com /path/to/safa_global
+code --remote ssh-remote+your-server.com /path/to/safa_connect
 ```
 
 **Benefits:**
@@ -76,12 +76,12 @@ code --remote ssh-remote+your-server.com /path/to/safa_global
 
 ---
 
-## 🏗️ **Best Hosting Options for SAFA Global System**
+## 🏗️ **Best Hosting Options for safa_connect System**
 
 ### **Option 1: Cloud Hosting (Recommended)**
 
 #### **DigitalOcean App Platform** ⭐⭐⭐⭐⭐
-**Perfect for SAFA Global - Best Overall Value**
+**Perfect for safa_connect - Best Overall Value**
 
 **Specifications:**
 - **Basic Plan**: $5/month (1 vCPU, 512MB RAM)
@@ -315,7 +315,7 @@ ANTHROPIC_API_KEY=your-claude-key
 #!/bin/bash
 # deploy.sh - Production deployment script
 
-echo "🚀 Deploying SAFA Global to Production..."
+echo "🚀 Deploying safa_connect to Production..."
 
 # Pull latest code
 git pull origin main
@@ -363,8 +363,8 @@ sudo ufw enable
 # PostgreSQL security
 sudo -u postgres psql
 CREATE USER safa_user WITH PASSWORD 'strong_password';
-CREATE DATABASE safa_global OWNER safa_user;
-GRANT ALL PRIVILEGES ON DATABASE safa_global TO safa_user;
+CREATE DATABASE safa_connect OWNER safa_user;
+GRANT ALL PRIVILEGES ON DATABASE safa_connect TO safa_user;
 ```
 
 ---
@@ -376,7 +376,7 @@ GRANT ALL PRIVILEGES ON DATABASE safa_global TO safa_user;
 - Zero-config deployment
 - Automatic scaling
 - Built-in SSL and monitoring
-- Perfect for SAFA Global's needs
+- Perfect for safa_connect's needs
 
 ### **For Cost Optimization:**
 **Hetzner CX21** (€6/month) + Managed DB ($15/month)

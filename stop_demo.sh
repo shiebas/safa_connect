@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ================================================================
-# SAFA Global Demo Stop Script
+# SAFA Connect Demo Stop Script
 # Safely stop the demo environment
 # ================================================================
 
-echo "🛑 Stopping SAFA Global Demo..."
+echo "🛑 Stopping SAFA Connect Demo..."
 
 # Kill Django development server
 pkill -f "python.*manage.py.*runserver" && echo "✅ Django server stopped" || echo "⚠️  No Django server running"

@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # ================================================================
-# SAFA Global Portable Demo Builder
+# safa_connect Portable Demo Builder
 # Creates a self-contained demo for USB stick deployment
 # ================================================================
 
 set -e
 
-echo "📦 Building SAFA Global Portable Demo..."
+echo "📦 Building safa_connect Portable Demo..."
 echo "========================================"
 
-DEMO_DIR="SAFA_Global_Portable_Demo"
+DEMO_DIR="safa_connect_portable_demo"
 BUILD_DIR="portable_build"
 
 # Colors for output
@@ -65,11 +65,11 @@ mkdir -p "$BUILD_DIR/$DEMO_DIR/portable_libs"
 print_status "Creating Windows launcher..."
 cat > "$BUILD_DIR/$DEMO_DIR/LAUNCH_DEMO_WINDOWS.bat" << 'EOF'
 @echo off
-title SAFA Global Demo Launcher
+title safa_connect Demo Launcher
 color 0A
 
 echo =============================================
-echo    SAFA Global Demo - Portable Edition
+echo    safa_connect Demo - Portable Edition
 echo =============================================
 echo.
 
@@ -120,7 +120,7 @@ if not User.objects.filter(username='demo_supporter').exists():
 "
 
 REM Start server
-echo [INFO] Starting SAFA Global demo server...
+echo [INFO] Starting safa_connect demo server...
 echo.
 echo =============================================
 echo    Demo is ready! Opening browser...
@@ -150,7 +150,7 @@ cat > "$BUILD_DIR/$DEMO_DIR/launch_demo.sh" << 'EOF'
 #!/bin/bash
 
 # ================================================================
-# SAFA Global Portable Demo Launcher
+# safa_connect Portable Demo Launcher
 # Cross-platform demo launcher for USB stick
 # ================================================================
 
@@ -163,7 +163,7 @@ NC='\033[0m'
 
 echo -e "${GREEN}"
 echo "============================================="
-echo "   SAFA Global Demo - Portable Edition"
+echo "   safa_connect Demo - Portable Edition"
 echo "============================================="
 echo -e "${NC}"
 
@@ -245,7 +245,7 @@ chmod +x "$BUILD_DIR/$DEMO_DIR/launch_demo.sh"
 # Create portable README
 print_status "Creating portable documentation..."
 cat > "$BUILD_DIR/$DEMO_DIR/README_PORTABLE.md" << 'EOF'
-# 🚀 SAFA Global Portable Demo
+# 🚀 safa_connect Portable Demo
 
 ## Quick Start
 
@@ -272,7 +272,7 @@ Run: **`bash launch_demo.sh`**
 
 ## Features Included
 
-✅ **Complete SAFA Global System**  
+✅ **Complete safa_connect System**  
 ✅ **17+ Demo Products** in store  
 ✅ **Progressive Web App (PWA)**  
 ✅ **Offline Functionality**  
@@ -330,7 +330,7 @@ EOF
 # Create requirements specifically for portable demo
 print_status "Creating portable requirements..."
 cat > "$BUILD_DIR/$DEMO_DIR/requirements_portable.txt" << 'EOF'
-# SAFA Global Portable Demo Requirements
+# safa_connect Portable Demo Requirements
 # Minimized for faster USB stick deployment
 
 # Core Django
@@ -373,7 +373,7 @@ cp "$BUILD_DIR/$DEMO_DIR/requirements_portable.txt" "$BUILD_DIR/$DEMO_DIR/requir
 # Create demo environment file
 print_status "Creating portable environment configuration..."
 cat > "$BUILD_DIR/$DEMO_DIR/.env.portable" << 'EOF'
-# SAFA Global Portable Demo Environment
+# safa_connect Portable Demo Environment
 DEBUG=True
 SECRET_KEY=portable-demo-key-not-for-production
 DATABASE_URL=sqlite:///portable_demo.db
@@ -396,17 +396,17 @@ EOF
 print_status "Creating Windows autorun..."
 cat > "$BUILD_DIR/$DEMO_DIR/autorun.inf" << 'EOF'
 [autorun]
-label=SAFA Global Demo
+label=safa_connect Demo
 icon=static\images\safa_logo_small.png
 open=LAUNCH_DEMO_WINDOWS.bat
-action=Launch SAFA Global Demo
+action=Launch safa_connect Demo
 EOF
 
 # Create portable info file
 print_status "Creating demo information..."
 cat > "$BUILD_DIR/$DEMO_DIR/DEMO_INFO.txt" << 'EOF'
 ===============================================
-    SAFA Global Portable Demo
+    safa_connect Portable Demo
     South African Football Association
     Management System Demonstration
 ===============================================
@@ -416,7 +416,7 @@ DATE: June 2025
 SIZE: ~500MB when fully installed
 
 WHAT'S INCLUDED:
-- Complete SAFA Global management system
+- Complete safa_connect management system
 - 17+ demo products in merchandise store
 - Progressive Web App (PWA) functionality
 - Multi-user demo accounts
@@ -444,7 +444,7 @@ EOF
 # Create ZIP package
 print_status "Creating portable package..."
 cd "$BUILD_DIR"
-zip -r "SAFA_Global_Portable_Demo.zip" "$DEMO_DIR/"
+zip -r "safa_connect_portable_demo.zip" "$DEMO_DIR/"
 cd ..
 
 print_success "Portable demo package created!"
@@ -453,9 +453,9 @@ echo ""
 echo "📦 PORTABLE DEMO PACKAGE READY!"
 echo "================================="
 echo ""
-echo "📁 Package Location: $BUILD_DIR/SAFA_Global_Portable_Demo.zip"
+echo "📁 Package Location: $BUILD_DIR/safa_connect_portable_demo.zip"
 echo "📊 Package Contents:"
-echo "   ✅ Complete SAFA Global system"
+echo "   ✅ Complete safa_connect system"
 echo "   ✅ Windows launcher (.bat file)"
 echo "   ✅ Linux/Mac launcher (.sh file)"
 echo "   ✅ Portable documentation"
@@ -463,7 +463,7 @@ echo "   ✅ Demo data and users"
 echo "   ✅ Autorun configuration"
 echo ""
 echo "🚀 USB Stick Instructions:"
-echo "   1. Copy SAFA_Global_Portable_Demo.zip to USB stick"
+echo "   1. Copy safa_connect_portable_demo.zip to USB stick"
 echo "   2. Extract on target computer"
 echo "   3. Run appropriate launcher for OS"
 echo "   4. Demo starts automatically!"

@@ -1,5 +1,5 @@
 """
-Document watermarking utilities for SAFA Global system
+Document watermarking utilities for SAFA Connect system
 Adds watermarks to documents when downloaded to track unauthorized distribution
 """
 import os

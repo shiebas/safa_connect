@@ -31,7 +31,7 @@ You'll also need:
 1. Navigate to the project directory:
 
 ```bash
-cd /home/shaun/safa_global
+cd /home/shaun/safa_connect
 ```
 
 2. Run the setup script to install the necessary dependencies:

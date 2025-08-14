@@ -11,7 +11,7 @@ This system provides modern, customizable digital and physical membership cards 
 ### Location
 
 - Main template:  
-  `/home/shaun/safa_global/templates/membership_cards/bank_card.html`
+  `/home/shaun/safa_connect/templates/membership_cards/bank_card.html`
 
 ### Key Features
 
@@ -135,9 +135,9 @@ This system provides modern, customizable digital and physical membership cards 
 
 ## 9. File Reference
 
-- **Template:** `/home/shaun/safa_global/templates/membership_cards/bank_card.html`
-- **Views:** `/home/shaun/safa_global/membership_cards/views.py`
-- **Models:** `/home/shaun/safa_global/membership/models.py`
+- **Template:** `/home/shaun/safa_connect/templates/membership_cards/bank_card.html`
+- **Views:** `/home/shaun/safa_connect/membership_cards/views.py`
+- **Models:** `/home/shaun/safa_connect/membership/models.py`
 
 ---
 

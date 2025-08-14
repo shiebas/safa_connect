@@ -2,7 +2,7 @@ import os
 import django
 
 def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_global.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_connect.settings')
     django.setup()
     from membership.models import Member
     print(f"{'User':<30} {'Role':<25} {'Club':<25} {'Status':<10}")

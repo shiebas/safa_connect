@@ -1,4 +1,4 @@
-# SAFA Global Invoice System: Video Training Transcript
+# SAFA Connect Invoice System: Video Training Transcript
 
 ## Module 1: System Introduction
 
@@ -7,7 +7,7 @@
 ### EN - English
 
 ```
-[00:00] Welcome to the SAFA Global Invoice System training. This state-of-the-art system helps manage all financial transactions related to player registrations and transfers.
+[00:00] Welcome to the SAFA Connect Invoice System training. This state-of-the-art system helps manage all financial transactions related to player registrations and transfers.
 
 [00:10] The invoice system has been designed with ease of use in mind, while providing powerful features for tracking payments and managing financial records.
 
@@ -21,7 +21,7 @@
 ### ZU - isiZulu
 
 ```
-[00:00] Siyakwamukela ohlelweni lokuthuthukiswa lwe-Invoice System ye-SAFA Global. Lolu hlelo olusezingeni eliphezulu lusiza ukulawula zonke izinkokhelo eziphathelene nokubhaliswa kwabadlali nokudluliselwa.
+[00:00] Siyakwamukela ohlelweni lokuthuthukiswa lwe-Invoice System ye-SAFA Connect. Lolu hlelo olusezingeni eliphezulu lusiza ukulawula zonke izinkokhelo eziphathelene nokubhaliswa kwabadlali nokudluliselwa.
 
 [00:10] Uhlelo lwe-invoice lwenzelwe ukuthi lube lula ukusetshenziswa, kodwa lunikeze izici ezinamandla zokulandelela izinkokhelo nokulawula amarekhodi ezezimali.
 
@@ -35,7 +35,7 @@
 ### XH - isiXhosa
 
 ```
-[00:00] Wamkelekile kwimfundo yenkqubo ye-SAFA Global Invoice System. Le nkqubo inobugcisa obuphezulu inceda ukulawula zonke iintlawulo ezinxulumene nokubhaliswa kwabadlali kunye notshintsho.
+[00:00] Wamkelekile kwimfundo yenkqubo ye-SAFA Connect Invoice System. Le nkqubo inobugcisa obuphezulu inceda ukulawula zonke iintlawulo ezinxulumene nokubhaliswa kwabadlali kunye notshintsho.
 
 [00:10] Inkqubo ye-invoice yenzelwe ukuba ibe lula ukuyisebenzisa, kodwa inikeza iimpawu ezinamandla zokulandela iintlawulo nokulawula iirekhodi zemali.
 
@@ -49,7 +49,7 @@
 ### AF - Afrikaans
 
 ```
-[00:00] Welkom by die SAFA Global Invoice System-opleiding. Hierdie moderne stelsel help om alle finansiële transaksies met betrekking tot spelerregistrasies en -oordragte te bestuur.
+[00:00] Welkom by die SAFA Connect Invoice System-opleiding. Hierdie moderne stelsel help om alle finansiële transaksies met betrekking tot spelerregistrasies en -oordragte te bestuur.
 
 [00:10] Die faktuur-stelsel is ontwerp met gebruiksgemak in gedagte, terwyl dit kragtige funksies bied vir die opsporing van betalings en die bestuur van finansiële rekords.
 

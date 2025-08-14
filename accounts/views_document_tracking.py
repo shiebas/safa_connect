@@ -1,5 +1,5 @@
 """
-Document access tracking views for SAFA Global system
+Document access tracking views for SAFA Connect system
 """
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SAFA Global Invoice System provides comprehensive functionality for tracking payments related to player registrations, transfers, supporter memberships, and other financial transactions. The system automatically generates invoices for various registration types, tracks payment statuses, and generates reports on outstanding balances.
+The SAFA Connect Invoice System provides comprehensive functionality for tracking payments related to player registrations, transfers, supporter memberships, and other financial transactions. The system automatically generates invoices for various registration types, tracks payment statuses, and generates reports on outstanding balances.
 
 This documentation serves as a training guide for administrators and staff who will be using the invoice system.
 

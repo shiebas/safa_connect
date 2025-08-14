@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Navigate to SAFA Global root
-cd /home/shaun/safa_global
+# Navigate to SAFA Connect root
+cd /home/shaun/safa_connect
 
 # Create mobile directory
 mkdir -p mobile
@@ -76,11 +76,11 @@ const styles = StyleSheet.create({
 EOF
 
 echo "✅ SafaCardApp (Expo) created successfully!"
-echo "📁 Location: /home/shaun/safa_global/mobile/SafaCardApp"
+echo "📁 Location: /home/shaun/safa_connect/mobile/SafaCardApp"
 echo ""
 echo "🧹 Cleanup commands (run these):"
-echo "rm -rf /home/shaun/safa_global/mobile/SafaCardApp"
-echo "rm -rf /home/shaun/safa_global/mobile/node_modules"
+echo "rm -rf /home/shaun/safa_connect/mobile/SafaCardApp"
+echo "rm -rf /home/shaun/safa_connect/mobile/node_modules"
 echo ""
 echo "📝 Next steps:"
 echo "1. cd mobile/SafaCardApp"

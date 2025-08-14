@@ -1,9 +1,9 @@
-# Deployment Guide: SAFA Global on Google Cloud Run
+# Deployment Guide: SAFA Connect on Google Cloud Run
 
 **Version**: 1.0  
 **Last Updated**: July 27, 2024
 
-This guide provides step-by-step instructions for deploying the SAFA Global Django project to Google Cloud Run, a scalable and cost-effective hosting solution. This allows testers and stakeholders to access the application via a public URL without accessing the source code.
+This guide provides step-by-step instructions for deploying the SAFA Connect Django project to Google Cloud Run, a scalable and cost-effective hosting solution. This allows testers and stakeholders to access the application via a public URL without accessing the source code.
 
 ## Table of Contents
 
@@ -56,9 +56,9 @@ Your application code is already well-structured for this. Ensure you have the f
 
 ## 4. Containerize the Application (Dockerfile)
 
-A `Dockerfile` tells Cloud Build how to package your application into a container image. Create this file in the root of your `safa_global` project.
+A `Dockerfile` tells Cloud Build how to package your application into a container image. Create this file in the root of your `safa_connect` project.
 
-**`c:\Users\User\Documents\safa_global\Dockerfile`**:
+**`c:\Users\User\Documents\safa_connect\Dockerfile`**:
 ```dockerfile
 # Use the official Python image
 FROM python:3.10-slim
@@ -94,7 +94,7 @@ EXPOSE 8080
 
 # Run the application using Gunicorn
 # The "start.sh" script will be a simple wrapper to run migrations and start gunicorn
-CMD ["gunicorn", "safa_global.wsgi:application", "--bind", "0.0.0.0:8080"]
+CMD ["gunicorn", "safa_connect.wsgi:application", "--bind", "0.0.0.0:8080"]
 ```
 
 ---
@@ -105,20 +105,20 @@ Create a managed PostgreSQL database.
 
 ```bash
 # 1. Choose a name and region for your database instance
-INSTANCE_NAME="safa-global-db"
+INSTANCE_NAME="safa-connect-db"
 REGION="europe-west1"
 
 # 2. Create the PostgreSQL instance
 gcloud sql instances create $INSTANCE_NAME --database-version=POSTGRES_13 --region=$REGION --cpu=1 --memory=4GB
 
 # 3. Create the database within the instance
-gcloud sql databases create safa_global_prod --instance=$INSTANCE_NAME
+gcloud sql databases create safa_connect_prod --instance=$INSTANCE_NAME
 
 # 4. Create a database user
 gcloud sql users create safa_user --instance=$INSTANCE_NAME --password="CHOOSE_A_STRONG_PASSWORD"
 ```
 
-You will get a **Connection Name** for your instance (e.g., `your-gcp-project-id:europe-west1:safa-global-db`). You will need this later.
+You will get a **Connection Name** for your instance (e.g., `your-gcp-project-id:europe-west1:safa-connect-db`). You will need this later.
 
 ---
 
@@ -133,7 +133,7 @@ echo -n "your-super-secret-django-key" | gcloud secrets create DJANGO_SECRET_KEY
 # Store your database URL
 # The format is important for Django to connect to Cloud SQL from Cloud Run
 # postgresql://DB_USER:DB_PASSWORD@/DB_NAME?host=/cloudsql/INSTANCE_CONNECTION_NAME
-DB_URL="postgresql://safa_user:CHOOSE_A_STRONG_PASSWORD@/safa_global_prod?host=/cloudsql/your-gcp-project-id:europe-west1:safa-global-db"
+DB_URL="postgresql://safa_user:CHOOSE_A_STRONG_PASSWORD@/safa_connect_prod?host=/cloudsql/your-gcp-project-id:europe-west1:safa-connect-db"
 echo -n $DB_URL | gcloud secrets create DATABASE_URL --data-file=-
 ```
 
@@ -152,7 +152,7 @@ gcloud run deploy $SERVICE_NAME \
     --source . \
     --platform managed \
     --region $REGION \
-    --add-cloudsql-instances "your-gcp-project-id:europe-west1:safa-global-db" \
+    --add-cloudsql-instances "your-gcp-project-id:europe-west1:safa-connect-db" \
     --update-secrets=DJANGO_SECRET_KEY=DJANGO_SECRET_KEY:latest,DATABASE_URL=DATABASE_URL:latest,DEBUG=False,ALLOWED_HOSTS="*" \
     --allow-unauthenticated
 ```

@@ -7,7 +7,7 @@ import sys
 import django
 
 # Set up Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_global.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_connect.settings')
 django.setup()
 
 try:

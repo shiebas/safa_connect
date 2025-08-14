@@ -80,7 +80,7 @@ MIDDLEWARE = [
     'accounts.middleware.DocumentAccessMiddleware',  # Document tracking and watermarking
 ]
 
-ROOT_URLCONF = 'safa_global.urls'
+ROOT_URLCONF = 'safa_connect.urls'
 
 TEMPLATES = [
     {
@@ -103,7 +103,7 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
-WSGI_APPLICATION = 'safa_global.wsgi.application'
+WSGI_APPLICATION = 'safa_connect.wsgi.application'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -210,11 +210,11 @@ GOOGLE_WALLET_KEY_FILE = os.path.join(BASE_DIR, 'credentials', 'google_wallet_ke
 os.makedirs(os.path.join(BASE_DIR, 'credentials'), exist_ok=True)
 
 # Base URL for generating absolute URLs (for Google Wallet integration)
-BASE_URL = 'https://safaglobaladmin.co.za'  # Replace with actual domain in production
+BASE_URL = 'https://safaconnect.net'  # Replace with actual domain in production
 if DEBUG:
     BASE_URL = 'http://localhost:8000'
 
-GDAL_LIBRARY_PATH = r'C:\Users\User\documents\safa_global\venv\Lib\site-packages\osgeo\gdal.dll'
+GDAL_LIBRARY_PATH = r'C:\Users\User\documents\safa_connect\venv\Lib\site-packages\osgeo\gdal.dll'
 
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB

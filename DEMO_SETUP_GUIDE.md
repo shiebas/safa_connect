@@ -1,8 +1,8 @@
-# SAFA Global Demo Setup Guide
+# safa_connect Demo Setup Guide
 
 ## 🚀 **Quick Demo Deployment**
 
-This guide will help you set up a complete demo of the SAFA Global Football Association Management System.
+This guide will help you set up a complete demo of the safa_connect Football Association Management System.
 
 ## 📋 **Prerequisites**
 
@@ -16,8 +16,8 @@ This guide will help you set up a complete demo of the SAFA Global Football Asso
 ### 1. **Clone and Setup**
 ```bash
 # Clone the repository
-git clone <your-repo-url> safa_global_demo
-cd safa_global_demo
+git clone <your-repo-url> safa_connect
+cd safa_connect
 
 # Run the automated demo setup
 bash demo_setup.sh
@@ -252,7 +252,7 @@ For demo customization or deployment assistance:
 - [ ] Performance metrics acceptable
 - [ ] Security features highlighted
 
-**Ready to showcase the complete SAFA Global Football Management System!** ⚽
+**Ready to showcase the complete safa_connect Football Management System!** ⚽
 
 ---
 *Last Updated: June 2025*

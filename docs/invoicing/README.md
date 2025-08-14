@@ -1,6 +1,6 @@
-# SAFA Global Invoicing Documentation
+# SAFA Connect Invoicing Documentation
 
-This directory contains comprehensive documentation for the SAFA Global invoicing system, including the new Supporter Invoice System.
+This directory contains comprehensive documentation for the SAFA Connect invoicing system, including the new Supporter Invoice System.
 
 ## Available Documentation
 

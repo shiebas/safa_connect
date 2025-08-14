@@ -1,4 +1,4 @@
-# SAFA Global Invoice System: Comprehensive Training Guide
+# SAFA Connect Invoice System: Comprehensive Training Guide
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@
 
 ## Introduction
 
-The SAFA Global Invoice System is a comprehensive solution designed to manage financial transactions related to player registrations, transfers, and other administrative processes within the South African Football Association. This training guide provides detailed instructions on how to use the system effectively for both administrators and staff members.
+The SAFA Connect Invoice System is a comprehensive solution designed to manage financial transactions related to player registrations, transfers, and other administrative processes within the South African Football Association. This training guide provides detailed instructions on how to use the system effectively for both administrators and staff members.
 
 ## System Overview
 

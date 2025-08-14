@@ -12,8 +12,8 @@ import os
 def manifest(request):
     """Serve the PWA manifest.json file"""
     manifest_data = {
-        "name": "SAFA Global Management System",
-        "short_name": "SAFA Global",
+        "name": "SAFA Connect Management System",
+        "short_name": "SAFA Connect",
         "description": "Official South African Football Association management system for supporters, officials, and administrators",
         "start_url": "/",
         "display": "standalone",
@@ -42,14 +42,14 @@ def manifest(request):
                 "sizes": "1280x720",
                 "type": "image/png",
                 "form_factor": "wide",
-                "label": "SAFA Global Desktop View"
+                "label": "SAFA Connect Desktop View"
             },
             {
                 "src": "/static/images/screenshot-mobile.png",
                 "sizes": "360x640",
                 "type": "image/png",
                 "form_factor": "narrow",
-                "label": "SAFA Global Mobile View"
+                "label": "SAFA Connect Mobile View"
             }
         ],
         "shortcuts": [
@@ -101,7 +101,7 @@ def service_worker(request):
     # For development, we'll serve it dynamically
     
     sw_content = '''
-// SAFA Global Service Worker
+// SAFA Connect Service Worker
 const CACHE_NAME = 'safa-global-v1';
 const OFFLINE_URL = '/pwa/offline/';
 
@@ -270,7 +270,7 @@ self.addEventListener('push', event => {
         actions: [
             {
                 action: 'open',
-                title: 'Open SAFA Global'
+                title: 'Open SAFA Connect'
             },
             {
                 action: 'close',
@@ -280,7 +280,7 @@ self.addEventListener('push', event => {
     };
     
     event.waitUntil(
-        self.registration.showNotification('SAFA Global', options)
+        self.registration.showNotification('SAFA Connect', options)
     );
 });
 

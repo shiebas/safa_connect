@@ -1,8 +1,8 @@
-# SAFA Global Design Protocol
+# SAFA Connect Design Protocol
 
 ## Design Change Protocol
 
-To protect the design integrity of the SAFA Global project, this document outlines the protocol that any AI assistant (or human collaborator) should follow when suggesting changes to design elements.
+To protect the design integrity of the SAFA Connect project, this document outlines the protocol that any AI assistant (or human collaborator) should follow when suggesting changes to design elements.
 
 ### Files Requiring Explicit Confirmation
 
@@ -45,7 +45,7 @@ Would you like me to proceed with these changes? (Please reply with "yes" to con
 
 ### Brand Guidelines
 
-SAFA Global uses specific colors and styles:
+SAFA Connect uses specific colors and styles:
 
 - **Brand Colors**:
   - Primary Gold: #FFD700

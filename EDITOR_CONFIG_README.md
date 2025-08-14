@@ -1,4 +1,4 @@
-# Editor Configuration for SAFA Global Project
+# Editor Configuration for SAFA Connect Project
 
 ## Overview
 

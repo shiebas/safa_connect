@@ -1,6 +1,6 @@
-# SAFA Global Invoice System: Voice Command Reference
+# SAFA Connect Invoice System: Voice Command Reference
 
-This document outlines the voice commands implemented in the multimedia training system for the SAFA Global invoice system.
+This document outlines the voice commands implemented in the multimedia training system for the SAFA Connect invoice system.
 
 ## Available Voice Commands
 

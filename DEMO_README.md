@@ -1,4 +1,4 @@
-# 🚀 SAFA Global Demo - Quick Start
+# 🚀 SAFA Connect Demo - Quick Start
 
 ## One-Command Demo Setup
 

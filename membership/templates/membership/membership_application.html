@@ -158,7 +158,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/safa_global_validator.js' %}"></script>
+<script src="{% static 'js/safa_connect.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('membership-application-form');
@@ -171,9 +171,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if SafaGlobalValidator is available
     if (typeof SafaGlobalValidator !== 'undefined') {
         validator = new SafaGlobalValidator();
-        console.log('SAFA Global Validator initialized');
+        console.log('SAFA Connect Validator initialized');
     } else {
-        console.warn('SAFA Global Validator not found, using basic validation');
+        console.warn('SAFA Connect Validator not found, using basic validation');
         validator = {
             validateForm: function(form) {
                 return validateFormBasic(form);

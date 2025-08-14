@@ -5,7 +5,7 @@ import os
 import django
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_global.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_connect.settings')
 django.setup()
 
 def check_database_state():

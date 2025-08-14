@@ -9,7 +9,7 @@ import os
 import sys
 
 # Setup Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_global.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_connect.settings')
 django.setup()
 
 from django.db import models

@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # ================================================================
-# SAFA Global Demo Setup Script
+# SAFA Connect Demo Setup Script
 # Automated setup for demonstration environment
 # ================================================================
 
 set -e  # Exit on any error
 
-echo "🚀 SAFA Global Demo Setup Starting..."
+echo "🚀 SAFA Connect Demo Setup Starting..."
 echo "======================================"
 
 # Colors for output
@@ -46,7 +46,7 @@ print_success "Python $PYTHON_VERSION found"
 
 # Check if we're in the right directory
 if [ ! -f "manage.py" ]; then
-    print_error "manage.py not found. Please run this script from the SAFA Global project root."
+    print_error "manage.py not found. Please run this script from the SAFA Connect project root."
     exit 1
 fi
 
@@ -82,7 +82,7 @@ print_success "Requirements installed successfully"
 # Setup environment variables for demo
 print_status "Setting up demo environment..."
 cat > .env << EOF
-# SAFA Global Demo Environment
+# SAFA Connect Demo Environment
 DEBUG=True
 SECRET_KEY=demo-secret-key-for-development-only-not-for-production
 DATABASE_URL=sqlite:///db.sqlite3
@@ -285,7 +285,7 @@ fi
 
 # Display demo information
 echo ""
-echo "🎉 SAFA Global Demo Setup Complete!"
+echo "🎉 SAFA Connect Demo Setup Complete!"
 echo "======================================"
 echo ""
 echo "📍 Demo Access Points:"
@@ -325,7 +325,7 @@ echo ""
 # Create stop script
 cat > stop_demo.sh << EOF
 #!/bin/bash
-echo "Stopping SAFA Global demo..."
+echo "Stopping SAFA Connect demo..."
 pkill -f "python.*manage.py.*runserver" || true
 echo "Demo stopped."
 EOF

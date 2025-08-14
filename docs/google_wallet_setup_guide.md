@@ -93,17 +93,17 @@ Before beginning, ensure you have:
 
 1. Create a secure directory for credentials:
    ```bash
-   mkdir -p /home/shaun/safa_global/credentials
+   mkdir -p /home/shaun/safa_connect/credentials
    ```
 
 2. Move the downloaded JSON key file to the credentials directory:
    ```bash
-   mv /path/to/downloaded/key.json /home/shaun/safa_global/credentials/google_wallet_key.json
+   mv /path/to/downloaded/key.json /home/shaun/safa_connect/credentials/google_wallet_key.json
    ```
 
 3. Secure the file:
    ```bash
-   chmod 600 /home/shaun/safa_global/credentials/google_wallet_key.json
+   chmod 600 /home/shaun/safa_connect/credentials/google_wallet_key.json
    ```
 
 ### 2. Update Django Settings

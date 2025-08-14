@@ -7,7 +7,7 @@ import re
 
 # Files that need fixing
 files_to_fix = [
-    'safa_global/dashboard_views.py',
+    'safa_connect/dashboard_views.py',
     'supporters/views.py', 
     'events/views.py',
     'membership/management/commands/update_invoice_status.py',

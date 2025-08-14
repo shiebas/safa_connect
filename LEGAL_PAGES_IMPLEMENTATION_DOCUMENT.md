@@ -1,11 +1,11 @@
-# SAFA Global Legal Pages Implementation Documentation
+# safa_connect Legal Pages Implementation Documentation
 
 ## 📋 **Project Overview**
 
-This document outlines the complete implementation of legal pages and footer enhancements for the SAFA Global Management System, developed by **LS SPECIAL PROJECTS PTY LTD** trading as **ESJ Sports Solutions**.
+This document outlines the complete implementation of legal pages and footer enhancements for the safa_connect Management System, developed by **LS SPECIAL PROJECTS PTY LTD** trading as **ESJ Sports Solutions**.
 
 **Implementation Date:** June 26, 2025  
-**System Version:** SAFA Global Management System  
+**System Version:** safa_connect Management System  
 **Developer:** ESJ Sport Solutions  
 
 ---
@@ -31,7 +31,7 @@ This document outlines the complete implementation of legal pages and footer enh
 ## 🔗 **Footer Implementation**
 
 ### **Links Added to Footer**
-The following legal links have been added to the SAFA Global system footer:
+The following legal links have been added to the safa_connect system footer:
 
 1. **Terms & Conditions** → `/legal/terms/`
 2. **Privacy Policy** → `/legal/privacy/`
@@ -52,7 +52,7 @@ The following legal links have been added to the SAFA Global system footer:
     <div class="container">
         <div class="row">
             <div class="col-md-8">
-                <h5><i class="fas fa-futbol me-2"></i>SAFA Global Admin</h5>
+                <h5><i class="fas fa-futbol me-2"></i>safa_connect Admin</h5>
                 <p class="mb-2">South African Football Association Registration System</p>
                 <p class="mb-0">
                     <small class="text-light">
@@ -94,7 +94,7 @@ The following legal links have been added to the SAFA Global system footer:
 
 ### **1. Terms and Conditions (`/legal/terms/`)**
 
-**Purpose:** Define the legal agreement between users and the SAFA Global system.
+**Purpose:** Define the legal agreement between users and the safa_connect system.
 
 **Key Sections:**
 - **Introduction:** Welcome and agreement acceptance
@@ -229,7 +229,7 @@ legal/
 ```
 
 ### **URL Configuration**
-**Main URLs (`safa_global/urls.py`):**
+**Main URLs (`safa_connect/urls.py`):**
 ```python
 path('legal/', include('legal.urls', namespace='legal')),
 ```

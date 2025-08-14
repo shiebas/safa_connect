@@ -1,5 +1,5 @@
 /**
- * SAFA Global Validators
+ * SAFA Connect Validators
  *
  * This file contains validation functions that are used across the entire application.
  * Include this file in templates that need validation functionality.

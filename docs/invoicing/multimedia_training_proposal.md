@@ -1,8 +1,8 @@
-# SAFA Global Invoice System: Multimedia Training Proposal
+# SAFA Connect Invoice System: Multimedia Training Proposal
 
 ## Overview
 
-This proposal outlines the implementation of state-of-the-art multimedia training materials for the SAFA Global invoice system, featuring multilingual video presentations with text-to-speech capabilities. This enhancement will make training more accessible and effective for all users across South Africa's diverse linguistic landscape.
+This proposal outlines the implementation of state-of-the-art multimedia training materials for the SAFA Connect invoice system, featuring multilingual video presentations with text-to-speech capabilities. This enhancement will make training more accessible and effective for all users across South Africa's diverse linguistic landscape.
 
 ## Key Features
 
@@ -39,7 +39,7 @@ This proposal outlines the implementation of state-of-the-art multimedia trainin
 2. **Text-to-Speech Engine**:
    - Support for all 11 South African official languages
    - Natural-sounding voices with proper pronunciation
-   - API integration with the SAFA Global platform
+   - API integration with the SAFA Connect platform
 
 3. **Speech-to-Text Processing**:
    - Accurate voice recognition for South African accents
@@ -96,7 +96,7 @@ The multimedia content will be fully integrated with the existing documentation:
 ```
 [Opening Scene: SAFA logo animation]
 
-Narrator: Welcome to the SAFA Global Invoice System training. This state-of-the-art system helps manage all financial transactions related to player registrations and transfers.
+Narrator: Welcome to the SAFA Connect Invoice System training. This state-of-the-art system helps manage all financial transactions related to player registrations and transfers.
 
 [Screen shows dashboard overview]
 
@@ -125,7 +125,7 @@ The language selection interface will be:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  SAFA Global Invoice System - Training Video        │
+│  SAFA Connect Invoice System - Training Video        │
 │                                                     │
 │  Please select your preferred language:             │
 │                                                     │
@@ -195,5 +195,5 @@ The effectiveness of the multimedia training will be measured by:
 
 ---
 
-*Prepared for SAFA Global by the IT Training Department*
+*Prepared for SAFA Connect by the IT Training Department*
 *June 12, 2025*

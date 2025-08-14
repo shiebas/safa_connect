@@ -1,5 +1,5 @@
 #!/bin/bash
-# Load all core geography fixtures in the correct order for SAFA Global
+# Load all core geography fixtures in the correct order for SAFA Connect
 # Usage: bash load_geography_fixtures.sh
 
 set -e

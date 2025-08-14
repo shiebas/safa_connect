@@ -1,5 +1,5 @@
 # ================================================================
-# SAFA Global Management System - Production Requirements
+# SAFA Connect Management System - Production Requirements
 # Combined from all requirement files for deployment
 # Last Updated: June 2025
 # ================================================================
@@ -157,5 +157,5 @@ pip>=25.1.1
 #    python manage.py createsuperuser
 #
 # 6. Start with gunicorn:
-#    gunicorn safa_global.wsgi:application
+#    gunicorn safa_connect.wsgi:application
 # ================================================================

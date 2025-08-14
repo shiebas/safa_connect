@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SAFA Global system now automatically generates invoices when registering new players. The invoice amount is determined by the player's age:
+The SAFA Connect system now automatically generates invoices when registering new players. The invoice amount is determined by the player's age:
 
 - Junior players (under 18): R100
 - Senior players (18 and above): R200

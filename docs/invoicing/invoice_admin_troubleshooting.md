@@ -264,7 +264,7 @@ This guide is intended for system administrators and provides technical solution
 
 1. **Backup invoice data**:
    ```bash
-   python manage.py dumpdata membership.invoice membership.invoiceitem > /home/shaun/safa_global/backups/invoices_$(date +%Y%m%d).json
+   python manage.py dumpdata membership.invoice membership.invoiceitem > /home/shaun/safa_connect/backups/invoices_$(date +%Y%m%d).json
    ```
 
 2. **Check for orphaned invoice items**:

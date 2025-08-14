@@ -1,4 +1,4 @@
-# 💾 SAFA Global USB Stick Demo
+# 💾 safa_connect USB Stick Demo
 
 ## 🚀 Build Portable Demo
 
@@ -6,7 +6,7 @@
 bash build_portable_demo.sh
 ```
 
-This creates a **SAFA_Global_Portable_Demo.zip** that can run from any USB stick!
+This creates a **safa_connect_portable_demo.zip** that can run from any USB stick!
 
 ## 📦 What Gets Created
 
@@ -34,7 +34,7 @@ bash build_portable_demo.sh
 ### **Step 2: Copy to USB**
 ```bash
 # Copy the ZIP file to USB stick
-cp portable_build/SAFA_Global_Portable_Demo.zip /path/to/usb/
+cp portable_build/safa_connect_portable_demo.zip /path/to/usb/
 ```
 
 ### **Step 3: Use Anywhere**
@@ -90,7 +90,7 @@ cp portable_build/SAFA_Global_Portable_Demo.zip /path/to/usb/
 ## 📊 File Structure in ZIP:
 
 ```
-SAFA_Global_Portable_Demo/
+safa_connect_portable_demo/
 ├── LAUNCH_DEMO_WINDOWS.bat    # Windows launcher
 ├── launch_demo.sh              # Linux/Mac launcher
 ├── README_PORTABLE.md          # Documentation
@@ -98,7 +98,7 @@ SAFA_Global_Portable_Demo/
 ├── autorun.inf                # Windows autorun
 ├── requirements_production.txt # Dependencies
 ├── manage.py                  # Django management
-├── safa_global/               # Main application
+├── safa_connect/               # Main application
 ├── accounts/                  # User management
 ├── merchandise/               # Store system
 ├── pwa/                       # PWA functionality
@@ -115,18 +115,18 @@ bash build_portable_demo.sh
 
 # Extract and test locally
 cd portable_build
-unzip SAFA_Global_Portable_Demo.zip
-cd SAFA_Global_Portable_Demo
+unzip safa_connect_portable_demo.zip
+cd safa_connect_portable_demo
 bash launch_demo.sh
 ```
 
 ## 💡 Pro Tips:
 
-- **Label USB stick** as "SAFA Global Demo"
+- **Label USB stick** as "safa_connect Demo"
 - **Include Python installer** on USB for computers without Python
 - **Test on different OS** before important presentations
 - **Backup demo data** - USB included a fresh database each time
 
 ---
 
-**Take SAFA Global anywhere - professional demos on any computer!** ⚽💾
+**Take safa_connect anywhere - professional demos on any computer!** ⚽💾

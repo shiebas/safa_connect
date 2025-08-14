@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Navigate to SAFA Global root
-cd /home/shaun/safa_global
+# Navigate to SAFA Connect root
+cd /home/shaun/safa_connect
 
 # Create mobile directory
 mkdir -p mobile
@@ -45,7 +45,7 @@ echo "Setting up Android permissions..."
 echo "Don't forget to add camera permissions to android/app/src/main/AndroidManifest.xml"
 
 echo "✅ SafaCardApp created successfully!"
-echo "📁 Location: /home/shaun/safa_global/mobile/SafaCardApp"
+echo "📁 Location: /home/shaun/safa_connect/mobile/SafaCardApp"
 echo "📝 Next steps:"
 echo "1. cd mobile/SafaCardApp"
 echo "2. Add camera permissions to AndroidManifest.xml"
