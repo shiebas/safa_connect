@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Reject Member: {{ member.get_full_name }}</h2>
+    <hr>
+
+    <div class="alert alert-danger">
+        <strong>Warning:</strong> You are about to reject this member's registration. This action cannot be undone.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_rejection_reason" class="form-label">Reason for Rejection</label>
+            {{ form.rejection_reason }}
+        </div>
+        <button type="submit" class="btn btn-danger">Reject Member</button>
+        <a href="{% url 'accounts:member_approvals_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

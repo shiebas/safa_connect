@@ -7,6 +7,7 @@ from .views import ModernLoginView, modern_home
 app_name = 'accounts'
 
 urlpatterns = [
+    path('national-registration/', views.national_registration, name='national_registration'),
     path('', modern_home, name='home'),
     path('login/', ModernLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
@@ -28,6 +29,7 @@ urlpatterns = [
     path('notifications/', views.notification_center, name='notification_center'),
     path('health-check/', views.health_check, name='health_check'),
     path('member-approvals/', views.member_approvals_list, name='member_approvals_list'),
+    path('member-approvals/<int:member_id>/reject/', views.reject_member, name='reject_member'),
     path('advanced-search/', views.advanced_search, name='advanced_search'),
     path('statistics/', views.statistics, name='statistics'),
 
