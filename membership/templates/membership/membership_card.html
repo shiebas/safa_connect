@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Membership Card</title>
+    <style>
+        @page {
+            size: a6 portrait;
+            margin: 1cm;
+        }
+        body {
+            font-family: sans-serif;
+        }
+        .card {
+            border: 1px solid black;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-picture {
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            margin-bottom: 10px;
+        }
+        .details {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>SAFA Membership Card</h1>
+        </div>
+        <div class="profile-picture">
+            {% if member.profile_picture %}
+                <img src="{{ member.profile_picture.path }}" alt="Profile Picture">
+            {% else %}
+                <p>No Photo</p>
+            {% endif %}
+        </div>
+        <div class="details">
+            <p><strong>Name:</strong> {{ member.get_full_name }}</p>
+            <p><strong>SAFA ID:</strong> {{ member.safa_id }}</p>
+            <p><strong>Club:</strong> {{ member.current_club.name }}</p>
+            <p><strong>Season:</strong> {{ member.current_season.season_year }}</p>
+            <p><strong>Role:</strong> {{ member.get_role_display }}</p>
+            <p><strong>Status:</strong> {{ member.get_status_display }}</p>
+        </div>
+    </div>
+</body>
+</html>

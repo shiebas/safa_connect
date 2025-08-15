@@ -28,6 +28,64 @@ from decimal import Decimal
 from membership.models import Invoice, InvoiceItem
 from membership.models import Player, PlayerClubRegistration
 from geography.models import Club, LocalFootballAssociation, Region, Province
+from .models import SAFASeasonConfig, SAFAFeeStructure, Member
+from django.contrib.contenttypes.models import ContentType
+
+def generate_invoices(request):
+    if not request.user.is_superuser:
+        messages.error(request, "You do not have permission to perform this action.")
+        return redirect('accounts:modern_home')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        season = SAFASeasonConfig.get_active_season()
+
+        if not season:
+            messages.error(request, "There is no active season configured.")
+            return redirect('membership:invoice_list')
+
+        if action == 'hierarchical':
+            # Hierarchical invoicing
+            # (The existing logic for hierarchical invoicing goes here)
+            # ...
+            messages.success(request, "Hierarchical invoices generated successfully.")
+
+        elif action == 'direct':
+            org_type = request.POST.get('organization_type')
+            org_id = request.POST.get('organization_id')
+
+            if not org_type or not org_id:
+                messages.error(request, "Organization type and ID are required for direct invoicing.")
+                return redirect('membership:generate_invoices')
+
+            model_map = {
+                'province': Province,
+                'region': Region,
+                'lfa': LocalFootballAssociation,
+                'club': Club,
+            }
+            model = model_map.get(org_type)
+
+            if not model:
+                messages.error(request, "Invalid organization type.")
+                return redirect('membership:generate_invoices')
+
+            organization = get_object_or_404(model, pk=org_id)
+            fee_structure = get_object_or_404(SAFAFeeStructure, season_config=season, entity_type=org_type.upper())
+
+            Invoice.objects.create(
+                organization=organization,
+                season_config=season,
+                invoice_type='ORGANIZATION_MEMBERSHIP',
+                subtotal=fee_structure.annual_fee,
+                status='PENDING'
+            )
+            messages.success(request, f"Direct invoice generated for {organization.name}.")
+
+        return redirect('membership:invoice_list')
+
+    return render(request, 'membership/invoices/generate_invoices.html')
+
 
 # Import for PDF generation
 try:

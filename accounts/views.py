@@ -15,22 +15,88 @@ from django.views.decorators.http import require_GET, require_POST
 from geography.models import Club, LocalFootballAssociation, Region
 from membership.models import Member, Invoice
 
-from .forms import EmailAuthenticationForm, PlayerForm
+from .forms import EmailAuthenticationForm, PlayerForm, NationalAdminRegistrationForm, RejectMemberForm
 from .models import CustomUser, OrganizationType, Position
 from .utils import generate_unique_safa_id
+
+
+@login_required
+def reject_member(request, member_id):
+    member = get_object_or_404(CustomUser, id=member_id)
+    if not can_approve_member(request.user, member):
+        messages.error(request, "You do not have permission to perform this action.")
+        return redirect('accounts:member_approvals_list')
+
+    if request.method == 'POST':
+        form = RejectMemberForm(request.POST)
+        if form.is_valid():
+            member.membership_status = 'REJECTED'
+            member.rejection_reason = form.cleaned_data['rejection_reason']
+            member.save()
+            messages.success(request, f'Member {member.get_full_name()} has been rejected.')
+            return redirect('accounts:member_approvals_list')
+    else:
+        form = RejectMemberForm()
+
+    return render(request, 'accounts/reject_member.html', {'form': form, 'member': member})
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+
+def national_registration(request):
+    if request.method == 'POST':
+        form = NationalAdminRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.role = 'ADMIN_NATIONAL'
+            user.save()
+            messages.success(request, 'National Administrator registered successfully.')
+            return redirect('accounts:modern_home')
+    else:
+        form = NationalAdminRegistrationForm()
+    return render(request, 'accounts/national_registration.html', {'form': form})
 
 logger = logging.getLogger(__name__)
 
 
 # Placeholder functions for missing utilities
 def get_admin_jurisdiction_queryset(user):
-    # This should return a queryset of members that the user has permission to see
-    return CustomUser.objects.all()
+    if user.is_superuser or user.role == 'ADMIN_NATIONAL':
+        return CustomUser.objects.all()
+
+    if user.role == 'ADMIN_PROVINCE':
+        return CustomUser.objects.filter(province=user.province)
+
+    if user.role == 'ADMIN_REGION':
+        return CustomUser.objects.filter(region=user.region)
+
+    if user.role == 'ADMIN_LOCAL_FED':
+        return CustomUser.objects.filter(local_federation=user.local_federation)
+
+    if user.role == 'CLUB_ADMIN':
+        return CustomUser.objects.filter(club=user.club)
+
+    return CustomUser.objects.none()
 
 
 def can_approve_member(user, member):
-    # This should check if the user has permission to approve the member
-    return True
+    if user.is_superuser or user.role == 'ADMIN_NATIONAL':
+        return True
+
+    if user.role == 'ADMIN_PROVINCE' and member.province == user.province:
+        return True
+
+    if user.role == 'ADMIN_REGION' and member.region == user.region:
+        return True
+
+    if user.role == 'ADMIN_LOCAL_FED' and member.local_federation == user.local_federation:
+        return True
+
+    if user.role == 'CLUB_ADMIN' and member.club == user.club:
+        return True
+
+    return False
 
 
 def get_user_notifications(user):

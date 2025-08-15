@@ -8,6 +8,9 @@ from django.utils import timezone
 from .forms import PlayerRegistrationForm, OfficialRegistrationForm, AdminRegistrationForm
 from .models import Member
 from accounts.models import CustomUser
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 
 def registration_portal(request):
     """Registration portal with different registration options"""
@@ -117,3 +120,24 @@ def reject_member(request, member_id):
         member.save()
         messages.success(request, f'Member {member.get_full_name()} has been rejected.')
     return redirect('membership:member_approval_list')
+
+def generate_membership_card(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    template_path = 'membership/membership_card.html'
+    context = {'member': member}
+
+    # Create a Django response object, and specify content_type as pdf
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{member.safa_id}_card.pdf"'
+
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+    # if error then show some funy view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response

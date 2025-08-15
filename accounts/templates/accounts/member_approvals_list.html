@@ -1,14 +1,82 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="container">
-    <h1>Member Approvals</h1>
-    <p>This is a placeholder for the member approvals list.</p>
-    <ul>
-    {% for member in pending_members %}
-        <li>{{ member.get_full_name }} - {{ member.email }}</li>
-    {% empty %}
-        <li>No members are currently pending approval.</li>
-    {% endfor %}
-    </ul>
+<div class="container mt-4">
+    <h2>Members Pending Approval</h2>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>SAFA ID</th>
+                            <th>ID Number</th>
+                            <th>Club</th>
+                            <th>Registration Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in pending_members %}
+                        <tr id="member-row-{{ member.id }}">
+                            <td>{{ member.get_full_name }}</td>
+                            <td>{{ member.safa_id|default:"N/A" }}</td>
+                            <td>{{ member.id_number|default:"N/A" }}</td>
+                            <td>{{ member.club.name|default:"N/A" }}</td>
+                            <td>{{ member.date_joined|date:"Y-m-d" }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-success btn-sm approve-btn" data-member-id="{{ member.id }}">Approve</button>
+                                <a href="{% url 'accounts:reject_member' member.id %}" class="btn btn-danger btn-sm">Reject</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No members are currently pending approval.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.approve-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const memberId = this.dataset.memberId;
+        const row = document.getElementById(`member-row-${memberId}`);
+
+        fetch("{% url 'accounts:quick_approve_member' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `member_id=${memberId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                row.style.display = 'none';
+                // You can also add a success message here
+            } else {
+                alert('Error approving member: ' + data.error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Invoices{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Generate Invoices</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Hierarchical Invoice Generation
+        </div>
+        <div class="card-body">
+            <p>This will generate invoices for all organizations based on the active season's fee structure (e.g., National -> Provinces, Provinces -> Regions, etc.).</p>
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> This action will create a large number of invoices. Please be sure you want to proceed.
+            </div>
+            <form method="post" action="{% url 'membership:generate_invoices' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="hierarchical">
+                <button type="submit" class="btn btn-primary">Generate Hierarchical Invoices</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Direct Invoice Generation
+        </div>
+        <div class="card-body">
+            <p>This will generate a single invoice for a specific organization.</p>
+            <form method="post" action="{% url 'membership:generate_invoices' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="direct">
+
+                <div class="mb-3">
+                    <label for="organization_type" class="form-label">Organization Type</label>
+                    <select name="organization_type" id="organization_type" class="form-select">
+                        <option value="">Select Type</option>
+                        <option value="province">Province</option>
+                        <option value="region">Region</option>
+                        <option value="lfa">LFA</option>
+                        <option value="club">Club</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="organization_id" class="form-label">Organization</label>
+                    <select name="organization_id" id="organization_id" class="form-select">
+                        <option value="">Select Organization</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-secondary">Generate Direct Invoice</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('organization_type').addEventListener('change', function() {
+    var orgType = this.value;
+    var orgIdSelect = document.getElementById('organization_id');
+    orgIdSelect.innerHTML = '<option value="">Loading...</option>';
+
+    if (orgType) {
+        fetch('/api/geography/' + orgType + '/')
+            .then(response => response.json())
+            .then(data => {
+                orgIdSelect.innerHTML = '<option value="">Select Organization</option>';
+                data.forEach(function(org) {
+                    var option = document.createElement('option');
+                    option.value = org.id;
+                    option.textContent = org.name;
+                    orgIdSelect.appendChild(option);
+                });
+            });
+    } else {
+        orgIdSelect.innerHTML = '<option value="">Select Organization</option>';
+    }
+});
+</script>
+{% endblock %}

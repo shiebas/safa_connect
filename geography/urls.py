@@ -1,26 +1,11 @@
 from django.urls import path, include
-from rest_framework import routers
 from . import views
-from .views import (
-    WorldSportsBodyViewSet, ContinentViewSet, ContinentFederationViewSet, ContinentRegionViewSet, CountryViewSet, NationalFederationViewSet, ProvinceViewSet, RegionViewSet, AssociationViewSet, LocalFootballAssociationViewSet, ClubViewSet
-)
+from . import urls_api
 
-app_name = 'geography'  # This should be defined only once
-
-router = routers.DefaultRouter()
-router.register(r'worldsportsbodies', WorldSportsBodyViewSet)
-router.register(r'continents', ContinentViewSet)
-router.register(r'continentfederations', ContinentFederationViewSet)
-router.register(r'continentregions', ContinentRegionViewSet)
-router.register(r'countries', CountryViewSet)
-router.register(r'nationalfederations', NationalFederationViewSet)
-router.register(r'provinces', ProvinceViewSet)
-router.register(r'regions', RegionViewSet)
-router.register(r'associations', AssociationViewSet)
-router.register(r'localfootballassociations', LocalFootballAssociationViewSet)
-router.register(r'clubs', ClubViewSet)
+app_name = 'geography'
 
 urlpatterns = [
+    path('api/', include(urls_api)),
     path('admin/', views.geography_admin, name='geography_admin'),
     path('advanced/', views.advanced_home, name='advance_home'),
     # Geography home and optimized list views (main navigation)

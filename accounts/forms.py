@@ -9,7 +9,36 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder, Submit
 from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, ROLES
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association
-from django.db.models import Q  
+from django.db.models import Q
+
+
+class NationalAdminRegistrationForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name', 'last_name', 'email', 'id_number', 'passport_number',
+            'date_of_birth', 'gender', 'profile_picture', 'id_document',
+            'popi_act_consent'
+        ]
+
+    def clean_password2(self):
+        cd = self.cleaned_data
+        if cd['password'] != cd['password2']:
+            raise forms.ValidationError('Passwords don\'t match.')
+        return cd['password2']
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+
+class RejectMemberForm(forms.Form):
+    rejection_reason = forms.CharField(widget=forms.Textarea, required=True)
 
 class EmailAuthenticationForm(AuthenticationForm):
     """Custom authentication form using email instead of username"""
