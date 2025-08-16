@@ -19,7 +19,7 @@ class Command(BaseCommand):
         for level, name in org_types:
             OrganizationType.objects.get_or_create(
                 level=level,
-                defaults={'name': name, 'is_active': True}
+                defaults={'name': name}
             )
             self.stdout.write(f'Created organization type: {name}')
         
