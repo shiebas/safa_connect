@@ -15,9 +15,9 @@ class Command(BaseCommand):
         count = options['count']
         
         # Get geography data
-        provinces = list(Province.objects.filter(is_active=True))
-        lfas = list(LocalFootballAssociation.objects.filter(is_active=True))
-        clubs = list(Club.objects.filter(is_active=True))
+        provinces = list(Province.objects.all())
+        lfas = list(LocalFootballAssociation.objects.all())
+        clubs = list(Club.objects.filter(status='ACTIVE'))
         
         if not provinces or not lfas:
             self.stdout.write(
