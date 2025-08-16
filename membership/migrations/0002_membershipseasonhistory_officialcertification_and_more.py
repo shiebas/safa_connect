@@ -212,6 +212,18 @@ class Migration(migrations.Migration):
             name="memberseasonhistory",
             unique_together=None,
         ),
+        migrations.RemoveIndex(
+            model_name='memberseasonhistory',
+            name='membership__member__02e186_idx',
+        ),
+        migrations.RemoveIndex(
+            model_name='memberseasonhistory',
+            name='membership__season__6a5708_idx',
+        ),
+        migrations.RemoveIndex(
+            model_name='memberseasonhistory',
+            name='membership__club_id_2bfc86_idx',
+        ),
         migrations.RemoveField(
             model_name="memberseasonhistory",
             name="associations",
@@ -571,7 +583,6 @@ class Migration(migrations.Migration):
         migrations.DeleteModel(
             name="ClubMemberQuota",
         ),
-        
         migrations.DeleteModel(
             name="MemberProfile",
         ),
