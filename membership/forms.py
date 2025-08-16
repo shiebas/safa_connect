@@ -49,7 +49,7 @@ from geography.models import Club
 
 class TransferRequestForm(forms.ModelForm):
     member = forms.ModelChoiceField(queryset=Member.objects.filter(status='ACTIVE', role='PLAYER'))
-    to_club = forms.ModelChoiceField(queryset=Club.objects.filter(is_active=True))
+    to_club = forms.ModelChoiceField(queryset=Club.objects.filter(status='ACTIVE'))
 
     class Meta:
         model = Transfer

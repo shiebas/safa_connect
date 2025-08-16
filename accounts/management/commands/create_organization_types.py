@@ -18,8 +18,7 @@ class Command(BaseCommand):
         for org_type in org_types:
             OrganizationType.objects.get_or_create(
                 name=org_type['name'],
-                level=org_type['level'],
-                defaults={'is_active': True}
+                level=org_type['level']
             )
             
         self.stdout.write(self.style.SUCCESS('Successfully created organization types'))
