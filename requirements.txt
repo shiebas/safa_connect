@@ -60,5 +60,4 @@ wheel==0.45.1
 whitenoise==6.6.0
 XlsxWriter==3.2.3
 zopfli==0.2.3.post1
-
 xhtml2pdf
