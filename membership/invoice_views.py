@@ -26,7 +26,6 @@ from datetime import timedelta, date
 from decimal import Decimal
 
 from membership.models import Invoice, InvoiceItem
-from membership.models import Player, PlayerClubRegistration
 from geography.models import Club, LocalFootballAssociation, Region, Province
 from .models import SAFASeasonConfig, SAFAFeeStructure, Member
 from django.contrib.contenttypes.models import ContentType
@@ -103,7 +102,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         """Filter invoices based on query parameters"""
-        queryset = Invoice.objects.all().select_related('player', 'club')
+        queryset = Invoice.objects.all().select_related('member__current_club')
         
         # Apply filters from GET parameters
         status = self.request.GET.get('status')
@@ -112,7 +111,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
             
         club_id = self.request.GET.get('club')
         if club_id:
-            queryset = queryset.filter(club_id=club_id)
+            queryset = queryset.filter(member__current_club_id=club_id)
             
         date_from = self.request.GET.get('date_from')
         if date_from:
@@ -124,23 +123,28 @@ class InvoiceListView(LoginRequiredMixin, ListView):
             
         # Filter by user permissions
         user = self.request.user
-        if user.role == 'CLUB_ADMIN':
-            # Club admins can only see their club's invoices
-            queryset = queryset.filter(club__club_members__user=user, club__club_members__role='CLUB_ADMIN')
-        elif user.role == 'ADMIN_LOCAL_FED':
-            # LFA admins can see invoices for clubs in their LFA
-            queryset = queryset.filter(club__local_football_association__lfa_members__user=user)
-        elif user.role == 'ADMIN_REGION':
-            # Regional admins can see invoices for clubs in their region
-            queryset = queryset.filter(club__region__region_members__user=user)
-        elif user.role == 'ADMIN_PROVINCE':
-            # Provincial admins can see invoices for clubs in their province
-            queryset = queryset.filter(club__province__province_members__user=user)
-        elif user.role not in ['ADMIN', 'ADMIN_SYSTEM', 'ADMIN_COUNTRY']:
-            # Others can only see their own invoices
-            queryset = queryset.filter(player__user=user)
-            
-        return queryset
+        if not user.is_authenticated:
+            return Invoice.objects.none()
+
+        # SAFA Admin can see all
+        if user.is_staff or user.is_superuser:
+            return queryset
+
+        # Other roles
+        if hasattr(user, 'member_profile') and user.member_profile:
+            member = user.member_profile
+            if member.current_club:
+                if hasattr(member.current_club, 'club_admins') and member.current_club.club_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club=member.current_club)
+                if hasattr(member.current_club, 'lfa') and member.current_club.lfa and hasattr(member.current_club.lfa, 'lfa_admins') and member.current_club.lfa.lfa_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club__lfa=member.current_club.lfa)
+                if hasattr(member.current_club, 'region') and member.current_club.region and hasattr(member.current_club.region, 'region_admins') and member.current_club.region.region_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club__region=member.current_club.region)
+                if hasattr(member.current_club, 'province') and member.current_club.province and hasattr(member.current_club.province, 'province_admins') and member.current_club.province.province_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club__province=member.current_club.province)
+
+        # Others can only see their own invoices
+        return queryset.filter(member__user=user)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -148,25 +152,37 @@ class InvoiceListView(LoginRequiredMixin, ListView):
         
         # Add clubs for dropdown
         user = self.request.user
-        if user.role == 'CLUB_ADMIN':
-            context['clubs'] = Club.objects.filter(club_members__user=user, club_members__role='CLUB_ADMIN')
-        elif user.role == 'ADMIN_LOCAL_FED':
-            context['clubs'] = Club.objects.filter(local_football_association__lfa_members__user=user)
-        elif user.role == 'ADMIN_REGION':
-            context['clubs'] = Club.objects.filter(region__region_members__user=user)
-        elif user.role == 'ADMIN_PROVINCE':
-            context['clubs'] = Club.objects.filter(province__province_members__user=user)
+        if not user.is_authenticated:
+            context['clubs'] = Club.objects.none()
+        elif user.is_staff or user.is_superuser:
+            context['clubs'] = Club.objects.all()
+        elif hasattr(user, 'member_profile') and user.member_profile:
+            member = user.member_profile
+            if member.current_club:
+                if hasattr(member.current_club, 'club_admins') and member.current_club.club_admins.filter(pk=user.pk).exists():
+                    context['clubs'] = Club.objects.filter(pk=member.current_club.pk)
+                elif hasattr(member.current_club, 'lfa') and member.current_club.lfa and hasattr(member.current_club.lfa, 'lfa_admins') and member.current_club.lfa.lfa_admins.filter(pk=user.pk).exists():
+                    context['clubs'] = Club.objects.filter(lfa=member.current_club.lfa)
+                elif hasattr(member.current_club, 'region') and member.current_club.region and hasattr(member.current_club.region, 'region_admins') and member.current_club.region.region_admins.filter(pk=user.pk).exists():
+                    context['clubs'] = Club.objects.filter(region=member.current_club.region)
+                elif hasattr(member.current_club, 'province') and member.current_club.province and hasattr(member.current_club.province, 'province_admins') and member.current_club.province.province_admins.filter(pk=user.pk).exists():
+                    context['clubs'] = Club.objects.filter(province=member.current_club.province)
+                else:
+                    context['clubs'] = Club.objects.none()
+            else:
+                context['clubs'] = Club.objects.none()
         else:
+            # Fallback for users without member profile or club, show all clubs
             context['clubs'] = Club.objects.all()
             
         # Calculate summary stats
         context['total_count'] = queryset.count()
         context['paid_count'] = queryset.filter(status='PAID').count()
-        context['paid_amount'] = queryset.filter(status='PAID').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+        context['paid_amount'] = queryset.filter(status='PAID').aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00')
         context['pending_count'] = queryset.filter(status='PENDING').count()
-        context['pending_amount'] = queryset.filter(status='PENDING').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+        context['pending_amount'] = queryset.filter(status='PENDING').aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00')
         context['overdue_count'] = queryset.filter(status='OVERDUE').count()
-        context['overdue_amount'] = queryset.filter(status='OVERDUE').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+        context['overdue_amount'] = queryset.filter(status='OVERDUE').aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00')
         
         return context
 
@@ -182,28 +198,31 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         """Filter invoices based on user permissions"""
         queryset = Invoice.objects.all().select_related(
-            'player', 'club', 'issued_by'
+            'member__current_club', 'issued_by'
         ).prefetch_related('items')
         
         # Filter by user permissions
         user = self.request.user
-        if user.role == 'CLUB_ADMIN':
-            # Club admins can only see their club's invoices
-            queryset = queryset.filter(club__club_members__user=user, club__club_members__role='CLUB_ADMIN')
-        elif user.role == 'ADMIN_LOCAL_FED':
-            # LFA admins can see invoices for clubs in their LFA
-            queryset = queryset.filter(club__local_football_association__lfa_members__user=user)
-        elif user.role == 'ADMIN_REGION':
-            # Regional admins can see invoices for clubs in their region
-            queryset = queryset.filter(club__region__region_members__user=user)
-        elif user.role == 'ADMIN_PROVINCE':
-            # Provincial admins can see invoices for clubs in their province
-            queryset = queryset.filter(club__province__province_members__user=user)
-        elif user.role not in ['ADMIN', 'ADMIN_SYSTEM', 'ADMIN_COUNTRY']:
-            # Others can only see their own invoices
-            queryset = queryset.filter(player__user=user)
-            
-        return queryset
+        if not user.is_authenticated:
+            return Invoice.objects.none()
+
+        if user.is_staff or user.is_superuser:
+            return queryset
+
+        if hasattr(user, 'member_profile') and user.member_profile:
+            member = user.member_profile
+            if member.current_club:
+                if hasattr(member.current_club, 'club_admins') and member.current_club.club_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club=member.current_club)
+                if hasattr(member.current_club, 'lfa') and member.current_club.lfa and hasattr(member.current_club.lfa, 'lfa_admins') and member.current_club.lfa.lfa_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club__lfa=member.current_club.lfa)
+                if hasattr(member.current_club, 'region') and member.current_club.region and hasattr(member.current_club.region, 'region_admins') and member.current_club.region.region_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club__region=member.current_club.region)
+                if hasattr(member.current_club, 'province') and member.current_club.province and hasattr(member.current_club.province, 'province_admins') and member.current_club.province.province_admins.filter(pk=user.pk).exists():
+                    return queryset.filter(member__current_club__province=member.current_club.province)
+
+        # Others can only see their own invoices
+        return queryset.filter(member__user=user)
 
 
 class InvoicePDFView(LoginRequiredMixin, DetailView):
@@ -250,7 +269,7 @@ class OutstandingReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
         # Base queryset for unpaid invoices
         unpaid_invoices = Invoice.objects.filter(
             Q(status='PENDING') | Q(status='OVERDUE')
-        ).select_related('player', 'club')
+        ).select_related('member__current_club')
         
         # Apply days overdue filter
         today = timezone.now().date()
@@ -261,23 +280,27 @@ class OutstandingReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
         
         # Apply user permission filters
         user = self.request.user
-        if user.role == 'CLUB_ADMIN':
-            unpaid_invoices = unpaid_invoices.filter(club__club_members__user=user, club__club_members__role='CLUB_ADMIN')
-        elif user.role == 'ADMIN_LOCAL_FED':
-            unpaid_invoices = unpaid_invoices.filter(club__local_football_association__lfa_members__user=user)
-        elif user.role == 'ADMIN_REGION':
-            unpaid_invoices = unpaid_invoices.filter(club__region__region_members__user=user)
-        elif user.role == 'ADMIN_PROVINCE':
-            unpaid_invoices = unpaid_invoices.filter(club__province__province_members__user=user)
+        if hasattr(user, 'member_profile') and user.member_profile:
+            member = user.member_profile
+            if member.current_club:
+                if hasattr(member.current_club, 'club_admins') and member.current_club.club_admins.filter(pk=user.pk).exists():
+                    unpaid_invoices = unpaid_invoices.filter(member__current_club=member.current_club)
+                elif hasattr(member.current_club, 'lfa') and member.current_club.lfa and hasattr(member.current_club.lfa, 'lfa_admins') and member.current_club.lfa.lfa_admins.filter(pk=user.pk).exists():
+                    unpaid_invoices = unpaid_invoices.filter(member__current_club__lfa=member.current_club.lfa)
+                elif hasattr(member.current_club, 'region') and member.current_club.region and hasattr(member.current_club.region, 'region_admins') and member.current_club.region.region_admins.filter(pk=user.pk).exists():
+                    unpaid_invoices = unpaid_invoices.filter(member__current_club__region=member.current_club.region)
+                elif hasattr(member.current_club, 'province') and member.current_club.province and hasattr(member.current_club.province, 'province_admins') and member.current_club.province.province_admins.filter(pk=user.pk).exists():
+                    unpaid_invoices = unpaid_invoices.filter(member__current_club__province=member.current_club.province)
         
         # Calculate report items based on grouping level
         report_items = []
         
         if level == 'club':
-            clubs = Club.objects.filter(invoices__in=unpaid_invoices).distinct()
+            # The related name from Member to Club is 'current_members'
+            clubs = Club.objects.filter(current_members__invoices__in=unpaid_invoices).distinct()
             
             for club in clubs:
-                club_invoices = unpaid_invoices.filter(club=club)
+                club_invoices = unpaid_invoices.filter(member__current_club=club)
                 days_30 = club_invoices.filter(due_date__gt=today-timedelta(days=30))
                 days_90 = club_invoices.filter(due_date__lte=today-timedelta(days=30), 
                                              due_date__gt=today-timedelta(days=90))
@@ -288,21 +311,21 @@ class OutstandingReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
                     'id': club.id,
                     'name': club.name,
                     'invoice_count': club_invoices.count(),
-                    'player_count': club_invoices.values('player').distinct().count(),
-                    'days_30_amount': days_30.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_amount': days_90.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_plus_amount': days_90_plus.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'total_amount': club_invoices.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
+                    'player_count': club_invoices.values('member').distinct().count(),
+                    'days_30_amount': days_30.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_amount': days_90.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_plus_amount': days_90_plus.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'total_amount': club_invoices.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
                     'filter_params': f'club={club.id}&status=PENDING,OVERDUE'
                 })
         
         elif level == 'lfa':
             lfas = LocalFootballAssociation.objects.filter(
-                clubs__invoices__in=unpaid_invoices
+                clubs__current_members__invoices__in=unpaid_invoices
             ).distinct()
             
             for lfa in lfas:
-                lfa_invoices = unpaid_invoices.filter(club__local_football_association=lfa)
+                lfa_invoices = unpaid_invoices.filter(member__current_club__lfa=lfa)
                 days_30 = lfa_invoices.filter(due_date__gt=today-timedelta(days=30))
                 days_90 = lfa_invoices.filter(due_date__lte=today-timedelta(days=30), 
                                             due_date__gt=today-timedelta(days=90))
@@ -313,21 +336,21 @@ class OutstandingReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
                     'id': lfa.id,
                     'name': lfa.name,
                     'invoice_count': lfa_invoices.count(),
-                    'player_count': lfa_invoices.values('player').distinct().count(),
-                    'days_30_amount': days_30.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_amount': days_90.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_plus_amount': days_90_plus.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'total_amount': lfa_invoices.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
+                    'player_count': lfa_invoices.values('member').distinct().count(),
+                    'days_30_amount': days_30.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_amount': days_90.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_plus_amount': days_90_plus.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'total_amount': lfa_invoices.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
                     'filter_params': f'lfa={lfa.id}&status=PENDING,OVERDUE'
                 })
         
         elif level == 'region':
             regions = Region.objects.filter(
-                clubs__invoices__in=unpaid_invoices
+                clubs__current_members__invoices__in=unpaid_invoices
             ).distinct()
             
             for region in regions:
-                region_invoices = unpaid_invoices.filter(club__region=region)
+                region_invoices = unpaid_invoices.filter(member__current_club__region=region)
                 days_30 = region_invoices.filter(due_date__gt=today-timedelta(days=30))
                 days_90 = region_invoices.filter(due_date__lte=today-timedelta(days=30), 
                                               due_date__gt=today-timedelta(days=90))
@@ -338,21 +361,21 @@ class OutstandingReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
                     'id': region.id,
                     'name': region.name,
                     'invoice_count': region_invoices.count(),
-                    'player_count': region_invoices.values('player').distinct().count(),
-                    'days_30_amount': days_30.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_amount': days_90.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_plus_amount': days_90_plus.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'total_amount': region_invoices.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
+                    'player_count': region_invoices.values('member').distinct().count(),
+                    'days_30_amount': days_30.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_amount': days_90.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_plus_amount': days_90_plus.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'total_amount': region_invoices.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
                     'filter_params': f'region={region.id}&status=PENDING,OVERDUE'
                 })
         
         elif level == 'province':
             provinces = Province.objects.filter(
-                clubs__invoices__in=unpaid_invoices
+                clubs__current_members__invoices__in=unpaid_invoices
             ).distinct()
             
             for province in provinces:
-                province_invoices = unpaid_invoices.filter(club__province=province)
+                province_invoices = unpaid_invoices.filter(member__current_club__province=province)
                 days_30 = province_invoices.filter(due_date__gt=today-timedelta(days=30))
                 days_90 = province_invoices.filter(due_date__lte=today-timedelta(days=30), 
                                                due_date__gt=today-timedelta(days=90))
@@ -363,11 +386,11 @@ class OutstandingReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
                     'id': province.id,
                     'name': province.name,
                     'invoice_count': province_invoices.count(),
-                    'player_count': province_invoices.values('player').distinct().count(),
-                    'days_30_amount': days_30.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_amount': days_90.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'days_90_plus_amount': days_90_plus.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
-                    'total_amount': province_invoices.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00'),
+                    'player_count': province_invoices.values('member').distinct().count(),
+                    'days_30_amount': days_30.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_amount': days_90.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'days_90_plus_amount': days_90_plus.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
+                    'total_amount': province_invoices.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00'),
                     'filter_params': f'province={province.id}&status=PENDING,OVERDUE'
                 })
         
@@ -412,26 +435,10 @@ def mark_invoice_paid(request, uuid):
     # Mark as paid
     invoice.mark_as_paid()
     
-    # Activate player if this is a registration invoice
-    if invoice.invoice_type == 'REGISTRATION':
-        try:
-            # Find the player registration
-            registration = PlayerClubRegistration.objects.get(player=invoice.player, club=invoice.club)
-            
-            # Update status if not already active
-            if registration.status != 'ACTIVE':
-                registration.status = 'ACTIVE'
-                registration.save()
-            
-            # Update player status to PENDING_APPROVAL
-            if invoice.player.status != 'ACTIVE':
-                invoice.player.status = 'PENDING_APPROVAL'
-                invoice.player.save()
-                
-            messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid. Player is now pending approval."))
-        except PlayerClubRegistration.DoesNotExist:
-            messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid."))
-            messages.warning(request, _("Player registration not found - player status unchanged."))
+    # The invoice.mark_as_paid() method now handles associated status updates
+    # and history creation.
+    if invoice.invoice_type == 'MEMBER_REGISTRATION' and invoice.member:
+        messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid. {invoice.member.get_full_name()}'s registration is now pending approval."))
     else:
         messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid."))
     
@@ -441,7 +448,10 @@ def mark_invoice_paid(request, uuid):
 def export_invoices(request, format='csv'):
     """Export invoices to CSV, Excel or PDF"""
     # Get the queryset based on filters
-    queryset = InvoiceListView().get_queryset()
+    # Instantiating the view to call get_queryset is not ideal, but works for now.
+    list_view = InvoiceListView()
+    list_view.request = request
+    queryset = list_view.get_queryset()
     
     # Apply any additional filters from GET parameters
     status = request.GET.get('status')
@@ -450,7 +460,7 @@ def export_invoices(request, format='csv'):
         
     club_id = request.GET.get('club')
     if club_id:
-        queryset = queryset.filter(club_id=club_id)
+        queryset = queryset.filter(member__current_club_id=club_id)
         
     date_from = request.GET.get('date_from')
     if date_from:
@@ -470,18 +480,18 @@ def export_invoices(request, format='csv'):
         
         writer = csv.writer(response)
         writer.writerow([
-            'Invoice Number', 'Player', 'Club', 'Issue Date', 
+            'Invoice Number', 'Member', 'Club', 'Issue Date',
             'Due Date', 'Amount', 'Status', 'Payment Date'
         ])
         
         for invoice in queryset:
             writer.writerow([
                 invoice.invoice_number,
-                invoice.player.get_full_name(),
-                invoice.club.name,
+                invoice.member.get_full_name() if invoice.member else 'N/A',
+                invoice.member.current_club.name if invoice.member and invoice.member.current_club else 'N/A',
                 invoice.issue_date.strftime('%Y-%m-%d'),
                 invoice.due_date.strftime('%Y-%m-%d'),
-                invoice.amount,
+                invoice.total_amount,
                 invoice.get_status_display(),
                 invoice.payment_date.strftime('%Y-%m-%d') if invoice.payment_date else ''
             ])
@@ -500,7 +510,7 @@ def export_invoices(request, format='csv'):
         worksheet = workbook.add_worksheet('Invoices')
         
         # Add headers
-        headers = ['Invoice Number', 'Player', 'Club', 'Issue Date', 
+        headers = ['Invoice Number', 'Member', 'Club', 'Issue Date',
                   'Due Date', 'Amount', 'Status', 'Payment Date']
         for col_num, header in enumerate(headers):
             worksheet.write(0, col_num, header)
@@ -508,11 +518,11 @@ def export_invoices(request, format='csv'):
         # Add data
         for row_num, invoice in enumerate(queryset, 1):
             worksheet.write(row_num, 0, invoice.invoice_number)
-            worksheet.write(row_num, 1, invoice.player.get_full_name())
-            worksheet.write(row_num, 2, invoice.club.name)
+            worksheet.write(row_num, 1, invoice.member.get_full_name() if invoice.member else 'N/A')
+            worksheet.write(row_num, 2, invoice.member.current_club.name if invoice.member and invoice.member.current_club else 'N/A')
             worksheet.write(row_num, 3, invoice.issue_date.strftime('%Y-%m-%d'))
             worksheet.write(row_num, 4, invoice.due_date.strftime('%Y-%m-%d'))
-            worksheet.write(row_num, 5, float(invoice.amount))
+            worksheet.write(row_num, 5, float(invoice.total_amount))
             worksheet.write(row_num, 6, invoice.get_status_display())
             worksheet.write(row_num, 7, invoice.payment_date.strftime('%Y-%m-%d') if invoice.payment_date else '')
         
@@ -546,7 +556,7 @@ def export_invoices(request, format='csv'):
         
         # Create HTTP response with PDF
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
         
         return response
     

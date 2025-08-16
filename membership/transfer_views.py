@@ -7,75 +7,39 @@ from django.utils.translation import gettext_lazy as _
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Transfer
+from .models import Transfer, Member, MemberSeasonHistory
 from .forms import TransferRequestForm
 from geography.models import Club
 
 
-class TransferRequiredMixin(PermissionRequiredMixin):
+class TransferPermissionMixin(PermissionRequiredMixin):
+    """
+    Mixin to check transfer-related permissions based on user's role and club association.
+    """
     def has_permission(self):
         user = self.request.user
         if not user.is_authenticated:
             return False
-        if user.is_superuser:
+        if user.is_superuser or user.is_staff:
             return True
-            
-        try:
-            member = user.member_profile
-            
-            # System & Country Admin (SuperUser) - Full access
-            if member.role in ['ADMIN_SYSTEM', 'ADMIN_COUNTRY']:
-                return True
-                
-            # Federation Admin - Full access to transfers within their federation
-            if member.role == 'ADMIN_FEDERATION':
-                if isinstance(self, TransferRequestView):
-                    return True
-                transfer = getattr(self, 'get_object', lambda: None)()
-                if transfer:
-                    # TODO: Add federation check once federation field is added
-                    return True
-                return True  # List view
-                
-            # Province & Region Admins - View and approve transfers in their area
-            if member.role in ['ADMIN_PROVINCE', 'ADMIN_REGION']:
-                if isinstance(self, TransferRequestView):
-                    return False  # Cannot initiate transfers
-                transfer = getattr(self, 'get_object', lambda: None)()
-                if transfer:
-                    # TODO: Add province/region check once those fields are added
-                    return True
-                return True  # List view
-                
-            # Local Federation Admin - Manage transfers between clubs in their local federation
-            if member.role == 'ADMIN_LOCAL_FED':
-                if isinstance(self, TransferRequestView):
-                    return True
-                transfer = getattr(self, 'get_object', lambda: None)()
-                if transfer:
-                    # TODO: Add local federation check once that field is added
-                    return True
-                return True  # List view
-                
-            # Club Admin - Can only initiate transfers and view their club's transfers
-            if member.role == 'CLUB_ADMIN':
-                if isinstance(self, TransferRequestView):
-                    return True  # Can initiate transfers
-                    
-                # For other views, only allow if the transfer involves their club
-                transfer = getattr(self, 'get_object', lambda: None)()
-                if transfer:
-                    return member.club in [transfer.from_club, transfer.to_club]
-                return True  # Allow list view
-                
-        except Exception:
+
+        member_profile = getattr(user, 'member_profile', None)
+        if not member_profile or not member_profile.current_club:
             return False
-            
+
+        # Allow club admins to manage transfers for their club
+        if member_profile.current_club.club_admins.filter(pk=user.pk).exists():
+            return True
+
+        # Allow LFA admins to manage transfers within their LFA
+        if member_profile.current_club.lfa and member_profile.current_club.lfa.lfa_admins.filter(pk=user.pk).exists():
+            return True
+
         return False
 
 
-class TransferListView(TransferRequiredMixin, ListView):
-    """List transfers relevant to the user's club"""
+class TransferListView(TransferPermissionMixin, ListView):
+    """List transfers relevant to the user's club or administrative area."""
     model = Transfer
     template_name = 'membership/transfer/transfer_list.html'
     context_object_name = 'transfers'
@@ -83,49 +47,28 @@ class TransferListView(TransferRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser:
+        if user.is_superuser or user.is_staff:
             return Transfer.objects.all()
-            
-        member = user.member_profile
-        
-        # System & Country Admin - Full access
-        if member.role in ['ADMIN_SYSTEM', 'ADMIN_COUNTRY']:
-            return Transfer.objects.all()
-            
-        # Federation Admin - Access to all transfers in their federation
-        if member.role == 'ADMIN_FEDERATION' and member.club and member.club.federation:
+
+        member_profile = getattr(user, 'member_profile', None)
+        if not member_profile or not member_profile.current_club:
+            return Transfer.objects.none()
+
+        # Club admins see transfers involving their club
+        if member_profile.current_club.club_admins.filter(pk=user.pk).exists():
             return Transfer.objects.filter(
-                from_club__federation=member.club.federation
+                models.Q(from_club=member_profile.current_club) | models.Q(to_club=member_profile.current_club)
             )
-            
-        # Province & Region Admin - Access to transfers in their area
-        if member.role == 'ADMIN_PROVINCE' and member.club and member.club.province:
-            return Transfer.objects.filter(
-                from_club__province=member.club.province
-            )
-        if member.role == 'ADMIN_REGION' and member.club and member.club.region:
-            return Transfer.objects.filter(
-                from_club__region=member.club.region
-            )
-            
-        # Local Federation Admin - Access to transfers between their clubs
-        if member.role == 'ADMIN_LOCAL_FED' and member.club and member.club.federation:
-            return Transfer.objects.filter(
-                from_club__federation=member.club.federation
-            )
-            
-        # Club Admin - Only see transfers related to their club
-        if member.role == 'CLUB_ADMIN' and member.club:
-            return Transfer.objects.filter(
-                models.Q(from_club=member.club) | models.Q(to_club=member.club)
-            )
-            
-        # Default - return empty queryset
+
+        # LFA admins see transfers within their LFA
+        if member_profile.current_club.lfa and member_profile.current_club.lfa.lfa_admins.filter(pk=user.pk).exists():
+            return Transfer.objects.filter(from_club__lfa=member_profile.current_club.lfa)
+
         return Transfer.objects.none()
 
 
-class TransferRequestView(TransferRequiredMixin, CreateView):
-    """Create a new transfer request"""
+class TransferRequestView(TransferPermissionMixin, CreateView):
+    """Create a new transfer request."""
     model = Transfer
     form_class = TransferRequestForm
     template_name = 'membership/transfer/transfer_request.html'
@@ -138,32 +81,32 @@ class TransferRequestView(TransferRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        member = self.request.user.member_profile
-        # Check appropriate roles for initiating transfers
-        if member.role in ['ADMIN_SYSTEM', 'ADMIN_COUNTRY', 'ADMIN_FEDERATION',
-                          'ADMIN_LOCAL_FED', 'CLUB_ADMIN']:
-            with transaction.atomic():
-                transfer = form.save(commit=False)
-                transfer.from_club = form.cleaned_data['player'].club
-                
-                # Club admins can only initiate transfers for their own club
-                if member.role == 'CLUB_ADMIN' and transfer.from_club != member.club:
-                    messages.error(self.request, 
-                        _("You can only initiate transfers for players in your club."))
-                    return self.form_invalid(form)
-                
-                transfer.save()
-                messages.success(self.request, 
-                    _("Transfer request created successfully."))
-                return redirect(self.success_url)
-        else:
-            messages.error(self.request, 
-                _("You don't have permission to initiate transfers."))
-            return self.form_invalid(form)
+        with transaction.atomic():
+            transfer = form.save(commit=False)
+            transfer.from_club = transfer.member.current_club
+
+            # Additional check to ensure the user has permission for the from_club
+            user_can_initiate = False
+            member_profile = getattr(self.request.user, 'member_profile', None)
+            if self.request.user.is_superuser or self.request.user.is_staff:
+                user_can_initiate = True
+            elif member_profile and member_profile.current_club:
+                if member_profile.current_club == transfer.from_club:
+                    user_can_initiate = True
+                if member_profile.current_club.lfa == transfer.from_club.lfa:
+                    user_can_initiate = True
+
+            if not user_can_initiate:
+                messages.error(self.request, _("You do not have permission to initiate a transfer for this club."))
+                return self.form_invalid(form)
+
+            transfer.save()
+            messages.success(self.request, _("Transfer request created successfully."))
+            return redirect(self.success_url)
 
 
-class TransferDetailView(TransferRequiredMixin, DetailView):
-    """View transfer details and handle approval/rejection"""
+class TransferDetailView(TransferPermissionMixin, DetailView):
+    """View transfer details and handle approval/rejection."""
     model = Transfer
     template_name = 'membership/transfer/transfer_detail.html'
     context_object_name = 'transfer'
@@ -173,108 +116,79 @@ class TransferDetailView(TransferRequiredMixin, DetailView):
         transfer = self.get_object()
         action = request.POST.get('action')
         
-        if action == 'approve' and request.user.has_perm('membership.approve_transfer'):
+        if action == 'approve' and request.user.has_perm('membership.change_transfer'):
             try:
-                transfer.approve(request.user.member_profile)
+                transfer.approve(approved_by=request.user)
                 messages.success(request, _("Transfer approved successfully."))
-            except Exception as e:
+            except ValidationError as e:
                 messages.error(request, str(e))
                 
-        elif action == 'reject' and request.user.has_perm('membership.reject_transfer'):
+        elif action == 'reject' and request.user.has_perm('membership.change_transfer'):
             reason = request.POST.get('rejection_reason')
             if not reason:
                 messages.error(request, _("Please provide a rejection reason."))
             else:
                 try:
-                    transfer.reject(request.user.member_profile, reason)
+                    transfer.reject(rejected_by=request.user, reason=reason)
                     messages.success(request, _("Transfer rejected."))
-                except Exception as e:
+                except ValidationError as e:
                     messages.error(request, str(e))
         
         return redirect('membership:transfer_detail', pk=transfer.pk)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
         transfer = self.get_object()
         
-        # Add permissions to context
-        context['can_approve'] = user.has_perm('membership.approve_transfer')
-        context['can_reject'] = user.has_perm('membership.reject_transfer')
+        context['can_approve'] = self.request.user.has_perm('membership.change_transfer')
+        context['can_reject'] = self.request.user.has_perm('membership.change_transfer')
         
-        # Add registration history
-        context['registration_history'] = PlayerClubRegistration.objects.filter(
-            player=transfer.player
-        ).order_by('-registration_date')
+        # Show member's season history
+        context['registration_history'] = MemberSeasonHistory.objects.filter(
+            member=transfer.member
+        ).order_by('-season_config__season_year')
         
         return context
 
 
-class TransferApproveView(TransferRequiredMixin, UpdateView):
-    """Handle transfer approval"""
+class TransferApproveView(TransferPermissionMixin, UpdateView):
+    """Handle transfer approval confirmation."""
     model = Transfer
     template_name = 'membership/transfer/transfer_approve.html'
-    fields = []  # No fields needed, just the confirmation
-    permission_required = 'membership.approve_transfer'
+    fields = []
+    permission_required = 'membership.change_transfer'
     
     def get_success_url(self):
-        return reverse_lazy('membership:transfer_detail', 
-                          kwargs={'pk': self.object.pk})
+        return reverse_lazy('membership:transfer_detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
         try:
-            member = self.request.user.member_profile
-            # Only allow approval by appropriate roles
-            if member.role in ['ADMIN_SYSTEM', 'ADMIN_COUNTRY', 'ADMIN_FEDERATION',
-                             'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED']:
-                with transaction.atomic():
-                    self.object.approve(member)
-                    messages.success(self.request, _("Transfer approved successfully."))
-                    return redirect(self.get_success_url())
-            else:
-                messages.error(self.request, _("You don't have permission to approve transfers."))
-                return self.form_invalid(form)
+            with transaction.atomic():
+                self.object.approve(approved_by=self.request.user)
+                messages.success(self.request, _("Transfer approved successfully."))
+                return redirect(self.get_success_url())
         except ValidationError as e:
             messages.error(self.request, str(e))
             return self.form_invalid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['transfer'] = self.object
-        return context
 
-
-class TransferRejectView(TransferRequiredMixin, UpdateView):
-    """Handle transfer rejection"""
+class TransferRejectView(TransferPermissionMixin, UpdateView):
+    """Handle transfer rejection confirmation."""
     model = Transfer
     template_name = 'membership/transfer/transfer_reject.html'
     fields = ['rejection_reason']
-    permission_required = 'membership.reject_transfer'
+    permission_required = 'membership.change_transfer'
     
     def get_success_url(self):
-        return reverse_lazy('membership:transfer_detail', 
-                          kwargs={'pk': self.object.pk})
+        return reverse_lazy('membership:transfer_detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
         try:
-            member = self.request.user.member_profile
-            # Only allow rejection by appropriate roles
-            if member.role in ['ADMIN_SYSTEM', 'ADMIN_COUNTRY', 'ADMIN_FEDERATION',
-                             'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED']:
-                with transaction.atomic():
-                    transfer = form.save(commit=False)
-                    reason = form.cleaned_data['rejection_reason']
-                    transfer.reject(member, reason)
-                    messages.success(self.request, _("Transfer rejected successfully."))
-                    return redirect(self.get_success_url())
-            else:
-                messages.error(self.request, _("You don't have permission to reject transfers."))
-                return self.form_invalid(form)
+            with transaction.atomic():
+                reason = form.cleaned_data['rejection_reason']
+                self.object.reject(rejected_by=self.request.user, reason=reason)
+                messages.success(self.request, _("Transfer rejected successfully."))
+                return redirect(self.get_success_url())
         except ValidationError as e:
             messages.error(self.request, str(e))
             return self.form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['transfer'] = self.object
-        return context
