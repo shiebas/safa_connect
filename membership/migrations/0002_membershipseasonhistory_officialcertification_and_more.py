@@ -200,18 +200,6 @@ class Migration(migrations.Migration):
             model_name="clubmemberquota",
             name="season_config",
         ),
-        migrations.AlterUniqueTogether(
-            name="memberdocument",
-            unique_together=None,
-        ),
-        migrations.RemoveField(
-            model_name="memberdocument",
-            name="member",
-        ),
-        migrations.RemoveField(
-            model_name="memberdocument",
-            name="verified_by",
-        ),
         migrations.RemoveField(
             model_name="memberprofile",
             name="member",
