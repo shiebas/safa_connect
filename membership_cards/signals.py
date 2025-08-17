@@ -10,6 +10,13 @@ from .models import DigitalCard, PhysicalCard
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
+def get_membership_expiry_date(user):
+    """Safely get the membership expiry date from the user's member profile and season."""
+    if hasattr(user, 'member_profile') and user.member_profile and user.member_profile.current_season:
+        return user.member_profile.current_season.season_end_date
+    # Default fallback: one year from now
+    return timezone.now().date() + timedelta(days=365)
+
 @receiver(pre_save, sender=User)
 def capture_previous_membership_status(sender, instance, **kwargs):
     """Capture the previous membership status before saving"""
@@ -39,11 +46,13 @@ def handle_membership_activation(sender, instance, created, **kwargs):
     if current_status == 'ACTIVE' and previous_status in ['PAID', 'PENDING']:
         logger.info(f"Membership activated for user {instance.email}. Generating cards...")
         
+        expiry_date = get_membership_expiry_date(instance)
+
         # Generate Digital Card (always created for active members)
         digital_card, created = DigitalCard.objects.get_or_create(
             user=instance,
             defaults={
-                'expires_date': instance.membership_expires_date or (timezone.now().date() + timedelta(days=365)),
+                'expires_date': expiry_date,
                 'status': 'ACTIVE'
             }
         )
@@ -53,7 +62,7 @@ def handle_membership_activation(sender, instance, created, **kwargs):
         else:
             # Update existing card
             digital_card.status = 'ACTIVE'
-            digital_card.expires_date = instance.membership_expires_date or (timezone.now().date() + timedelta(days=365))
+            digital_card.expires_date = expiry_date
             digital_card.save()
             logger.info(f"Digital card #{digital_card.card_number} updated for {instance.email}")
         
@@ -97,11 +106,12 @@ def update_card_expiry_dates(sender, instance, **kwargs):
     """
     Update card expiry dates when membership expiry date changes
     """
-    if instance.membership_expires_date:
+    expiry_date = get_membership_expiry_date(instance)
+    if expiry_date:
         try:
             digital_card = instance.digital_card
-            if digital_card.expires_date != instance.membership_expires_date:
-                digital_card.expires_date = instance.membership_expires_date
+            if digital_card.expires_date != expiry_date:
+                digital_card.expires_date = expiry_date
                 digital_card.save()
                 logger.info(f"Updated expiry date for digital card #{digital_card.card_number}")
         except DigitalCard.DoesNotExist:
