@@ -2,6 +2,7 @@
 from django.urls import path
 from . import views
 from . import invoice_views
+from . import registration_views
 
 app_name = 'membership'
 
@@ -24,4 +25,7 @@ urlpatterns = [
     path('member-approvals/<int:member_id>/approve/', views.approve_member, name='approve_member'),
     path('member-approvals/<int:member_id>/reject/', views.reject_member, name='reject_member'),
     path('card/<int:member_id>/', views.generate_membership_card, name='generate_membership_card'),
+
+    # Registration AJAX
+    path('club-info/', registration_views.get_club_info, name='club_info'),
 ]
