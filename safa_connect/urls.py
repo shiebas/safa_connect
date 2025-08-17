@@ -19,7 +19,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('geography/', include(('geography.urls', 'geography'), namespace='geography')),
-    path('membership/', include('membership.urls')),
+    path('membership/', include('membership.urls', namespace='membership')),
     path('membership-cards/', include('membership_cards.urls')),
     path('league-management/', include('league_management.urls')),
     path('supporters/', include('supporters.urls', namespace='supporters')),
