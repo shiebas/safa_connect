@@ -19,7 +19,7 @@ ALLOWED_HOSTS = []
 SITE_ID = 1
 
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/accounts/dashboard/'  # Redirect to dashboard after login
+LOGIN_REDIRECT_URL = '/accounts/'  # Redirect to dashboard after login
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
 
 
