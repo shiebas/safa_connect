@@ -27,7 +27,7 @@ def document_access_dashboard(request):
     allowed_roles = ['ADMIN_SYSTEM', 'ADMIN_COUNTRY', 'ADMIN_FEDERATION', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED']
     if not (request.user.is_superuser or request.user.role in allowed_roles):
         messages.error(request, 'You do not have permission to access this dashboard.')
-        return redirect('accounts:dashboard')
+        return redirect('accounts:home')
     
     # Get date range from query params
     days = int(request.GET.get('days', 30))
