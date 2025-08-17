@@ -140,6 +140,8 @@ class ModernLoginView(LoginView):
 def modern_home(request):
     """Modern home dashboard for authenticated users"""
     user = request.user
+    if user.is_staff:
+        return redirect('admin:index')
     try:
         member = user.member_profile
     except Member.DoesNotExist:
