@@ -185,9 +185,9 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     
     list_display = [
-        'email', 'get_full_name', 'role', 'get_organization', 'display_positions', 'popi_act_consent',
+        'email', 'get_full_name', 'role', 'get_organization', 'display_position', 'popi_act_consent',
         'id_document_type', 'id_number', 'passport_number', 'id_number_other',
-        'membership_status',  'safa_id', 'is_active', 'date_joined'  # removed 'age'
+        'membership_status',  'safa_id', 'is_active', 'date_joined'
     ]
     
     list_filter = [
@@ -201,9 +201,16 @@ class CustomUserAdmin(UserAdmin):
     actions = ['activate_users', 'deactivate_users']
     inlines = [PlayerInline, OfficialInline]
 
-    def display_positions(self, obj):
-        return ", ".join([position.title for position in obj.positions.all()])
-    display_positions.short_description = 'Positions'
+    def display_position(self, obj):
+        # Safely access the user's position through their member profile
+        try:
+            if hasattr(obj, 'member_profile') and obj.member_profile and hasattr(obj.member_profile, 'profile') and obj.member_profile.profile:
+                if obj.member_profile.profile.official_position:
+                    return obj.member_profile.profile.official_position.title
+        except Exception:
+            return "N/A"
+        return "N/A"
+    display_position.short_description = 'Position'
     
     def activate_users(self, request, queryset):
         """Admin action to activate selected users"""
@@ -220,10 +227,10 @@ class CustomUserAdmin(UserAdmin):
     # Fix the fieldsets to include all document fields and pictures
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),  # removed 'age'
+        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),
         ('SAFA Structure', {
             'fields': (
-                'role', 'employment_status', 'positions', 
+                'role', 'employment_status',
                 'organization_type',
                 'national_federation', 'province', 'region', 'local_federation', 'association', 'club',
                 'club_membership_number', 'club_membership_verified'
