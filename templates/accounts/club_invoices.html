@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ title }}</h1>
+    <p>This is a placeholder page for club invoices. A list of invoices will be displayed here.</p>
+
+    {% if invoices %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Invoice #</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice.invoice_number }}</td>
+                <td>{{ invoice.issue_date }}</td>
+                <td>R {{ invoice.amount }}</td>
+                <td>{{ invoice.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No invoices to display.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -947,3 +947,18 @@ def update_profile_photo(request):
 def senior_membership_dashboard(request):
     # Your view logic here
     return render(request, 'membership/senior_membership_dashboard.html')
+
+
+@login_required
+def club_invoices(request):
+    """
+    Display a list of invoices for a club.
+    """
+    # This is a placeholder.
+    # In a real implementation, you would fetch invoices for the user's club.
+    invoices = []
+    context = {
+        'title': 'Club Invoices',
+        'invoices': invoices,
+    }
+    return render(request, 'accounts/club_invoices.html', context)

@@ -12,6 +12,7 @@ urlpatterns = [
     path('login/', ModernLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
     path('club-admin/add-player/', views.club_admin_add_player, name='club_admin_add_player'),
+    path('club-invoices/', views.club_invoices, name='club_invoices'),
 
     # AJAX views
     path('ajax/get-regions-for-province/', views.get_regions_for_province, name='get_regions_for_province'),
