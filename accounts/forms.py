@@ -8,11 +8,91 @@ from django.utils import timezone
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder, Submit
 from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, ROLES
-from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association
+from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association, Country
 from django.db.models import Q
+from membership.models import Member
 
 
 class NationalAdminRegistrationForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name', 'last_name', 'email', 'id_number', 'passport_number',
+            'date_of_birth', 'gender', 'profile_picture', 'id_document',
+            'popi_act_consent'
+        ]
+
+    def clean_password2(self):
+        cd = self.cleaned_data
+        if cd['password'] != cd['password2']:
+            raise forms.ValidationError('Passwords don\'t match.')
+        return cd['password2']
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+
+class RegistrationForm(UserCreationForm):
+    # Personal information
+    first_name = forms.CharField(max_length=150, required=True)
+    last_name = forms.CharField(max_length=150, required=True)
+    date_of_birth = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=True
+    )
+    gender = forms.ChoiceField(choices=[('', 'Select gender')] + list(CustomUser._meta.get_field('gender').choices), required=True)
+
+    # Identification
+    id_document_type = forms.ChoiceField(
+        choices=CustomUser._meta.get_field('id_document_type').choices,
+        required=True
+    )
+    id_number = forms.CharField(max_length=13, required=False)
+    passport_number = forms.CharField(max_length=25, required=False)
+
+    # Location
+    country = forms.ModelChoiceField(
+        queryset=Country.objects.all(),
+        required=True,
+        empty_label="Select country"
+    )
+
+    # Profile photo
+    profile_picture = forms.ImageField(required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name',
+                  'date_of_birth', 'gender',
+                  'id_document_type', 'id_number', 'passport_number',
+                  'profile_picture', 'phone_number', 'safa_id', 'fifa_id',
+                  'country_code', 'nationality', 'popi_act_consent',
+                  'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+                  'street_address', 'suburb', 'city', 'state', 'postal_code',
+                  'national_federation', 'province', 'region', 'local_federation', 'club', 'association', 'mother_body']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        id_document_type = cleaned_data.get('id_document_type')
+        id_number = cleaned_data.get('id_number')
+        passport_number = cleaned_data.get('passport_number')
+
+        # Validate identification based on document type
+        if id_document_type == 'PP' and not passport_number:
+            self.add_error('passport_number', 'Passport number is required when document type is Passport')
+        elif id_document_type == 'ID' and not id_number:
+            self.add_error('id_number', 'ID number is required for this document type')
+
+        return cleaned_data
+
+
+class ClubAdminAddPlayerForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
 
@@ -65,6 +145,12 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
 class RejectMemberForm(forms.Form):
     rejection_reason = forms.CharField(widget=forms.Textarea, required=True)
 
+
+class MemberApprovalForm(forms.Form):
+    member = forms.ModelChoiceField(queryset=Member.objects.all(), widget=forms.HiddenInput())
+    is_approved = forms.BooleanField(required=False, initial=True)
+
+
 class EmailAuthenticationForm(AuthenticationForm):
     """Custom authentication form using email instead of username"""
     email = forms.EmailField(
@@ -92,6 +178,38 @@ class PlayerForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'id_number']
+
+
+class ProfileForm(forms.ModelForm):
+    """Form for updating user profile"""
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name',
+                  'date_of_birth', 'gender',
+                  'id_document_type', 'id_number', 'passport_number',
+                  'profile_picture', 'phone_number', 'safa_id', 'fifa_id',
+                  'country_code', 'nationality', 'popi_act_consent',
+                  'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
+                  'street_address', 'suburb', 'city', 'state', 'postal_code',
+                  'national_federation', 'province', 'region', 'local_federation', 'club', 'association', 'mother_body']
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+class SettingsForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email']
+
+
+class UpdateProfilePhotoForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['profile_picture']
+
 
 class AdvancedMemberSearchForm(forms.Form):
     """Advanced search form for members with multiple criteria"""
