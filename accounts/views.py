@@ -131,9 +131,14 @@ def get_association_stats(association):
 
 class ModernLoginView(LoginView):
     """Modern login view with enhanced security and UX"""
-    form_class = EmailAuthenticationForm
+    authentication_form = EmailAuthenticationForm
     template_name = 'accounts/modern_login.html'
     redirect_authenticated_user = True
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['email'].widget.attrs['placeholder'] = 'Email Address'
+        return form
 
 
 @login_required

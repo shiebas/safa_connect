@@ -67,7 +67,7 @@ class RejectMemberForm(forms.Form):
 
 class EmailAuthenticationForm(AuthenticationForm):
     """Custom authentication form using email instead of username"""
-    username = forms.EmailField(
+    email = forms.EmailField(
         label="Email Address",
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
@@ -86,7 +86,7 @@ class EmailAuthenticationForm(AuthenticationForm):
 
     def __init__(self, request=None, *args, **kwargs):
         super().__init__(request=request, *args, **kwargs)
-        self.fields['username'].widget.attrs['placeholder'] = 'Email Address'
+        self.fields['email'].widget.attrs['placeholder'] = 'Email Address'
 
 class PlayerForm(forms.ModelForm):
     class Meta:
