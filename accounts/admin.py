@@ -20,7 +20,7 @@ class PlayerInline(admin.TabularInline):
     model = Member
     fk_name = "user"
     extra = 0
-    fields = ['user__first_name', 'user__last_name', 'user__safa_id', 'status']
+    fields = ['first_name', 'last_name', 'safa_id', 'status']
     verbose_name = "Player"
     verbose_name_plural = "Players"
 
@@ -32,7 +32,7 @@ class OfficialInline(admin.TabularInline):
     model = Member
     fk_name = "user"
     extra = 0
-    fields = ['user__first_name', 'user__last_name', 'user__safa_id', 'status']
+    fields = ['first_name', 'last_name', 'safa_id', 'status']
     verbose_name = "Official"
     verbose_name_plural = "Officials"
 
@@ -227,19 +227,17 @@ class CustomUserAdmin(UserAdmin):
     # Fix the fieldsets to include all document fields and pictures
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_photo')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_picture')}),
         ('SAFA Structure', {
             'fields': (
-                'role', 'employment_status',
-                'organization_type',
+                'role',
                 'national_federation', 'province', 'region', 'local_federation', 'association', 'club',
-                'club_membership_number', 'club_membership_verified'
             )
         }),
         ('Identification', {
             'fields': (
                 'id_document_type', 'id_number', 'passport_number', 
-                'driver_license_number', 'id_number_other', 'id_document', 
+                'id_number_other', 'id_document', 
                 'popi_act_consent'
             )
         }),
