@@ -14,6 +14,8 @@ from xhtml2pdf import pisa
 
 def registration_portal(request):
     """Registration portal with different registration options"""
+    if request.user.is_authenticated:
+        return redirect('accounts:home')
     context = {
         'title': 'SAFA Registration Portal',
     }
