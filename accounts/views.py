@@ -139,6 +139,9 @@ class ModernLoginView(LoginView):
 @login_required
 def modern_home(request):
     """Modern home dashboard for authenticated users"""
+    if request.user.is_superuser:
+        return redirect('superuser_dashboard')
+
     user = request.user
     try:
         member = user.member_profile
