@@ -484,9 +484,9 @@ def custom_404_view(request, exception):
         'message': 'The page you are looking for could not be found.',
         'show_search': True,
         'helpful_links': [
-            {'title': 'Home', 'url': reverse('accounts:modern_home')},
-            {'title': 'Registration Portal', 'url': reverse('registration:register')},
-            {'title': 'Help Center', 'url': reverse('support:help_center')},
+            {'title': 'Home', 'url': reverse('accounts:home')},
+            {'title': 'Registration Portal', 'url': reverse('accounts:registration_portal')},
+            {'title': 'Contact Support', 'url': reverse('accounts:contact_support')},
         ]
     }, status=404)
 
