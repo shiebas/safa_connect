@@ -366,6 +366,25 @@ class CustomUser(AbstractUser):
             return None
 
 
+class UserRole(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    organization = models.ForeignKey(OrganizationType, on_delete=models.CASCADE)
+    position = models.ForeignKey(Position, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user} - {self.position.name} at {self.organization.name}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user} at {self.timestamp}"
+
+
 class RolePermissions:
     @staticmethod
     def assign_permissions(user):

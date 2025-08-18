@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.conf import settings
 
+from accounts.utils import send_welcome_email, send_rejection_email
 from .models import Member, JuniorMember, ClubRegistration
 from .forms import MembershipApplicationForm, ClubRegistrationForm
 from geography.models import Club
@@ -226,71 +227,6 @@ def send_approval_request(member):
             )
     except Exception:
         pass  # Fail silently if email can't be sent
-
-
-def send_welcome_email(member):
-    """Send welcome email to approved member"""
-    if member.email:
-        try:
-            subject = "Welcome to SAFA - Your Membership Has Been Approved"
-            message = f"""
-            Dear {member.first_name},
-
-            Congratulations! Your SAFA membership application has been approved.
-
-            Your SAFA ID is: {member.safa_id}
-
-            Next steps:
-            1. Complete your profile information
-            2. Register with a club or association
-            3. Keep your membership information up to date
-
-            Welcome to the South African Football Association!
-
-            Best regards,
-            SAFA Administration
-            """
-
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [member.email],
-                fail_silently=True,
-            )
-        except Exception:
-            pass  # Fail silently
-
-
-def send_rejection_email(member, reason):
-    """Send rejection email to member"""
-    if member.email:
-        try:
-            subject = "SAFA Membership Application Update"
-            message = f"""
-            Dear {member.first_name},
-
-            Thank you for your interest in SAFA membership.
-
-            Unfortunately, your application could not be approved at this time.
-
-            Reason: {reason}
-
-            If you have any questions or would like to reapply, please contact us.
-
-            Best regards,
-            SAFA Administration
-            """
-
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [member.email],
-                fail_silently=True,
-            )
-        except Exception:
-            pass  # Fail silently
 
 
 # API endpoints for AJAX functionality

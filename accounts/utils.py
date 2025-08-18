@@ -49,28 +49,77 @@ def create_member_invoice(user, amount=None, invoice_type='REGISTRATION'):
     return invoice
 
 
-def send_welcome_email(user):
-    """Send welcome email to new user"""
-    subject = 'Welcome to SAFA Registration System'
-    
-    context = {
-        'user': user,
-        'login_url': f"{settings.SITE_URL}/accounts/login/",
-        'support_email': 'support@safa.net'
-    }
-    
-    # Render email template
-    html_message = render_to_string('emails/welcome.html', context)
-    plain_message = render_to_string('emails/welcome.txt', context)
-    
-    send_mail(
-        subject=subject,
-        message=plain_message,
-        html_message=html_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=True
-    )
+def send_welcome_email(member):
+    """Send welcome email to approved member"""
+    if member.email:
+        try:
+            subject = "Welcome to SAFA - Your Membership Has Been Approved"
+            message = f"""
+            Dear {member.first_name},
+
+            Congratulations! Your SAFA membership application has been approved.
+
+            Your SAFA ID is: {member.safa_id}
+
+            Next steps:
+            1. Complete your profile information
+            2. Register with a club or association
+            3. Keep your membership information up to date
+
+            Welcome to the South African Football Association!
+
+            Best regards,
+            SAFA Administration
+            """
+
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [member.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass  # Fail silently
+
+
+def send_rejection_email(member, reason):
+    """Send rejection email to member"""
+    if member.email:
+        try:
+            subject = "SAFA Membership Application Update"
+            message = f"""
+            Dear {member.first_name},
+
+            Thank you for your interest in SAFA membership.
+
+            Unfortunately, your application could not be approved at this time.
+
+            Reason: {reason}
+
+            If you have any questions or would like to reapply, please contact us.
+
+            Best regards,
+            SAFA Administration
+            """
+
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [member.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass  # Fail silently
+
+def send_approval_email(user):
+    """Placeholder function for sending approval email."""
+    pass
+
+def send_support_request_email(support_request):
+    """Placeholder function for sending support request email."""
+    pass
 
 
 def extract_sa_id_dob_gender(id_number):

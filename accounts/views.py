@@ -14,15 +14,14 @@ from django.views.decorators.http import require_GET, require_POST
 
 from geography.models import Club, LocalFootballAssociation, Region, Province
 from membership.models import Member, Invoice
-from .email_templates import send_welcome_email, send_rejection_email, send_approval_email, send_support_request_email
+from .utils import send_welcome_email, send_rejection_email, send_approval_email, send_support_request_email, get_dashboard_stats
 
 from .forms import (
     EmailAuthenticationForm, PlayerForm, NationalAdminRegistrationForm, RejectMemberForm,
-    ClubAdminAddPlayerForm, MemberApprovalForm, AdvancedSearchForm, ContactSupportForm,
+    ClubAdminAddPlayerForm, MemberApprovalForm, AdvancedMemberSearchForm, ModernContactForm,
     ProfileForm, SettingsForm, UpdateProfilePhotoForm
 )
-from .models import CustomUser, Organization, OrganizationType, Position, UserRole, Notification
-from .stats_view import get_dashboard_stats
+from .models import CustomUser, OrganizationType, Position, UserRole, Notification
 from .utils import generate_unique_safa_id
 
 logger = logging.getLogger(__name__)
@@ -306,10 +305,10 @@ def reject_member(request, member_id):
 
 @login_required
 def advanced_search(request):
-    form = AdvancedSearchForm()
+    form = AdvancedMemberSearchForm()
     results = None
     if 'query' in request.GET:
-        form = AdvancedSearchForm(request.GET)
+        form = AdvancedMemberSearchForm(request.GET)
         if form.is_valid():
             results = form.search()
 
@@ -387,7 +386,7 @@ def get_positions_for_org_type_api(request):
 
 def contact_support(request):
     if request.method == 'POST':
-        form = ContactSupportForm(request.POST)
+        form = ModernContactForm(request.POST)
         if form.is_valid():
             support_request = form.save(commit=False)
             if request.user.is_authenticated:
@@ -399,7 +398,7 @@ def contact_support(request):
             messages.success(request, "Your support request has been sent. We will get back to you shortly.")
             return redirect('accounts:home')
     else:
-        form = ContactSupportForm()
+        form = ModernContactForm()
     return render(request, 'accounts/contact_support.html', {'form': form})
 
 
@@ -496,3 +495,15 @@ def club_invoices(request):
         'invoices': invoices,
     }
     return render(request, 'accounts/club_invoices.html', context)
+
+
+def custom_403_view(request, exception=None):
+    return render(request, 'errors/403.html', status=403)
+
+
+def custom_404_view(request, exception=None):
+    return render(request, 'errors/404.html', status=404)
+
+
+def custom_500_view(request):
+    return render(request, 'errors/500.html', status=500)
