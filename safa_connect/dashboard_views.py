@@ -6,7 +6,7 @@ from datetime import timedelta
 from events.models import Stadium, InternationalMatch, Ticket, TicketGroup
 from supporters.models import SupporterProfile
 from membership.models import Invoice
-from membership.models import Member, Player
+from membership.models import Member
 from geography.models import Club
 from accounts.models import CustomUser
 
@@ -97,7 +97,7 @@ def superuser_dashboard(request):
     membership_metrics = {
         'total_members': Member.objects.count(),
         'active_members': Member.objects.filter(status='ACTIVE').count(),
-        'total_players': Player.objects.count(),
+        'total_players': Member.objects.filter(role='PLAYER').count(),
         'total_clubs': Club.objects.count(),
         'total_users': CustomUser.objects.count(),
     }
