@@ -106,7 +106,6 @@ INTERNAL_IPS = [
 WSGI_APPLICATION = 'safa_connect.wsgi.application'
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
