@@ -5,44 +5,44 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.db.models import Q, Sum
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
 
-from geography.models import Club, LocalFootballAssociation, Region
+from geography.models import Club, LocalFootballAssociation, Region, Province
 from membership.models import Member, Invoice
+from .email_templates import send_welcome_email, send_rejection_email, send_approval_email, send_support_request_email
 
-from .forms import EmailAuthenticationForm, PlayerForm, NationalAdminRegistrationForm, RejectMemberForm
-from .models import CustomUser, OrganizationType, Position
+from .forms import (
+    EmailAuthenticationForm, PlayerForm, NationalAdminRegistrationForm, RejectMemberForm,
+    ClubAdminAddPlayerForm, MemberApprovalForm, AdvancedSearchForm, ContactSupportForm,
+    ProfileForm, SettingsForm, UpdateProfilePhotoForm
+)
+from .models import CustomUser, Organization, OrganizationType, Position, UserRole, Notification
+from .stats_view import get_dashboard_stats
 from .utils import generate_unique_safa_id
+
+logger = logging.getLogger(__name__)
+
+
+class ModernLoginView(LoginView):
+    """Modern login view with enhanced security and UX"""
+    form_class = EmailAuthenticationForm
+    template_name = 'accounts/modern_login.html'
+    redirect_authenticated_user = True
+
+
+def modern_home(request):
+    if request.user.is_authenticated:
+        # Redirect based on user role or show a generic dashboard
+        return redirect('accounts:profile')
+    return render(request, 'accounts/modern_home.html')
 
 
 @login_required
-def reject_member(request, member_id):
-    member = get_object_or_404(CustomUser, id=member_id)
-    if not can_approve_member(request.user, member):
-        messages.error(request, "You do not have permission to perform this action.")
-        return redirect('accounts:member_approvals_list')
-
-    if request.method == 'POST':
-        form = RejectMemberForm(request.POST)
-        if form.is_valid():
-            member.membership_status = 'REJECTED'
-            member.rejection_reason = form.cleaned_data['rejection_reason']
-            member.save()
-            messages.success(request, f'Member {member.get_full_name()} has been rejected.')
-            return redirect('accounts:member_approvals_list')
-    else:
-        form = RejectMemberForm()
-
-    return render(request, 'accounts/reject_member.html', {'form': form, 'member': member})
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
-
 def national_registration(request):
     if request.method == 'POST':
         form = NationalAdminRegistrationForm(request.POST, request.FILES)
@@ -57,720 +57,6 @@ def national_registration(request):
         form = NationalAdminRegistrationForm()
     return render(request, 'accounts/national_registration.html', {'form': form})
 
-logger = logging.getLogger(__name__)
-
-
-# Placeholder functions for missing utilities
-def get_admin_jurisdiction_queryset(user):
-    if user.is_superuser or user.role == 'ADMIN_NATIONAL':
-        return CustomUser.objects.all()
-
-    if user.role == 'ADMIN_PROVINCE':
-        return CustomUser.objects.filter(province=user.province)
-
-    if user.role == 'ADMIN_REGION':
-        return CustomUser.objects.filter(region=user.region)
-
-    if user.role == 'ADMIN_LOCAL_FED':
-        return CustomUser.objects.filter(local_federation=user.local_federation)
-
-    if user.role == 'CLUB_ADMIN':
-        return CustomUser.objects.filter(club=user.club)
-
-    return CustomUser.objects.none()
-
-
-def can_approve_member(user, member):
-    if user.is_superuser or user.role == 'ADMIN_NATIONAL':
-        return True
-
-    if user.role == 'ADMIN_PROVINCE' and member.province == user.province:
-        return True
-
-    if user.role == 'ADMIN_REGION' and member.region == user.region:
-        return True
-
-    if user.role == 'ADMIN_LOCAL_FED' and member.local_federation == user.local_federation:
-        return True
-
-    if user.role == 'CLUB_ADMIN' and member.club == user.club:
-        return True
-
-    return False
-
-
-def get_user_notifications(user):
-    # This should return a list of notifications for the user
-    return []
-
-
-def get_national_admin_stats():
-    # This should return a dictionary of stats for the national admin
-    return {}
-
-
-def get_financial_stats():
-    # This should return a dictionary of financial stats
-    return {}
-
-
-def get_regional_admin_stats(user):
-    # This should return a dictionary of stats for the regional admin
-    return {}
-
-
-def get_club_stats(club):
-    # This should return a dictionary of stats for the club admin
-    return {}
-
-
-def get_association_stats(association):
-    # This should return a dictionary of stats for the association admin
-    return {}
-
-
-class ModernLoginView(LoginView):
-    """Modern login view with enhanced security and UX"""
-    form_class = EmailAuthenticationForm
-    template_name = 'accounts/modern_login.html'
-    redirect_authenticated_user = True
-
-
-@login_required
-def modern_home(request):
-    """Modern home dashboard for authenticated users"""
-    if request.user.is_superuser:
-        return redirect('superuser_dashboard')
-
-    user = request.user
-    try:
-        member = user.member_profile
-    except Member.DoesNotExist:
-        member = None
-
-    context = {
-        'title': 'SAFA Dashboard',
-        'user': user,
-        'member': member,
-    }
-
-    return render(request, 'accounts/modern_home.html', context)
-
-
-def get_system_status():
-    """Get overall system status"""
-    return {
-        'operational': True,
-        'last_updated': timezone.now(),
-        'maintenance_scheduled': False
-    }
-
-
-def get_monthly_registration_count():
-    """Get registration count for current month"""
-    try:
-        current_month = timezone.now().replace(day=1)
-        return CustomUser.objects.filter(
-            date_joined__gte=current_month
-        ).count()
-    except Exception as e:
-        logger.error(f"An unexpected error occurred while fetching monthly registration count: {e}")
-        return 0
-
-
-def get_monthly_revenue():
-    """Get revenue for current month"""
-    try:
-        current_month = timezone.now().replace(day=1)
-        return Invoice.objects.filter(
-            status='PAID',
-            paid_date__gte=current_month
-        ).aggregate(total=Sum('amount'))['total'] or 0
-    except Invoice.DoesNotExist:
-        return 0
-    except Exception as e:
-        logger.error(f"An unexpected error occurred while fetching monthly revenue: {e}")
-        return 0
-
-
-def calculate_compliance_rate(members):
-    """Calculate compliance rate for a set of members"""
-    try:
-        if not members.exists():
-            return 0
-
-        compliant_members = 0
-        total_members = members.count()
-
-        for member in members:
-            if member.get_compliance_score() >= 80:  # 80% compliance threshold
-                compliant_members += 1
-
-        return int((compliant_members / total_members) * 100)
-    except Exception as e:
-        logger.error(f"An unexpected error occurred while calculating compliance rate: {e}")
-        return 0
-
-
-def get_club_recent_registrations(club):
-    """Get recent registrations for club"""
-    if not club:
-        return []
-
-    try:
-        return CustomUser.objects.filter(
-            club=club,
-            date_joined__gte=timezone.now() - timedelta(days=30)
-        ).order_by('-date_joined')[:5]
-    except Exception as e:
-        logger.error(f"An unexpected error occurred while fetching club recent registrations: {e}")
-        return []
-
-
-def get_recent_payments(limit=10):
-    """Get recent payments"""
-    try:
-        return Invoice.objects.filter(
-            status='PAID',
-            paid_date__isnull=False
-        ).order_by('-paid_date')[:limit]
-    except Invoice.DoesNotExist:
-        return []
-    except Exception as e:
-        logger.error(f"An unexpected error occurred while fetching recent payments: {e}")
-        return []
-
-
-def get_pending_invoices_count():
-    """Get count of pending invoices"""
-    try:
-        return Invoice.objects.filter(
-            status__in=['PENDING', 'OVERDUE']
-        ).count()
-    except Exception:
-        return 0
-
-
-def get_revenue_summary():
-    """Get revenue summary for current and previous periods"""
-    try:
-        # Current month
-        current_month_start = timezone.now().replace(day=1)
-        current_month_revenue = Invoice.objects.filter(
-            status='PAID',
-            paid_date__gte=current_month_start
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        # Previous month
-        if current_month_start.month == 1:
-            prev_month_start = current_month_start.replace(year=current_month_start.year - 1, month=12)
-        else:
-            prev_month_start = current_month_start.replace(month=current_month_start.month - 1)
-
-        prev_month_end = current_month_start - timedelta(days=1)
-
-        prev_month_revenue = Invoice.objects.filter(
-            status='PAID',
-            paid_date__gte=prev_month_start,
-            paid_date__lte=prev_month_end
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        # Calculate growth
-        growth = 0
-        if prev_month_revenue > 0:
-            growth = ((current_month_revenue - prev_month_revenue) / prev_month_revenue) * 100
-
-        return {
-            'current_month': current_month_revenue,
-            'previous_month': prev_month_revenue,
-            'growth_percentage': round(growth, 1)
-        }
-
-    except Exception as e:
-        logger.error(f"Error getting revenue summary: {e}")
-        return {
-            'current_month': 0,
-            'previous_month': 0,
-            'growth_percentage': 0
-        }
-
-
-def log_user_activity(user, action, details=""):
-    """Log user activity for audit trail"""
-    try:
-        # You can implement this with a UserActivity model
-        # or use Django's built-in logging
-        logger.info(f"User Activity - User: {user.email if user else 'Anonymous'}, Action: {action}, Details: {details}")
-    except Exception as e:
-        logger.error(f"Error logging user activity: {e}")
-
-
-# AJAX Views for dynamic form updates
-@require_GET
-def get_regions_for_province(request):
-    """AJAX view to get regions for selected province"""
-    province_id = request.GET.get('province_id')
-
-    if not province_id:
-        return JsonResponse({'regions': []})
-
-    try:
-        regions = Region.objects.filter(province_id=province_id).values('id', 'name')
-        return JsonResponse({'regions': list(regions)})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-
-@require_GET
-def get_lfas_for_region(request):
-    """AJAX view to get LFAs for selected region"""
-    region_id = request.GET.get('region_id')
-
-    if not region_id:
-        return JsonResponse({'lfas': []})
-
-    try:
-        lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name')
-        return JsonResponse({'lfas': list(lfas)})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-
-@require_GET
-def get_clubs_for_lfa(request):
-    """AJAX view to get clubs for selected LFA"""
-    lfa_id = request.GET.get('lfa_id')
-
-    if not lfa_id:
-        return JsonResponse({'clubs': []})
-
-    try:
-        clubs = Club.objects.filter(localfootballassociation_id=lfa_id).values('id', 'name')
-        return JsonResponse({'clubs': list(clubs)})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-
-@login_required
-@require_GET
-def dashboard_stats_api(request):
-    """API endpoint for dashboard statistics"""
-    user = request.user
-
-    try:
-        if user.role == 'ADMIN_NATIONAL':
-            stats = get_national_admin_stats()
-        elif user.role == 'ADMIN_NATIONAL_ACCOUNTS':
-            stats = get_financial_stats()
-        elif user.role in ['ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED']:
-            stats = get_regional_admin_stats(user)
-        elif user.role == 'CLUB_ADMIN':
-            stats = get_club_stats(user.club)
-        elif user.role == 'ASSOCIATION_ADMIN':
-            stats = get_association_stats(user.association)
-        else:
-            stats = {}
-
-        return JsonResponse({'stats': stats})
-
-    except Exception as e:
-        logger.error(f"Error getting dashboard stats: {e}")
-        return JsonResponse({'error': 'Unable to load statistics'}, status=500)
-
-
-@login_required
-@require_GET
-def search_members_api(request):
-    """API endpoint for member search autocomplete"""
-    query = request.GET.get('q', '').strip()
-
-    if len(query) < 2:
-        return JsonResponse({'results': []})
-
-    try:
-        # Get members based on user's permissions
-        members = get_admin_jurisdiction_queryset(request.user).filter(
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(email__icontains=query) |
-            Q(safa_id__icontains=query)
-        )[:10]
-
-        results = []
-        for member in members:
-            results.append({
-                'id': member.id,
-                'name': member.get_full_name(),
-                'email': member.email,
-                'safa_id': member.safa_id or 'No SAFA ID',
-                'role': member.get_role_display(),
-                'status': member.membership_status,
-                'avatar_url': member.profile_photo.url if member.profile_photo else None
-            })
-
-        return JsonResponse({'results': results})
-
-    except Exception as e:
-        logger.error(f"Error in member search API: {e}")
-        return JsonResponse({'error': 'Search failed', 'details': str(e)}, status=500)
-
-
-@login_required
-@require_POST
-def quick_approve_member(request):
-    """Quick approve member via AJAX"""
-    member_id = request.POST.get('member_id')
-
-    if not member_id:
-        return JsonResponse({'error': 'Member ID required'}, status=400)
-
-    try:
-        member = get_object_or_404(CustomUser, id=member_id)
-
-        # Check permissions
-        if not can_approve_member(request.user, member):
-            return JsonResponse({'error': 'Permission denied'}, status=403)
-
-        # Check if member can be approved
-        if not member.is_profile_complete:
-            return JsonResponse({
-                'error': 'Member profile is not complete',
-                'details': 'Profile photo, ID document, and POPI consent required'
-            }, status=400)
-
-        # Approve member
-        member.is_active = True
-        member.membership_status = 'ACTIVE'
-        member.membership_activated_date = timezone.now()
-
-        if not member.safa_id:
-            member.safa_id = generate_unique_safa_id()
-
-        member.save()
-
-        # Log the approval
-        log_user_activity(
-            user=request.user,
-            action='approve_member',
-            details=f"Approved member {member.get_full_name()} (ID: {member.id})"
-        )
-
-        return JsonResponse({
-            'success': True,
-            'message': f'Member {member.get_full_name()} approved successfully',
-            'member': {
-                'id': member.id,
-                'name': member.get_full_name(),
-                'safa_id': member.safa_id,
-                'status': member.membership_status
-            }
-        })
-
-    except Exception as e:
-        logger.error(f"Error in quick approve: {e}")
-        return JsonResponse({'error': 'Approval failed', 'details': str(e)}, status=500)
-
-
-# Error handling views
-def custom_400_view(request, exception):
-    """Custom 400 Bad Request page"""
-    return render(request, 'errors/400.html', {
-        'title': 'Bad Request',
-        'message': 'The request could not be understood by the server.'
-    }, status=400)
-
-
-def custom_404_view(request, exception):
-    """Custom 404 page"""
-    return render(request, 'errors/404.html', {
-        'title': 'Page Not Found',
-        'message': 'The page you are looking for could not be found.',
-        'show_search': True,
-        'helpful_links': [
-            {'title': 'Home', 'url': reverse('accounts:home')},
-            {'title': 'Registration Portal', 'url': reverse('accounts:registration_portal')},
-            {'title': 'Contact Support', 'url': reverse('accounts:contact_support')},
-        ]
-    }, status=404)
-
-
-def custom_500_view(request):
-    """Custom 500 page"""
-    return render(request, 'errors/500.html', {
-        'title': 'Server Error',
-        'message': 'An internal server error occurred. Please try again later.',
-        'contact_email': 'support@safa.net',
-        'show_report_form': True
-    }, status=500)
-
-
-def custom_403_view(request, exception):
-    """Custom 403 page"""
-    return render(request, 'errors/403.html', {
-        'title': 'Access Denied',
-        'message': 'You do not have permission to access this page.',
-        'user_role': request.user.get_role_display() if request.user.is_authenticated else None,
-        'contact_info': {
-            'email': 'support@safa.net',
-            'phone': '+27 11 494 3522'
-        }
-    }, status=403)
-
-
-# Additional utility views
-def get_user_organizations(user):
-    """Get list of organizations user belongs to"""
-    organizations = []
-
-    if user.national_federation:
-        organizations.append({
-            'type': 'national',
-            'id': user.national_federation.id,
-            'name': user.national_federation.name,
-            'level': 'National'
-        })
-
-    if user.province:
-        organizations.append({
-            'type': 'province',
-            'id': user.province.id,
-            'name': user.province.name,
-            'level': 'Province'
-        })
-
-    if user.region:
-        organizations.append({
-            'type': 'region',
-            'id': user.region.id,
-            'name': user.region.name,
-            'level': 'Region'
-        })
-
-    if user.local_federation:
-        organizations.append({
-            'type': 'lfa',
-            'id': user.local_federation.id,
-            'name': user.local_federation.name,
-            'level': 'LFA'
-        })
-
-    if user.club:
-        organizations.append({
-            'type': 'club',
-            'id': user.club.id,
-            'name': user.club.name,
-            'level': 'Club'
-        })
-
-    if user.association:
-        organizations.append({
-            'type': 'association',
-            'id': user.association.id,
-            'name': user.association.name,
-            'level': 'Association'
-        })
-
-    return organizations
-
-
-@login_required
-def switch_organization(request):
-    """Allow users with multiple roles to switch organization context"""
-    if request.method == 'POST':
-        org_type = request.POST.get('org_type')
-        org_id = request.POST.get('org_id')
-
-        # Store in session for context switching
-        request.session['active_organization'] = {
-            'type': org_type,
-            'id': org_id
-        }
-
-        messages.success(request, 'Organization context switched successfully.')
-        return redirect('accounts:modern_home')
-
-    # Get user's available organizations
-    organizations = get_user_organizations(request.user)
-
-    context = {
-        'title': 'Switch Organization',
-        'organizations': organizations
-    }
-
-    return render(request, 'accounts/switch_organization.html', context)
-
-
-def get_all_user_notifications(user):
-    """Get all notifications for user"""
-    notifications = []
-
-    # System notifications
-    notifications.extend(get_user_notifications(user))
-
-    # Add role-specific notifications
-    if user.role in ['ADMIN_LOCAL_FED', 'ADMIN_REGION', 'ADMIN_PROVINCE', 'ADMIN_NATIONAL']:
-        pending_count = get_admin_jurisdiction_queryset(user).filter(
-            is_active=False,
-            membership_status='PENDING'
-        ).count()
-
-        if pending_count > 0:
-            notifications.append({
-                'type': 'info',
-                'title': 'Pending Approvals',
-                'message': f'You have {pending_count} member(s) waiting for approval',
-                'action_url': reverse('accounts:member_approvals_list'),
-                'timestamp': timezone.now(),
-                'read': False
-            })
-
-    notifications.sort(key=lambda x: x.get('timestamp', timezone.now()), reverse=True)
-
-    return notifications
-
-
-@login_required
-def notification_center(request):
-    """Notification center for users"""
-    notifications = get_all_user_notifications(request.user)
-
-    context = {
-        'title': 'Notifications',
-        'notifications': notifications,
-        'unread_count': len([n for n in notifications if not n.get('read', False)])
-    }
-
-    return render(request, 'accounts/notifications.html', context)
-
-
-@login_required
-@require_POST
-def mark_notification_read(request, notification_id):
-    """Mark notification as read"""
-    # Implement notification read tracking
-    # This would typically update a UserNotification model
-    return JsonResponse({'success': True})
-
-
-@require_GET
-def health_check(request):
-    """Health check endpoint for monitoring"""
-    try:
-        # Check database connectivity
-        user_count = CustomUser.objects.count()
-
-        # Check critical services
-        status = {
-            'status': 'healthy',
-            'timestamp': timezone.now().isoformat(),
-            'database': 'connected',
-            'user_count': user_count,
-            'services': {
-                'authentication': 'operational',
-                'payments': 'operational'
-            }
-        }
-
-        return JsonResponse(status)
-
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return JsonResponse({
-            'status': 'unhealthy',
-            'error': str(e),
-            'timestamp': timezone.now().isoformat()
-        }, status=503)
-
-
-def get_dashboard_stats():
-    """Get general dashboard statistics"""
-    return {
-        'total_users': CustomUser.objects.count(),
-        'active_users': CustomUser.objects.filter(is_active=True).count(),
-        'registrations_today': CustomUser.objects.filter(
-            date_joined__date=timezone.now().date()
-        ).count()
-    }
-
-
-# AJAX views for dynamic form updates during registration
-def get_organization_types_api(request):
-    """API to get organization types based on selected level"""
-    level = request.GET.get('level')
-
-    if not level:
-        return JsonResponse({'organization_types': []})
-
-    try:
-        org_types = OrganizationType.objects.filter(
-            level=level,
-            is_active=True
-        ).values('id', 'name')
-
-        return JsonResponse({'organization_types': list(org_types)})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-
-def get_positions_for_org_type_api(request):
-    """API to get positions available for organization type"""
-    org_type_id = request.GET.get('org_type_id')
-
-    if not org_type_id:
-        return JsonResponse({'positions': []})
-
-    try:
-        org_type = OrganizationType.objects.get(id=org_type_id)
-
-        # Get positions that can be used at this level
-        positions = Position.objects.filter(
-            is_active=True,
-            levels__icontains=org_type.level
-        ).values('id', 'title', 'description')
-
-        return JsonResponse({'positions': list(positions)})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-
-# Helper function to create user invoice (implement based on your invoice system)
-def create_member_invoice(user):
-    """Create invoice for member registration"""
-    try:
-        # Determine fee based on user role
-        fee_amount = get_registration_fee(user.role)
-
-        if fee_amount > 0:
-            invoice = Invoice.objects.create(
-                user=user,
-                invoice_type='REGISTRATION',
-                description=f'SAFA Registration Fee - {user.get_role_display()}',
-                amount=fee_amount,
-                due_date=timezone.now().date() + timezone.timedelta(days=30),
-                status='PENDING'
-            )
-            return invoice
-
-    except Exception as e:
-        logger.error(f"Error creating invoice: {e}")
-        raise
-
-
-def get_registration_fee(role):
-    """Get registration fee based on role"""
-    fees = {
-        'PLAYER': 150.00,
-        'OFFICIAL': 200.00,
-        'CLUB_ADMIN': 300.00,
-        'ASSOCIATION_ADMIN': 500.00,
-        'ADMIN_LOCAL_FED': 0.00,  # No fee for LFA admins
-        'ADMIN_REGION': 0.00,
-        'ADMIN_PROVINCE': 0.00,
-        'ADMIN_NATIONAL': 0.00,
-        'ADMIN_NATIONAL_ACCOUNTS': 0.00
-    }
-    return fees.get(role, 150.00)  # Default fee
-
 
 @login_required
 def club_admin_add_player(request):
@@ -779,7 +65,7 @@ def club_admin_add_player(request):
         return redirect('accounts:modern_home')
 
     if request.method == 'POST':
-        form = PlayerForm(request.POST)
+        form = ClubAdminAddPlayerForm(request.POST, request.FILES)
         if form.is_valid():
             player = form.save(commit=False)
             player.role = 'PLAYER'
@@ -788,24 +74,10 @@ def club_admin_add_player(request):
             password = get_random_string(12)
             player.set_password(password)
             player.save()
-
-            # Create an invoice for the new player
-            try:
-                invoice = create_member_invoice(player)
-                if invoice:
-                    messages.success(request,
-                                     f"Player {player.get_full_name()} added successfully. Invoice #{invoice.invoice_number} has been created.")
-                else:
-                    messages.info(request,
-                                  f"Player {player.get_full_name()} added successfully. No invoice was required for the role '{player.get_role_display()}'.")
-            except Exception as e:
-                logger.error(f"Failed to create invoice for player {player.get_full_name()} (ID: {player.id}). Error: {e}", exc_info=True)
-                messages.error(request,
-                                 f"Player {player.get_full_name()} was added, but the invoice could not be generated. Please check the system logs or contact an administrator. Error: {e}")
-
+            messages.success(request, f"Player {player.get_full_name()} added successfully.")
             return redirect('accounts:modern_home')
     else:
-        form = PlayerForm()
+        form = ClubAdminAddPlayerForm()
 
     context = {
         'form': form,
@@ -813,148 +85,330 @@ def club_admin_add_player(request):
     }
     return render(request, 'accounts/club_admin_add_player.html', context)
 
+
 @login_required
-def my_invoices(request):
-    """View for displaying the user's invoices."""
-    invoices = Invoice.objects.filter(member=request.user.member_profile).order_by('-issue_date')
-    context = {
-        'title': 'My Invoices',
-        'invoices': invoices,
-    }
-    return render(request, 'accounts/my_invoices.html', context)
+def get_regions_for_province(request):
+    province_id = request.GET.get('province_id')
+    regions = Region.objects.filter(province_id=province_id).order_by('name')
+    return JsonResponse(list(regions.values('id', 'name')), safe=False)
 
-# API placeholder views
-def eligible_clubs_api(request):
-    raise NotImplementedError("eligible_clubs_api is not implemented")
 
-def members_api(request):
-    raise NotImplementedError("members_api is not implemented")
+@login_required
+def get_lfas_for_region(request):
+    region_id = request.GET.get('region_id')
+    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
+    return JsonResponse(list(lfas.values('id', 'name')), safe=False)
 
-def self_register_member_api(request):
-    raise NotImplementedError("self_register_member_api is not implemented")
 
-def transfers_api(request):
-    raise NotImplementedError("transfers_api is not implemented")
+@login_required
+def get_clubs_for_lfa(request):
+    lfa_id = request.GET.get('lfa_id')
+    clubs = Club.objects.filter(lfa_id=lfa_id).order_by('name')
+    return JsonResponse(list(clubs.values('id', 'name')), safe=False)
 
-def approve_transfer_api(request, transfer_id):
-    raise NotImplementedError("approve_transfer_api is not implemented")
 
-def member_season_history_api(request, member_id):
-    raise NotImplementedError("member_season_history_api is not implemented")
+@login_required
+def profile(request):
+    user_roles = UserRole.objects.filter(user=request.user)
+    organizations = [role.organization for role in user_roles]
 
-def member_history_by_club_api(request):
-    raise NotImplementedError("member_history_by_club_api is not implemented")
+    if user_roles:
+        current_role = user_roles.first()
+        organization = current_role.organization
+        position = current_role.position
 
-def seasonal_analysis_api(request):
-    raise NotImplementedError("seasonal_analysis_api is not implemented")
+        stats = get_dashboard_stats(organization)
 
-def member_associations_api(request, member_id):
-    raise NotImplementedError("member_associations_api is not implemented")
+        context = {
+            'user': request.user,
+            'organization': organization,
+            'position': position,
+            'stats': stats,
+            'user_roles': user_roles,
+            'current_role': current_role,
+        }
+        return render(request, 'accounts/profile.html', context)
+
+    return render(request, 'accounts/profile.html', {'user': request.user, 'organization': None})
+
+
+@login_required
+def switch_organization(request):
+    if request.method == 'POST':
+        role_id = request.POST.get('role_id')
+        try:
+            role = UserRole.objects.get(id=role_id, user=request.user)
+            request.session['current_role_id'] = role.id
+            messages.success(request, f"Switched to role: {role.position.name} at {role.organization.name}")
+        except UserRole.DoesNotExist:
+            messages.error(request, "Invalid role selected.")
+    return redirect('accounts:profile')
+
+
+@login_required
+def notification_center(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-timestamp')
+    return render(request, 'accounts/notification_center.html', {'notifications': notifications})
+
+
+@require_POST
+@login_required
+def mark_notification_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return JsonResponse({'status': 'success'})
+
+
+def health_check(request):
+    return HttpResponse("OK")
 
 
 @login_required
 def member_approvals_list(request):
-    """
-    Display a list of members waiting for approval.
-    """
-    # Get members based on user's permissions
-    pending_members = get_admin_jurisdiction_queryset(request.user).filter(
-        membership_status='PENDING'
-    ).order_by('-date_joined')
+    try:
+        user_role = UserRole.objects.get(user=request.user)
+        organization = user_role.organization
+
+        if organization.organization_type.name == 'Local Football Association':
+            clubs_in_lfa = Club.objects.filter(lfa=organization)
+            members_to_approve = Member.objects.filter(club__in=clubs_in_lfa, status='Pending Approval')
+        elif organization.organization_type.name == 'Region':
+            members_to_approve = Member.objects.none()  # Placeholder
+        else:
+            members_to_approve = Member.objects.none()
+
+    except UserRole.DoesNotExist:
+        members_to_approve = Member.objects.none()
+        messages.error(request, "You are not associated with any organization.")
+
+    if request.method == 'POST':
+        form = MemberApprovalForm(request.POST)
+        if form.is_valid():
+            member = form.cleaned_data['member']
+            is_approved = form.cleaned_data['is_approved']
+            if is_approved:
+                member.status = 'Approved'
+                member.save()
+                send_approval_email(member.user)
+                messages.success(request, f"Member {member.user.get_full_name()} approved.")
+    else:
+        form = MemberApprovalForm()
 
     context = {
-        'title': 'Member Approvals',
-        'pending_members': pending_members,
+        'members_to_approve': members_to_approve,
+        'form': form
     }
     return render(request, 'accounts/member_approvals_list.html', context)
 
 
 @login_required
-def advanced_search(request):
-    """
-    Display the advanced search form.
-    """
-    context = {
-        'title': 'Advanced Search',
-    }
-    return render(request, 'accounts/advanced_search.html', context)
+def reject_member(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    if request.method == 'POST':
+        form = RejectMemberForm(request.POST)
+        if form.is_valid():
+            rejection_reason = form.cleaned_data['rejection_reason']
+            member.status = 'Rejected'
+            member.rejection_reason = rejection_reason
+            member.save()
 
-def statistics(request):
-    """View for displaying statistics."""
-    context = {
-        'title': 'Statistics',
-        # Add any required data for the statistics page
-    }
-    return render(request, 'accounts/statistics.html', context)
+            send_rejection_email(member.user, rejection_reason)
 
+            messages.success(request, f"Member {member.user.get_full_name()} has been rejected.")
+            return redirect('accounts:member_approvals_list')
+    else:
+        form = RejectMemberForm()
 
-def contact_support(request):
-    """View for the Contact Support page."""
-    context = {
-        'title': 'Contact Support',
-    }
-    return render(request, 'accounts/contact_support.html', context)
+    return render(request, 'accounts/reject_member.html', {'form': form, 'member': member})
 
 
 @login_required
-def profile(request):
-    """View for the user profile page."""
-    context = {
-        'title': 'Profile',
-        'user': request.user,
+def advanced_search(request):
+    form = AdvancedSearchForm()
+    results = None
+    if 'query' in request.GET:
+        form = AdvancedSearchForm(request.GET)
+        if form.is_valid():
+            results = form.search()
+
+    return render(request, 'accounts/advanced_search.html', {'form': form, 'results': results})
+
+
+@login_required
+def statistics(request):
+    stats = {
+        'total_users': CustomUser.objects.count(),
+        'total_members': Member.objects.count(),
+        'members_by_province': (Member.objects
+                               .values('club__lfa__region__province__name')
+                               .annotate(count=Count('id'))
+                               .order_by('-count'))
     }
-    return render(request, 'accounts/profile.html', context)
+    return render(request, 'accounts/statistics.html', {'stats': stats})
+
+
+@login_required
+def dashboard_stats_api(request):
+    user_role = UserRole.objects.filter(user=request.user).first()
+    if not user_role:
+        return JsonResponse({'error': 'User has no role'}, status=403)
+
+    stats = get_dashboard_stats(user_role.organization)
+    return JsonResponse(stats)
+
+
+@login_required
+def search_members_api(request):
+    query = request.GET.get('q', '')
+    members = Member.objects.filter(
+        Q(user__first_name__icontains=query) |
+        Q(user__last_name__icontains=query) |
+        Q(safa_id__icontains=query)
+    ).select_related('user', 'club')[:10]
+
+    results = [{
+        'id': member.id,
+        'name': member.user.get_full_name(),
+        'safa_id': member.safa_id,
+        'club': member.club.name if member.club else 'N/A'
+    } for member in members]
+
+    return JsonResponse(results, safe=False)
+
+
+@require_POST
+@login_required
+def quick_approve_member(request):
+    member_id = request.POST.get('member_id')
+    try:
+        member = Member.objects.get(id=member_id)
+        member.status = 'Approved'
+        member.save()
+        send_approval_email(member.user)
+        return JsonResponse({'status': 'success', 'message': f'Member {member.user.get_full_name()} approved.'})
+    except Member.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Member not found.'}, status=404)
+
+
+@login_required
+def get_organization_types_api(request):
+    types = OrganizationType.objects.all()
+    return JsonResponse(list(types.values('id', 'name')), safe=False)
+
+
+@login_required
+def get_positions_for_org_type_api(request):
+    org_type_id = request.GET.get('organization_type_id')
+    positions = Position.objects.filter(organization_type_id=org_type_id)
+    return JsonResponse(list(positions.values('id', 'name')), safe=False)
+
+
+def contact_support(request):
+    if request.method == 'POST':
+        form = ContactSupportForm(request.POST)
+        if form.is_valid():
+            support_request = form.save(commit=False)
+            if request.user.is_authenticated:
+                support_request.user = request.user
+            support_request.save()
+
+            send_support_request_email(support_request)
+
+            messages.success(request, "Your support request has been sent. We will get back to you shortly.")
+            return redirect('accounts:home')
+    else:
+        form = ContactSupportForm()
+    return render(request, 'accounts/contact_support.html', {'form': form})
+
+
+@login_required
+def my_invoices(request):
+    return render(request, 'accounts/my_invoices.html')
 
 
 @login_required
 def settings(request):
-    """View for user account settings."""
-    context = {
-        'title': 'Account Settings',
-        'user': request.user,
-    }
-    return render(request, 'accounts/settings.html', context)
+    if request.method == 'POST':
+        form = SettingsForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your settings have been updated.")
+            return redirect('accounts:settings')
+    else:
+        form = SettingsForm(instance=request.user)
+    return render(request, 'accounts/settings.html', {'form': form})
 
 
 @login_required
 def registration_portal(request):
-    """View for the Registration Portal."""
-    context = {
-        'title': 'Registration Portal',
-    }
-    return render(request, 'accounts/registration_portal.html', context)
+    return render(request, 'accounts/registration_portal.html')
 
 
 @login_required
+@require_POST
 def update_profile_photo(request):
-    """View to handle profile photo updates."""
-    if request.method == 'POST' and request.FILES.get('profile_photo'):
-        profile_photo = request.FILES['profile_photo']
-        user = request.user
-
-        # Save the photo directly to the CustomUser model
-        user.profile_picture = profile_photo
-        user.save()
-
-        messages.success(request, 'Your profile photo has been updated successfully.')
-        return redirect('accounts:profile')
-
-    messages.error(request, 'Failed to update profile photo. Please try again.')
+    form = UpdateProfilePhotoForm(request.POST, request.FILES, instance=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Profile photo updated successfully.")
+    else:
+        messages.error(request, "Failed to update profile photo.")
     return redirect('accounts:profile')
 
-# accounts/views.py
+
+@login_required
+def eligible_clubs_api(request):
+    return JsonResponse([], safe=False)
+
+
+@login_required
+def members_api(request):
+    return JsonResponse([], safe=False)
+
+
+@login_required
+def self_register_member_api(request):
+    return JsonResponse({}, safe=False)
+
+
+@login_required
+def transfers_api(request):
+    return JsonResponse([], safe=False)
+
+
+@login_required
+def approve_transfer_api(request, transfer_id):
+    return JsonResponse({})
+
+
+@login_required
+def member_season_history_api(request, member_id):
+    return JsonResponse([], safe=False)
+
+
+@login_required
+def member_history_by_club_api(request):
+    return JsonResponse([], safe=False)
+
+
+@login_required
+def seasonal_analysis_api(request):
+    return JsonResponse([], safe=False)
+
+
+@login_required
+def member_associations_api(request, member_id):
+    return JsonResponse([], safe=False)
+
+
+@login_required
 def senior_membership_dashboard(request):
-    # Your view logic here
     return render(request, 'membership/senior_membership_dashboard.html')
 
 
 @login_required
 def club_invoices(request):
-    """
-    Display a list of invoices for a club.
-    """
-    # This is a placeholder.
-    # In a real implementation, you would fetch invoices for the user's club.
     invoices = []
     context = {
         'title': 'Club Invoices',
