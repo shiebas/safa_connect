@@ -860,7 +860,7 @@ def member_approvals_list(request):
     # Get members based on user's permissions
     pending_members = get_admin_jurisdiction_queryset(request.user).filter(
         membership_status='PENDING'
-    ).order_by('-created')
+    ).order_by('-date_joined')
 
     context = {
         'title': 'Member Approvals',
