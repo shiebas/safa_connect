@@ -931,11 +931,10 @@ def update_profile_photo(request):
     if request.method == 'POST' and request.FILES.get('profile_photo'):
         profile_photo = request.FILES['profile_photo']
         user = request.user
-        member = user.member_profile
 
-        # Update the profile photo
-        member.profile_photo = profile_photo
-        member.save()
+        # Save the photo directly to the CustomUser model
+        user.profile_picture = profile_photo
+        user.save()
 
         messages.success(request, 'Your profile photo has been updated successfully.')
         return redirect('accounts:profile')
