@@ -1737,6 +1737,26 @@ class Invoice(TimeStampedModel):
             history.safa_approved_date = timezone.now()
             history.save()
 
+    @classmethod
+    def create_member_invoice(cls, member):
+        """Create invoice for member registration"""
+        try:
+            # Determine fee based on user role
+            fee_amount = member.calculate_registration_fee()
+
+            if fee_amount > 0:
+                invoice = cls.objects.create(
+                    member=member,
+                    invoice_type='MEMBER_REGISTRATION',
+                    subtotal=fee_amount,
+                    season_config=member.current_season,
+                    status='PENDING'
+                )
+                return invoice
+        except Exception as e:
+            print(f"Error creating invoice: {e}")
+            raise
+
 
 class InvoiceItem(models.Model):
     """Line items for invoices (membership fees, registrations, etc.)"""
