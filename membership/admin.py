@@ -577,9 +577,3 @@ class NewMemberDocumentAdmin(admin.ModelAdmin):
 admin.site.site_header = "SAFA Financial Administration"
 admin.site.site_title = "SAFA Finance Portal" 
 admin.site.index_title = "Welcome to SAFA Financial Administration"
-
-# Remove any existing Member registrations to avoid conflicts
-try:
-    admin.site.unregister(Member)
-except admin.sites.NotRegistered:
-    pass
