@@ -469,6 +469,22 @@ class InvoiceAdmin(SAFAAccountsAdminMixin, admin.ModelAdmin):
         return "No"
     is_overdue_display.short_description = "Overdue"
     
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            return qs.filter(invoice_type__in=['ORGANIZATION_MEMBERSHIP', 'ANNUAL_FEE'])
+        return qs
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.role == 'ADMIN_NATIONAL_ACCOUNTS':
+            return False
+        return super().has_delete_permission(request, obj)
+
     def mark_as_paid_action(self, request, queryset):
         """Mark selected invoices as paid"""
         paid_count = 0

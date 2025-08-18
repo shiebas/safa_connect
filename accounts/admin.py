@@ -261,9 +261,7 @@ class CustomUserAdmin(UserAdmin):
         for user in queryset.filter(membership_status='PENDING'):
             # Check if there's a paid invoice for this user
             # Assuming a user has one primary invoice for their membership registration
-            invoice = Invoice.objects.filter(player=user, invoice_type='REGISTRATION', status='PAID').first()
-            if not invoice:
-                invoice = Invoice.objects.filter(official=user, invoice_type='REGISTRATION', status='PAID').first()
+            invoice = Invoice.objects.filter(member__user=user, invoice_type='REGISTRATION', status='PAID').first()
 
             if invoice and invoice.is_paid:
                 user.membership_status = 'ACTIVE'

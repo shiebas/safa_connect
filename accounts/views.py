@@ -58,6 +58,87 @@ def national_registration(request):
     return render(request, 'accounts/national_registration.html', {'form': form})
 
 
+# Placeholder functions for missing utilities
+def get_admin_jurisdiction_queryset(user):
+    if user.is_superuser or user.role == 'ADMIN_NATIONAL':
+        return CustomUser.objects.all()
+
+    if user.role == 'ADMIN_PROVINCE':
+        return CustomUser.objects.filter(province=user.province)
+
+    if user.role == 'ADMIN_REGION':
+        return CustomUser.objects.filter(region=user.region)
+
+    if user.role == 'ADMIN_LOCAL_FED':
+        return CustomUser.objects.filter(local_federation=user.local_federation)
+
+    if user.role == 'CLUB_ADMIN':
+        return CustomUser.objects.filter(club=user.club)
+
+    return CustomUser.objects.none()
+
+
+def can_approve_member(user, member):
+    if user.is_superuser or user.role == 'ADMIN_NATIONAL':
+        return True
+
+    if user.role == 'ADMIN_PROVINCE' and member.province == user.province:
+        return True
+
+    if user.role == 'ADMIN_REGION' and member.region == user.region:
+        return True
+
+    if user.role == 'ADMIN_LOCAL_FED' and member.local_federation == user.local_federation:
+        return True
+
+    if user.role == 'CLUB_ADMIN' and member.club == user.club:
+        return True
+
+    return False
+
+
+def get_user_notifications(user):
+    # This should return a list of notifications for the user
+    return []
+
+
+def get_national_admin_stats():
+    # This should return a dictionary of stats for the national admin
+    return {}
+
+
+def get_financial_stats():
+    # This should return a dictionary of financial stats
+    return {}
+
+
+def get_regional_admin_stats(user):
+    # This should return a dictionary of stats for the regional admin
+    return {}
+
+
+def get_club_stats(club):
+    # This should return a dictionary of stats for the club admin
+    return {}
+
+
+def get_association_stats(association):
+    # This should return a dictionary of stats for the association admin
+    return {}
+
+
+class ModernLoginView(LoginView):
+    """Modern login view with enhanced security and UX"""
+    authentication_form = EmailAuthenticationForm
+    template_name = 'accounts/modern_login.html'
+    redirect_authenticated_user = True
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['email'].widget.attrs['placeholder'] = 'Email Address'
+        return form
+
+
 @login_required
 def club_admin_add_player(request):
     if request.user.role != 'CLUB_ADMIN':

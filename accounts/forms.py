@@ -67,7 +67,7 @@ class RejectMemberForm(forms.Form):
 
 class EmailAuthenticationForm(AuthenticationForm):
     """Custom authentication form using email instead of username"""
-    username = forms.EmailField(
+    email = forms.EmailField(
         label="Email Address",
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
@@ -86,7 +86,7 @@ class EmailAuthenticationForm(AuthenticationForm):
 
     def __init__(self, request=None, *args, **kwargs):
         super().__init__(request=request, *args, **kwargs)
-        self.fields['username'].widget.attrs['placeholder'] = 'Email Address'
+        self.fields['email'].widget.attrs['placeholder'] = 'Email Address'
 
 class PlayerForm(forms.ModelForm):
     class Meta:
@@ -102,7 +102,7 @@ class AdvancedMemberSearchForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Search by name, email, or SAFA ID...',
+            'placeholder': 'Search by name, email, or SAFA ID...', 
             'autocomplete': 'off'
         }),
         label='Search'
@@ -238,251 +238,7 @@ class AdvancedMemberSearchForm(forms.Form):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Filter geographic fields based on user's role and permissions
-        if self.user:
-            if self.user.role == 'ADMIN_PROVINCE' and self.user.province:
-                self.fields['province'].queryset = Province.objects.filter(id=self.user.province.id)
-                self.fields['province'].initial = self.user.province
-                self.fields['region'].queryset = Region.objects.filter(province=self.user.province)
-            elif self.user.role == 'ADMIN_REGION' and self.user.region:
-                self.fields['region'].queryset = Region.objects.filter(id=self.user.region.id)
-                self.fields['region'].initial = self.user.region
-                self.fields['province'].queryset = Province.objects.filter(id=self.user.region.province.id)
-                self.fields['province'].initial = self.user.region.province
-            elif self.user.role == 'ADMIN_LOCAL_FED' and self.user.local_federation:
-                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.filter(id=self.user.local_federation.id)
-                self.fields['local_federation'].initial = self.user.local_federation
-            elif self.user.role == 'CLUB_ADMIN' and self.user.club:
-                self.fields['club'].queryset = Club.objects.filter(id=self.user.club.id)
-                self.fields['club'].initial = self.user.club
-    
-    def filter_queryset(self, queryset):
-        """Apply filters to the queryset"""
-        cleaned_data = self.cleaned_data
-        
-        # Text search
-        search_query = cleaned_data.get('search_query')
-        if search_query:
-            queryset = queryset.filter(
-                Q(first_name__icontains=search_query) |
-                Q(last_name__icontains=search_query) |
-                Q(email__icontains=search_query) |
-                Q(safa_id__icontains=search_query) |
-                Q(id_number__icontains=search_query)
-            )
-        
-        # Role filter
-        role = cleaned_data.get('role')
-        if role:
-            queryset = queryset.filter(role=role)
-        
-        # Status filter
-        membership_status = cleaned_data.get('membership_status')
-        if membership_status:
-            queryset = queryset.filter(membership_status=membership_status)
-        
-        # Geographic filters
-        province = cleaned_data.get('province')
-        if province:
-            queryset = queryset.filter(province=province)
-        
-        region = cleaned_data.get('region')
-        if region:
-            queryset = queryset.filter(region=region)
-        
-        local_federation = cleaned_data.get('local_federation')
-        if local_federation:
-            queryset = queryset.filter(local_federation=local_federation)
-        
-        club = cleaned_data.get('club')
-        if club:
-            queryset = queryset.filter(club=club)
-        
-        association = forms.ModelChoiceField(
-        queryset=Association.objects.all(),
-        required=False,
-        empty_label="All Associations",
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        label='Association'
-    )
-    
-    # Date range filters
-    registration_date_from = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': 'form-control'
-        }),
-        label='Registered From'
-    )
-    
-    registration_date_to = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': 'form-control'
-        }),
-        label='Registered To'
-    )
-    
-    # Age range filters
-    age_from = forms.IntegerField(
-        required=False,
-        min_value=0,
-        max_value=100,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Min age'
-        }),
-        label='Age From'
-    )
-    
-    age_to = forms.IntegerField(
-        required=False,
-        min_value=0,
-        max_value=100,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Max age'
-        }),
-        label='Age To'
-    )
-    
-    # Additional filters
-    gender = forms.ChoiceField(
-        choices=[('', 'All Genders'), ('M', 'Male'), ('F', 'Female')],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        label='Gender'
-    )
-    
-    has_safa_id = forms.BooleanField(
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label='Has SAFA ID'
-    )
-    
-    popi_consent = forms.BooleanField(
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label='POPI Consent Given'
-    )
-    
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-        
-        # Filter geographic fields based on user's role and permissions
-        if self.user:
-            if self.user.role == 'ADMIN_PROVINCE' and self.user.province:
-                self.fields['province'].queryset = Province.objects.filter(id=self.user.province.id)
-                self.fields['province'].initial = self.user.province
-                self.fields['region'].queryset = Region.objects.filter(province=self.user.province)
-            elif self.user.role == 'ADMIN_REGION' and self.user.region:
-                self.fields['region'].queryset = Region.objects.filter(id=self.user.region.id)
-                self.fields['region'].initial = self.user.region
-                self.fields['province'].queryset = Province.objects.filter(id=self.user.region.province.id)
-                self.fields['province'].initial = self.user.region.province
-            elif self.user.role == 'ADMIN_LOCAL_FED' and self.user.local_federation:
-                self.fields['local_federation'].queryset = LocalFootballAssociation.objects.filter(id=self.user.local_federation.id)
-                self.fields['local_federation'].initial = self.user.local_federation
-            elif self.user.role == 'CLUB_ADMIN' and self.user.club:
-                self.fields['club'].queryset = Club.objects.filter(id=self.user.club.id)
-                self.fields['club'].initial = self.user.club
-    
-    def filter_queryset(self, queryset):
-        """Apply filters to the queryset"""
-        cleaned_data = self.cleaned_data
-        
-        # Text search
-        search_query = cleaned_data.get('search_query')
-        if search_query:
-            queryset = queryset.filter(
-                Q(first_name__icontains=search_query) |
-                Q(last_name__icontains=search_query) |
-                Q(email__icontains=search_query) |
-                Q(safa_id__icontains=search_query) |
-                Q(id_number__icontains=search_query)
-            )
-        
-        # Role filter
-        role = cleaned_data.get('role')
-        if role:
-            queryset = queryset.filter(role=role)
-        
-        # Status filter
-        membership_status = cleaned_data.get('membership_status')
-        if membership_status:
-            queryset = queryset.filter(membership_status=membership_status)
-        
-        # Geographic filters
-        province = cleaned_data.get('province')
-        if province:
-            queryset = queryset.filter(province=province)
-        
-        region = cleaned_data.get('region')
-        if region:
-            queryset = queryset.filter(region=region)
-        
-        local_federation = cleaned_data.get('local_federation')
-        if local_federation:
-            queryset = queryset.filter(local_federation=local_federation)
-        
-        club = cleaned_data.get('club')
-        if club:
-            queryset = queryset.filter(club=club)
-        
-        association = cleaned_data.get('association')
-        if association:
-            queryset = queryset.filter(association=association)
-        
-        # Date range filters
-        reg_from = cleaned_data.get('registration_date_from')
-        if reg_from:
-            queryset = queryset.filter(date_joined__gte=reg_from)
-        
-        reg_to = cleaned_data.get('registration_date_to')
-        if reg_to:
-            queryset = queryset.filter(date_joined__lte=reg_to)
-        
-        # Age filters
-        age_from = cleaned_data.get('age_from')
-        age_to = cleaned_data.get('age_to')
-        if age_from or age_to:
-            from datetime import date
-            today = date.today()
-            
-            if age_from:
-                birth_year_max = today.year - age_from
-                queryset = queryset.filter(date_of_birth__year__lte=birth_year_max)
-            
-            if age_to:
-                birth_year_min = today.year - age_to
-                queryset = queryset.filter(date_of_birth__year__gte=birth_year_min)
-        
-        # Gender filter
-        gender = cleaned_data.get('gender')
-        if gender:
-            queryset = queryset.filter(gender=gender)
-        
-        # SAFA ID filter
-        has_safa_id = forms.BooleanField(
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label='Has SAFA ID'
-    )
-    
-    popi_consent = forms.BooleanField(
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label='POPI Consent Given'
-    )
-    
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-        
-        # Filter geographic fields based on user's role and permissions
+        # Filter geographic fields based on user\'s role and permissions
         if self.user:
             if self.user.role == 'ADMIN_PROVINCE' and self.user.province:
                 self.fields['province'].queryset = Province.objects.filter(id=self.user.province.id)
