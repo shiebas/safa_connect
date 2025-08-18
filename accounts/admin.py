@@ -270,8 +270,10 @@ class CustomUserAdmin(UserAdmin):
                 user.membership_approved_date = timezone.now()
                 
                 # Generate clean SAFA ID without random/PROV
-                if not user.safa_id:
-                    user.generate_safa_id()
+                if hasattr(user, 'member_profile') and user.member_profile and not user.member_profile.safa_id:
+                    user.member_profile.generate_safa_id()
+                    user.safa_id = user.member_profile.safa_id
+                    user.member_profile.save()
                 
                 user.save()
                 activated_count += 1
@@ -343,9 +345,12 @@ class CustomUserAdmin(UserAdmin):
         """Generate SAFA IDs for selected users"""
         generated_count = 0
         for user in queryset.filter(safa_id__isnull=True):
-            user.generate_safa_id()
-            user.save()
-            generated_count += 1
+            if hasattr(user, 'member_profile') and user.member_profile:
+                user.member_profile.generate_safa_id()
+                user.safa_id = user.member_profile.safa_id
+                user.member_profile.save()
+                user.save()
+                generated_count += 1
         
         self.message_user(
             request,
