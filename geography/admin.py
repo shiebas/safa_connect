@@ -69,6 +69,12 @@ class OfficialInline(admin.TabularInline):
         return obj.membership_status
     get_membership_status.short_description = 'Status'
 
+class MemberAssociationInline(admin.TabularInline):
+    model = Member.associations.through
+    extra = 0
+    verbose_name = 'Member'
+    verbose_name_plural = 'Members'
+
 
 # Admin classes for models that inherit from ModelWithLogo
 class ContinentFederationAdmin(ModelWithLogoAdmin):
@@ -134,6 +140,7 @@ class AssociationAdmin(ModelWithLogoAdmin):
     list_filter = ['national_federation']
     search_fields = ['name', 'acronym', 'safa_id']
     readonly_fields = ('safa_id',)
+    inlines = [MemberAssociationInline]
     
     
 @admin.action(description="Generate and assign unique SAFA IDs to selected regions")
