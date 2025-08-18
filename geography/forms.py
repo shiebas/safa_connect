@@ -24,12 +24,6 @@ from crispy_forms.layout import Layout, Row, Column, Submit, Field
 from crispy_forms.bootstrap import FormActions
 
 
-class LoginForm(forms.Form):
-    """Form for user login"""
-    username = forms.CharField(max_length=150)
-    password = forms.CharField(widget=forms.PasswordInput)
-
-
 class WorldSportsBodyForm(forms.ModelForm):
     continents = forms.ModelMultipleChoiceField(
         queryset=Continent.objects.all(),
