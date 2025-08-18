@@ -74,18 +74,18 @@ def superuser_dashboard(request):
         'pending_invoices': Invoice.objects.filter(status='PENDING').count(),
         'paid_invoices': Invoice.objects.filter(status='PAID').count(),
         'total_revenue': Invoice.objects.filter(status='PAID').aggregate(
-            total=Sum('amount')
+            total=Sum('total_amount')
         )['total'] or 0,
         'recent_revenue_7days': Invoice.objects.filter(
             status='PAID', 
             payment_date__gte=last_7_days
-        ).aggregate(total=Sum('amount'))['total'] or 0,
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
     }
     
     # Invoice breakdown by type
     invoice_by_type = Invoice.objects.values('invoice_type').annotate(
         count=Count('id'),
-        total_amount=Sum('amount')
+        total_amount=Sum('total_amount')
     ).order_by('-total_amount')
     
     # Recent invoices
@@ -140,7 +140,7 @@ def superuser_dashboard(request):
         recent_activities.append({
             'type': 'invoice_payment',
             'title': f'Payment Received: {invoice.invoice_number}',
-            'subtitle': f'R {invoice.amount:,.2f}',
+            'subtitle': f'R {invoice.total_amount:,.2f}',
             'timestamp': invoice.payment_date,
             'icon': 'bi-credit-card-fill',
             'color': 'warning'
