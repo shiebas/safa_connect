@@ -6,7 +6,15 @@
     <h1>Admin Registration</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form|crispy }}
+        {{ form.email|as_crispy_field }}
+        {{ form.password|as_crispy_field }}
+        {{ form.password2|as_crispy_field }}
+        {{ form.first_name|as_crispy_field }}
+        {{ form.last_name|as_crispy_field }}
+        {{ form.role|as_crispy_field }}
+        {{ form.id_document_type|as_crispy_field }}
+        {{ form.id_number|as_crispy_field }}
+        {{ form.passport_number|as_crispy_field }}
         <button type="submit" class="btn btn-primary">Register</button>
     </form>
 </div>

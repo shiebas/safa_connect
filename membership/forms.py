@@ -1,7 +1,7 @@
 # membership/forms.py
 from django import forms
 from .models import Member
-from accounts.models import CustomUser, ROLES
+from accounts.models import CustomUser, ROLES, DOCUMENT_TYPES
 
 class BaseRegistrationForm(forms.ModelForm):
     email = forms.EmailField()
@@ -27,7 +27,10 @@ class BaseRegistrationForm(forms.ModelForm):
             password=self.cleaned_data['password'],
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name'],
-            role=self.role
+            role=self.cleaned_data.get('role', self.role),
+            id_document_type=self.cleaned_data.get('id_document_type'),
+            id_number=self.cleaned_data.get('id_number'),
+            passport_number=self.cleaned_data.get('passport_number')
         )
         member = super().save(commit=False)
         member.user = user
@@ -43,6 +46,23 @@ class OfficialRegistrationForm(BaseRegistrationForm):
 
 class AdminRegistrationForm(BaseRegistrationForm):
     role = forms.ChoiceField(choices=ROLES)
+    id_document_type = forms.ChoiceField(choices=DOCUMENT_TYPES)
+    id_number = forms.CharField(max_length=13, required=False)
+    passport_number = forms.CharField(max_length=25, required=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        id_document_type = cleaned_data.get("id_document_type")
+        id_number = cleaned_data.get("id_number")
+        passport_number = cleaned_data.get("passport_number")
+
+        if id_document_type == 'ID' and not id_number:
+            self.add_error('id_number', 'ID number is required when document type is National ID.')
+
+        if id_document_type == 'PP' and not passport_number:
+            self.add_error('passport_number', 'Passport number is required when document type is Passport.')
+
+        return cleaned_data
 
 from .models import Transfer, Member
 from geography.models import Club
