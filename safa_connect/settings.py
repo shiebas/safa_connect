@@ -20,7 +20,7 @@ SITE_ID = 1
 
 # LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/local-accounts/profile/'  # Redirect to dashboard after login
-# LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
+LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
 
 
 # Application definition
