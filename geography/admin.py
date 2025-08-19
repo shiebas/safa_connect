@@ -4,8 +4,9 @@ from utils.admin import ModelWithLogoAdmin
 from .models import (
     WorldSportsBody, Continent, ContinentFederation,
     ContinentRegion, Country, NationalFederation, Province, Region,
-    Association, Club, LocalFootballAssociation, OrganizationType, OrganizationLevel
+    Association, Club, LocalFootballAssociation
 )
+from accounts.models import OrganizationType
 from membership.models import Member
 from django.utils.crypto import get_random_string
 from django.contrib import messages
@@ -15,8 +16,8 @@ class PlayerInline(admin.TabularInline):
     model = Member
     fk_name = 'current_club'
     extra = 0
-    fields = ('first_name', 'last_name', 'safa_id', 'membership_status')
-    readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_membership_status')
+    fields = ('first_name', 'last_name', 'safa_id', 'status')
+    readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_status')
     verbose_name = 'Player'
     verbose_name_plural = 'Players'
 
@@ -36,16 +37,16 @@ class PlayerInline(admin.TabularInline):
         return obj.safa_id
     get_safa_id.short_description = 'SAFA ID'
 
-    def get_membership_status(self, obj):
-        return obj.membership_status
-    get_membership_status.short_description = 'Status'
+    def get_status(self, obj):
+        return obj.status
+    get_status.short_description = 'Status'
 
 class OfficialInline(admin.TabularInline):
     model = Member
     fk_name = 'current_club'
     extra = 0
-    fields = ('first_name', 'last_name', 'safa_id', 'membership_status')
-    readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_membership_status')
+    fields = ('first_name', 'last_name', 'safa_id', 'status')
+    readonly_fields = ('get_first_name', 'get_last_name', 'get_safa_id', 'get_status')
     verbose_name = 'Official'
     verbose_name_plural = 'Officials'
 
@@ -65,9 +66,9 @@ class OfficialInline(admin.TabularInline):
         return obj.safa_id
     get_safa_id.short_description = 'SAFA ID'
 
-    def get_membership_status(self, obj):
-        return obj.membership_status
-    get_membership_status.short_description = 'Status'
+    def get_status(self, obj):
+        return obj.status
+    get_status.short_description = 'Status'
 
 class MemberAssociationInline(admin.TabularInline):
     model = Member.associations.through
@@ -197,8 +198,7 @@ admin.site.register(Province, ProvinceAdmin)
 admin.site.register(LocalFootballAssociation, LocalFootballAssociationAdmin)
 admin.site.register(Association, AssociationAdmin)
 
-admin.site.register(OrganizationType)
-admin.site.register(OrganizationLevel)
+# admin.site.register(OrganizationType) # This is now handled in accounts admin
 # Note: Region is registered using @admin.register decorator above, so no need to register it here
 
 # Custom admin site configuration
