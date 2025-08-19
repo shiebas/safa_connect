@@ -189,6 +189,7 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email', 'password1']
+ACCOUNT_ADAPTER = 'accounts.adapter.CustomAccountAdapter'
 
 
 # ACCOUNT_RATE_LIMITS = {
