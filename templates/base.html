@@ -763,20 +763,10 @@
                 <div class="col-lg-2 col-md-6 mb-4">
                     <div class="footer-section">
                         <h5>Quick Links</h5>
-                        <a href="{% url 'accounts:registration_portal' %}" class="footer-link">Player Registration</a>
-                        <a href="{% url 'accounts:registration_portal' %}" class="footer-link">Official Registration</a>
-                        <a href="{% url 'accounts:registration_portal' %}" class="footer-link">Club Registration</a>
+                        <a href="{% url 'membership:player_registration' %}" class="footer-link">Player Registration</a>
+                        <a href="{% url 'membership:official_registration' %}" class="footer-link">Official Registration</a>
+                        <a href="{% url 'geography:register-club' %}" class="footer-link">Club Registration</a>
                         <a href="{% url 'membership_cards:verify_qr' %}" class="footer-link">Verify Card</a>
-                    </div>
-                </div>
-
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <div class="footer-section">
-                        <h5>Support</h5>
-                        <a href="{% url 'accounts:contact_support' %}" class="footer-link">Help Center</a>
-                        <a href="{% url 'accounts:contact_support' %}" class="footer-link">Contact Us</a>
-                        <a href="#" class="footer-link">FAQ</a>
-                        <a href="#" class="footer-link">Technical Support</a>
                     </div>
                 </div>
 
