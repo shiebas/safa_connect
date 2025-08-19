@@ -19,7 +19,7 @@ ALLOWED_HOSTS = []
 SITE_ID = 1
 
 # LOGIN_URL = '/accounts/login/'
-# LOGIN_REDIRECT_URL = '/accounts/'  # Redirect to dashboard after login
+LOGIN_REDIRECT_URL = '/local-accounts/profile/'  # Redirect to dashboard after login
 # LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
 
 
@@ -187,7 +187,9 @@ DEFAULT_FROM_EMAIL = 'SAFA Registration <noreply@safa.net>'
 
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_LOGIN_METHODS = ('email',)
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_FIELDS = ['email', 'password1']
 
 

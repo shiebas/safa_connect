@@ -1,17 +1,27 @@
+import os
+import django
+
+# Set up Django environment
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'safa_connect.settings')
+django.setup()
+
 from accounts.models import CustomUser
 
-# IMPORTANT: Replace 'your_superuser_email@example.com' with the actual email of your superuser account.
-# If you haven't created a superuser yet, please run 'python manage.py createsuperuser' first.
+def activate_superusers():
+    """
+    Finds all superusers and activates them if they are inactive.
+    """
+    superusers = CustomUser.objects.filter(is_superuser=True)
+    if superusers.exists():
+        for su in superusers:
+            if not su.is_active:
+                su.is_active = True
+                su.save()
+                print(f"Superuser {su.email} has been activated.")
+            else:
+                print(f"Superuser {su.email} is already active.")
+    else:
+        print("No superusers found.")
 
-superuser_email = 'admin@example.com' # <--- CHANGE THIS TO YOUR SUPERUSER'S EMAIL
-
-try:
-    user = CustomUser.objects.get(email=superuser_email)
-    user.is_active = True
-    user.is_approved = True
-    user.save()
-    print(f"Superuser '{user.email}' has been activated (is_active=True, is_approved=True).")
-except CustomUser.DoesNotExist:
-    print(f"Error: Superuser with email '{superuser_email}' not found. Please ensure the email is correct and the superuser account exists.")
-except Exception as e:
-    print(f"An error occurred: {e}")
+if __name__ == "__main__":
+    activate_superusers()
