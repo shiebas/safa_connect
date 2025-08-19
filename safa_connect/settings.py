@@ -94,7 +94,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'allauth.context_processors.allauth',
             ],
         },
     },
@@ -186,7 +185,8 @@ DEFAULT_FROM_EMAIL = 'SAFA Registration <noreply@safa.net>'
 #SITE_URL = 'https://registration.safa.net'  # Your production URL
 
 
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_LOGIN_METHODS = ('username', 'email')
+# ACCOUNT_AUTHENTICATION_METHOD has been replaced by ACCOUNT_LOGIN_METHODS
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 
