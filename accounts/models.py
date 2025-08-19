@@ -252,6 +252,56 @@ class CustomUser(AbstractUser):
         return self.get_full_name()
 
     @property
+    def age(self):
+        if self.date_of_birth:
+            today = timezone.now().date()
+            return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+        return None
+
+    def get_organization_info(self):
+        """
+        Returns a dictionary with information about the user's primary organization.
+        This is based on the foreign key fields on the user model.
+        """
+        if self.club:
+            return {
+                'type': 'Club',
+                'name': self.club.name,
+                'lfa': self.club.lfa.name if self.club.lfa else '',
+                'region': self.club.lfa.region.name if self.club.lfa and self.club.lfa.region else '',
+                'province': self.club.lfa.region.province.name if self.club.lfa and self.club.lfa.region and self.club.lfa.region.province else '',
+            }
+        if self.local_federation:
+            return {
+                'type': 'LFA',
+                'name': self.local_federation.name,
+                'region': self.local_federation.region.name if self.local_federation.region else '',
+                'province': self.local_federation.region.province.name if self.local_federation.region and self.local_federation.region.province else '',
+            }
+        if self.region:
+            return {
+                'type': 'Region',
+                'name': self.region.name,
+                'province': self.region.province.name if self.region.province else '',
+            }
+        if self.province:
+            return {
+                'type': 'Province',
+                'name': self.province.name
+            }
+        if self.association:
+            return {
+                'type': 'Association',
+                'name': self.association.name
+            }
+        if self.national_federation:
+            return {
+                'type': 'National',
+                'name': self.national_federation.name
+            }
+        return {'name': 'Not Set', 'type': None}
+
+    @property
     def is_profile_complete(self):
         """Check if essential profile information is complete for approval."""
         # Basic checks for all users
