@@ -18,9 +18,9 @@ ALLOWED_HOSTS = []
 
 SITE_ID = 1
 
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/accounts/'  # Redirect to dashboard after login
-LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
+# LOGIN_URL = '/accounts/login/'
+# LOGIN_REDIRECT_URL = '/accounts/'  # Redirect to dashboard after login
+# LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout (fix the test page issue)
 
 
 # Application definition
@@ -94,6 +94,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'allauth.account.context_processors.account',
             ],
         },
     },
@@ -185,13 +186,14 @@ DEFAULT_FROM_EMAIL = 'SAFA Registration <noreply@safa.net>'
 #SITE_URL = 'https://registration.safa.net'  # Your production URL
 
 
-ACCOUNT_LOGIN_METHODS = {'email'}  # Or  if you want both options
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Asterisk means required
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Or 'username_email' if you want both options
+ACCOUNT_EMAIL_REQUIRED = True
 
-ACCOUNT_RATE_LIMITS = {
-    "login_failed": "5/m",  # 5 failed logins per minute
-    # You can adjust the rate as needed, e.g. "10/h" for 10 per hour
-}
+
+# ACCOUNT_RATE_LIMITS = {
+#     "login_failed": "5/m",  # 5 failed logins per minute
+#     # You can adjust the rate as needed, e.g. "10/h" for 10 per hour
+# }
 
 # Optional:
 # ACCOUNT_SIGNUP_REDIRECT_URL = '/your-signup-complete/'

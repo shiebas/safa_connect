@@ -17,7 +17,7 @@ from membership.models import Member, Invoice
 from .utils import send_welcome_email, send_rejection_email, send_approval_email, send_support_request_email, get_dashboard_stats
 
 from .forms import (
-    EmailAuthenticationForm, PlayerForm, NationalAdminRegistrationForm, RejectMemberForm,
+    PlayerForm, NationalAdminRegistrationForm, RejectMemberForm,
     ClubAdminAddPlayerForm, MemberApprovalForm, AdvancedMemberSearchForm, ModernContactForm,
     ProfileForm, SettingsForm, UpdateProfilePhotoForm
 )
@@ -27,11 +27,7 @@ from .utils import generate_unique_safa_id
 logger = logging.getLogger(__name__)
 
 
-class ModernLoginView(LoginView):
-    """Modern login view with enhanced security and UX"""
-    form_class = EmailAuthenticationForm
-    template_name = 'accounts/modern_login.html'
-    redirect_authenticated_user = True
+
 
 
 def modern_home(request):
@@ -126,16 +122,7 @@ def get_association_stats(association):
     return {}
 
 
-class ModernLoginView(LoginView):
-    """Modern login view with enhanced security and UX"""
-    authentication_form = EmailAuthenticationForm
-    template_name = 'accounts/modern_login.html'
-    redirect_authenticated_user = True
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields['email'].widget.attrs['placeholder'] = 'Email Address'
-        return form
 
 
 @login_required

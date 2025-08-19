@@ -151,28 +151,7 @@ class MemberApprovalForm(forms.Form):
     is_approved = forms.BooleanField(required=False, initial=True)
 
 
-class EmailAuthenticationForm(AuthenticationForm):
-    """Custom authentication form using email instead of username"""
-    email = forms.EmailField(
-        label="Email Address",
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your email address',
-            'autofocus': True
-        })
-    )
-    password = forms.CharField(
-        label="Password",
-        strip=False,
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your password'
-        })
-    )
 
-    def __init__(self, request=None, *args, **kwargs):
-        super().__init__(request=request, *args, **kwargs)
-        self.fields['email'].widget.attrs['placeholder'] = 'Email Address'
 
 class PlayerForm(forms.ModelForm):
     class Meta:

@@ -19,7 +19,8 @@ handler403 = 'accounts.views.custom_403_view'
 urlpatterns = [
     path('admin/dashboard/', superuser_dashboard, name='superuser_dashboard'),
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('local-accounts/', include('accounts.urls')),
     path('geography/', include(('geography.urls', 'geography'), namespace='geography')),
     path('membership/', include('membership.urls', namespace='membership')),
     path('membership-cards/', include('membership_cards.urls')),
