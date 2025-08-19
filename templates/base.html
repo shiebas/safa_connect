@@ -625,9 +625,15 @@
                     
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'accounts:home' %}">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                            </a>
+                            {% if user.is_superuser %}
+                                <a class="nav-link" href="{% url 'superuser_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            {% else %}
+                                <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'accounts:home' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            {% endif %}
                         </li>
                         
                         {% if user.is_staff %}
