@@ -494,3 +494,10 @@ def custom_404_view(request, exception=None):
 
 def custom_500_view(request):
     return render(request, 'errors/500.html', status=500)
+
+
+from django.contrib.auth import logout
+
+def custom_admin_logout(request):
+    logout(request)
+    return redirect('/')

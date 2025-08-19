@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from safa_connect.dashboard_views import superuser_dashboard
+from accounts.views import custom_admin_logout
 
 # Update admin site title, header, and index title
 admin.site.site_header = "SAFA Administration"
@@ -17,6 +18,7 @@ handler500 = 'accounts.views.custom_500_view'
 handler403 = 'accounts.views.custom_403_view'
 
 urlpatterns = [
+    path('admin/logout/', custom_admin_logout, name='admin_logout'),
     path('admin/dashboard/', superuser_dashboard, name='superuser_dashboard'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
