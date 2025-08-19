@@ -10,8 +10,8 @@
             <!-- Profile Photo Section -->
             <div class="card">
                 <div class="card-body text-center">
-                    {% if user.profile_photo %}
-                        <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;">
                     {% else %}
                         <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 200px; height: 200px; margin: 0 auto;">
                             <i class="fas fa-user fa-5x text-white"></i>
@@ -22,7 +22,7 @@
                     
                     <!-- Upload Photo Button -->
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#photoModal">
-                        {% if user.profile_photo %}Update Photo{% else %}Upload Photo{% endif %}
+                        {% if user.profile_picture %}Update Photo{% else %}Upload Photo{% endif %}
                     </button>
                 </div>
             </div>
@@ -222,8 +222,8 @@
                 <div class="modal-body">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="profile_photo" class="form-label">Choose Photo:</label>
-                        <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*" required>
+                        <label for="profile_picture" class="form-label">Choose Photo:</label>
+                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*" required>
                         <div class="form-text">Supported formats: JPG, PNG, GIF. Max size: 5MB</div>
                     </div>
                     
@@ -243,7 +243,7 @@
 </div>
 
 <script>
-document.getElementById('profile_photo').addEventListener('change', function(e) {
+document.getElementById('profile_picture').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
