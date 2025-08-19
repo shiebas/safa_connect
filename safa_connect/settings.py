@@ -185,13 +185,10 @@ DEFAULT_FROM_EMAIL = 'SAFA Registration <noreply@safa.net>'
 #SITE_URL = 'https://registration.safa.net'  # Your production URL
 
 
-ACCOUNT_SIGNUP = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_SIGNUP_FIELDS = []
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email', 'password1']
 ACCOUNT_ADAPTER = 'accounts.adapter.CustomAccountAdapter'
 
 
