@@ -137,7 +137,7 @@
                     <div class="row mb-3">
                         <div class="col-sm-3"><strong>Profile Photo:</strong></div>
                         <div class="col-sm-9">
-                            {% if user.profile_picture %}
+                            {% if user.profile_photo %}
                                 <span class="badge bg-success"><i class="fas fa-check"></i> Uploaded</span>
                             {% else %}
                                 <span class="badge bg-warning"><i class="fas fa-exclamation-triangle"></i> Missing</span>
@@ -196,7 +196,7 @@
                                 <div class="mt-2">
                                     <small class="text-muted">Missing items:</small>
                                     <ul class="small mt-1">
-                                        {% if not user.profile_picture %}<li>Profile photo</li>{% endif %}
+                                        {% if not user.profile_photo %}<li>Profile photo</li>{% endif %}
                                         {% if not user.id_document %}<li>ID document upload</li>{% endif %}
                                         {% if not user.popi_act_consent %}<li>POPI Act consent</li>{% endif %}
                                     </ul>
