@@ -185,6 +185,7 @@ DEFAULT_FROM_EMAIL = 'SAFA Registration <noreply@safa.net>'
 #SITE_URL = 'https://registration.safa.net'  # Your production URL
 
 
+ACCOUNT_SIGNUP = False
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {'email'}
