@@ -252,6 +252,15 @@ class CustomUser(AbstractUser):
         return self.get_full_name()
 
     @property
+    def age(self):
+        """Calculate age from date of birth."""
+        if not self.date_of_birth:
+            return None
+        today = timezone.now().date()
+        born = self.date_of_birth
+        return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+
+    @property
     def is_profile_complete(self):
         """Check if essential profile information is complete for approval."""
         # Basic checks for all users
