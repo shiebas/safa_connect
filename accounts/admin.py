@@ -342,39 +342,19 @@ class CustomUserAdmin(UserAdmin):
     def generate_safa_ids(self, request, queryset):
         """Generate SAFA IDs for selected users"""
         generated_count = 0
-        skipped_count = 0
         for user in queryset.filter(safa_id__isnull=True):
-            if user.club:
-                member_profile, created = Member.objects.get_or_create(
-                    user=user,
-                    defaults={'current_club': user.club}
-                )
-                if not member_profile.safa_id:
-                    member_profile.generate_safa_id()
-                user.safa_id = member_profile.safa_id
-                member_profile.save()
+            if hasattr(user, 'member_profile') and user.member_profile:
+                user.member_profile.generate_safa_id()
+                user.safa_id = user.member_profile.safa_id
+                user.member_profile.save()
                 user.save()
                 generated_count += 1
-            else:
-                skipped_count += 1
-                self.message_user(
-                    request,
-                    f"Skipped {user.get_full_name()}: No club assigned.",
-                    messages.WARNING
-                )
 
-        if generated_count > 0:
-            self.message_user(
-                request,
-                f'{generated_count} SAFA IDs generated successfully.',
-                messages.SUCCESS
-            )
-        if skipped_count > 0:
-            self.message_user(
-                request,
-                f'{skipped_count} users were skipped because they do not have a club assigned.',
-                messages.WARNING
-            )
+        self.message_user(
+            request,
+            f'{generated_count} SAFA IDs generated successfully.',
+            messages.SUCCESS
+        )
     generate_safa_ids.short_description = "Generate SAFA IDs for selected users"
 
     def get_organization(self, obj):
