@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from geography.models import Province, Region, LocalFootballAssociation
+from geography.models import Province, Region, LocalFootballAssociation, NationalFederation, Country
 import json
 import os
 
@@ -23,25 +23,52 @@ class Command(BaseCommand):
         )
     
     def load_provinces(self):
-        provinces_data = [
-            {'name': 'Gauteng', 'code': 'GP', 'capital': 'Johannesburg'},
-            {'name': 'KwaZulu-Natal', 'code': 'KZN', 'capital': 'Pietermaritzburg'},
-            {'name': 'Western Cape', 'code': 'WC', 'capital': 'Cape Town'},
-            {'name': 'Eastern Cape', 'code': 'EC', 'capital': 'Bhisho'},
-            {'name': 'Free State', 'code': 'FS', 'capital': 'Bloemfontein'},
-            {'name': 'Limpopo', 'code': 'LP', 'capital': 'Polokwane'},
-            {'name': 'Mpumalanga', 'code': 'MP', 'capital': 'Mbombela'},
-            {'name': 'Northern Cape', 'code': 'NC', 'capital': 'Kimberley'},
-            {'name': 'North West', 'code': 'NW', 'capital': 'Mahikeng'},
-        ]
-        
+        # Ensure South Africa and SAFA exist
+        country, country_created = Country.objects.get_or_create(
+            name="South Africa",
+            defaults={'code': 'ZAF'}
+        )
+        if country_created:
+            self.stdout.write(self.style.SUCCESS('Created Country: South Africa'))
+
+        national_federation, federation_created = NationalFederation.objects.get_or_create(
+            name="South African Football Association",
+            defaults={'acronym': 'SAFA', 'country': country}
+        )
+        if federation_created:
+            self.stdout.write(self.style.SUCCESS('Created National Federation: SAFA'))
+
+        json_file_path = os.path.join('databackup29072025', 'geography_province.json')
+
+        try:
+            with open(json_file_path, 'r') as f:
+                provinces_data = json.load(f)
+        except FileNotFoundError:
+            self.stdout.write(self.style.ERROR(f"File not found: {json_file_path}"))
+            return
+        except json.JSONDecodeError:
+            self.stdout.write(self.style.ERROR(f"Error decoding JSON from {json_file_path}"))
+            return
+
         for province_data in provinces_data:
-            province, created = Province.objects.get_or_create(
-                code=province_data['code'],
+            province, created = Province.objects.update_or_create(
+                name=province_data['name'],
                 defaults={
-                    'name': province_data['name'],
-                    'capital_city': province_data['capital']
+                    'code': province_data.get('code', ''),
+                    'safa_id': province_data.get('safa_id', ''),
+                    'description': province_data.get('description', ''),
+                    'national_federation': national_federation,
                 }
             )
             if created:
                 self.stdout.write(f'Created province: {province.name}')
+            else:
+                self.stdout.write(f'Updated province: {province.name}')
+
+    def load_regions(self):
+        self.stdout.write('Skipping region loading.')
+        pass
+
+    def load_sample_lfas(self):
+        self.stdout.write('Skipping LFA loading.')
+        pass
