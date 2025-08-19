@@ -482,14 +482,14 @@
         .footer-safa {
             background: linear-gradient(135deg, var(--safa-green), var(--safa-light-green));
             color: var(--white);
-            padding: var(--spacing-2xl) 0 var(--spacing-xl);
+            padding: var(--spacing-xl) 0 var(--spacing-lg); /* Reduced padding */
             margin-top: auto;
         }
 
         .footer-section h5 {
             color: var(--safa-gold);
             font-weight: 700;
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-md); /* Reduced margin */
         }
 
         .footer-link {
@@ -507,6 +507,12 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            .footer-safa {
+                padding: var(--spacing-lg) 0;
+            }
+            .footer-section h5 {
+                margin-bottom: var(--spacing-sm);
+            }
             .dashboard-welcome {
                 font-size: var(--font-size-2xl);
             }
@@ -765,8 +771,6 @@
                         <h5>Quick Links</h5>
                         <a href="{% url 'membership:player_registration' %}" class="footer-link">Player Registration</a>
                         <a href="{% url 'membership:official_registration' %}" class="footer-link">Official Registration</a>
-                        <a href="{% url 'geography:register-club' %}" class="footer-link">Club Registration</a>
-                        <a href="{% url 'membership_cards:verify_qr' %}" class="footer-link">Verify Card</a>
                     </div>
                 </div>
 
@@ -784,12 +788,8 @@
                     <div class="footer-section">
                         <h5>Contact</h5>
                         <div class="text-light opacity-75 mb-2">
-                            <i class="fas fa-phone me-2"></i>
-                            +27 11 494 3522
-                        </div>
-                        <div class="text-light opacity-75 mb-2">
                             <i class="fas fa-envelope me-2"></i>
-                            info@safa.net
+                            admin@safaconnect.co.za
                         </div>
                         <div class="text-light opacity-75">
                             <i class="fas fa-map-marker-alt me-2"></i>
