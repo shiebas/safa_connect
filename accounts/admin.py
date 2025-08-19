@@ -343,12 +343,12 @@ class CustomUserAdmin(UserAdmin):
         """Generate SAFA IDs for selected users"""
         generated_count = 0
         for user in queryset.filter(safa_id__isnull=True):
-            if hasattr(user, 'member_profile') and user.member_profile:
-                user.member_profile.generate_safa_id()
-                user.safa_id = user.member_profile.safa_id
-                user.member_profile.save()
-                user.save()
-                generated_count += 1
+            member_profile, created = Member.objects.get_or_create(user=user)
+            member_profile.generate_safa_id()
+            user.safa_id = member_profile.safa_id
+            member_profile.save()
+            user.save()
+            generated_count += 1
         
         self.message_user(
             request,
