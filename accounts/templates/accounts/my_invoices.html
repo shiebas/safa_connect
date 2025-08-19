@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block head_title %}{% trans "My Invoices" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h1>{% trans "My Invoices" %}</h1>
+                </div>
+                <div class="card-body">
+                    <p>{% trans "This page will display a list of your invoices." %}</p>
+                    <p>{% trans "This feature is not yet implemented." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
