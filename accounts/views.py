@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
+from django.core.paginator import Paginator
 
 from geography.models import Club, LocalFootballAssociation, Region, Province
 from membership.models import Member, Invoice
@@ -439,6 +440,15 @@ def get_positions_for_org_type_api(request):
     return JsonResponse(list(positions.values('id', 'name')), safe=False)
 
 
+@require_GET
+def check_id_number(request):
+    id_number = request.GET.get('id_number', None)
+    if id_number:
+        exists = CustomUser.objects.filter(id_number=id_number).exists()
+        return JsonResponse({'exists': exists})
+    return JsonResponse({'exists': False})
+
+
 def contact_support(request):
     if request.method == 'POST':
         form = ModernContactForm(request.POST)
@@ -575,13 +585,26 @@ def custom_admin_logout(request):
 
 @role_required(allowed_roles=['ADMIN_NATIONAL'])
 def national_admin_dashboard(request):
-    org_data = [
-        ('province', Province.objects.all(), 'Provinces'),
-        ('region', Region.objects.all(), 'Regions'),
-        ('lfa', LocalFootballAssociation.objects.all(), 'Local Football Associations'),
-        ('association', Association.objects.all(), 'Associations'),
-        ('club', Club.objects.all(), 'Clubs'),
-    ]
+    org_lists = {
+        'province': Province.objects.all(),
+        'region': Region.objects.all(),
+        'lfa': LocalFootballAssociation.objects.all(),
+        'association': Association.objects.all(),
+        'club': Club.objects.all(),
+    }
+
+    paginators = {
+        org_type: Paginator(queryset, 10) for org_type, queryset in org_lists.items()
+    }
+
+    page_numbers = {
+        org_type: request.GET.get(f'{org_type}_page', 1) for org_type in org_lists.keys()
+    }
+
+    org_data = {
+        org_type: paginator.get_page(page_numbers[org_type])
+        for org_type, paginator in paginators.items()
+    }
 
     # Financial Summary
     total_paid = Invoice.objects.filter(status='PAID').aggregate(Sum('total_amount'))['total_amount__sum'] or 0

@@ -17,7 +17,6 @@
                     <a href="{% url 'membership:invoice_list' %}" class="btn btn-primary">Manage Invoices</a>
                     <a href="{% url 'accounts:club_admin_add_player' %}" class="btn btn-secondary">Add Player</a>
                     <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-info">Add Referee</a>
-                    <a href="{% url 'events:available_matches' %}" class="btn btn-success">Manage Matches</a>
                 </div>
             </div>
         </div>
@@ -86,67 +85,88 @@
         </div>
     </div>
 
-    {% for org_type, org_list, org_name_plural in org_data %}
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h4 class="mb-0">{{ org_name_plural }}</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Name</th>
-                            <th class="text-center">Current Status</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for org in org_list %}
-                        <tr>
-                            <td>{{ org.name }}</td>
-                            <td class="text-center">
-                                <span class="badge
-                                    {% if org.status == 'ACTIVE' %}bg-success
-                                    {% elif org.status == 'INACTIVE' %}bg-secondary
-                                    {% elif org.status == 'SUSPENDED' %}bg-warning
-                                    {% else %}bg-danger
-                                    {% endif %}">
-                                    {{ org.get_status_display }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <form action="{% url 'accounts:update_organization_status' %}" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="org_type" value="{{ org_type }}">
-                                    <input type="hidden" name="org_id" value="{{ org.id }}">
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                            Change Status
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            {% for status_key, status_value in ClubStatus.choices %}
-                                            <li>
-                                                <button class="dropdown-item" type="submit" name="new_status" value="{{ status_key }}">
-                                                    Set as {{ status_value }}
+    <div class="accordion" id="organizationAccordion">
+        {% for org_type, org_page in org_data.items %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-{{ org_type }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ org_type }}" aria-expanded="false" aria-controls="collapse-{{ org_type }}">
+                    {{ org_type|title }}s
+                </button>
+            </h2>
+            <div id="collapse-{{ org_type }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ org_type }}" data-bs-parent="#organizationAccordion">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th class="text-center">Current Status</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for org in org_page %}
+                                <tr>
+                                    <td>{{ org.name }}</td>
+                                    <td class="text-center">
+                                        <span class="badge
+                                            {% if org.status == 'ACTIVE' %}bg-success
+                                            {% elif org.status == 'INACTIVE' %}bg-secondary
+                                            {% elif org.status == 'SUSPENDED' %}bg-warning
+                                            {% else %}bg-danger
+                                            {% endif %}">
+                                            {{ org.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <form action="{% url 'accounts:update_organization_status' %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="org_type" value="{{ org_type }}">
+                                            <input type="hidden" name="org_id" value="{{ org.id }}">
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Change Status
                                                 </button>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center text-muted">No {{ org_name_plural }} found.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                                <ul class="dropdown-menu">
+                                                    {% for status_key, status_value in ClubStatus.choices %}
+                                                    <li>
+                                                        <button class="dropdown-item" type="submit" name="new_status" value="{{ status_key }}">
+                                                            Set as {{ status_value }}
+                                                        </button>
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No {{ org_type }}s found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if org_page.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?{{ org_type }}_page=1">&laquo; first</a></li>
+                                <li class="page-item"><a class="page-link" href="?{{ org_type }}_page={{ org_page.previous_page_number }}">previous</a></li>
+                            {% endif %}
+
+                            <li class="page-item disabled"><a class="page-link" href="#">Page {{ org_page.number }} of {{ org_page.paginator.num_pages }}.</a></li>
+
+                            {% if org_page.has_next %}
+                                <li class="page-item"><a class="page-link" href="?{{ org_type }}_page={{ org_page.next_page_number }}">next</a></li>
+                                <li class="page-item"><a class="page-link" href="?{{ org_type }}_page={{ org_page.paginator.num_pages }}">last &raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 {% endblock %}
