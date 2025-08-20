@@ -17,12 +17,43 @@ class NationalAdminRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
 
+    organization_type = forms.ModelChoiceField(
+        queryset=OrganizationType.objects.all(),
+        required=True,
+        label="Administrator Type",
+        help_text="Select the type of organization you will be administering."
+    )
+    position = forms.ModelChoiceField(
+        queryset=Position.objects.all(),
+        required=True,
+        label="Position",
+        help_text="Select your position within the organization."
+    )
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all(),
+        required=False,
+    )
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+    )
+    local_federation = forms.ModelChoiceField(
+        queryset=LocalFootballAssociation.objects.all(),
+        required=False,
+        label="Local Football Association"
+    )
+    club = forms.ModelChoiceField(
+        queryset=Club.objects.all(),
+        required=False,
+    )
+
     class Meta:
         model = CustomUser
         fields = [
             'first_name', 'last_name', 'email', 'id_number', 'passport_number',
             'date_of_birth', 'gender', 'profile_picture', 'id_document',
-            'popi_act_consent'
+            'popi_act_consent', 'organization_type', 'position', 'province',
+            'region', 'local_federation', 'club'
         ]
 
     def clean_password2(self):

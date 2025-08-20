@@ -53,4 +53,8 @@ urlpatterns = [
     path('registration-portal/', views.registration_portal, name='registration_portal'),
     path('update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),
     path('senior-membership-dashboard/', views.senior_membership_dashboard, name='senior_membership_dashboard'),
+
+    # National Admin Dashboard
+    path('national-admin-dashboard/', views.national_admin_dashboard, name='national_admin_dashboard'),
+    path('update-organization-status/', views.update_organization_status, name='update_organization_status'),
 ]
