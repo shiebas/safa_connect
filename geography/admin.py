@@ -101,7 +101,7 @@ class NationalFederationAdmin(ModelWithLogoAdmin):
     search_fields = ['name', 'acronym', 'safa_id']  # Added safa_id
     
 class ProvinceAdmin(ModelWithLogoAdmin):
-    list_display = ['name', 'national_federation', 'get_region_count', 'display_logo']
+    list_display = ['name', 'safa_id', 'national_federation', 'get_region_count', 'display_logo']
     list_filter = ['national_federation']
     search_fields = ['name', 'code', 'safa_id', 'national_federation__name']
     actions = ['generate_safa_ids']
