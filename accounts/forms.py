@@ -11,6 +11,7 @@ from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, R
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association, Country
 from django.db.models import Q
 from membership.models import Member
+from .utils import extract_sa_id_dob_gender
 
 
 class NationalAdminRegistrationForm(forms.ModelForm):
@@ -46,11 +47,16 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         queryset=Club.objects.all(),
         required=False,
     )
+    id_document_type = forms.ChoiceField(
+        choices=CustomUser.ID_DOCUMENT_TYPE_CHOICES,
+        required=True,
+        label="ID Document Type"
+    )
 
     class Meta:
         model = CustomUser
         fields = [
-            'first_name', 'last_name', 'email', 'id_number', 'passport_number',
+            'first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
             'date_of_birth', 'gender', 'profile_picture', 'id_document',
             'popi_act_consent', 'organization_type', 'position', 'province',
             'region', 'local_federation', 'club'
@@ -67,6 +73,89 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         if CustomUser.objects.filter(email=email).exists():
             raise forms.ValidationError("A user with this email already exists.")
         return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        organization_type = cleaned_data.get("organization_type")
+        province = cleaned_data.get("province")
+        region = cleaned_data.get("region")
+        local_federation = cleaned_data.get("local_federation")
+        club = cleaned_data.get("club")
+
+        if organization_type:
+            org_name = organization_type.name.upper()
+            if 'PROVINCE' in org_name and not province:
+                self.add_error('province', 'Province is required for this administrator type.')
+            if 'REGION' in org_name:
+                if not province:
+                    self.add_error('province', 'Province is required for this administrator type.')
+                if not region:
+                    self.add_error('region', 'Region is required for this administrator type.')
+            if 'LFA' in org_name or 'LOCAL' in org_name:
+                if not province:
+                    self.add_error('province', 'Province is required for this administrator type.')
+                if not region:
+                    self.add_error('region', 'Region is required for this administrator type.')
+                if not local_federation:
+                    self.add_error('local_federation', 'Local Football Association is required for this administrator type.')
+            if 'CLUB' in org_name:
+                if not province:
+                    self.add_error('province', 'Province is required for this administrator type.')
+                if not region:
+                    self.add_error('region', 'Region is required for this administrator type.')
+                if not local_federation:
+                    self.add_error('local_federation', 'Local Football Association is required for this administrator type.')
+                if not club:
+                    self.add_error('club', 'Club is required for this administrator type.')
+
+        id_document_type = cleaned_data.get('id_document_type')
+        id_number = cleaned_data.get('id_number')
+        passport_number = cleaned_data.get('passport_number')
+        date_of_birth = cleaned_data.get('date_of_birth')
+        gender = cleaned_data.get('gender')
+
+        if id_document_type == 'ID':
+            if not id_number:
+                self.add_error('id_number', 'ID number is required when document type is ID.')
+            else:
+                dob, gen = extract_sa_id_dob_gender(id_number)
+                if dob and gen:
+                    cleaned_data['date_of_birth'] = dob
+                    cleaned_data['gender'] = gen
+                else:
+                    self.add_error('id_number', 'Invalid South African ID number.')
+        elif id_document_type == 'PP':
+            if not passport_number:
+                self.add_error('passport_number', 'Passport number is required when document type is Passport.')
+            if not date_of_birth:
+                self.add_error('date_of_birth', 'Date of birth is required when document type is Passport.')
+            if not gender:
+                self.add_error('gender', 'Gender is required when document type is Passport.')
+
+        profile_picture = cleaned_data.get('profile_picture')
+        if profile_picture:
+            if profile_picture.size > 5 * 1024 * 1024:
+                self.add_error('profile_picture', 'File size must not exceed 5MB.')
+            if profile_picture.content_type not in ['image/jpeg', 'image/png', 'application/pdf']:
+                self.add_error('profile_picture', 'Invalid file type. Only JPG, PNG, and PDF are allowed.')
+
+        id_document = cleaned_data.get('id_document')
+        if id_document:
+            if id_document.size > 5 * 1024 * 1024:
+                self.add_error('id_document', 'File size must not exceed 5MB.')
+            if id_document.content_type not in ['image/jpeg', 'image/png', 'application/pdf']:
+                self.add_error('id_document', 'Invalid file type. Only JPG, PNG, and PDF are allowed.')
+
+        if province and region and region.province != province:
+            self.add_error('region', 'Region does not belong to the selected province.')
+
+        if region and local_federation and local_federation.region != region:
+            self.add_error('local_federation', 'LFA does not belong to the selected region.')
+
+        if local_federation and club and club.localfootballassociation != local_federation:
+            self.add_error('club', 'Club does not belong to the selected LFA.')
+
+        return cleaned_data
 
 
 class RegistrationForm(UserCreationForm):
