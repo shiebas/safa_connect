@@ -161,9 +161,9 @@ class RegionAdmin(admin.ModelAdmin):
     actions = [generate_safa_ids]
 
 class LocalFootballAssociationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'region']
+    list_display = ['name', 'safa_id', 'region']
     list_filter = ['region']
-    search_fields = ['name', 'region__name']
+    search_fields = ['name', 'safa_id', 'region__name']
     list_per_page = 50  # Show 50 LFAs per page instead of default 25
     ordering = ['region__province__name', 'region__name', 'name']
     
