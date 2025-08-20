@@ -12,6 +12,8 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("geography", "0001_initial"),
+        ("supporters", "0001_initial"),
+        ("membership", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -38,6 +40,22 @@ class Migration(migrations.Migration):
                     models.DecimalField(decimal_places=2, default=0.0, max_digits=8),
                 ),
                 ("final_price", models.DecimalField(decimal_places=2, max_digits=8)),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="event_tickets",
+                        to="membership.invoice",
+                    ),
+                ),
+                (
+                    "supporter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tickets",
+                        to="supporters.supporterprofile",
+                    ),
+                ),
                 ("qr_code", models.CharField(blank=True, max_length=100, unique=True)),
                 ("barcode", models.CharField(blank=True, max_length=50, unique=True)),
                 (
@@ -85,6 +103,21 @@ class Migration(migrations.Migration):
                 (
                     "discount_applied",
                     models.DecimalField(decimal_places=2, default=0.0, max_digits=8),
+                ),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ticket_groups",
+                        to="membership.invoice",
+                    ),
+                ),
+                (
+                    "primary_contact",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="supporters.supporterprofile",
+                    ),
                 ),
                 (
                     "status",
