@@ -37,17 +37,64 @@ def modern_home(request):
     return render(request, 'accounts/modern_home.html')
 
 
-@login_required
 def national_registration(request):
     if request.method == 'POST':
         form = NationalAdminRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
+            # Create CustomUser object but don't save yet
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password'])
-            user.role = 'ADMIN_NATIONAL'
+
+            # Set the legacy role based on organization type
+            org_type = form.cleaned_data['organization_type']
+            if org_type.name == 'National Federation':
+                user.role = 'ADMIN_NATIONAL'
+            elif org_type.name == 'Province':
+                user.role = 'ADMIN_PROVINCE'
+                user.province = form.cleaned_data.get('province')
+            elif org_type.name == 'Region':
+                user.role = 'ADMIN_REGION'
+                user.region = form.cleaned_data.get('region')
+            elif org_type.name == 'Local Football Association':
+                user.role = 'ADMIN_LOCAL_FED'
+                user.local_federation = form.cleaned_data.get('local_federation')
+            elif org_type.name == 'Club':
+                user.role = 'CLUB_ADMIN'
+                user.club = form.cleaned_data.get('club')
+
+            # Set user status to pending approval
+            user.membership_status = 'PENDING'
+            user.is_active = True # User can login but will be restricted by status
             user.save()
-            messages.success(request, 'National Administrator registered successfully.')
-            return redirect('accounts:modern_home')
+
+            # Create the corresponding Member profile
+            Member.objects.create(
+                user=user,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                email=user.email,
+                role='ADMIN', # All admins are of role 'ADMIN' in the Member model
+                status='PENDING',
+                # Add other relevant fields from the form
+                date_of_birth=user.date_of_birth,
+                gender=user.gender,
+                id_number=user.id_number,
+                passport_number=user.passport_number,
+                current_club=form.cleaned_data.get('club'),
+                province=form.cleaned_data.get('province'),
+                region=form.cleaned_data.get('region'),
+                lfa=form.cleaned_data.get('local_federation'),
+            )
+
+            # Create the UserRole
+            UserRole.objects.create(
+                user=user,
+                organization=org_type,
+                position=form.cleaned_data['position']
+            )
+
+            messages.success(request, 'Registration successful. Your application is pending approval.')
+            return redirect('accounts:home')
     else:
         form = NationalAdminRegistrationForm()
     return render(request, 'accounts/national_registration.html', {'form': form})
@@ -233,38 +280,59 @@ def health_check(request):
 
 @login_required
 def member_approvals_list(request):
-    try:
-        user_role = UserRole.objects.get(user=request.user)
-        organization = user_role.organization
+    members_to_approve = Member.objects.none()
 
-        if organization.organization_type.name == 'Local Football Association':
-            clubs_in_lfa = Club.objects.filter(lfa=organization)
-            members_to_approve = Member.objects.filter(club__in=clubs_in_lfa, status='Pending Approval')
-        elif organization.organization_type.name == 'Region':
-            members_to_approve = Member.objects.none()  # Placeholder
-        else:
-            members_to_approve = Member.objects.none()
-
-    except UserRole.DoesNotExist:
-        members_to_approve = Member.objects.none()
-        messages.error(request, "You are not associated with any organization.")
+    if request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'ADMIN_NATIONAL'):
+        members_to_approve = Member.objects.filter(status='PENDING')
+    else:
+        # Placeholder for other admin roles, can be expanded later
+        messages.error(request, "You do not have permission to view this page.")
+        return redirect('accounts:home')
 
     if request.method == 'POST':
-        form = MemberApprovalForm(request.POST)
-        if form.is_valid():
-            member = form.cleaned_data['member']
-            is_approved = form.cleaned_data['is_approved']
-            if is_approved:
-                member.status = 'Approved'
+        member_id = request.POST.get('member_id')
+        member = get_object_or_404(Member, id=member_id)
+
+        if 'approve' in request.POST:
+            member.status = 'ACTIVE'
+            member.approved_by = request.user
+            member.approved_date = timezone.now()
+            member.save()
+
+            # Also update the CustomUser status
+            if member.user:
+                member.user.membership_status = 'ACTIVE'
+                member.user.save()
+
+            # Generate invoice
+            try:
+                Invoice.create_member_invoice(member)
+                messages.success(request, f"Member {member.get_full_name()} approved and invoice created.")
+            except Exception as e:
+                messages.error(request, f"Member approved, but failed to create invoice: {e}")
+
+            # send_approval_email(member.user) # This can be re-enabled later
+
+        elif 'reject' in request.POST:
+            rejection_reason = request.POST.get('rejection_reason')
+            if rejection_reason:
+                member.status = 'REJECTED'
+                member.rejection_reason = rejection_reason
                 member.save()
-                send_approval_email(member.user)
-                messages.success(request, f"Member {member.user.get_full_name()} approved.")
-    else:
-        form = MemberApprovalForm()
+
+                if member.user:
+                    member.user.membership_status = 'REJECTED'
+                    member.user.save()
+
+                # send_rejection_email(member.user, rejection_reason) # Re-enable later
+                messages.success(request, f"Member {member.get_full_name()} has been rejected.")
+            else:
+                messages.error(request, "Rejection reason is required.")
+
+        return redirect('accounts:member_approvals_list')
 
     context = {
         'members_to_approve': members_to_approve,
-        'form': form
     }
     return render(request, 'accounts/member_approvals_list.html', context)
 
@@ -497,7 +565,59 @@ def custom_500_view(request):
 
 
 from django.contrib.auth import logout
+from .decorators import role_required
+from geography.models import Province, Region, LocalFootballAssociation, Association, Club
+from geography.models import ClubStatus
 
 def custom_admin_logout(request):
     logout(request)
     return redirect('/')
+
+@role_required(allowed_roles=['ADMIN_NATIONAL'])
+def national_admin_dashboard(request):
+    org_data = [
+        ('province', Province.objects.all(), 'Provinces'),
+        ('region', Region.objects.all(), 'Regions'),
+        ('lfa', LocalFootballAssociation.objects.all(), 'Local Football Associations'),
+        ('association', Association.objects.all(), 'Associations'),
+        ('club', Club.objects.all(), 'Clubs'),
+    ]
+
+    context = {
+        'org_data': org_data,
+        'ClubStatus': ClubStatus
+    }
+    return render(request, 'accounts/national_admin_dashboard.html', context)
+
+@require_POST
+@role_required(allowed_roles=['ADMIN_NATIONAL'])
+def update_organization_status(request):
+    org_type = request.POST.get('org_type')
+    org_id = request.POST.get('org_id')
+    new_status = request.POST.get('new_status')
+
+    model_map = {
+        'province': Province,
+        'region': Region,
+        'lfa': LocalFootballAssociation,
+        'association': Association,
+        'club': Club,
+    }
+
+    model = model_map.get(org_type)
+    if not model or not org_id or not new_status:
+        messages.error(request, "Invalid request.")
+        return redirect(request.META.get('HTTP_REFERER', 'accounts:home'))
+
+    org = get_object_or_404(model, id=org_id)
+
+    valid_statuses = [choice[0] for choice in ClubStatus.choices]
+    if new_status not in valid_statuses:
+        messages.error(request, "Invalid status.")
+        return redirect(request.META.get('HTTP_REFERER', 'accounts:home'))
+
+    org.status = new_status
+    org.save()
+
+    messages.success(request, f"Status for {org.name} has been updated to {new_status}.")
+    return redirect('accounts:national_admin_dashboard')

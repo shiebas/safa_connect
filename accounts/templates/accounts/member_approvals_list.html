@@ -19,24 +19,56 @@
                     <thead class="table-light">
                         <tr>
                             <th>Name</th>
-                            <th>SAFA ID</th>
-                            <th>ID Number</th>
-                            <th>Club</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Organization</th>
                             <th>Registration Date</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for member in pending_members %}
+                        {% for member in members_to_approve %}
                         <tr id="member-row-{{ member.id }}">
                             <td>{{ member.get_full_name }}</td>
-                            <td>{{ member.safa_id|default:"N/A" }}</td>
-                            <td>{{ member.id_number|default:"N/A" }}</td>
-                            <td>{{ member.club.name|default:"N/A" }}</td>
-                            <td>{{ member.date_joined|date:"Y-m-d" }}</td>
+                            <td>{{ member.email|default:"N/A" }}</td>
+                            <td>{{ member.role|default:"N/A" }}</td>
+                            <td>{{ member.current_club.name|default:"N/A" }}</td>
+                            <td>{{ member.created|date:"Y-m-d" }}</td>
                             <td class="text-center">
-                                <button class="btn btn-success btn-sm approve-btn" data-member-id="{{ member.id }}">Approve</button>
-                                <a href="{% url 'accounts:reject_member' member.id %}" class="btn btn-danger btn-sm">Reject</a>
+                                <form action="{% url 'accounts:member_approvals_list' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="member_id" value="{{ member.id }}">
+                                    <button type="submit" name="approve" class="btn btn-success btn-sm">Approve</button>
+                                </form>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal-{{ member.id }}">
+                                    Reject
+                                </button>
+
+                                <!-- Reject Modal -->
+                                <div class="modal fade" id="rejectModal-{{ member.id }}" tabindex="-1" aria-labelledby="rejectModalLabel-{{ member.id }}" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <form action="{% url 'accounts:member_approvals_list' %}" method="post">
+                                          {% csrf_token %}
+                                          <input type="hidden" name="member_id" value="{{ member.id }}">
+                                          <div class="modal-header">
+                                            <h5 class="modal-title" id="rejectModalLabel-{{ member.id }}">Reject Member: {{ member.get_full_name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                          </div>
+                                          <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="rejection_reason-{{ member.id }}" class="form-label">Reason for Rejection</label>
+                                                <textarea class="form-control" id="rejection_reason-{{ member.id }}" name="rejection_reason" rows="3" required></textarea>
+                                            </div>
+                                          </div>
+                                          <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" name="reject" class="btn btn-danger">Confirm Rejection</button>
+                                          </div>
+                                      </form>
+                                    </div>
+                                  </div>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -50,33 +82,4 @@
         </div>
     </div>
 </div>
-
-{% block extra_js %}
-<script>
-document.querySelectorAll('.approve-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const memberId = this.dataset.memberId;
-        const row = document.getElementById(`member-row-${memberId}`);
-
-        fetch("{% url 'accounts:quick_approve_member' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: `member_id=${memberId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                row.style.display = 'none';
-                // You can also add a success message here
-            } else {
-                alert('Error approving member: ' + data.error);
-            }
-        });
-    });
-});
-</script>
-{% endblock %}
 {% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}National Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">National Administrator Dashboard</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% for org_type, org_list, org_name_plural in org_data %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">{{ org_name_plural }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th class="text-center">Current Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for org in org_list %}
+                        <tr>
+                            <td>{{ org.name }}</td>
+                            <td class="text-center">
+                                <span class="badge
+                                    {% if org.status == 'ACTIVE' %}bg-success
+                                    {% elif org.status == 'INACTIVE' %}bg-secondary
+                                    {% elif org.status == 'SUSPENDED' %}bg-warning
+                                    {% else %}bg-danger
+                                    {% endif %}">
+                                    {{ org.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <form action="{% url 'accounts:update_organization_status' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="org_type" value="{{ org_type }}">
+                                    <input type="hidden" name="org_id" value="{{ org.id }}">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Change Status
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            {% for status_key, status_value in ClubStatus.choices %}
+                                            <li>
+                                                <button class="dropdown-item" type="submit" name="new_status" value="{{ status_key }}">
+                                                    Set as {{ status_value }}
+                                                </button>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No {{ org_name_plural }} found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

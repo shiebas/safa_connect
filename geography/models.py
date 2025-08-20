@@ -278,6 +278,12 @@ class Province(TimeStampedModel, ModelWithLogo):
         help_text=_('The national federation this province belongs to')
     )
     description = models.TextField(_('Description'), blank=True)
+    status = models.CharField(
+        _('Status'),
+        max_length=20,
+        choices=ClubStatus.choices,
+        default=ClubStatus.INACTIVE
+    )
     # Add safa_id field manually without mixin to avoid conflicts
     safa_id = models.CharField(
         _("SAFA ID"),
@@ -304,6 +310,12 @@ class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         on_delete=models.CASCADE
     )
     description = models.TextField(_('Description'), blank=True)
+    status = models.CharField(
+        _('Status'),
+        max_length=20,
+        choices=ClubStatus.choices,
+        default=ClubStatus.INACTIVE
+    )
     
     class Meta:
         verbose_name = _('Region')
@@ -324,6 +336,12 @@ class Association(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     website = models.URLField(_('Website'), max_length=200, blank=True)
     headquarters = models.CharField(_('Headquarters'), max_length=100, blank=True)
     description = models.TextField(_('Description'), blank=True)
+    status = models.CharField(
+        _('Status'),
+        max_length=20,
+        choices=ClubStatus.choices,
+        default=ClubStatus.INACTIVE
+    )
     
     class Meta:
         verbose_name = _('Association')
@@ -352,6 +370,12 @@ class LocalFootballAssociation(TimeStampedModel, ModelWithLogo, SAFAIdentifiable
     website = models.URLField(_('Website'), max_length=200, blank=True)
     headquarters = models.CharField(_('Headquarters'), max_length=100, blank=True)
     description = models.TextField(_('Description'), blank=True)
+    status = models.CharField(
+        _('Status'),
+        max_length=20,
+        choices=ClubStatus.choices,
+        default=ClubStatus.INACTIVE
+    )
     
     class Meta:
         verbose_name = _('Local Football Association')
