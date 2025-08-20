@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.forms import ValidationError
 from django.utils import timezone
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder, Submit
+from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder, Submit, Row, Column
 from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, ROLES
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association, Country
 from django.db.models import Q
