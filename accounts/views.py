@@ -583,9 +583,27 @@ def national_admin_dashboard(request):
         ('club', Club.objects.all(), 'Clubs'),
     ]
 
+    # Financial Summary
+    total_paid = Invoice.objects.filter(status='PAID').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_outstanding = Invoice.objects.filter(status='PENDING').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    # Pending Approvals
+    pending_provinces = Province.objects.filter(status='INACTIVE')
+    pending_regions = Region.objects.filter(status='INACTIVE')
+    pending_lfas = LocalFootballAssociation.objects.filter(status='INACTIVE')
+    pending_associations = Association.objects.filter(status='INACTIVE')
+    pending_clubs = Club.objects.filter(status='INACTIVE')
+
     context = {
         'org_data': org_data,
-        'ClubStatus': ClubStatus
+        'ClubStatus': ClubStatus,
+        'total_paid': total_paid,
+        'total_outstanding': total_outstanding,
+        'pending_provinces': pending_provinces,
+        'pending_regions': pending_regions,
+        'pending_lfas': pending_lfas,
+        'pending_associations': pending_associations,
+        'pending_clubs': pending_clubs,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 

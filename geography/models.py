@@ -90,6 +90,9 @@ class RegistrationType(models.Model):
     def __str__(self):
         return self.name
 
+    def get_model_name(self):
+        return "Club"
+
 # ===== HIERARCHICAL SPORTS ORGANIZATION MODELS =====
 
 class WorldSportsBody(TimeStampedModel, ModelWithLogo):
@@ -307,6 +310,9 @@ class Province(TimeStampedModel, ModelWithLogo):
     def __str__(self):
         return f"{self.name} ({self.national_federation.name})"
 
+    def get_model_name(self):
+        return "Province"
+
 class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a region within an association (e.g., Southern Region)"""
     name = models.CharField(_('Name'), max_length=100)
@@ -330,6 +336,9 @@ class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     
     def __str__(self):
         return f"{self.name} ({self.province.name} - {self.province.national_federation.name})"
+
+    def get_model_name(self):
+        return "Region"
 
 class Association(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a regional football association (e.g., SAFA Cape Town)"""
@@ -356,6 +365,9 @@ class Association(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     
     def __str__(self):
         return f"{self.name} ({self.national_federation.country.name})"
+
+    def get_model_name(self):
+        return "Association"
 
 
 
@@ -390,6 +402,9 @@ class LocalFootballAssociation(TimeStampedModel, ModelWithLogo, SAFAIdentifiable
     
     def __str__(self):
         return f"{self.name} ({self.region.name})"
+
+    def get_model_name(self):
+        return "LFA"
 
 class ClubTier(models.TextChoices):
     PREMIER = 'PREMIER', _('Premier')

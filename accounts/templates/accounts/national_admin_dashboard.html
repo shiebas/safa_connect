@@ -7,6 +7,33 @@
 <div class="container mt-4">
     <h2 class="mb-4">National Administrator Dashboard</h2>
 
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'membership:invoice_list' %}" class="btn btn-primary">Manage Invoices</a>
+                    <a href="{% url 'accounts:club_admin_add_player' %}" class="btn btn-secondary">Add Player</a>
+                    <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-info">Add Referee</a>
+                    <a href="{% url 'events:available_matches' %}" class="btn btn-success">Manage Matches</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Financial Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Paid:</strong> R {{ total_paid|floatformat:2 }}</p>
+                    <p><strong>Total Outstanding:</strong> R {{ total_outstanding|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -15,6 +42,49 @@
             </div>
         {% endfor %}
     {% endif %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Pending Organization Approvals</h4>
+        </div>
+        <div class="card-body">
+            {% with pending_organizations=pending_provinces|add:pending_regions|add:pending_lfas|add:pending_associations|add:pending_clubs %}
+            {% if pending_organizations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for org in pending_organizations %}
+                        <tr>
+                            <td>{{ org.name }}</td>
+                            <td>{{ org.get_model_name }}</td>
+                            <td class="text-center">
+                                <form action="{% url 'accounts:update_organization_status' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="org_type" value="{{ org.get_model_name|lower }}">
+                                    <input type="hidden" name="org_id" value="{{ org.id }}">
+                                    <button class="btn btn-success btn-sm" type="submit" name="new_status" value="ACTIVE">
+                                        Activate
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No organizations are currently waiting for approval.</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
 
     {% for org_type, org_list, org_name_plural in org_data %}
     <div class="card shadow-sm mb-4">
