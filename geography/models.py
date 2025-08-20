@@ -73,6 +73,12 @@ CONTINENT = (
     ('SA', _('South America')),
 )
 
+class ClubStatus(models.TextChoices):
+    ACTIVE = 'ACTIVE', _('Active')
+    INACTIVE = 'INACTIVE', _('Inactive')
+    SUSPENDED = 'SUSPENDED', _('Suspended')
+    DISSOLVED = 'DISSOLVED', _('Dissolved')
+
 # ===== BASE MODELS =====
 
 
@@ -266,12 +272,6 @@ class NationalFederation(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin)
     
     def __str__(self):
         return f"{self.name} ({self.country.name})"
-
-class ClubStatus(models.TextChoices):
-    ACTIVE = 'ACTIVE', _('Active')
-    INACTIVE = 'INACTIVE', _('Inactive')
-    SUSPENDED = 'SUSPENDED', _('Suspended')
-    DISSOLVED = 'DISSOLVED', _('Dissolved')
 
 class Province(TimeStampedModel, ModelWithLogo):
     """Represents a province/state within a national federation (e.g., Western Cape)"""
