@@ -3,624 +3,780 @@
     "model": "geography.region",
     "pk": 1,
     "fields": {
-      "name": "Alfred Nzo",
-      "code": "",
-      "province": 1,
-      "description": "",
+      "code": "ANZ",
       "created": "2025-06-09 12:53:29.406084",
-      "modified": "2025-06-09 12:53:29.406135"
+      "description": "",
+      "id": "1",
+      "logo": "",
+      "modified": "2025-06-17 16:53:27.263644",
+      "name": "Alfred Nzo",
+      "province_id": "1",
+      "safa_id": "RTSOS"
     }
   },
   {
     "model": "geography.region",
     "pk": 2,
     "fields": {
-      "name": "Amathole",
       "code": "",
-      "province": 1,
-      "description": "",
       "created": "2025-06-09 12:53:29.423688",
-      "modified": "2025-06-09 12:53:29.423717"
+      "description": "",
+      "id": "2",
+      "logo": "",
+      "modified": "2025-06-16 20:00:53.708150",
+      "name": "Amathole",
+      "province_id": "1",
+      "safa_id": "EYXYH"
     }
   },
   {
     "model": "geography.region",
     "pk": 3,
     "fields": {
-      "name": "Buffalo City",
       "code": "",
-      "province": 1,
-      "description": "",
       "created": "2025-06-09 12:53:29.446903",
-      "modified": "2025-06-09 12:53:29.446920"
+      "description": "",
+      "id": "3",
+      "logo": "",
+      "modified": "2025-06-16 20:00:54.009944",
+      "name": "Buffalo City",
+      "province_id": "1",
+      "safa_id": "W16RH"
     }
   },
   {
     "model": "geography.region",
     "pk": 4,
     "fields": {
-      "name": "Chris Hani",
       "code": "",
-      "province": 1,
-      "description": "",
       "created": "2025-06-09 12:53:29.476449",
-      "modified": "2025-06-09 12:53:29.476466"
+      "description": "",
+      "id": "4",
+      "logo": "",
+      "modified": "2025-06-16 20:00:54.355767",
+      "name": "Chris Hani",
+      "province_id": "1",
+      "safa_id": "KQBMV"
     }
   },
   {
     "model": "geography.region",
     "pk": 5,
     "fields": {
-      "name": "Joe Gqabi",
       "code": "",
-      "province": 1,
-      "description": "",
       "created": "2025-06-09 12:53:29.503899",
-      "modified": "2025-06-09 12:53:29.503917"
+      "description": "",
+      "id": "5",
+      "logo": "",
+      "modified": "2025-06-16 20:00:54.583459",
+      "name": "Joe Gqabi",
+      "province_id": "1",
+      "safa_id": "B4MU4"
     }
   },
   {
     "model": "geography.region",
     "pk": 6,
     "fields": {
-      "name": "Nelson Mandela Bay",
       "code": "",
-      "province": 1,
-      "description": "",
       "created": "2025-06-09 12:53:29.515502",
-      "modified": "2025-06-09 12:53:29.515518"
+      "description": "",
+      "id": "6",
+      "logo": "",
+      "modified": "2025-06-16 20:00:54.876123",
+      "name": "Nelson Mandela Bay",
+      "province_id": "1",
+      "safa_id": "LTTQJ"
     }
   },
   {
     "model": "geography.region",
     "pk": 7,
     "fields": {
-      "name": "OR Tambo",
       "code": "",
-      "province": 1,
-      "description": "",
       "created": "2025-06-09 12:53:29.553394",
-      "modified": "2025-06-09 12:53:29.553423"
+      "description": "",
+      "id": "7",
+      "logo": "",
+      "modified": "2025-06-16 20:00:55.855824",
+      "name": "OR Tambo",
+      "province_id": "1",
+      "safa_id": "CRUX1"
     }
   },
   {
     "model": "geography.region",
     "pk": 8,
     "fields": {
-      "name": "Sarah Baartman",
       "code": "",
-      "province": 1,
-      "description": "",
       "created": "2025-06-09 12:53:29.569030",
-      "modified": "2025-06-09 12:53:29.569049"
+      "description": "",
+      "id": "8",
+      "logo": "",
+      "modified": "2025-06-16 20:00:56.246250",
+      "name": "Sarah Baartman",
+      "province_id": "1",
+      "safa_id": "H4P0Y"
     }
   },
   {
     "model": "geography.region",
     "pk": 9,
     "fields": {
-      "name": "Fezile Dabi",
       "code": "",
-      "province": 2,
-      "description": "",
       "created": "2025-06-09 12:53:29.596442",
-      "modified": "2025-06-09 12:53:29.596460"
+      "description": "",
+      "id": "9",
+      "logo": "",
+      "modified": "2025-06-16 20:00:56.534340",
+      "name": "Fezile Dabi",
+      "province_id": "2",
+      "safa_id": "N9V2E"
     }
   },
   {
     "model": "geography.region",
     "pk": 10,
     "fields": {
-      "name": "Lejweleputswa",
       "code": "",
-      "province": 2,
-      "description": "",
       "created": "2025-06-09 12:53:29.611796",
-      "modified": "2025-06-09 12:53:29.611813"
+      "description": "",
+      "id": "10",
+      "logo": "",
+      "modified": "2025-06-16 20:00:56.815935",
+      "name": "Lejweleputswa",
+      "province_id": "2",
+      "safa_id": "P3KRV"
     }
   },
   {
     "model": "geography.region",
     "pk": 11,
     "fields": {
-      "name": "Mangaung",
       "code": "",
-      "province": 2,
-      "description": "",
       "created": "2025-06-09 12:53:29.627724",
-      "modified": "2025-06-09 12:53:29.627743"
+      "description": "",
+      "id": "11",
+      "logo": "",
+      "modified": "2025-06-16 20:00:57.069838",
+      "name": "Mangaung",
+      "province_id": "2",
+      "safa_id": "61JK9"
     }
   },
   {
     "model": "geography.region",
     "pk": 12,
     "fields": {
-      "name": "Thabo Mofutsanyana",
       "code": "",
-      "province": 2,
-      "description": "",
       "created": "2025-06-09 12:53:29.637990",
-      "modified": "2025-06-09 12:53:29.638009"
+      "description": "",
+      "id": "12",
+      "logo": "",
+      "modified": "2025-06-16 20:00:57.353938",
+      "name": "Thabo Mofutsanyana",
+      "province_id": "2",
+      "safa_id": "TPLX6"
     }
   },
   {
     "model": "geography.region",
     "pk": 13,
     "fields": {
-      "name": "Xhariep",
       "code": "",
-      "province": 2,
-      "description": "",
       "created": "2025-06-09 12:53:29.655487",
-      "modified": "2025-06-09 12:53:29.655506"
+      "description": "",
+      "id": "13",
+      "logo": "",
+      "modified": "2025-06-16 20:00:57.592276",
+      "name": "Xhariep",
+      "province_id": "2",
+      "safa_id": "DJ41O"
     }
   },
   {
     "model": "geography.region",
     "pk": 14,
     "fields": {
-      "name": "Ekurhuleni",
       "code": "",
-      "province": 3,
-      "description": "",
       "created": "2025-06-09 12:53:29.668545",
-      "modified": "2025-06-09 12:53:29.668577"
+      "description": "",
+      "id": "14",
+      "logo": "",
+      "modified": "2025-06-16 20:00:57.783858",
+      "name": "Ekurhuleni",
+      "province_id": "3",
+      "safa_id": "CPQH5"
     }
   },
   {
     "model": "geography.region",
     "pk": 15,
     "fields": {
-      "name": "Johannesburg",
       "code": "",
-      "province": 3,
-      "description": "",
       "created": "2025-06-09 12:53:29.707078",
-      "modified": "2025-06-09 12:53:29.707095"
+      "description": "",
+      "id": "15",
+      "logo": "",
+      "modified": "2025-06-16 20:00:58.031038",
+      "name": "Johannesburg",
+      "province_id": "3",
+      "safa_id": "ANMZN"
     }
   },
   {
     "model": "geography.region",
     "pk": 16,
     "fields": {
-      "name": "Sedibeng",
       "code": "",
-      "province": 3,
-      "description": "",
       "created": "2025-06-09 12:53:29.738147",
-      "modified": "2025-06-09 12:53:29.738164"
+      "description": "",
+      "id": "16",
+      "logo": "",
+      "modified": "2025-06-16 20:00:58.302322",
+      "name": "Sedibeng",
+      "province_id": "3",
+      "safa_id": "HKAYO"
     }
   },
   {
     "model": "geography.region",
     "pk": 17,
     "fields": {
-      "name": "Tshwane",
       "code": "",
-      "province": 3,
-      "description": "",
       "created": "2025-06-09 12:53:29.747118",
-      "modified": "2025-06-09 12:53:29.747134"
+      "description": "",
+      "id": "17",
+      "logo": "",
+      "modified": "2025-06-16 20:00:58.594064",
+      "name": "Tshwane",
+      "province_id": "3",
+      "safa_id": "4DH37"
     }
   },
   {
     "model": "geography.region",
     "pk": 18,
     "fields": {
-      "name": "West Rand",
       "code": "",
-      "province": 3,
-      "description": "",
       "created": "2025-06-09 12:53:29.813968",
-      "modified": "2025-06-09 12:53:29.813995"
+      "description": "",
+      "id": "18",
+      "logo": "",
+      "modified": "2025-06-16 20:00:58.836191",
+      "name": "West Rand",
+      "province_id": "3",
+      "safa_id": "LUEO5"
     }
   },
   {
     "model": "geography.region",
     "pk": 19,
     "fields": {
-      "name": "SAFA Amajuba",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.670159",
-      "modified": "2025-06-09 13:20:51.670205"
+      "description": "",
+      "id": "19",
+      "logo": "",
+      "modified": "2025-06-16 20:00:59.434738",
+      "name": "SAFA Amajuba",
+      "province_id": "4",
+      "safa_id": "OOLHL"
     }
   },
   {
     "model": "geography.region",
     "pk": 20,
     "fields": {
-      "name": "SAFA ETHEKWINI",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.675647",
-      "modified": "2025-06-09 13:20:51.675707"
+      "description": "",
+      "id": "20",
+      "logo": "",
+      "modified": "2025-06-16 20:00:59.719920",
+      "name": "SAFA ETHEKWINI",
+      "province_id": "4",
+      "safa_id": "6X0AM"
     }
   },
   {
     "model": "geography.region",
     "pk": 21,
     "fields": {
-      "name": "Harry Gwala",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.681479",
-      "modified": "2025-06-09 13:20:51.681524"
+      "description": "",
+      "id": "21",
+      "logo": "",
+      "modified": "2025-06-16 20:00:59.134602",
+      "name": "Harry Gwala",
+      "province_id": "4",
+      "safa_id": "UYKKK"
     }
   },
   {
     "model": "geography.region",
     "pk": 22,
     "fields": {
-      "name": "SAFA ILEMBE",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.690118",
-      "modified": "2025-06-09 13:20:51.690152"
+      "description": "",
+      "id": "22",
+      "logo": "",
+      "modified": "2025-06-16 20:00:59.978596",
+      "name": "SAFA ILEMBE",
+      "province_id": "4",
+      "safa_id": "I3KB8"
     }
   },
   {
     "model": "geography.region",
     "pk": 23,
     "fields": {
-      "name": "SAFA KING CETSHWAYO",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.695548",
-      "modified": "2025-06-09 13:20:51.695584"
+      "description": "",
+      "id": "23",
+      "logo": "",
+      "modified": "2025-06-16 20:01:00.217611",
+      "name": "SAFA KING CETSHWAYO",
+      "province_id": "4",
+      "safa_id": "Q77LH"
     }
   },
   {
     "model": "geography.region",
     "pk": 24,
     "fields": {
-      "name": "SAFA UGU",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.704432",
-      "modified": "2025-06-09 13:20:51.704468"
+      "description": "",
+      "id": "24",
+      "logo": "",
+      "modified": "2025-06-16 20:01:00.432479",
+      "name": "SAFA UGU",
+      "province_id": "4",
+      "safa_id": "3FOJV"
     }
   },
   {
     "model": "geography.region",
     "pk": 25,
     "fields": {
-      "name": "SAFA UMGUNGUNDLOVU",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.709567",
-      "modified": "2025-06-09 13:20:51.709604"
+      "description": "",
+      "id": "25",
+      "logo": "",
+      "modified": "2025-06-16 20:01:00.733892",
+      "name": "SAFA UMGUNGUNDLOVU",
+      "province_id": "4",
+      "safa_id": "W453C"
     }
   },
   {
     "model": "geography.region",
     "pk": 26,
     "fields": {
-      "name": "SAFA UMKHANYAKHUDE",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.717901",
-      "modified": "2025-06-09 13:20:51.717936"
+      "description": "",
+      "id": "26",
+      "logo": "",
+      "modified": "2025-06-16 20:01:01.053384",
+      "name": "SAFA UMKHANYAKHUDE",
+      "province_id": "4",
+      "safa_id": "0RL50"
     }
   },
   {
     "model": "geography.region",
     "pk": 27,
     "fields": {
-      "name": "SAFA UMZINYATHI",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.722927",
-      "modified": "2025-06-09 13:20:51.722964"
+      "description": "",
+      "id": "27",
+      "logo": "",
+      "modified": "2025-06-16 20:01:01.676989",
+      "name": "SAFA UMZINYATHI",
+      "province_id": "4",
+      "safa_id": "I470X"
     }
   },
   {
     "model": "geography.region",
     "pk": 28,
     "fields": {
-      "name": "SAFA UTHUKELA",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.728033",
-      "modified": "2025-06-09 13:20:51.728069"
+      "description": "",
+      "id": "28",
+      "logo": "",
+      "modified": "2025-06-16 20:01:01.941754",
+      "name": "SAFA UTHUKELA",
+      "province_id": "4",
+      "safa_id": "Q2FXR"
     }
   },
   {
     "model": "geography.region",
     "pk": 29,
     "fields": {
-      "name": "SAFA ZULULAND",
       "code": "",
-      "province": 4,
-      "description": "",
       "created": "2025-06-09 13:20:51.733060",
-      "modified": "2025-06-09 13:20:51.733095"
+      "description": "",
+      "id": "29",
+      "logo": "",
+      "modified": "2025-06-16 20:01:02.194921",
+      "name": "SAFA ZULULAND",
+      "province_id": "4",
+      "safa_id": "51DSD"
     }
   },
   {
     "model": "geography.region",
     "pk": 30,
     "fields": {
-      "name": "SAFA Capricorn",
       "code": "",
-      "province": 5,
-      "description": "",
       "created": "2025-06-09 13:38:32.427181",
-      "modified": "2025-06-09 13:38:32.427203"
+      "description": "",
+      "id": "30",
+      "logo": "",
+      "modified": "2025-06-16 20:01:02.487523",
+      "name": "SAFA Capricorn",
+      "province_id": "5",
+      "safa_id": "Q89LU"
     }
   },
   {
     "model": "geography.region",
     "pk": 31,
     "fields": {
-      "name": "SAFA Mopani",
       "code": "",
-      "province": 5,
-      "description": "",
       "created": "2025-06-09 13:38:32.430352",
-      "modified": "2025-06-09 13:38:32.430371"
+      "description": "",
+      "id": "31",
+      "logo": "",
+      "modified": "2025-06-16 20:01:02.776432",
+      "name": "SAFA Mopani",
+      "province_id": "5",
+      "safa_id": "8HBFF"
     }
   },
   {
     "model": "geography.region",
     "pk": 32,
     "fields": {
-      "name": "SAFA Sekhukhune",
       "code": "",
-      "province": 5,
-      "description": "",
       "created": "2025-06-09 13:38:32.433486",
-      "modified": "2025-06-09 13:38:32.433513"
+      "description": "",
+      "id": "32",
+      "logo": "",
+      "modified": "2025-06-16 20:01:03.103484",
+      "name": "SAFA Sekhukhune",
+      "province_id": "5",
+      "safa_id": "UVBLJ"
     }
   },
   {
     "model": "geography.region",
     "pk": 33,
     "fields": {
-      "name": "SAFA Vhembe",
       "code": "",
-      "province": 5,
-      "description": "",
       "created": "2025-06-09 13:38:32.437294",
-      "modified": "2025-06-09 13:38:32.437318"
+      "description": "",
+      "id": "33",
+      "logo": "",
+      "modified": "2025-06-16 20:01:03.383990",
+      "name": "SAFA Vhembe",
+      "province_id": "5",
+      "safa_id": "AHSF0"
     }
   },
   {
     "model": "geography.region",
     "pk": 34,
     "fields": {
-      "name": "SAFA Waterberg",
       "code": "",
-      "province": 5,
-      "description": "",
       "created": "2025-06-09 13:38:32.440345",
-      "modified": "2025-06-09 13:38:32.440363"
+      "description": "",
+      "id": "34",
+      "logo": "",
+      "modified": "2025-06-16 20:01:03.672261",
+      "name": "SAFA Waterberg",
+      "province_id": "5",
+      "safa_id": "MGNHM"
     }
   },
   {
     "model": "geography.region",
     "pk": 35,
     "fields": {
-      "name": "SAFA Ehlanzeni",
       "code": "",
-      "province": 6,
-      "description": "",
       "created": "2025-06-09 13:48:25.979480",
-      "modified": "2025-06-09 13:48:25.979509"
+      "description": "",
+      "id": "35",
+      "logo": "",
+      "modified": "2025-06-16 20:01:03.976495",
+      "name": "SAFA Ehlanzeni",
+      "province_id": "6",
+      "safa_id": "PA4XE"
     }
   },
   {
     "model": "geography.region",
     "pk": 36,
     "fields": {
-      "name": "SAFA Gert Sibande",
       "code": "",
-      "province": 6,
-      "description": "",
       "created": "2025-06-09 13:48:25.983112",
-      "modified": "2025-06-09 13:48:25.983130"
+      "description": "",
+      "id": "36",
+      "logo": "",
+      "modified": "2025-06-16 20:01:04.243296",
+      "name": "SAFA Gert Sibande",
+      "province_id": "6",
+      "safa_id": "MXVRP"
     }
   },
   {
     "model": "geography.region",
     "pk": 37,
     "fields": {
-      "name": "SAFA Nkangala",
       "code": "",
-      "province": 6,
-      "description": "",
       "created": "2025-06-09 13:48:25.986573",
-      "modified": "2025-06-09 13:48:25.986599"
+      "description": "",
+      "id": "37",
+      "logo": "",
+      "modified": "2025-06-16 20:01:04.509980",
+      "name": "SAFA Nkangala",
+      "province_id": "6",
+      "safa_id": "XH3BE"
     }
   },
   {
     "model": "geography.region",
     "pk": 38,
     "fields": {
-      "name": "SAFA Bojanala",
       "code": "",
-      "province": 8,
-      "description": "",
       "created": "2025-06-09 13:58:49.572629",
-      "modified": "2025-06-09 13:58:49.572649"
+      "description": "",
+      "id": "38",
+      "logo": "",
+      "modified": "2025-06-16 20:01:04.779923",
+      "name": "SAFA Bojanala",
+      "province_id": "8",
+      "safa_id": "8UVEZ"
     }
   },
   {
     "model": "geography.region",
     "pk": 39,
     "fields": {
-      "name": "SAFA Dr Kenneth Kaunda",
       "code": "",
-      "province": 8,
-      "description": "",
       "created": "2025-06-09 13:58:49.575889",
-      "modified": "2025-06-09 13:58:49.575907"
+      "description": "",
+      "id": "39",
+      "logo": "",
+      "modified": "2025-06-16 20:01:05.047871",
+      "name": "SAFA Dr Kenneth Kaunda",
+      "province_id": "8",
+      "safa_id": "S92LP"
     }
   },
   {
     "model": "geography.region",
     "pk": 40,
     "fields": {
-      "name": "SAFA Dr Ruth Segomotsi Mompati",
       "code": "",
-      "province": 8,
-      "description": "",
       "created": "2025-06-09 13:58:49.578516",
-      "modified": "2025-06-09 13:58:49.578532"
+      "description": "",
+      "id": "40",
+      "logo": "",
+      "modified": "2025-06-16 20:01:05.315655",
+      "name": "SAFA Dr Ruth Segomotsi Mompati",
+      "province_id": "8",
+      "safa_id": "FZIKA"
     }
   },
   {
     "model": "geography.region",
     "pk": 41,
     "fields": {
-      "name": "SAFA Ngaka Modiri Molema",
       "code": "",
-      "province": 8,
-      "description": "",
       "created": "2025-06-09 13:58:49.581029",
-      "modified": "2025-06-09 13:58:49.581046"
+      "description": "",
+      "id": "41",
+      "logo": "",
+      "modified": "2025-06-16 20:01:05.637915",
+      "name": "SAFA Ngaka Modiri Molema",
+      "province_id": "8",
+      "safa_id": "6C4YA"
     }
   },
   {
     "model": "geography.region",
     "pk": 42,
     "fields": {
-      "name": "SAFA Frances Baard",
       "code": "",
-      "province": 7,
-      "description": "",
       "created": "2025-06-09 14:03:57.685701",
-      "modified": "2025-06-09 14:03:57.685745"
+      "description": "",
+      "id": "42",
+      "logo": "",
+      "modified": "2025-06-16 20:01:05.898314",
+      "name": "SAFA Frances Baard",
+      "province_id": "7",
+      "safa_id": "JCHDD"
     }
   },
   {
     "model": "geography.region",
     "pk": 43,
     "fields": {
-      "name": "SAFA John Taolo Gaetsewe",
       "code": "",
-      "province": 7,
-      "description": "",
       "created": "2025-06-09 14:03:57.691903",
-      "modified": "2025-06-09 14:03:57.691943"
+      "description": "",
+      "id": "43",
+      "logo": "",
+      "modified": "2025-06-16 20:01:06.159401",
+      "name": "SAFA John Taolo Gaetsewe",
+      "province_id": "7",
+      "safa_id": "82H3D"
     }
   },
   {
     "model": "geography.region",
     "pk": 44,
     "fields": {
-      "name": "SAFA Namakwa",
       "code": "",
-      "province": 7,
-      "description": "",
       "created": "2025-06-09 14:03:57.698581",
-      "modified": "2025-06-09 14:03:57.698616"
+      "description": "",
+      "id": "44",
+      "logo": "",
+      "modified": "2025-06-16 20:01:06.486420",
+      "name": "SAFA Namakwa",
+      "province_id": "7",
+      "safa_id": "M3R80"
     }
   },
   {
     "model": "geography.region",
     "pk": 45,
     "fields": {
-      "name": "SAFA Pixley ka Seme",
       "code": "",
-      "province": 7,
-      "description": "",
       "created": "2025-06-09 14:03:57.703529",
-      "modified": "2025-06-09 14:03:57.703564"
+      "description": "",
+      "id": "45",
+      "logo": "",
+      "modified": "2025-06-16 20:01:06.743678",
+      "name": "SAFA Pixley ka Seme",
+      "province_id": "7",
+      "safa_id": "03JM1"
     }
   },
   {
     "model": "geography.region",
     "pk": 46,
     "fields": {
-      "name": "SAFA ZF Mgcawu",
       "code": "",
-      "province": 7,
-      "description": "",
       "created": "2025-06-09 14:03:57.708447",
-      "modified": "2025-06-09 14:03:57.708483"
+      "description": "",
+      "id": "46",
+      "logo": "",
+      "modified": "2025-06-16 20:01:07.014029",
+      "name": "SAFA ZF Mgcawu",
+      "province_id": "7",
+      "safa_id": "61GFL"
     }
   },
   {
     "model": "geography.region",
     "pk": 47,
     "fields": {
-      "name": "SAFA Cape Town",
       "code": "",
-      "province": 9,
-      "description": "",
       "created": "2025-06-09 14:10:53.448217",
-      "modified": "2025-06-09 14:23:42.172433"
+      "description": "",
+      "id": "47",
+      "logo": "",
+      "modified": "2025-06-16 20:01:07.302711",
+      "name": "SAFA Cape Town",
+      "province_id": "9",
+      "safa_id": "UGWSB"
     }
   },
   {
     "model": "geography.region",
     "pk": 48,
     "fields": {
-      "name": "SAFA Cape Winelands",
       "code": "",
-      "province": 9,
-      "description": "",
       "created": "2025-06-09 14:10:53.451802",
-      "modified": "2025-06-09 14:24:21.585236"
+      "description": "",
+      "id": "48",
+      "logo": "",
+      "modified": "2025-06-16 20:01:07.583693",
+      "name": "SAFA Cape Winelands",
+      "province_id": "9",
+      "safa_id": "BBMJT"
     }
   },
   {
     "model": "geography.region",
     "pk": 49,
     "fields": {
-      "name": "SAFA Central Karoo",
       "code": "",
-      "province": 9,
-      "description": "",
       "created": "2025-06-09 14:10:53.454754",
-      "modified": "2025-06-09 14:26:51.773961"
+      "description": "",
+      "id": "49",
+      "logo": "",
+      "modified": "2025-06-16 20:01:07.912254",
+      "name": "SAFA Central Karoo",
+      "province_id": "9",
+      "safa_id": "S5EJO"
     }
   },
   {
     "model": "geography.region",
     "pk": 50,
     "fields": {
-      "name": "SAFA Eden",
       "code": "",
-      "province": 9,
-      "description": "",
       "created": "2025-06-09 14:10:53.457741",
-      "modified": "2025-06-09 14:27:32.209386"
+      "description": "",
+      "id": "50",
+      "logo": "",
+      "modified": "2025-06-16 20:01:08.157155",
+      "name": "SAFA Eden",
+      "province_id": "9",
+      "safa_id": "2XIYH"
     }
   },
   {
     "model": "geography.region",
     "pk": 51,
     "fields": {
-      "name": "SAFA Overberg",
       "code": "",
-      "province": 9,
-      "description": "",
       "created": "2025-06-09 14:10:53.461593",
-      "modified": "2025-06-09 14:27:46.914993"
+      "description": "",
+      "id": "51",
+      "logo": "",
+      "modified": "2025-06-16 20:01:30.492610",
+      "name": "SAFA Overberg",
+      "province_id": "9",
+      "safa_id": "06CK4"
     }
   },
   {
     "model": "geography.region",
     "pk": 52,
     "fields": {
-      "name": "SAFA West Coast",
       "code": "",
-      "province": 9,
-      "description": "",
       "created": "2025-06-09 14:10:53.464521",
-      "modified": "2025-06-09 14:28:18.772075"
+      "description": "",
+      "id": "52",
+      "logo": "",
+      "modified": "2025-06-16 20:01:30.784530",
+      "name": "SAFA West Coast",
+      "province_id": "9",
+      "safa_id": "B2NFT"
     }
   }
 ]
