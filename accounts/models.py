@@ -162,6 +162,7 @@ class OrganizationType(models.Model):
         ordering = ['level']
 
 class CustomUser(AbstractUser):
+    ID_DOCUMENT_TYPE_CHOICES = DOCUMENT_TYPES
     # Remove the username field
     username = None
 

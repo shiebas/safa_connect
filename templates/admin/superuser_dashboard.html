@@ -282,6 +282,54 @@
         </div>
 
         <div class="row">
+            <!-- Pending Approvals -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="section-header mb-0">
+                            <i class="bi bi-person-check-fill text-warning"></i> Pending Member Approvals
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_approvals %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Club</th>
+                                        <th>Registered</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in pending_approvals %}
+                                    <tr>
+                                        <td>{{ member.get_full_name }}</td>
+                                        <td>{{ member.email }}</td>
+                                        <td>{{ member.get_role_display }}</td>
+                                        <td>{{ member.current_club.name|default:"N/A" }}</td>
+                                        <td>{{ member.created|date:"Y-m-d" }}</td>
+                                        <td>
+                                            <a href="{% url 'accounts:member_approvals_list' %}?member_id={{ member.id }}" class="btn btn-sm btn-success">Approve</a>
+                                            <a href="{% url 'accounts:reject_member' member.id %}" class="btn btn-sm btn-danger">Reject</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No pending approvals.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
             <!-- Revenue & Invoicing -->
             <div class="col-lg-8 mb-4">
                 <div class="card">

@@ -150,6 +150,9 @@ def superuser_dashboard(request):
     recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
     recent_activities = recent_activities[:15]  # Limit to 15 most recent
     
+    # ==== PENDING APPROVALS ====
+    pending_approvals = Member.objects.filter(status='PENDING').select_related('user', 'current_club')
+
     context = {
         'events_metrics': events_metrics,
         'supporters_metrics': supporters_metrics,
@@ -162,6 +165,7 @@ def superuser_dashboard(request):
         'invoice_by_type': invoice_by_type,
         'recent_invoices': recent_invoices,
         'recent_activities': recent_activities,
+        'pending_approvals': pending_approvals,
     }
     
     return render(request, 'admin/superuser_dashboard.html', context)
