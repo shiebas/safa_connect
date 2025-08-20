@@ -87,9 +87,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const optionText = selectedOption ? selectedOption.text.toUpperCase() : '';
 
         if (provinceField) provinceField.style.display = 'none';
-        if (regionField) regionField.style.display = 'none';
-        if (lfaField) lfaField.style.display = 'none';
-        if (clubField) clubField.style.display = 'none';
+        if (regionField) {
+            regionField.style.display = 'none';
+            regionSelect.innerHTML = '<option value="">Select a region</option>';
+        }
+        if (lfaField) {
+            lfaField.style.display = 'none';
+            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
+        }
+        if (clubField) {
+            clubField.style.display = 'none';
+            $('#id_club').empty().append('<option value="">Select a club</option>').trigger('change');
+        }
 
         if (optionText.includes('PROVINCE')) {
             if (provinceField) provinceField.style.display = 'block';

@@ -68,8 +68,11 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         self.helper.layout = Layout(
             Fieldset(
                 'Personal Information',
-                'first_name',
-                'last_name',
+                Row(
+                    Column('first_name', css_class='form-group col-md-6 mb-0'),
+                    Column('last_name', css_class='form-group col-md-6 mb-0'),
+                    css_class='form-row'
+                ),
                 'email',
                 'profile_picture',
             ),
@@ -77,20 +80,43 @@ class NationalAdminRegistrationForm(forms.ModelForm):
                 'Organization Information',
                 'organization_type',
                 'position',
-                Div('province', id='province-field', css_class='mb-3', style='display:none;'),
-                Div('region', id='region-field', css_class='mb-3', style='display:none;'),
-                Div('local_federation', id='lfa-field', css_class='mb-3', style='display:none;'),
-                Div('club', id='club-field', css_class='mb-3', style='display:none;'),
+                Div(
+                    'province',
+                    id='province-field',
+                    style='display:none;'
+                ),
+                Div(
+                    'region',
+                    id='region-field',
+                    style='display:none;'
+                ),
+                Div(
+                    'local_federation',
+                    id='lfa-field',
+                    style='display:none;'
+                ),
+                Div(
+                    'club',
+                    id='club-field',
+                    style='display:none;'
+                ),
             ),
             Fieldset(
                 'Document Information',
                 'id_document_type',
-                Div('id_number', id='sa-id-container', css_class='mb-3'),
-                Div('passport_number', id='passport-container', css_class='mb-3', style='display:none;'),
                 Div(
-                    Div('date_of_birth', css_class='col-md-6'),
-                    Div('gender', css_class='col-md-6'),
-                    css_class='row',
+                    'id_number',
+                    id='sa-id-container'
+                ),
+                Div(
+                    'passport_number',
+                    id='passport-container',
+                    style='display:none;'
+                ),
+                Row(
+                    Column('date_of_birth', css_class='form-group col-md-6 mb-0'),
+                    Column('gender', css_class='form-group col-md-6 mb-0'),
+                    css_class='form-row',
                     id='dob-gender-manual-row',
                     style='display:none;'
                 ),
@@ -98,8 +124,11 @@ class NationalAdminRegistrationForm(forms.ModelForm):
             ),
             Fieldset(
                 'Security & Compliance',
-                'password',
-                'password2',
+                Row(
+                    Column('password', css_class='form-group col-md-6 mb-0'),
+                    Column('password2', css_class='form-group col-md-6 mb-0'),
+                    css_class='form-row'
+                ),
                 'popi_act_consent'
             )
         )
