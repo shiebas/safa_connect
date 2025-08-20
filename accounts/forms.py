@@ -59,8 +59,50 @@ class NationalAdminRegistrationForm(forms.ModelForm):
             'first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
             'date_of_birth', 'gender', 'profile_picture', 'id_document',
             'popi_act_consent', 'organization_type', 'position', 'province',
-            'region', 'local_federation', 'club'
+            'region', 'local_federation', 'club', 'password', 'password2'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Personal Information',
+                'first_name',
+                'last_name',
+                'email',
+                'profile_picture',
+            ),
+            Fieldset(
+                'Organization Information',
+                'organization_type',
+                'position',
+                Div('province', id='province-field', css_class='mb-3', style='display:none;'),
+                Div('region', id='region-field', css_class='mb-3', style='display:none;'),
+                Div('local_federation', id='lfa-field', css_class='mb-3', style='display:none;'),
+                Div('club', id='club-field', css_class='mb-3', style='display:none;'),
+            ),
+            Fieldset(
+                'Document Information',
+                'id_document_type',
+                Div('id_number', id='sa-id-container', css_class='mb-3'),
+                Div('passport_number', id='passport-container', css_class='mb-3', style='display:none;'),
+                Div(
+                    Div('date_of_birth', css_class='col-md-6'),
+                    Div('gender', css_class='col-md-6'),
+                    css_class='row',
+                    id='dob-gender-manual-row',
+                    style='display:none;'
+                ),
+                'id_document'
+            ),
+            Fieldset(
+                'Security & Compliance',
+                'password',
+                'password2',
+                'popi_act_consent'
+            )
+        )
 
     def clean_password2(self):
         cd = self.cleaned_data
