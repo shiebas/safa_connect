@@ -153,7 +153,7 @@ def generate_safa_ids(modeladmin, request, queryset):
 
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'province']
+    list_display = ['name', 'safa_id', 'province']
     list_filter = ['province', 'created']
     search_fields = ['name', 'safa_id', 'province__name']
     list_per_page = 50  # Show 50 regions per page instead of default 25
