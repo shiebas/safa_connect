@@ -1,17 +1,18 @@
 [
-    {
-        "model": "geography.worldsportsbody",
-        "pk": 1,
-        "fields": {
-            "acronym": "FIFA",
-            "created": "2025-05-30T10:15:40.122Z",
-            "description": "",
-            "headquarters": "",
-            "logo": "logos/fifa_LDTViZv.png",
-            "modified": "2025-06-06T07:15:32.252Z",
-            "name": "Fédération Internationale de Football Association",
-            "sport_code": "SOCCER",
-            "website": "https://www.fifa.com"
-        }
+  {
+    "model": "geography.worldsportsbody",
+    "pk": 1,
+    "fields": {
+      "acronym": "FIFA",
+      "created": "2025-05-30 10:15:40.122000",
+      "description": "",
+      "headquarters": "",
+      "id": "1",
+      "logo": "logos/fifa_LDTViZv.png",
+      "modified": "2025-06-06 07:15:32.252000",
+      "name": "F\u00e9d\u00e9ration Internationale de Football Association",
+      "sport_code": "SOCCER",
+      "website": "https://www.fifa.com"
     }
+  }
 ]

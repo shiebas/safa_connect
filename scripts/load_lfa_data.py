@@ -31,6 +31,7 @@ def migrate_lfa_data():
 
         # Create the fields dictionary for the fixture
         fields = {
+            "id": str(pk),
             "name": record.get("name"),
             "acronym": record.get("acronym", ""),
             "website": record.get("website", ""),
@@ -38,8 +39,8 @@ def migrate_lfa_data():
             "description": record.get("description", ""),
             "logo": record.get("logo", ""),
             "safa_id": record.get("safa_id"),
-            "region": record.get("region_id"),
-            "association": record.get("association_id"),
+            "region_id": str(record.get("region_id")),
+            "association_id": str(record.get("association_id")),
             "created": record.get("created"),
             "modified": record.get("modified"),
         }

@@ -1,28 +1,30 @@
 [
-    {
-        "model": "geography.country",
-        "pk": 1,
-        "fields": {
-            "code": null,
-            "continent_region_id": 1,
-            "created": "2025-05-30T20:35:52.890Z",
-            "description": "",
-            "logo": "logos/southafrica_75cr3vg.png",
-            "modified": "2025-05-30T20:35:52.890Z",
-            "name": "South Africa"
-        }
-    },
-    {
-        "model": "geography.country",
-        "pk": 2,
-        "fields": {
-            "code": null,
-            "continent_region_id": 1,
-            "created": "2025-05-30T20:37:22.251Z",
-            "description": "",
-            "logo": "logos/Flag_of_Namibia_cWhlItz.svg.png",
-            "modified": "2025-05-30T20:37:42.530Z",
-            "name": "Namibia"
-        }
+  {
+    "model": "geography.country",
+    "pk": 1,
+    "fields": {
+      "code": null,
+      "continent_region_id": "1",
+      "created": "2025-05-30 20:35:52.890000",
+      "description": "",
+      "id": "1",
+      "logo": "logos/southafrica_75cr3vg.png",
+      "modified": "2025-05-30 20:35:52.890000",
+      "name": "South Africa"
     }
+  },
+  {
+    "model": "geography.country",
+    "pk": 2,
+    "fields": {
+      "code": null,
+      "continent_region_id": "1",
+      "created": "2025-05-30 20:37:22.251000",
+      "description": "",
+      "id": "2",
+      "logo": "logos/Flag_of_Namibia_cWhlItz.svg.png",
+      "modified": "2025-05-30 20:37:42.530000",
+      "name": "Namibia"
+    }
+  }
 ]
