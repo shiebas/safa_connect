@@ -1,5 +1,6 @@
 import os
 import datetime
+import re
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.utils.translation import gettext_lazy as _
@@ -15,7 +16,7 @@ from .utils import extract_sa_id_dob_gender
 
 
 class NationalAdminRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput, label="Password")
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
 
     organization_type = forms.ModelChoiceField(
@@ -35,16 +36,16 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         required=False,
     )
     region = forms.ModelChoiceField(
-        queryset=Region.objects.all(),
+        queryset=Region.objects.none(),
         required=False,
     )
     local_federation = forms.ModelChoiceField(
-        queryset=LocalFootballAssociation.objects.all(),
+        queryset=LocalFootballAssociation.objects.none(),
         required=False,
         label="Local Football Association"
     )
     club = forms.ModelChoiceField(
-        queryset=Club.objects.all(),
+        queryset=Club.objects.none(),
         required=False,
     )
     id_document_type = forms.ChoiceField(
@@ -56,7 +57,7 @@ class NationalAdminRegistrationForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = [
-            'first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
+            'first_name', 'last_name', 'email', 'phone_number', 'id_document_type', 'id_number', 'passport_number',
             'date_of_birth', 'gender', 'profile_picture', 'id_document',
             'popi_act_consent', 'organization_type', 'position', 'province',
             'region', 'local_federation', 'club', 'password', 'password2'
@@ -73,7 +74,11 @@ class NationalAdminRegistrationForm(forms.ModelForm):
                     Column('last_name', css_class='form-group col-md-6 mb-0'),
                     css_class='form-row'
                 ),
-                'email',
+                Row(
+                    Column('email', css_class='form-group col-md-6 mb-0'),
+                    Column('phone_number', css_class='form-group col-md-6 mb-0'),
+                    css_class='form-row'
+                ),
                 'profile_picture',
             ),
             Fieldset(
@@ -133,11 +138,51 @@ class NationalAdminRegistrationForm(forms.ModelForm):
             )
         )
 
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if len(first_name) < 3:
+            raise forms.ValidationError("First name must be at least 3 characters long.")
+        if not first_name.isalpha():
+            raise forms.ValidationError("First name must only contain letters.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if len(last_name) < 3:
+            raise forms.ValidationError("Last name must be at least 3 characters long.")
+        if not last_name.isalpha():
+            raise forms.ValidationError("Last name must only contain letters.")
+        return last_name
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number:
+            # Remove leading '+' for validation, but allow it
+            cleaned_number = phone_number[1:] if phone_number.startswith('+') else phone_number
+            if not cleaned_number.isdigit():
+                raise forms.ValidationError("Phone number must be numeric (with an optional leading '+').")
+        return phone_number
+
     def clean_password2(self):
-        cd = self.cleaned_data
-        if cd['password'] != cd['password2']:
-            raise forms.ValidationError('Passwords don\'t match.')
-        return cd['password2']
+        password = self.cleaned_data.get("password")
+        password2 = self.cleaned_data.get("password2")
+
+        if password and password2 and password != password2:
+            raise forms.ValidationError("Passwords don't match.")
+
+        if password:
+            if len(password) < 8:
+                raise forms.ValidationError("Password must be at least 8 characters long.")
+            if not re.search(r'[A-Z]', password):
+                raise forms.ValidationError("Password must contain at least one uppercase letter.")
+            if not re.search(r'[a-z]', password):
+                raise forms.ValidationError("Password must contain at least one lowercase letter.")
+            if not re.search(r'[0-9]', password):
+                raise forms.ValidationError("Password must contain at least one number.")
+            if not re.search(r'[\W_]', password):
+                raise forms.ValidationError("Password must contain at least one special character.")
+
+        return password2
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
