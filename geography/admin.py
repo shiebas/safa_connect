@@ -178,13 +178,20 @@ class ClubAdmin(ModelWithLogoAdmin):
         'name', 'localfootballassociation', 'region', 'province', 'status', 'safa_id', 'display_logo'
     ]
     list_filter = [
-        'localfootballassociation', 'region', 'province', 'status'
+        'localfootballassociation', 'status'
     ]
     search_fields = [
         'name', 'localfootballassociation__name', 'region__name', 'province__name', 'safa_id'
     ]
+    readonly_fields = ('province', 'region')
     list_editable = []
     inlines = [PlayerInline, OfficialInline]
+
+    def save_model(self, request, obj, form, change):
+        if obj.localfootballassociation:
+            obj.region = obj.localfootballassociation.region
+            obj.province = obj.localfootballassociation.region.province
+        super().save_model(request, obj, form, change)
     
     
 # Register models
