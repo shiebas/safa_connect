@@ -267,6 +267,12 @@ class NationalFederation(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin)
     def __str__(self):
         return f"{self.name} ({self.country.name})"
 
+class ClubStatus(models.TextChoices):
+    ACTIVE = 'ACTIVE', _('Active')
+    INACTIVE = 'INACTIVE', _('Inactive')
+    SUSPENDED = 'SUSPENDED', _('Suspended')
+    DISSOLVED = 'DISSOLVED', _('Dissolved')
+
 class Province(TimeStampedModel, ModelWithLogo):
     """Represents a province/state within a national federation (e.g., Western Cape)"""
     name = models.CharField(_('Name'), max_length=100, unique=True, null=True, blank=True)
@@ -384,12 +390,6 @@ class LocalFootballAssociation(TimeStampedModel, ModelWithLogo, SAFAIdentifiable
     
     def __str__(self):
         return f"{self.name} ({self.region.name})"
-
-class ClubStatus(models.TextChoices):
-    ACTIVE = 'ACTIVE', _('Active')
-    INACTIVE = 'INACTIVE', _('Inactive')
-    SUSPENDED = 'SUSPENDED', _('Suspended')
-    DISSOLVED = 'DISSOLVED', _('Dissolved')
 
 class ClubTier(models.TextChoices):
     PREMIER = 'PREMIER', _('Premier')
@@ -561,12 +561,3 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     def qr_code(self):
         """Return QR code for club identification"""
         return self.generate_qr_code()
-
-
-
-
-
-
-
-
-
