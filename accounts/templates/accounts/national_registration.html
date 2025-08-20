@@ -221,22 +221,44 @@ document.addEventListener('DOMContentLoaded', function() {
             clubSelect.prop('disabled', false);
         }
     }
-
+    
     // Event listeners
     if (docTypeSelect) {
         docTypeSelect.addEventListener('change', toggleFields);
     }
-
+    
     if (idNumberInput) {
         idNumberInput.addEventListener('input', function() {
-            // Your existing ID validation logic here
+            if (docTypeSelect && (docTypeSelect.value === 'ID' || docTypeSelect.value === 'BC')) {
+                const result = validateSAID(this.value);
+                const validationMessage = document.getElementById('id-validation-message');
+                
+                if (validationMessage) {
+                    validationMessage.textContent = result.message;
+                    validationMessage.className = result.isValid ? "form-text text-success" : "form-text text-danger";
+                }
+                
+                if (result.isValid) {
+                    // Check for uniqueness
+                    fetch(`/accounts/ajax/check-id-number/?id_number=${this.value}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                if (validationMessage) {
+                                    validationMessage.textContent = "This ID number is already registered.";
+                                    validationMessage.className = "form-text text-danger";
+                                }
+                            }
+                        });
+                }
+            }
         });
     }
-
+    
     if (orgTypeSelect) {
         orgTypeSelect.addEventListener('change', updateOrgFields);
     }
-
+    
     if (provinceSelect) {
         provinceSelect.addEventListener('change', handleProvinceChange);
     }
@@ -252,322 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateOrgFields();
 });
 </script>
-
 <script src="{% static 'js/safa_connect.js' %}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Get all necessary elements once
-    const docTypeSelect = document.getElementById('id_id_document_type');
-    const saIdContainer = document.getElementById('sa-id-container');
-    const passportContainer = document.getElementById('passport-container');
-    const otherIdContainer = document.getElementById('other-id-container');
-    const dobGenderReadonlyRow = document.getElementById('dob-gender-readonly-row');
-    const dobGenderManualRow = document.getElementById('dob-gender-manual-row');
-    const idNumberInput = document.getElementById('id_id_number');
-    const dobReadonlyInput = document.getElementById('date_of_birth_readonly');
-    const dobHiddenInput = document.getElementById('date_of_birth_hidden');
-    const genderReadonlyInput = document.getElementById('gender_readonly');
-    const genderHiddenInput = document.getElementById('gender_hidden');
-    const validationMessage = document.getElementById('id-validation-message');
-    const firstNameInput = document.getElementById('id_first_name');
-    const lastNameInput = document.getElementById('id_last_name');
-    
-    // Organization elements
-    const orgTypeSelect = document.getElementById('id_organization_type');
-    const provinceField = document.getElementById('province-field');
-    const regionField = document.getElementById('region-field');
-    const lfaField = document.getElementById('lfa-field');
-    const clubField = document.getElementById('club-field');
-    const provinceSelect = document.getElementById('id_province');
-    const regionSelect = document.getElementById('id_region');
-    const lfaSelect = document.getElementById('id_local_federation');
-    
-    // Document type toggle function
-    function toggleFields() {
-        if (!docTypeSelect) return;
-        
-        const selectedValue = docTypeSelect.value;
-        
-        // Hide all containers first
-        if (saIdContainer) saIdContainer.style.display = 'none';
-        if (passportContainer) passportContainer.style.display = 'none';
-        if (otherIdContainer) otherIdContainer.style.display = 'none';
-        if (dobGenderReadonlyRow) dobGenderReadonlyRow.style.display = 'none';
-        if (dobGenderManualRow) dobGenderManualRow.style.display = 'none';
-        
-        // Show appropriate containers
-        if (selectedValue === 'ID' || selectedValue === 'BC') {
-            if (saIdContainer) saIdContainer.style.display = 'block';
-            if (dobGenderReadonlyRow) dobGenderReadonlyRow.style.display = 'flex';
-        } else if (selectedValue === 'PP') {
-            if (passportContainer) passportContainer.style.display = 'block';
-            if (dobGenderManualRow) dobGenderManualRow.style.display = 'flex';
-        } else if (selectedValue === 'DL' || selectedValue === 'OT') {
-            if (otherIdContainer) otherIdContainer.style.display = 'block';
-            if (dobGenderManualRow) dobGenderManualRow.style.display = 'flex';
-        }
-    }
-    
-    // Organization fields toggle function
-    function updateOrgFields() {
-        if (!orgTypeSelect) return;
-        
-        const selectedOption = orgTypeSelect.options[orgTypeSelect.selectedIndex];
-        const optionText = selectedOption.text.toUpperCase();
-        
-        // Hide all org fields first
-        if (provinceField) provinceField.style.display = 'none';
-        if (regionField) regionField.style.display = 'none';
-        if (lfaField) lfaField.style.display = 'none';
-        if (clubField) clubField.style.display = 'none';
-        
-        // Show relevant fields based on organization type
-        if (optionText.includes('PROVINCE')) {
-            if (provinceField) provinceField.style.display = 'block';
-        } else if (optionText.includes('REGION')) {
-            if (provinceField) provinceField.style.display = 'block';
-            if (regionField) regionField.style.display = 'block';
-        } else if (optionText.includes('LFA') || optionText.includes('LOCAL')) {
-            if (provinceField) provinceField.style.display = 'block';
-            if (regionField) regionField.style.display = 'block';
-            if (lfaField) lfaField.style.display = 'block';
-        } else if (optionText.includes('CLUB')) {
-            if (provinceField) provinceField.style.display = 'block';
-            if (regionField) regionField.style.display = 'block';
-            if (lfaField) lfaField.style.display = 'block';
-            if (clubField) clubField.style.display = 'block';
-        }
-    }
-    
-    // Province change handler
-    function handleProvinceChange() {
-        if (!provinceSelect || !regionSelect || !lfaSelect) return;
-        
-        console.log("Province changed to:", provinceSelect.value);
-        
-        // Reset dependent dropdowns
-        regionSelect.innerHTML = '<option value="">Loading regions...</option>';
-        regionSelect.disabled = true;
-        lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
-        lfaSelect.disabled = true;
-        
-        if (provinceSelect.value) {
-            // Use the correct URL path with geography prefix
-            fetch(`/geography/api/regions/?province=${provinceSelect.value}`)
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Regions data received:", data);
-                    regionSelect.innerHTML = '<option value="">Select a region</option>';
-                    
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(region => {
-                            const option = document.createElement('option');
-                            option.value = region.id;
-                            option.textContent = region.name;
-                            regionSelect.appendChild(option);
-                        });
-                        regionSelect.disabled = false;
-                    } else {
-                        regionSelect.innerHTML = '<option value="">No regions found</option>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching regions:', error);
-                    regionSelect.innerHTML = '<option value="">Error loading regions</option>';
-                    alert('Error loading regions. Please try again.');
-                });
-        } else {
-            regionSelect.innerHTML = '<option value="">Select a region</option>';
-            regionSelect.disabled = false;
-        }
-    }
-    
-    // Region change handler
-    function handleRegionChange() {
-        if (!regionSelect || !lfaSelect) return;
-        
-        console.log("Region changed to:", regionSelect.value);
-        
-        lfaSelect.innerHTML = '<option value="">Loading LFAs...</option>';
-        lfaSelect.disabled = true;
-        
-        if (regionSelect.value) {
-            // Use the correct URL path with geography prefix
-            fetch(`/geography/api/lfas/?region=${regionSelect.value}`)
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("LFAs data received:", data);
-                    lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
-                    
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(lfa => {
-                            const option = document.createElement('option');
-                            option.value = lfa.id;
-                            option.textContent = lfa.name;
-                            lfaSelect.appendChild(option);
-                        });
-                        lfaSelect.disabled = false;
-                    } else {
-                        lfaSelect.innerHTML = '<option value="">No LFAs found</option>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching LFAs:', error);
-                    lfaSelect.innerHTML = '<option value="">Error loading LFAs</option>';
-                });
-        } else {
-            lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
-            lfaSelect.disabled = false;
-        }
-    }
-    
-    // LFA change handler for clubs
-    function handleLFAChange() {
-        const clubSelect = document.getElementById('id_club');
-        if (!lfaSelect || !clubSelect) return;
-        clubSelect.innerHTML = '<option value="">Loading clubs...</option>';
-        clubSelect.disabled = true;
-        if (lfaSelect.value) {
-            fetch(`/accounts/api/clubs/?lfa=${lfaSelect.value}`)
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    clubSelect.innerHTML = '<option value="">Select a club</option>';
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(club => {
-                            const option = document.createElement('option');
-                            option.value = club.id;
-                            option.textContent = club.name;
-                            clubSelect.appendChild(option);
-                        });
-                        clubSelect.disabled = false;
-                    } else {
-                        clubSelect.innerHTML = '<option value="">No clubs found</option>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching clubs:', error);
-                    clubSelect.innerHTML = '<option value="">Error loading clubs</option>';
-                });
-        } else {
-            clubSelect.innerHTML = '<option value="">Select a club</option>';
-            clubSelect.disabled = false;
-        }
-    }
-    
-    // Event listeners
-    if (docTypeSelect) {
-        docTypeSelect.addEventListener('change', toggleFields);
-    }
-    
-    if (idNumberInput) {
-        idNumberInput.addEventListener('input', function() {
-            if (docTypeSelect && (docTypeSelect.value === 'ID' || docTypeSelect.value === 'BC')) {
-                const result = validateSAID(this.value);
-                
-                if (validationMessage) {
-                    validationMessage.textContent = result.message;
-                    validationMessage.className = result.isValid ? "form-text text-success" : "form-text text-danger";
-                }
-                
-                if (result.isValid) {
-                    if (dobReadonlyInput) dobReadonlyInput.value = result.displayDate;
-                    if (dobHiddenInput) dobHiddenInput.value = result.dateOfBirth;
-                    if (genderReadonlyInput) genderReadonlyInput.value = result.genderText;
-                    if (genderHiddenInput) genderHiddenInput.value = result.gender;
 
-                    // Check for uniqueness
-                    fetch(`/accounts/ajax/check-id-number/?id_number=${this.value}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.exists) {
-                                validationMessage.textContent = "This ID number is already registered.";
-                                validationMessage.className = "form-text text-danger";
-                            }
-                        });
-                } else {
-                    if (dobReadonlyInput) dobReadonlyInput.value = '';
-                    if (dobHiddenInput) dobHiddenInput.value = '';
-                    if (genderReadonlyInput) genderReadonlyInput.value = '';
-                    if (genderHiddenInput) genderHiddenInput.value = '';
-                }
-            }
-        });
-    }
-
-    if (firstNameInput) {
-        firstNameInput.addEventListener('input', function() {
-            const result = validateName(this.value);
-            const errorDiv = this.nextElementSibling;
-            if (!result.isValid) {
-                if (errorDiv && errorDiv.classList.contains('text-danger')) {
-                    errorDiv.textContent = result.message;
-                } else {
-                    const newErrorDiv = document.createElement('div');
-                    newErrorDiv.className = 'text-danger small mt-1';
-                    newErrorDiv.textContent = result.message;
-                    this.parentNode.appendChild(newErrorDiv);
-                }
-            } else {
-                if (errorDiv && errorDiv.classList.contains('text-danger')) {
-                    errorDiv.textContent = '';
-                }
-            }
-        });
-    }
-
-    if (lastNameInput) {
-        lastNameInput.addEventListener('input', function() {
-            const result = validateName(this.value);
-            const errorDiv = this.nextElementSibling;
-            if (!result.isValid) {
-                if (errorDiv && errorDiv.classList.contains('text-danger')) {
-                    errorDiv.textContent = result.message;
-                } else {
-                    const newErrorDiv = document.createElement('div');
-                    newErrorDiv.className = 'text-danger small mt-1';
-                    newErrorDiv.textContent = result.message;
-                    this.parentNode.appendChild(newErrorDiv);
-                }
-            } else {
-                if (errorDiv && errorDiv.classList.contains('text-danger')) {
-                    errorDiv.textContent = '';
-                }
-            }
-        });
-    }
-    
-    if (orgTypeSelect) {
-        orgTypeSelect.addEventListener('change', updateOrgFields);
-    }
-    
-    if (provinceSelect) {
-        provinceSelect.addEventListener('change', handleProvinceChange);
-    }
-    if (regionSelect) {
-        regionSelect.addEventListener('change', handleRegionChange);
-    }
-    if (lfaSelect) {
-        lfaSelect.addEventListener('change', handleLFAChange);
-    }
-    // Initialize on page load
-    toggleFields();
-    updateOrgFields();
-    // If LFA is already selected (edit), trigger club load
-    if (lfaSelect && lfaSelect.value) {
-        handleLFAChange();
-    }
-});
-</script>
-
-<!-- Include Form Wizard JS -->
-<script src="{% static 'js/form_wizard.js' %}"></script>
 {% endblock %}
