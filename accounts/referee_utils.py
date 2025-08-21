@@ -5,7 +5,7 @@ from membership.models.main import Official
 
 def generate_unique_referee_email(first_name, last_name, existing_id=None):
     """
-    Generate a unique referee email in the format referee.firstname.lastname@safaglobaladmin.co.za
+    Generate a unique referee email in the format referee.firstname.lastname@safaconnect.co.za
     
     Args:
         first_name (str): Referee's first name
@@ -21,7 +21,7 @@ def generate_unique_referee_email(first_name, last_name, existing_id=None):
     
     # Create email base
     email_base = f"referee.{first_name_clean}.{last_name_clean}"
-    email_domain = "safaglobaladmin.co.za"
+    email_domain = "safaconnect.co.za"
     
     # Find a unique email
     counter = 1

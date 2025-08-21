@@ -111,7 +111,7 @@ VALIDATE_PASSPORT_DOCUMENTS = True
    - Document is accepted or flagged for manual review
 
 4. **Email Generation**:
-   - System generates unique email in format: firstname.lastname@safaglobaladmin.co.za
+   - System generates unique email in format: firstname.lastname@safaconnectadmin.co.za
 
 5. **Player Creation**:
    - Player record created with pending approval status

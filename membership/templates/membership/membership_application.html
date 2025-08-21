@@ -168,9 +168,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize SAFA global validator
     let validator;
 
-    // Check if SafaGlobalValidator is available
-    if (typeof SafaGlobalValidator !== 'undefined') {
-        validator = new SafaGlobalValidator();
+    // Check if safaconnectValidator is available
+    if (typeof safaconnectValidator !== 'undefined') {
+        validator = new safaconnectValidator();
         console.log('SAFA Connect Validator initialized');
     } else {
         console.warn('SAFA Connect Validator not found, using basic validation');

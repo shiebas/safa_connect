@@ -171,4 +171,4 @@ System administrators can configure document validation settings in the Django s
 VALIDATE_PASSPORT_DOCUMENTS = True  # Set to False to disable validation
 ```
 
-For technical support, contact the SAFA technical team at tech-support@safaglobal.co.za
+For technical support, contact the SAFA technical team at tech-support@safaconnect.co.za

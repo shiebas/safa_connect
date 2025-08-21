@@ -77,4 +77,4 @@
 
 ## Need Help?
 
-Contact SAFA Support at support@safaglobal.co.za or call the help desk at 0800-SAFAGLB (0800-723-2452)
+Contact SAFA Support at support@safaconnect.co.za or call the help desk at 0800-SAFAGLB (0800-723-2452)

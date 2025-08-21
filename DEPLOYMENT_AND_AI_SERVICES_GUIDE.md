@@ -404,7 +404,7 @@ GRANT ALL PRIVILEGES ON DATABASE safa_connect TO safa_user;
 ## 📞 **Next Steps**
 
 1. **Choose hosting provider** based on your budget and technical expertise
-2. **Set up domain name** (safaglobal.co.za recommended)
+2. **Set up domain name** (safaconnect.co.za recommended)
 3. **Configure production environment** variables
 4. **Deploy using provided scripts**
 5. **Set up monitoring and backups**
