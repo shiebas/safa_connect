@@ -23,7 +23,7 @@ def manifest(request):
         "scope": "/",
         "icons": [
             {
-                "src": "/static/images/safa-logo-192.png",
+                "src": "/static/images/safa_logo_192.png",
                 "sizes": "192x192",
                 "type": "image/png",
                 "purpose": "any maskable"
