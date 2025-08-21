@@ -38,6 +38,11 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{% static 'js/sa_id_validation.js' %}"></script>
 <script>
+    const getRegionsUrl = "{% url 'accounts:get_regions_for_province' %}";
+    const getLfasUrl = "{% url 'accounts:get_lfas_for_region' %}";
+    const getClubsUrl = "{% url 'accounts:get_clubs_for_lfa' %}";
+    const checkIdNumberUrl = "{% url 'accounts:check_id_number' %}";
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
     $('#id_club').select2({
@@ -153,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#id_club').empty().append('<option value="">---------</option>').trigger('change');
 
         if (provinceId) {
-            fetch(`/accounts/ajax/get-regions-for-province/?province_id=${provinceId}`)
+            fetch(`${getRegionsUrl}?province_id=${provinceId}`)
                 .then(response => response.json())
                 .then(data => {
                     regionSelect.innerHTML = '<option value="">Select a region</option>';
@@ -188,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#id_club').empty().append('<option value="">---------</option>').trigger('change');
 
         if (regionId) {
-            fetch(`/accounts/ajax/get-lfas-for-region/?region_id=${regionId}`)
+            fetch(`${getLfasUrl}?region_id=${regionId}`)
                 .then(response => response.json())
                 .then(data => {
                     lfaSelect.innerHTML = '<option value="">Select an LFA</option>';
@@ -223,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clubSelect.prop('disabled', true);
 
         if (lfaId) {
-            fetch(`/accounts/ajax/get-clubs-for-lfa/?lfa_id=${lfaId}`)
+            fetch(`${getClubsUrl}?lfa_id=${lfaId}`)
                 .then(response => response.json())
                 .then(data => {
                     clubSelect.empty().append('<option value="">Select a club</option>').trigger('change');
@@ -260,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (result.isValid) {
                         // Check for uniqueness
-                        fetch(`/accounts/ajax/check-id-number/?id_number=${this.value}`)
+                        fetch(`${checkIdNumberUrl}?id_number=${this.value}`)
                             .then(response => response.json())
                             .then(data => {
                                 if (data.exists) {
