@@ -10,12 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.DeleteModel(
-            name='OrganizationLevel',
-        ),
-        migrations.DeleteModel(
-            name='OrganizationType',
-        ),
         migrations.AddField(
             model_name='association',
             name='status',
