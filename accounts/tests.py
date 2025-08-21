@@ -53,7 +53,10 @@ class NationalAdminRegistrationFormTests(TestCase):
             'gender': 'M',
         })
         form = NationalAdminRegistrationForm(data)
-        self.assertTrue(form.is_valid())
+        form.fields['region'].queryset = Region.objects.all()
+        form.fields['local_federation'].queryset = LocalFootballAssociation.objects.all()
+        form.fields['club'].queryset = Club.objects.all()
+        self.assertTrue(form.is_valid(), form.errors)
 
     def test_password_mismatch(self):
         data = self.form_data.copy()
@@ -87,7 +90,10 @@ class NationalAdminRegistrationFormTests(TestCase):
             'id_number': '9001015800087', # Valid ID
         })
         form = NationalAdminRegistrationForm(data)
-        self.assertTrue(form.is_valid())
+        form.fields['region'].queryset = Region.objects.all()
+        form.fields['local_federation'].queryset = LocalFootballAssociation.objects.all()
+        form.fields['club'].queryset = Club.objects.all()
+        self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(str(form.cleaned_data['date_of_birth']), '1990-01-01')
         self.assertEqual(form.cleaned_data['gender'], 'M')
 
@@ -113,7 +119,10 @@ class NationalAdminRegistrationFormTests(TestCase):
         })
         files = {'profile_picture': image}
         form = NationalAdminRegistrationForm(data, files)
-        self.assertTrue(form.is_valid())
+        form.fields['region'].queryset = Region.objects.all()
+        form.fields['local_federation'].queryset = LocalFootballAssociation.objects.all()
+        form.fields['club'].queryset = Club.objects.all()
+        self.assertTrue(form.is_valid(), form.errors)
 
         # Test oversized file
         large_file = SimpleUploadedFile("large.jpg", b"a" * (6 * 1024 * 1024), content_type="image/jpeg")
