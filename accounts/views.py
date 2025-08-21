@@ -98,7 +98,7 @@ def national_registration(request):
             return redirect('accounts:home')
     else:
         form = NationalAdminRegistrationForm()
-    return render(request, 'accounts/national_registration.html', {'form': form})
+    return render(request, 'accounts/national_registration1.html', {'form': form})
 
 
 # Placeholder functions for missing utilities
