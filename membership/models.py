@@ -252,7 +252,7 @@ class Member(TimeStampedModel):
         ]
     )
     date_of_birth = models.DateField(_("Date of Birth"), null=True, blank=True)
-    gender = models.CharField(_("Gender"), max_length=1, choices=[('M', 'Male'), ('F', 'Female')], blank=True)
+    gender = models.CharField(_("Gender"), max_length=1, choices=[('M', 'Male'), ('F', 'Female')], blank=True, null=True)
 
     # ID Information
     id_number = models.CharField(

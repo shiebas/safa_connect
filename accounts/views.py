@@ -201,24 +201,21 @@ def club_admin_add_player(request):
     return render(request, 'accounts/club_admin_add_player.html', context)
 
 
-@login_required
 def get_regions_for_province(request):
     province_id = request.GET.get('province_id')
     regions = Region.objects.filter(province_id=province_id).order_by('name')
     return JsonResponse(list(regions.values('id', 'name')), safe=False)
 
 
-@login_required
 def get_lfas_for_region(request):
     region_id = request.GET.get('region_id')
     lfas = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
     return JsonResponse(list(lfas.values('id', 'name')), safe=False)
 
 
-@login_required
 def get_clubs_for_lfa(request):
     lfa_id = request.GET.get('lfa_id')
-    clubs = Club.objects.filter(lfa_id=lfa_id).order_by('name')
+    clubs = Club.objects.filter(localfootballassociation_id=lfa_id).order_by('name')
     return JsonResponse(list(clubs.values('id', 'name')), safe=False)
 
 

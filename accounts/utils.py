@@ -159,8 +159,22 @@ def log_user_activity(user, action, details=""):
         logger.info(f"User Activity - User: {user.email if user else 'Anonymous'}, Action: {action}, Details: {details}")
     except Exception as e:
         logger.error(f"Error logging user activity: {e}")
-def get_dashboard_stats():
-    """Get general dashboard statistics"""
+def get_dashboard_stats(organization=None):
+    """Get dashboard statistics, optionally filtered by organization."""
+    from .models import CustomUser, Member
+
+    if organization:
+        # Stats for a specific organization
+        # This is a placeholder - you'll need to define how to get members
+        # related to a specific OrganizationType instance.
+        # For now, we'll return some placeholder data.
+        return {
+            'org_total_members': 0, # Replace with actual query
+            'org_active_members': 0, # Replace with actual query
+            'org_name': organization.name,
+        }
+
+    # General, site-wide stats if no organization is provided
     return {
         'total_users': CustomUser.objects.count(),
         'active_users': CustomUser.objects.filter(is_active=True).count(),
