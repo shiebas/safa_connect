@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Club Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Club Administrator Dashboard</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'accounts:club_admin_add_player' %}" class="btn btn-primary">Add Player</a>
+                    <a href="#" class="btn btn-secondary">View Players</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Club Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Players:</strong> 0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

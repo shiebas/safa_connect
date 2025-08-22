@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.db.models import Q, Sum
@@ -42,8 +43,16 @@ def national_registration(request):
     if request.method == 'POST':
         form = NationalAdminRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
+            id_number = form.cleaned_data.get('id_number')
+            if id_number and CustomUser.objects.filter(id_number=id_number).exists():
+                messages.error(request, f"A user with ID number {id_number} already exists.")
+                return render(request, 'accounts/national_registration.html', {'form': form})
+
+            safa_id = generate_unique_safa_id()
+
             # Create CustomUser object but don't save yet
             user = form.save(commit=False)
+            user.safa_id = safa_id
             user.set_password(form.cleaned_data['password'])
 
             # Set the legacy role based on organization type
@@ -68,9 +77,12 @@ def national_registration(request):
             user.is_active = True # User can login but will be restricted by status
             user.save()
 
+            login(request, user)
+
             # Create the corresponding Member profile
             Member.objects.create(
                 user=user,
+                safa_id=safa_id,
                 first_name=user.first_name,
                 last_name=user.last_name,
                 email=user.email,
@@ -177,7 +189,7 @@ def get_association_stats(association):
 def club_admin_add_player(request):
     if request.user.role != 'CLUB_ADMIN':
         messages.error(request, "You do not have permission to perform this action.")
-        return redirect('accounts:modern_home')
+        return redirect('accounts:home')
 
     if request.method == 'POST':
         form = ClubAdminAddPlayerForm(request.POST, request.FILES)
@@ -190,7 +202,7 @@ def club_admin_add_player(request):
             player.set_password(password)
             player.save()
             messages.success(request, f"Player {player.get_full_name()} added successfully.")
-            return redirect('accounts:modern_home')
+            return redirect('accounts:home')
     else:
         form = ClubAdminAddPlayerForm()
 
@@ -659,3 +671,24 @@ def update_organization_status(request):
 
     messages.success(request, f"Status for {org.name} has been updated to {new_status}.")
     return redirect('accounts:national_admin_dashboard')
+
+
+@login_required
+def national_finance_dashboard(request):
+    return render(request, 'accounts/national_finance_dashboard.html')
+
+@login_required
+def provincial_admin_dashboard(request):
+    return render(request, 'accounts/provincial_admin_dashboard.html')
+
+@login_required
+def regional_admin_dashboard(request):
+    return render(request, 'accounts/regional_admin_dashboard.html')
+
+@login_required
+def lfa_admin_dashboard(request):
+    return render(request, 'accounts/lfa_admin_dashboard.html')
+
+@login_required
+def club_admin_dashboard(request):
+    return render(request, 'accounts/club_admin_dashboard.html')

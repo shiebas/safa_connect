@@ -1,8 +1,30 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="container">
-    <h1>Welcome, {{ user.email }}!</h1>
-    <p>Role: {{ user.get_role_display }}</p>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 text-center">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                <h1 class="display-4">Welcome back, {{ user.first_name|default:user.email }}!</h1>
+                <p class="lead">You are logged in as a {{ user.get_role_display }}.</p>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-primary btn-lg">Go to Your Dashboard</a>
+            {% else %}
+                <img src="{% static 'img/safa_logo.png' %}" alt="SAFA Logo" class="mb-4" style="max-width: 150px;">
+                <h1 class="display-4">Welcome to SAFA Connect</h1>
+                <p class="lead">The official portal for all SAFA members, from grassroots to professional.</p>
+                <hr class="my-4">
+                <p>Manage your profile, register as a player or official, and stay connected with the latest news.</p>
+                <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg mx-2">Login</a>
+                <a href="{% url 'accounts:national_registration' %}" class="btn btn-secondary btn-lg mx-2">Register</a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

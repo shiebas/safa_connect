@@ -423,7 +423,7 @@ class UserRole(models.Model):
     position = models.ForeignKey(Position, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.user} - {self.position.name} at {self.organization.name}"
+        return f"{self.user} - {self.position.title} at {self.organization.name}"
 
 
 class Notification(models.Model):

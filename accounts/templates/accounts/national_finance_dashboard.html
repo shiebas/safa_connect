@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}National Finance Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">National Finance Dashboard</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="#" class="btn btn-primary">Manage Invoices</a>
+                    <a href="#" class="btn btn-info">Generate Reports</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Financial Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Paid:</strong> R 0.00</p>
+                    <p><strong>Total Outstanding:</strong> R 0.00</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

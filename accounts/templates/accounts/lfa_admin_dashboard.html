@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}LFA Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">LFA Administrator Dashboard</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="#" class="btn btn-primary">Manage Clubs</a>
+                    <a href="#" class="btn btn-secondary">View Members</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">LFA Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Clubs:</strong> 0</p>
+                    <p><strong>Total Members:</strong> 0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

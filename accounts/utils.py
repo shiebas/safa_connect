@@ -6,16 +6,18 @@ from django.template.loader import render_to_string
 from django.conf import settings
 
 def generate_unique_safa_id():
-    """Generate a unique SAFA ID"""
+    """Generate a unique SAFA ID that is not in CustomUser or Member model"""
     from .models import CustomUser
+    from membership.models import Member
     
     chars = string.ascii_uppercase + string.digits
     
     while True:
         safa_id = ''.join(random.choices(chars, k=5))
         
-        # Check if ID already exists
-        if not CustomUser.objects.filter(safa_id=safa_id).exists():
+        # Check if ID already exists in either model
+        if not CustomUser.objects.filter(safa_id=safa_id).exists() and \
+           not Member.objects.filter(safa_id=safa_id).exists():
             return safa_id
 
 

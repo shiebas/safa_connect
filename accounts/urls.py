@@ -7,6 +7,7 @@ from .views import modern_home
 app_name = 'accounts'
 
 urlpatterns = [
+    path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
     path('national-registration/', views.national_registration, name='national_registration'),
     path('', modern_home, name='home'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
@@ -57,5 +58,10 @@ urlpatterns = [
 
     # National Admin Dashboard
     path('national-admin-dashboard/', views.national_admin_dashboard, name='national_admin_dashboard'),
+    path('national-finance-dashboard/', views.national_finance_dashboard, name='national_finance_dashboard'),
+    path('provincial-admin-dashboard/', views.provincial_admin_dashboard, name='provincial_admin_dashboard'),
+    path('regional-admin-dashboard/', views.regional_admin_dashboard, name='regional_admin_dashboard'),
+    path('lfa-admin-dashboard/', views.lfa_admin_dashboard, name='lfa_admin_dashboard'),
+    path('club-admin-dashboard/', views.club_admin_dashboard, name='club_admin_dashboard'),
     path('update-organization-status/', views.update_organization_status, name='update_organization_status'),
 ]
