@@ -17,8 +17,6 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        .metric-card-events { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .metric-card-supporters { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
         .metric-card-revenue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
         .metric-card-membership { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
         
@@ -40,11 +38,6 @@
             margin-bottom: 20px;
         }
         
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-        
         .quick-action-btn {
             border-radius: 10px;
             transition: all 0.2s ease;
@@ -64,9 +57,6 @@
                 <a class="nav-link" href="{% url 'admin:index' %}">
                     <i class="bi bi-house"></i> Admin Home
                 </a>
-                <a class="nav-link" href="{% url 'events:dashboard' %}">
-                    <i class="bi bi-calendar-event"></i> Events
-                </a>
                 <a class="nav-link" href="{% url 'admin_logout' %}">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
@@ -77,27 +67,7 @@
     <div class="container-fluid my-4">
         <!-- Key Metrics Row -->
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card metric-card metric-card-events">
-                    <div class="card-body text-center">
-                        <i class="bi bi-calendar-event fs-1 mb-2"></i>
-                        <h3 class="mb-0">{{ events_metrics.total_matches }}</h3>
-                        <p class="mb-1">International Matches</p>
-                        <small>{{ events_metrics.upcoming_matches }} upcoming</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card metric-card metric-card-supporters">
-                    <div class="card-body text-center">
-                        <i class="bi bi-people fs-1 mb-2"></i>
-                        <h3 class="mb-0">{{ supporters_metrics.total_supporters|floatformat:0 }}</h3>
-                        <p class="mb-1">Total Supporters</p>
-                        <small>{{ supporters_metrics.verified_supporters }} verified</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="card metric-card metric-card-revenue">
                     <div class="card-body text-center">
                         <i class="bi bi-cash fs-1 mb-2"></i>
@@ -107,7 +77,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="card metric-card metric-card-membership">
                     <div class="card-body text-center">
                         <i class="bi bi-award fs-1 mb-2"></i>
@@ -130,72 +100,28 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-2">
-                                <a href="{% url 'admin:events_internationalmatch_add' %}" class="btn btn-outline-primary w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-plus-circle d-block mb-1"></i>
-                                    <small>New Match</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{% url 'admin:events_stadium_add' %}" class="btn btn-outline-success w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-building-add d-block mb-1"></i>
-                                    <small>Add Stadium</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{% url 'admin:supporters_supporterprofile_changelist' %}" class="btn btn-outline-info w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-people d-block mb-1"></i>
-                                    <small>Supporters</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <a href="{% url 'accounts:member_approvals_list' %}" class="btn btn-outline-warning w-100 quick-action-btn mb-2">
                                     <i class="bi bi-person-check d-block mb-1"></i>
                                     <small>Player Approvals</small>
                                 </a>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <a href="{% url 'accounts:club_invoices' %}" class="btn btn-outline-danger w-100 quick-action-btn mb-2">
                                     <i class="bi bi-receipt-cutoff d-block mb-1"></i>
                                     <small>Club Invoices</small>
                                 </a>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <a href="{% url 'admin:membership_member_changelist' %}" class="btn btn-outline-secondary w-100 quick-action-btn mb-2">
                                     <i class="bi bi-person-badge d-block mb-1"></i>
                                     <small>Members</small>
                                 </a>
                             </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-md-2">
+                             <div class="col-md-3">
                                 <a href="{% url 'admin:membership_invoice_changelist' %}" class="btn btn-outline-info w-100 quick-action-btn mb-2">
                                     <i class="bi bi-receipt d-block mb-1"></i>
                                     <small>All Invoices</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{% url 'admin:events_ticket_changelist' %}" class="btn btn-outline-primary w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-ticket-perforated d-block mb-1"></i>
-                                    <small>Tickets</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{% url 'accounts:club_invoices' %}?association=true" class="btn btn-outline-success w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-building-gear d-block mb-1"></i>
-                                    <small>Assoc. Invoices</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{% url 'accounts:admin_add_referee' %}" class="btn btn-outline-warning w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-person-plus d-block mb-1"></i>
-                                    <small>Add Referee</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{% url 'merchandise:store_home' %}" class="btn btn-outline-success w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-shop d-block mb-1"></i>
-                                    <small>SAFA Store</small>
                                 </a>
                             </div>
                         </div>
@@ -205,77 +131,41 @@
         </div>
 
         <div class="row">
-            <!-- Events & Ticketing Section -->
-            <div class="col-lg-6 mb-4">
-                <div class="card h-100">
+            <!-- Online Users Section -->
+            <div class="col-12 mb-4">
+                <div class="card">
                     <div class="card-header bg-white">
                         <h5 class="section-header mb-0">
-                            <i class="bi bi-calendar-event text-primary"></i> Events & Ticketing
+                            <i class="bi bi-person-circle text-success"></i> Online Users
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <h4 class="text-primary">{{ events_metrics.total_tickets_sold }}</h4>
-                                    <small class="text-muted">Tickets Sold</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <h4 class="text-success">R {{ events_metrics.tickets_revenue|floatformat:0 }}</h4>
-                                    <small class="text-muted">Ticket Revenue</small>
-                                </div>
-                            </div>
+                        {% if online_users %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Province</th>
+                                        <th>Region</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in online_users %}
+                                    <tr>
+                                        <td>{{ user.get_full_name }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.province.name|default:"N/A" }}</td>
+                                        <td>{{ user.region.name|default:"N/A" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                        
-                        <h6 class="mb-3">Top Selling Matches</h6>
-                        {% for match in top_matches %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ match.name|truncatechars:30 }}</strong><br>
-                                <small class="text-muted">{{ match.match_date|date:"M d, Y" }}</small>
-                            </div>
-                            <span class="badge bg-primary">{{ match.sold_count }} sold</span>
-                        </div>
-                        {% empty %}
-                        <p class="text-muted">No ticket sales yet</p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Supporters Analytics -->
-            <div class="col-lg-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-white">
-                        <h5 class="section-header mb-0">
-                            <i class="bi bi-people text-success"></i> Supporters Analytics
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <h4 class="text-success">{{ supporters_metrics.new_supporters_7days }}</h4>
-                                    <small class="text-muted">New This Week</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <h4 class="text-info">{{ supporters_metrics.supporters_with_location }}</h4>
-                                    <small class="text-muted">With Location</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h6 class="mb-3">By Membership Type</h6>
-                        {% for type_data in supporters_by_type %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span>{{ type_data.membership_type }}</span>
-                            <span class="badge bg-success">{{ type_data.count }}</span>
-                        </div>
-                        {% endfor %}
+                        {% else %}
+                        <p class="text-muted">No users are currently online.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -340,21 +230,17 @@
                     </div>
                     <div class="card-body">
                         <div class="row mb-4">
-                            <div class="col-md-3 text-center">
+                            <div class="col-md-4 text-center">
                                 <h4 class="text-primary">{{ invoice_metrics.total_invoices }}</h4>
                                 <small class="text-muted">Total Invoices</small>
                             </div>
-                            <div class="col-md-3 text-center">
+                            <div class="col-md-4 text-center">
                                 <h4 class="text-warning">{{ invoice_metrics.pending_invoices }}</h4>
                                 <small class="text-muted">Pending</small>
                             </div>
-                            <div class="col-md-3 text-center">
+                            <div class="col-md-4 text-center">
                                 <h4 class="text-success">{{ invoice_metrics.paid_invoices }}</h4>
                                 <small class="text-muted">Paid</small>
-                            </div>
-                            <div class="col-md-3 text-center">
-                                <h4 class="text-info">{{ events_metrics.recent_ticket_sales }}</h4>
-                                <small class="text-muted">Recent Sales</small>
                             </div>
                         </div>
                         
@@ -411,27 +297,19 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-2 text-center">
-                                <h5 class="text-primary">{{ events_metrics.total_stadiums }}</h5>
-                                <small class="text-muted">Active Stadiums</small>
-                            </div>
-                            <div class="col-md-2 text-center">
+                            <div class="col-md-3 text-center">
                                 <h5 class="text-success">{{ membership_metrics.total_clubs }}</h5>
                                 <small class="text-muted">Registered Clubs</small>
                             </div>
-                            <div class="col-md-2 text-center">
+                            <div class="col-md-3 text-center">
                                 <h5 class="text-warning">{{ membership_metrics.total_players }}</h5>
                                 <small class="text-muted">Registered Players</small>
                             </div>
-                            <div class="col-md-2 text-center">
+                            <div class="col-md-3 text-center">
                                 <h5 class="text-info">{{ membership_metrics.total_users }}</h5>
                                 <small class="text-muted">System Users</small>
                             </div>
-                            <div class="col-md-2 text-center">
-                                <h5 class="text-danger">R {{ events_metrics.tickets_revenue|floatformat:0 }}</h5>
-                                <small class="text-muted">Event Revenue</small>
-                            </div>
-                            <div class="col-md-2 text-center">
+                            <div class="col-md-3 text-center">
                                 <h5 class="text-secondary">R {{ invoice_metrics.total_revenue|floatformat:0 }}</h5>
                                 <small class="text-muted">Total Revenue</small>
                             </div>
