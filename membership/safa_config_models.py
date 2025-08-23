@@ -26,6 +26,24 @@ class SAFASeasonConfig(models.Model):
         help_text=_("When the season officially ends")
     )
     
+    # Registration periods
+    organization_registration_start = models.DateField(
+        _("Organization Registration Start"),
+        help_text=_("When organizations can start paying membership fees")
+    )
+    organization_registration_end = models.DateField(
+        _("Organization Registration End"),
+        help_text=_("Deadline for organization membership payments")
+    )
+    member_registration_start = models.DateField(
+        _("Member Registration Start"),
+        help_text=_("When individual members can start registering")
+    )
+    member_registration_end = models.DateField(
+        _("Member Registration End"),
+        help_text=_("Deadline for individual member registrations")
+    )
+    
     # Tax Configuration
     vat_rate = models.DecimalField(
         _("VAT Rate"), 
@@ -169,6 +187,8 @@ class SAFAFeeStructure(models.Model):
         help_text=_("Minimum fee even for late registrations (optional)")
     )
     
+    is_organization = models.BooleanField(_("Is Organization"), default=False)
+
     # Administrative
     created_by = models.ForeignKey(
         'accounts.CustomUser',
@@ -187,6 +207,10 @@ class SAFAFeeStructure(models.Model):
     def __str__(self):
         return f"{self.get_entity_type_display()} - R{self.annual_fee} ({self.season_config.season_year})"
     
+    def save(self, *args, **kwargs):
+        self.is_organization = self.entity_type in ['ASSOCIATION', 'PROVINCE', 'REGION', 'LFA', 'CLUB']
+        super().save(*args, **kwargs)
+
     @classmethod
     def get_fee_for_entity(cls, entity_type, season_year=None):
         """Get fee for specific entity type in specific season"""

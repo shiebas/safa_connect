@@ -28,4 +28,8 @@ urlpatterns = [
 
     # Registration AJAX
     path('club-info/', registration_views.get_club_info, name='club_info'),
+
+    # Season Configuration URLs
+    path('seasons/', views.manage_season_config, name='manage_season_config'),
+    path('seasons/<int:pk>/edit/', views.manage_season_config, name='edit_season_config'),
 ]

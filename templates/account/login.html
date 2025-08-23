@@ -17,7 +17,7 @@
           </p>
           <form method="post" class="needs-validation" novalidate>
             {% csrf_token %}
-            {{ form|crispy }}
+            {{ form.as_p }}
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-safa-primary btn-lg">
                 <i class="fas fa-sign-in-alt me-2"></i>Login

@@ -1,318 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAFA Connect - Superuser Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .metric-card {
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        .metric-card-revenue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
-        .metric-card-membership { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
-        
-        .activity-item {
-            border-left: 4px solid #dee2e6;
-            transition: all 0.2s ease;
-        }
-        .activity-item:hover {
-            background-color: #f8f9fa;
-            border-left-color: #007bff;
-        }
-        .activity-item.success { border-left-color: #28a745; }
-        .activity-item.primary { border-left-color: #007bff; }
-        .activity-item.warning { border-left-color: #ffc107; }
-        
-        .section-header {
-            border-bottom: 3px solid #007bff;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .quick-action-btn {
-            border-radius: 10px;
-            transition: all 0.2s ease;
-        }
-        .quick-action-btn:hover {
-            transform: scale(1.05);
-        }
-    </style>
-</head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'admin:index' %}">
-                <i class="bi bi-speedometer2"></i> SAFA Connect - Superuser Dashboard
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'admin:index' %}">
-                    <i class="bi bi-house"></i> Admin Home
-                </a>
-                <a class="nav-link" href="{% url 'admin_logout' %}">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </a>
-            </div>
-        </div>
-    </nav>
+{% extends 'base.html' %}
+{% load static %}
 
-    <div class="container-fluid my-4">
-        <!-- Key Metrics Row -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card metric-card metric-card-revenue">
-                    <div class="card-body text-center">
-                        <i class="bi bi-cash fs-1 mb-2"></i>
-                        <h3 class="mb-0">R {{ invoice_metrics.total_revenue|floatformat:0 }}</h3>
-                        <p class="mb-1">Total Revenue</p>
-                        <small>R {{ invoice_metrics.recent_revenue_7days|floatformat:0 }} this week</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card metric-card metric-card-membership">
-                    <div class="card-body text-center">
-                        <i class="bi bi-award fs-1 mb-2"></i>
-                        <h3 class="mb-0">{{ membership_metrics.total_members|floatformat:0 }}</h3>
-                        <p class="mb-1">Total Members</p>
-                        <small>{{ membership_metrics.active_members }} active</small>
-                    </div>
+{% block title %}SAFA Connect - Superuser Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card metric-card metric-card-revenue">
+                <div class="card-body text-center">
+                    <i class="bi bi-cash fs-1 mb-2"></i>
+                    <h3 class="mb-0">R {{ invoice_metrics.total_revenue|floatformat:0 }}</h3>
+                    <p class="mb-1">Total Revenue</p>
+                    <small>R {{ invoice_metrics.recent_revenue_7days|floatformat:0 }} this week</small>
                 </div>
             </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-lightning text-warning"></i> Quick Actions
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <a href="{% url 'accounts:member_approvals_list' %}" class="btn btn-outline-warning w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-person-check d-block mb-1"></i>
-                                    <small>Player Approvals</small>
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{% url 'accounts:club_invoices' %}" class="btn btn-outline-danger w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-receipt-cutoff d-block mb-1"></i>
-                                    <small>Club Invoices</small>
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{% url 'admin:membership_member_changelist' %}" class="btn btn-outline-secondary w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-person-badge d-block mb-1"></i>
-                                    <small>Members</small>
-                                </a>
-                            </div>
-                             <div class="col-md-3">
-                                <a href="{% url 'admin:membership_invoice_changelist' %}" class="btn btn-outline-info w-100 quick-action-btn mb-2">
-                                    <i class="bi bi-receipt d-block mb-1"></i>
-                                    <small>All Invoices</small>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+        <div class="col-md-6">
+            <div class="card metric-card metric-card-membership">
+                <div class="card-body text-center">
+                    <i class="bi bi-award fs-1 mb-2"></i>
+                    <h3 class="mb-0">{{ membership_metrics.total_members|floatformat:0 }}</h3>
+                    <p class="mb-1">Total Members</p>
+                    <small>{{ membership_metrics.active_members }} active</small>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="row">
-            <!-- Online Users Section -->
-            <div class="col-12 mb-4">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="section-header mb-0">
-                            <i class="bi bi-person-circle text-success"></i> Online Users
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if online_users %}
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Province</th>
-                                        <th>Region</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for user in online_users %}
-                                    <tr>
-                                        <td>{{ user.get_full_name }}</td>
-                                        <td>{{ user.email }}</td>
-                                        <td>{{ user.province.name|default:"N/A" }}</td>
-                                        <td>{{ user.region.name|default:"N/A" }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <p class="text-muted">No users are currently online.</p>
-                        {% endif %}
-                    </div>
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning text-warning"></i> Quick Actions
+                    </h5>
                 </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <!-- Pending Approvals -->
-            <div class="col-12 mb-4">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="section-header mb-0">
-                            <i class="bi bi-person-check-fill text-warning"></i> Pending Member Approvals
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if pending_approvals %}
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Role</th>
-                                        <th>Club</th>
-                                        <th>Registered</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for member in pending_approvals %}
-                                    <tr>
-                                        <td>{{ member.get_full_name }}</td>
-                                        <td>{{ member.email }}</td>
-                                        <td>{{ member.get_role_display }}</td>
-                                        <td>{{ member.current_club.name|default:"N/A" }}</td>
-                                        <td>{{ member.created|date:"Y-m-d" }}</td>
-                                        <td>
-                                            <a href="{% url 'accounts:member_approvals_list' %}?member_id={{ member.id }}" class="btn btn-sm btn-success">Approve</a>
-                                            <a href="{% url 'accounts:reject_member' member.id %}" class="btn btn-sm btn-danger">Reject</a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:member_approvals_list' %}" class="btn btn-outline-warning w-100 quick-action-btn mb-2">
+                                <i class="bi bi-person-check d-block mb-1"></i>
+                                <small>Player Approvals</small>
+                            </a>
                         </div>
-                        {% else %}
-                        <p class="text-muted">No pending approvals.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <!-- Revenue & Invoicing -->
-            <div class="col-lg-8 mb-4">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="section-header mb-0">
-                            <i class="bi bi-graph-up text-warning"></i> Revenue & Invoicing
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-4 text-center">
-                                <h4 class="text-primary">{{ invoice_metrics.total_invoices }}</h4>
-                                <small class="text-muted">Total Invoices</small>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <h4 class="text-warning">{{ invoice_metrics.pending_invoices }}</h4>
-                                <small class="text-muted">Pending</small>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <h4 class="text-success">{{ invoice_metrics.paid_invoices }}</h4>
-                                <small class="text-muted">Paid</small>
-                            </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:club_invoices' %}" class="btn btn-outline-danger w-100 quick-action-btn mb-2">
+                                <i class="bi bi-receipt-cutoff d-block mb-1"></i>
+                                <small>Club Invoices</small>
+                            </a>
                         </div>
-                        
-                        <h6 class="mb-3">Revenue by Invoice Type</h6>
-                        {% for type_data in invoice_by_type %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span>{{ type_data.invoice_type }}</span>
-                            <div>
-                                <span class="badge bg-primary me-2">{{ type_data.count }} invoices</span>
-                                <span class="badge bg-success">R {{ type_data.total_amount|floatformat:0 }}</span>
-                            </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin:membership_safaseasonconfig_changelist' %}" class="btn btn-outline-secondary w-100 quick-action-btn mb-2">
+                                <i class="bi bi-person-badge d-block mb-1"></i>
+                                <small>Members</small>
+                            </a>
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="col-lg-4 mb-4">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="section-header mb-0">
-                            <i class="bi bi-activity text-info"></i> Recent Activity
-                        </h5>
-                    </div>
-                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                        {% for activity in recent_activities %}
-                        <div class="activity-item {{ activity.color }} p-3 mb-3 rounded">
-                            <div class="d-flex align-items-start">
-                                <i class="bi {{ activity.icon }} me-3 mt-1"></i>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ activity.title }}</h6>
-                                    <p class="mb-1 text-muted small">{{ activity.subtitle }}</p>
-                                    <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
-                                </div>
-                            </div>
+                         <div class="col-md-3">
+                            <a href="{% url 'admin:membership_invoice_changelist' %}" class="btn btn-outline-info w-100 quick-action-btn mb-2">
+                                <i class="bi bi-receipt d-block mb-1"></i>
+                                <small>All Invoices</small>
+                            </a>
                         </div>
-                        {% empty %}
-                        <p class="text-muted">No recent activity</p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Additional Insights -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="section-header mb-0">
-                            <i class="bi bi-bar-chart text-dark"></i> System Overview
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 text-center">
-                                <h5 class="text-success">{{ membership_metrics.total_clubs }}</h5>
-                                <small class="text-muted">Registered Clubs</small>
-                            </div>
-                            <div class="col-md-3 text-center">
-                                <h5 class="text-warning">{{ membership_metrics.total_players }}</h5>
-                                <small class="text-muted">Registered Players</small>
-                            </div>
-                            <div class="col-md-3 text-center">
-                                <h5 class="text-info">{{ membership_metrics.total_users }}</h5>
-                                <small class="text-muted">System Users</small>
-                            </div>
-                            <div class="col-md-3 text-center">
-                                <h5 class="text-secondary">R {{ invoice_metrics.total_revenue|floatformat:0 }}</h5>
-                                <small class="text-muted">Total Revenue</small>
-                            </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin:membership_safaseasonconfig_add' %}" class="btn btn-outline-success w-100 quick-action-btn mb-2">
+                                <i class="bi bi-calendar-plus d-block mb-1"></i>
+                                <small>Add Season</small>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -320,6 +76,193 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <div class="row">
+        <!-- Online Users Section -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="section-header mb-0">
+                        <i class="bi bi-person-circle text-success"></i> Online Users
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if online_users %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Province</th>
+                                    <th>Region</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in online_users %}
+                                <tr>
+                                    <td>{{ user.get_full_name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.province.name|default:"N/A" }}</td>
+                                    <td>{{ user.region.name|default:"N/A" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No users are currently online.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Pending Approvals -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="section-header mb-0">
+                        <i class="bi bi-person-check-fill text-warning"></i> Pending Member Approvals
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_approvals %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Club</th>
+                                    <th>Registered</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in pending_approvals %}
+                                <tr>
+                                    <td>{{ member.get_full_name }}</td>
+                                    <td>{{ member.email }}</td>
+                                    <td>{{ member.get_role_display }}</td>
+                                    <td>{{ member.current_club.name|default:"N/A" }}</td>
+                                    <td>{{ member.created|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="{% url 'accounts:member_approvals_list' %}?member_id={{ member.id }}" class="btn btn-sm btn-success">Approve</a>
+                                        <a href="{% url 'accounts:reject_member' member.id %}" class="btn btn-sm btn-danger">Reject</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No pending approvals.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Revenue & Invoicing -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="section-header mb-0">
+                        <i class="bi bi-graph-up text-warning"></i> Revenue & Invoicing
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <h4 class="text-primary">{{ invoice_metrics.total_invoices }}</h4>
+                            <small class="text-muted">Total Invoices</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h4 class="text-warning">{{ invoice_metrics.pending_invoices }}</h4>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h4 class="text-success">{{ invoice_metrics.paid_invoices }}</h4>
+                            <small class="text-muted">Paid</small>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mb-3">Revenue by Invoice Type</h6>
+                    {% for type_data in invoice_by_type %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ type_data.invoice_type }}</span>
+                        <div>
+                            <span class="badge bg-primary me-2">{{ type_data.count }} invoices</span>
+                            <span class="badge bg-success">R {{ type_data.total_amount|floatformat:0 }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="section-header mb-0">
+                        <i class="bi bi-activity text-info"></i> Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    {% for activity in recent_activities %}
+                    <div class="activity-item {{ activity.color }} p-3 mb-3 rounded">
+                        <div class="d-flex align-items-start">
+                            <i class="bi {{ activity.icon }} me-3 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ activity.title }}</h6>
+                                <p class="mb-1 text-muted small">{{ activity.subtitle }}</p>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent activity</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Insights -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="section-header mb-0">
+                        <i class="bi bi-bar-chart text-dark"></i> System Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h5 class="text-success">{{ membership_metrics.total_clubs }}</h5>
+                            <small class="text-muted">Registered Clubs</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5 class="text-warning">{{ membership_metrics.total_players }}</h5>
+                            <small class="text-muted">Registered Players</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5 class="text-info">{{ membership_metrics.total_users }}</h5>
+                            <small class="text-muted">System Users</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5 class="text-secondary">R {{ invoice_metrics.total_revenue|floatformat:0 }}</h5>
+                            <small class="text-muted">Total Revenue</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

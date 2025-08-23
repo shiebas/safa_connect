@@ -45,6 +45,7 @@ class AdminRegistrationForm(BaseRegistrationForm):
     role = forms.ChoiceField(choices=ROLES)
 
 from .models import Transfer, Member
+from .safa_config_models import SAFASeasonConfig
 from geography.models import Club
 
 class TransferRequestForm(forms.ModelForm):
@@ -76,3 +77,32 @@ class TransferRequestForm(forms.ModelForm):
             if member.current_club == to_club:
                 raise forms.ValidationError("A player cannot be transferred to their current club.")
         return cleaned_data
+
+class SAFASeasonConfigForm(forms.ModelForm):
+    class Meta:
+        model = SAFASeasonConfig
+        exclude = ('created_by',)
+        widgets = {
+            'season_year': forms.NumberInput(attrs={'class': 'form-control'}),
+            'season_start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'season_end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'organization_registration_start': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'organization_registration_end': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'member_registration_start': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'member_registration_end': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'vat_rate': forms.NumberInput(attrs={'class': 'form-control'}),
+            'payment_due_days': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_renewal_season': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in self.Meta.widgets: # Only add if not already defined in widgets
+                if isinstance(field.widget, (forms.TextInput, forms.NumberInput, forms.EmailInput, forms.URLInput, forms.Textarea)):
+                    field.widget.attrs['class'] = 'form-control'
+                elif isinstance(field.widget, forms.Select):
+                    field.widget.attrs['class'] = 'form-select'
+                elif isinstance(field.widget, forms.CheckboxInput):
+                    field.widget.attrs['class'] = 'form-check-input'

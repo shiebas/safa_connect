@@ -143,3 +143,40 @@ def generate_membership_card(request, member_id):
     if pisa_status.err:
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
+from .safa_config_models import SAFASeasonConfig
+from .forms import SAFASeasonConfigForm
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+def is_national_admin(user):
+    return user.is_authenticated and user.role == 'ADMIN_NATIONAL'
+
+@login_required
+@user_passes_test(is_national_admin)
+def manage_season_config(request, pk=None):
+    if pk:
+        instance = get_object_or_404(SAFASeasonConfig, pk=pk)
+        title = 'Edit Season Configuration'
+    else:
+        instance = None
+        title = 'Add Season Configuration'
+
+    if request.method == 'POST':
+        form = SAFASeasonConfigForm(request.POST, instance=instance)
+        if form.is_valid():
+            season_config = form.save(commit=False)
+            if not instance:
+                season_config.created_by = request.user
+            season_config.save()
+            messages.success(request, 'Season configuration saved successfully.')
+            return redirect('membership:manage_season_config')
+    else:
+        form = SAFASeasonConfigForm(instance=instance)
+
+    seasons = SAFASeasonConfig.objects.all()
+    context = {
+        'form': form,
+        'seasons': seasons,
+        'title': title
+    }
+    return render(request, 'membership/manage_season_config.html', context)

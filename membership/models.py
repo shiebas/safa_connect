@@ -15,6 +15,7 @@ from model_utils.models import TimeStampedModel
 from decimal import Decimal, ROUND_HALF_UP
 import uuid
 from datetime import date, timedelta
+from .safa_config_models import SAFASeasonConfig, SAFAFeeStructure
 
 # Constants
 MEMBER_ROLES = [
@@ -49,159 +50,10 @@ GIS_AVAILABLE = False
 GEOCODER_AVAILABLE = False
 
 # Models
-class SAFASeasonConfig(models.Model):
-    """Configuration for SAFA seasons and fee structures"""
-    season_year = models.PositiveIntegerField(
-        _("Season Year"),
-        unique=True,
-        help_text=_("The year this season configuration applies to (e.g., 2025)")
-    )
-
-    season_start_date = models.DateField(_("Season Start Date"))
-    season_end_date = models.DateField(_("Season End Date"))
-
-    # Registration periods
-    organization_registration_start = models.DateField(
-        _("Organization Registration Start"),
-        help_text=_("When organizations can start paying membership fees")
-    )
-    organization_registration_end = models.DateField(
-        _("Organization Registration End"),
-        help_text=_("Deadline for organization membership payments")
-    )
-    member_registration_start = models.DateField(
-        _("Member Registration Start"),
-        help_text=_("When individual members can start registering")
-    )
-    member_registration_end = models.DateField(
-        _("Member Registration End"),
-        help_text=_("Deadline for individual member registrations")
-    )
-
-    vat_rate = models.DecimalField(
-        _("VAT Rate"),
-        max_digits=5,
-        decimal_places=4,
-        default=Decimal('0.1500')
-    )
-
-    payment_due_days = models.PositiveIntegerField(_("Payment Due Days"), default=30)
-
-    is_active = models.BooleanField(_("Active Season"), default=False)
-    is_renewal_season = models.BooleanField(
-        _("Renewal Season"),
-        default=False,
-        help_text=_("Generates invoices for all entities when activated")
-    )
-
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name='created_season_configs'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = _("SAFA Season Configuration")
-        verbose_name_plural = _("SAFA Season Configurations")
-        ordering = ['-season_year']
-        indexes = [
-            models.Index(fields=['season_year']),
-            models.Index(fields=['is_active']),
-        ]
-
-    def __str__(self):
-        status = "ACTIVE" if self.is_active else "INACTIVE"
-        return f"SAFA Season {self.season_year} ({status})"
-
-    def save(self, *args, **kwargs):
-        if self.is_active:
-            SAFASeasonConfig.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
-        super().save(*args, **kwargs)
-
-    @classmethod
-    def get_active_season(cls):
-        return cls.objects.filter(is_active=True).first()
-
-    @property
-    def organization_registration_open(self):
-        """Check if organization registration is currently open"""
-        today = timezone.now().date()
-        return self.organization_registration_start <= today <= self.organization_registration_end
-
-    @property
-    def member_registration_open(self):
-        """Check if member registration is currently open"""
-        today = timezone.now().date()
-        return self.member_registration_start <= today <= self.member_registration_end
 
 
-class SAFAFeeStructure(models.Model):
-    """Fee structure for different entity types - organizations and members"""
-    ENTITY_TYPES = [
-        # Organizations (must pay first)
-        ('ASSOCIATION', _('Association')),
-        ('PROVINCE', _('Province')),
-        ('REGION', _('Region')),
-        ('LFA', _('Local Football Association')),
-        ('CLUB', _('Club')),
 
-        # Individual Members (can only register after org is paid)
-        ('PLAYER_JUNIOR', _('Junior Player (Under 18)')),
-        ('PLAYER_SENIOR', _('Senior Player (18+)')),
-        ('OFFICIAL_REFEREE', _('Referee Official')),
-        ('OFFICIAL_COACH', _('Coach Official')),
-        ('OFFICIAL_GENERAL', _('General Official')),
-        ('OFFICIAL_SECRETARY', _('Secretary Official')),
-        ('OFFICIAL_TREASURER', _('Treasurer Official')),
-        ('OFFICIAL_COMMITTEE', _('Committee Member')),
-    ]
 
-    season_config = models.ForeignKey(
-        SAFASeasonConfig,
-        on_delete=models.CASCADE,
-        related_name='fee_structures'
-    )
-    entity_type = models.CharField(_("Entity Type"), max_length=30, choices=ENTITY_TYPES)
-    annual_fee = models.DecimalField(_("Annual Fee (Excl. VAT)"), max_digits=10, decimal_places=2)
-    description = models.TextField(_("Fee Description"), blank=True)
-    is_pro_rata = models.BooleanField(_("Pro-rata Applicable"), default=True)
-    minimum_fee = models.DecimalField(
-        _("Minimum Fee (Excl. VAT)"),
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True
-    )
-
-    is_organization = models.BooleanField(_("Is Organization"), default=False)
-    requires_organization_payment = models.BooleanField(_("Requires Organization Payment"), default=True)
-
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name='created_fee_structures'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = _("SAFA Fee Structure")
-        verbose_name_plural = _("SAFA Fee Structures")
-        unique_together = [('season_config', 'entity_type')]
-        indexes = [
-            models.Index(fields=['season_config', 'entity_type']),
-            models.Index(fields=['is_organization']),
-        ]
-
-    def __str__(self):
-        return f"{self.get_entity_type_display()} - R{self.annual_fee} ({self.season_config.season_year})"
-
-    def save(self, *args, **kwargs):
-        # Auto-set is_organization based on entity_type
-        self.is_organization = self.entity_type in ['ASSOCIATION', 'PROVINCE', 'REGION', 'LFA', 'CLUB']
-        super().save(*args, **kwargs)
 
 
 class Member(TimeStampedModel):
