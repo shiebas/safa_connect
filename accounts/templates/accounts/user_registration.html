@@ -2,7 +2,7 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
-{% block title %}SAFA System Administrator Registration{% endblock %}
+{% block title %}SAFA Member Registration{% endblock %}
 
 {% block content %}
 <div class="container mt-5 mb-5">
@@ -10,7 +10,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header text-center">
-                    <h2>SAFA System Administrator Registration</h2>
+                    <h2>SAFA Member Registration</h2>
                 </div>
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
@@ -29,5 +29,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/national_registration.js' %}"></script>
+<script src="{% static 'js/registration.js' %}"></script>
 {% endblock %}

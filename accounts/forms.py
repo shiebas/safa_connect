@@ -12,6 +12,7 @@ from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, R
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association, Country
 from django.db.models import Q
 from membership.models import Member
+from geography.models import Country, Province, Region, LocalFootballAssociation, Club
 from .utils import extract_sa_id_dob_gender
 
 
@@ -283,58 +284,67 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         return cleaned_data
 
 
-class RegistrationForm(UserCreationForm):
-    # Personal information
-    first_name = forms.CharField(max_length=150, required=True)
-    last_name = forms.CharField(max_length=150, required=True)
-    date_of_birth = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'}),
-        required=True
+class RegistrationForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+    role = forms.ChoiceField(
+        choices=[
+            ('PLAYER', 'Player'),
+            ('OFFICIAL', 'Official'),
+        ],
+        required=True,
+        label="I am a..."
     )
-    gender = forms.ChoiceField(choices=[('', 'Select gender')] + list(CustomUser._meta.get_field('gender').choices), required=True)
-
-    # Identification
-    id_document_type = forms.ChoiceField(
-        choices=CustomUser._meta.get_field('id_document_type').choices,
-        required=True
-    )
-    id_number = forms.CharField(max_length=13, required=False)
-    passport_number = forms.CharField(max_length=25, required=False)
-
-    # Location
     country = forms.ModelChoiceField(
         queryset=Country.objects.all(),
-        required=True,
-        empty_label="Select country"
+        required=False,
+        label="Country",
     )
-
-    # Profile photo
-    profile_picture = forms.ImageField(required=False)
+    province = forms.ModelChoiceField(
+        queryset=Province.objects.all(),
+        required=False,
+    )
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.none(),
+        required=False,
+    )
+    lfa = forms.ModelChoiceField(
+        queryset=LocalFootballAssociation.objects.none(),
+        required=False,
+        label="Local Football Association"
+    )
+    club = forms.ModelChoiceField(
+        queryset=Club.objects.none(),
+        required=False,
+    )
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name',
-                  'date_of_birth', 'gender',
-                  'id_document_type', 'id_number', 'passport_number',
-                  'profile_picture', 'phone_number', 'safa_id', 'fifa_id',
-                  'country_code', 'nationality', 'popi_act_consent',
-                  'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
-                  'street_address', 'suburb', 'city', 'state', 'postal_code',
-                  'national_federation', 'province', 'region', 'local_federation', 'club', 'association', 'mother_body']
+        fields = ['first_name', 'last_name', 'email', 'id_number', 'passport_number',
+                  'date_of_birth', 'gender', 'profile_picture', 'id_document',
+                  'popi_act_consent', 'country_code', 'nationality']
 
-    def clean(self):
-        cleaned_data = super().clean()
-        id_document_type = cleaned_data.get('id_document_type')
-        id_number = cleaned_data.get('id_number')
-        passport_number = cleaned_data.get('passport_number')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            south_africa = Country.objects.get(name='South Africa')
+            self.fields['country'].initial = south_africa
+        except Country.DoesNotExist:
+            pass
 
-        # Validate identification based on document type
-        if id_document_type == 'PP' and not passport_number:
-            self.add_error('passport_number', 'Passport number is required when document type is Passport')
-        elif id_document_type == 'ID' and not id_number:
-            self.add_error('id_number', 'ID number is required for this document type')
+    def clean_password2(self):
+        password = self.cleaned_data.get("password")
+        password2 = self.cleaned_data.get("password2")
+        if password and password2 and password != password2:
+            raise forms.ValidationError("Passwords don't match.")
+        return password2
 
-        return cleaned_data
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit:
+            user.save()
+        return user
 
 
 class ClubAdminAddPlayerForm(forms.ModelForm):
