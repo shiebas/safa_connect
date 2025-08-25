@@ -335,17 +335,65 @@ class RegistrationForm(forms.ModelForm):
         except Country.DoesNotExist:
             pass
 
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'role',
+            'first_name',
+            'last_name',
+            'email',
+            'id_document_type',
+            Div(
+                'id_number',
+                HTML('<div id="id-validation-message" class="mt-1 small"></div>'), # Placeholder for JS validation messages
+                css_id='id_number_box',
+                css_class='id-number-field',
+                style='display:none;' # Hidden by default, shown by JS
+            ),
+            Div(
+                'passport_number',
+                css_id='passport_box',
+                css_class='passport-field',
+                style='display:none;' # Hidden by default, shown by JS
+            ),
+            'date_of_birth',
+            'gender',
+            'profile_picture',
+            'id_document',
+            'country_code',
+            'nationality',
+            'popi_act_consent',
+            'password',
+            'password2',
+            'country',
+            'province',
+            'region',
+            'lfa',
+            'club',
+        )
+
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name')
-        if first_name and not re.match(r"^[A-Za-z\s'-]+$", first_name):
-            raise forms.ValidationError("First name can only contain letters, spaces, hyphens, and apostrophes.")
+        if first_name:
+            if len(first_name) < 3:
+                raise forms.ValidationError("First name must be at least 3 characters long.")
+            if not re.match(r"^[A-Za-z\s'-]+$", first_name):
+                raise forms.ValidationError("First name can only contain letters, spaces, hyphens, and apostrophes.")
         return first_name
 
     def clean_last_name(self):
         last_name = self.cleaned_data.get('last_name')
-        if last_name and not re.match(r"^[A-Za-z\s'-]+$", last_name):
-            raise forms.ValidationError("Last name can only contain letters, spaces, hyphens, and apostrophes.")
+        if last_name:
+            if len(last_name) < 3:
+                raise forms.ValidationError("Last name must be at least 3 characters long.")
+            if not re.match(r"^[A-Za-z\s'-]+$", last_name):
+                raise forms.ValidationError("Last name can only contain letters, spaces, hyphens, and apostrophes.")
         return last_name
+
+    def clean_id_number(self):
+        id_number = self.cleaned_data.get('id_number')
+        if id_number and CustomUser.objects.filter(id_number=id_number).exists():
+            raise forms.ValidationError("A user with this ID number already exists.")
+        return id_number
 
     def clean_password2(self):
         password = self.cleaned_data.get("password")
