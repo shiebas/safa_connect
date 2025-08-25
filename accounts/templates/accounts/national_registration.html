@@ -16,6 +16,11 @@
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         {{ form|crispy }}
+                        {% if not form.helper.inputs %}
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                            </div>
+                        {% endif %}
                     </form>
                 </div>
             </div>

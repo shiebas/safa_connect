@@ -144,12 +144,7 @@ class NationalAdminRegistrationForm(forms.ModelForm):
                     css_class='form-row'
                 )
             ),
-            'popi_act_consent',
-            HTML('<div class="text-center mt-4">'),
-            ButtonHolder(
-                Submit('submit', 'Register', css_class='btn btn-primary btn-lg')
-            ),
-            HTML('</div>')
+            'popi_act_consent'
         )
 
     def clean_first_name(self):
