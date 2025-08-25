@@ -137,30 +137,35 @@ class NationalAdminRegistrationForm(forms.ModelForm):
                 'id_document'
             ),
             Fieldset(
-                'Security & Compliance',
+                'Security',
                 Row(
                     Column('password', css_class='form-group col-md-6 mb-0'),
                     Column('password2', css_class='form-group col-md-6 mb-0'),
                     css_class='form-row'
-                ),
-                'popi_act_consent'
-            )
+                )
+            ),
+            'popi_act_consent',
+            HTML('<div class="text-center mt-4">'),
+            ButtonHolder(
+                Submit('submit', 'Register', css_class='btn btn-primary btn-lg')
+            ),
+            HTML('</div>')
         )
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name')
         if len(first_name) < 3:
             raise forms.ValidationError("First name must be at least 3 characters long.")
-        if not first_name.isalpha():
-            raise forms.ValidationError("First name must only contain letters.")
+        if not re.match(r"^[a-zA-Z\s'-]+$", first_name):
+            raise forms.ValidationError("First name can only contain letters, spaces, hyphens, and apostrophes.")
         return first_name
 
     def clean_last_name(self):
         last_name = self.cleaned_data.get('last_name')
         if len(last_name) < 3:
             raise forms.ValidationError("Last name must be at least 3 characters long.")
-        if not last_name.isalpha():
-            raise forms.ValidationError("Last name must only contain letters.")
+        if not re.match(r"^[a-zA-Z\s'-]+$", last_name):
+            raise forms.ValidationError("Last name can only contain letters, spaces, hyphens, and apostrophes.")
         return last_name
 
     def clean_phone_number(self):
