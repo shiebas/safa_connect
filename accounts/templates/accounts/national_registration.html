@@ -16,11 +16,9 @@
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         {{ form|crispy }}
-                        {% if not form.helper.inputs %}
-                            <div class="text-center mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg">Register</button>
-                            </div>
-                        {% endif %}
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -31,5 +29,119 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/national_registration.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const organizationType = document.getElementById('id_organization_type');
+    const provinceField = document.getElementById('province-field');
+    const regionField = document.getElementById('region-field');
+    const lfaField = document.getElementById('lfa-field');
+    const clubField = document.getElementById('club-field');
+
+    const idDocumentType = document.getElementById('id_id_document_type');
+    const saIdContainer = document.getElementById('sa-id-container');
+    const passportContainer = document.getElementById('passport-container');
+    const dobGenderManualRow = document.getElementById('dob-gender-manual-row');
+
+    function toggleFields() {
+        const selectedOrgTypeId = organizationType.value;
+
+        if (selectedOrgTypeId) {
+            // Fetch the organization type name from the server
+            fetch(`/api/organization-type-name/${selectedOrgTypeId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const orgTypeName = data.name.toUpperCase();
+
+                    provinceField.style.display = 'none';
+                    regionField.style.display = 'none';
+                    lfaField.style.display = 'none';
+                    clubField.style.display = 'none';
+
+                    if (orgTypeName.includes('PROVINCE')) {
+                        provinceField.style.display = 'block';
+                    } else if (orgTypeName.includes('REGION')) {
+                        provinceField.style.display = 'block';
+                        regionField.style.display = 'block';
+                    } else if (orgTypeName.includes('LFA') || orgTypeName.includes('LOCAL')) {
+                        provinceField.style.display = 'block';
+                        regionField.style.display = 'block';
+                        lfaField.style.display = 'block';
+                    } else if (orgTypeName.includes('CLUB')) {
+                        provinceField.style.display = 'block';
+                        regionField.style.display = 'block';
+                        lfaField.style.display = 'block';
+                        clubField.style.display = 'block';
+                    }
+                });
+        } else {
+            provinceField.style.display = 'none';
+            regionField.style.display = 'none';
+            lfaField.style.display = 'none';
+            clubField.style.display = 'none';
+        }
+    }
+
+    function updateRegions() {
+        const provinceId = document.getElementById('id_province').value;
+        const regionSelect = document.getElementById('id_region');
+        regionSelect.innerHTML = '<option value="">---------</option>';
+
+        if (provinceId) {
+            fetch(`/api/regions-for-province/${provinceId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(region => {
+                        const option = new Option(region.name, region.id);
+                        regionSelect.add(option);
+                    });
+                });
+        }
+    }
+
+    function updateLfas() {
+        const regionId = document.getElementById('id_region').value;
+        const lfaSelect = document.getElementById('id_local_federation');
+        lfaSelect.innerHTML = '<option value="">---------</option>';
+
+        if (regionId) {
+            fetch(`/api/lfas-for-region/${regionId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(lfa => {
+                        const option = new Option(lfa.name, lfa.id);
+                        lfaSelect.add(option);
+                    });
+                });
+        }
+    }
+
+    function updateClubs() {
+        const lfaId = document.getElementById('id_local_federation').value;
+        const clubSelect = document.getElementById('id_club');
+        clubSelect.innerHTML = '<option value="">---------</option>';
+
+        if (lfaId) {
+            fetch(`/api/clubs-for-lfa/${lfaId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(club => {
+                        const option = new Option(club.name, club.id);
+                        clubSelect.add(option);
+                    });
+                });
+        }
+    }
+
+    organizationType.addEventListener('change', toggleFields);
+    idDocumentType.addEventListener('change', toggleIdFields);
+    document.getElementById('id_province').addEventListener('change', updateRegions);
+    document.getElementById('id_region').addEventListener('change', updateLfas);
+    document.getElementById('id_local_federation').addEventListener('change', updateClubs);
+
+    // Initial setup
+    toggleFields();
+    toggleIdFields();
+});
+</script>
+<script src="{% static 'js/national_registration_validation.js' %}"></script>
 {% endblock %}
