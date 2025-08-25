@@ -241,7 +241,7 @@ $(document).ready(function() {
 
         if (input.value && !nameRegex.test(input.value)) {
             const originalValue = input.value;
-            input.value = originalValue.replace(/[^A-Za-z\s'-]/g, '');
+            // input.value = originalValue.replace(/[^A-Za-z\s'-]/g, ''); // Removed this line as it was silently removing invalid characters
 
             if (!errorDiv.length) {
                 $(input).after('<div class="invalid-feedback d-block">Only letters, spaces, hyphens, and apostrophes are allowed.</div>');
