@@ -335,6 +335,18 @@ class RegistrationForm(forms.ModelForm):
         except Country.DoesNotExist:
             pass
 
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if first_name and not re.match(r"^[A-Za-z\s'-]+$", first_name):
+            raise forms.ValidationError("First name can only contain letters, spaces, hyphens, and apostrophes.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if last_name and not re.match(r"^[A-Za-z\s'-]+$", last_name):
+            raise forms.ValidationError("Last name can only contain letters, spaces, hyphens, and apostrophes.")
+        return last_name
+
     def clean_password2(self):
         password = self.cleaned_data.get("password")
         password2 = self.cleaned_data.get("password2")

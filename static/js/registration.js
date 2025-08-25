@@ -233,6 +233,33 @@ $(document).ready(function() {
     }
     const emailErrorDiv = $('#email-exists-error');
 
+    // Name validation
+    function validateNameInput(event) {
+        const input = event.target;
+        const nameRegex = /^[A-Za-z\s'-]+$/;
+        const errorDiv = $(input).next('.invalid-feedback');
+
+        if (input.value && !nameRegex.test(input.value)) {
+            const originalValue = input.value;
+            input.value = originalValue.replace(/[^A-Za-z\s'-]/g, '');
+
+            if (!errorDiv.length) {
+                $(input).after('<div class="invalid-feedback d-block">Only letters, spaces, hyphens, and apostrophes are allowed.</div>');
+            } else {
+                errorDiv.text('Only letters, spaces, hyphens, and apostrophes are allowed.').show();
+            }
+            $(input).addClass('is-invalid');
+        } else {
+            if (errorDiv.length) {
+                errorDiv.hide();
+            }
+            $(input).removeClass('is-invalid');
+        }
+    }
+
+    $('#id_first_name').on('input', validateNameInput);
+    $('#id_last_name').on('input', validateNameInput);
+
     // Change 'blur' to 'input' for real-time checking
     emailField.on('input', function() {
         const email = emailField.val().trim();
