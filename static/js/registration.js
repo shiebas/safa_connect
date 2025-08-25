@@ -325,14 +325,32 @@ $(document).ready(function() {
         }).trigger('change'); // Trigger on page load
         
         // Add dependent dropdowns for geographical hierarchy
+        $('#id_country').change(function() {
+            const countryId = $(this).val();
+            const $provinceSelect = $('#id_province');
+            $provinceSelect.empty().append('<option value="">---------</option>');
+            $('#id_region').empty().append('<option value="">---------</option>');
+            $('#id_local_federation').empty().append('<option value="">---------</option>');
+            $('#id_club').empty().append('<option value="">---------</option>');
+
+            if (countryId) {
+                $.getJSON(`/geography/api/provinces/?country=${countryId}`, function(provinces) {
+                    provinces.forEach(function(province) {
+                        $provinceSelect.append(`<option value="${province.id}">${province.name}</option>`);
+                    });
+                });
+            }
+        });
+
         $('#id_province').change(function() {
             const provinceId = $(this).val();
+            const $regionSelect = $('#id_region');
+            $regionSelect.empty().append('<option value="">---------</option>');
+            $('#id_local_federation').empty().append('<option value="">---------</option>');
+            $('#id_club').empty().append('<option value="">---------</option>');
+
             if (provinceId) {
-                // If a province is selected, filter the regions dropdown
-                $.getJSON(`/geography/api/regions-by-province/${provinceId}/`, function(regions) {
-                    const $regionSelect = $('#id_region');
-                    $regionSelect.empty().append('<option value="">---------</option>');
-                    
+                $.getJSON(`/geography/api/regions/?province=${provinceId}`, function(regions) {
                     regions.forEach(function(region) {
                         $regionSelect.append(`<option value="${region.id}">${region.name}</option>`);
                     });
@@ -342,14 +360,28 @@ $(document).ready(function() {
         
         $('#id_region').change(function() {
             const regionId = $(this).val();
+            const $lfaSelect = $('#id_local_federation');
+            $lfaSelect.empty().append('<option value="">---------</option>');
+            $('#id_club').empty().append('<option value="">---------</option>');
+
             if (regionId) {
-                // If a region is selected, filter the LFAs dropdown
-                $.getJSON(`/geography/api/lfas-by-region/${regionId}/`, function(lfas) {
-                    const $lfaSelect = $('#id_local_federation');
-                    $lfaSelect.empty().append('<option value="">---------</option>');
-                    
+                $.getJSON(`/geography/api/lfas/?region=${regionId}`, function(lfas) {
                     lfas.forEach(function(lfa) {
                         $lfaSelect.append(`<option value="${lfa.id}">${lfa.name}</option>`);
+                    });
+                });
+            }
+        });
+
+        $('#id_local_federation').change(function() {
+            const lfaId = $(this).val();
+            const $clubSelect = $('#id_club');
+            $clubSelect.empty().append('<option value="">---------</option>');
+
+            if (lfaId) {
+                $.getJSON(`/geography/api/clubs/?lfa=${lfaId}`, function(clubs) {
+                    clubs.forEach(function(club) {
+                        $clubSelect.append(`<option value="${club.id}">${club.name}</option>`);
                     });
                 });
             }

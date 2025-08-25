@@ -14,14 +14,14 @@ from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
 from django.core.paginator import Paginator
 
-from geography.models import Club, LocalFootballAssociation, Region, Province
+from geography.models import Club, LocalFootballAssociation, Region, Province, NationalFederation, Country
 from membership.models import Member, Invoice
 from .utils import send_welcome_email, send_rejection_email, send_approval_email, send_support_request_email, get_dashboard_stats
 
 from .forms import (
     PlayerForm, NationalAdminRegistrationForm, RejectMemberForm,
     ClubAdminAddPlayerForm, MemberApprovalForm, AdvancedMemberSearchForm, ModernContactForm,
-    ProfileForm, SettingsForm, UpdateProfilePhotoForm
+    ProfileForm, SettingsForm, UpdateProfilePhotoForm, RegistrationForm
 )
 from .models import CustomUser, OrganizationType, Position, UserRole, Notification
 from .utils import generate_unique_safa_id
@@ -39,78 +39,53 @@ def modern_home(request):
     return render(request, 'accounts/modern_home.html')
 
 
-def national_registration(request):
+def user_registration(request):
     if request.method == 'POST':
-        form = NationalAdminRegistrationForm(request.POST, request.FILES)
+        form = RegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            id_number = form.cleaned_data.get('id_number')
-            if id_number and CustomUser.objects.filter(id_number=id_number).exists():
-                messages.error(request, f"A user with ID number {id_number} already exists.")
-                return render(request, 'accounts/national_registration.html', {'form': form})
-
-            safa_id = generate_unique_safa_id()
-
-            # Create CustomUser object but don't save yet
             user = form.save(commit=False)
-            user.safa_id = safa_id
-            user.set_password(form.cleaned_data['password'])
 
-            # Set the legacy role based on organization type
-            org_type = form.cleaned_data['organization_type']
-            if org_type.name == 'National Federation':
-                user.role = 'ADMIN_NATIONAL'
-            elif org_type.name == 'Province':
-                user.role = 'ADMIN_PROVINCE'
-                user.province = form.cleaned_data.get('province')
-            elif org_type.name == 'Region':
-                user.role = 'ADMIN_REGION'
-                user.region = form.cleaned_data.get('region')
-            elif org_type.name == 'Local Football Association':
-                user.role = 'ADMIN_LOCAL_FED'
-                user.local_federation = form.cleaned_data.get('local_federation')
-            elif org_type.name == 'Club':
-                user.role = 'CLUB_ADMIN'
-                user.club = form.cleaned_data.get('club')
+            if not user.safa_id:
+                user.safa_id = generate_unique_safa_id()
 
-            # Set user status to pending approval
             user.membership_status = 'PENDING'
-            user.is_active = True # User can login but will be restricted by status
+            user.is_active = True
             user.save()
 
             login(request, user)
 
-            # Create the corresponding Member profile
+            national_federation = NationalFederation.objects.first()
+            if not national_federation:
+                country = Country.objects.first()
+                if not country:
+                    country = Country.objects.create(name='South Africa')
+                national_federation = NationalFederation.objects.create(name='SAFA', country=country)
             Member.objects.create(
                 user=user,
-                safa_id=safa_id,
+                safa_id=user.safa_id,
                 first_name=user.first_name,
                 last_name=user.last_name,
                 email=user.email,
-                role='ADMIN', # All admins are of role 'ADMIN' in the Member model
+                role=form.cleaned_data['role'],
                 status='PENDING',
-                # Add other relevant fields from the form
                 date_of_birth=user.date_of_birth,
                 gender=user.gender,
                 id_number=user.id_number,
                 passport_number=user.passport_number,
-                current_club=form.cleaned_data.get('club'),
+                national_federation=national_federation,
                 province=form.cleaned_data.get('province'),
                 region=form.cleaned_data.get('region'),
-                lfa=form.cleaned_data.get('local_federation'),
-            )
-
-            # Create the UserRole
-            UserRole.objects.create(
-                user=user,
-                organization=org_type,
-                position=form.cleaned_data['position']
+                lfa=form.cleaned_data.get('lfa'),
+                current_club=form.cleaned_data.get('club'),
             )
 
             messages.success(request, 'Registration successful. Your application is pending approval.')
             return redirect('accounts:home')
     else:
-        form = NationalAdminRegistrationForm()
-    return render(request, 'accounts/national_registration.html', {'form': form})
+        form = RegistrationForm()
+    return render(request, 'accounts/user_registration.html', {'form': form})
+
+
 
 
 # Placeholder functions for missing utilities
