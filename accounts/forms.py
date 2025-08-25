@@ -60,8 +60,8 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         fields = [
             'first_name', 'last_name', 'email', 'phone_number', 'id_document_type', 'id_number', 'passport_number',
             'date_of_birth', 'gender', 'profile_picture', 'id_document',
-            'popi_act_consent', 'organization_type', 'position', 'province',
-            'region', 'local_federation', 'club', 'password', 'password2'
+            'organization_type', 'position', 'province',
+            'region', 'local_federation', 'club', 'popi_act_consent', 'password', 'password2'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -285,8 +285,8 @@ class NationalAdminRegistrationForm(forms.ModelForm):
 
 
 class RegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+    
+    
     role = forms.ChoiceField(
         choices=[
             ('PLAYER', 'Player'),
@@ -318,11 +318,14 @@ class RegistrationForm(forms.ModelForm):
         required=False,
     )
 
+    password = forms.CharField(widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'id_number', 'passport_number',
                   'date_of_birth', 'gender', 'profile_picture', 'id_document',
-                  'popi_act_consent', 'country_code', 'nationality']
+                   'country_code', 'nationality', 'popi_act_consent']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
