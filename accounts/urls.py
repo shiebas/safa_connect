@@ -64,4 +64,11 @@ urlpatterns = [
     path('lfa-admin-dashboard/', views.lfa_admin_dashboard, name='lfa_admin_dashboard'),
     path('club-admin-dashboard/', views.club_admin_dashboard, name='club_admin_dashboard'),
     path('update-organization-status/', views.update_organization_status, name='update_organization_status'),
+
+    # API endpoints for registration form
+    path('api/organization-type-name/<int:org_type_id>/', views.get_organization_type_name, name='get_organization_type_name'),
+    path('api/regions-for-province/<int:province_id>/', views.get_regions_for_province, name='get_regions_for_province'),
+    path('api/lfas-for-region/<int:region_id>/', views.get_lfas_for_region, name='get_lfas_for_region'),
+    path('api/clubs-for-lfa/<int:lfa_id>/', views.get_clubs_for_lfa, name='get_clubs_for_lfa'),
+    path('ajax/check-email/', views.check_email, name='check_email'),
 ]

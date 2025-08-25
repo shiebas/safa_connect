@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %}SAFA System Administrator Registration{% endblock %}
 
@@ -14,64 +15,7 @@
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
-
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                <strong>Please correct the errors below:</strong>
-                                <ul>
-                                    {% for field, errors in form.errors.items %}
-                                        {% for error in errors %}
-                                            <li>{{ field|escape }}: {{ error|escape }}</li>
-                                        {% endfor %}
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
-
-                        <fieldset>
-                            <legend>Personal Information</legend>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">{{ form.first_name.label_tag }} {{ form.first_name }}</div>
-                                <div class="col-md-6 mb-3">{{ form.last_name.label_tag }} {{ form.last_name }}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">{{ form.email.label_tag }} {{ form.email }}</div>
-                                <div class="col-md-6 mb-3">{{ form.phone_number.label_tag }} {{ form.phone_number }}</div>
-                            </div>
-                             <div class="mb-3">{{ form.profile_picture.label_tag }} {{ form.profile_picture }}</div>
-                        </fieldset>
-
-                        <fieldset>
-                            <legend>Organization Information</legend>
-                            <div class="mb-3">{{ form.organization_type.label_tag }} {{ form.organization_type }}</div>
-                            <div class="mb-3">{{ form.position.label_tag }} {{ form.position }}</div>
-                            <div class="mb-3" id="province-field" style="display:none;">{{ form.province.label_tag }} {{ form.province }}</div>
-                            <div class="mb-3" id="region-field" style="display:none;">{{ form.region.label_tag }} {{ form.region }}</div>
-                            <div class="mb-3" id="lfa-field" style="display:none;">{{ form.local_federation.label_tag }} {{ form.local_federation }}</div>
-                            <div class="mb-3" id="club-field" style="display:none;">{{ form.club.label_tag }} {{ form.club }}</div>
-                        </fieldset>
-
-                        <fieldset>
-                            <legend>Document Information</legend>
-                            <div class="mb-3">{{ form.id_document_type.label_tag }} {{ form.id_document_type }}</div>
-                            <div class="mb-3" id="sa-id-container">{{ form.id_number.label_tag }} {{ form.id_number }}</div>
-                            <div class="mb-3" id="passport-container" style="display:none;">{{ form.passport_number.label_tag }} {{ form.passport_number }}</div>
-                            <div class="row mb-3" id="dob-gender-manual-row" style="display:none;">
-                                <div class="col-md-6">{{ form.date_of_birth.label_tag }} {{ form.date_of_birth }}</div>
-                                <div class="col-md-6">{{ form.gender.label_tag }} {{ form.gender }}</div>
-                            </div>
-                            <div class="mb-3">{{ form.id_document.label_tag }} {{ form.id_document }}</div>
-                        </fieldset>
-
-                        <fieldset>
-                            <legend>Security & Compliance</legend>
-                             <div class="row">
-                                <div class="col-md-6 mb-3">{{ form.password.label_tag }} {{ form.password }}</div>
-                                <div class="col-md-6 mb-3">{{ form.password2.label_tag }} {{ form.password2 }}</div>
-                            </div>
-                            <div class="mb-3">{{ form.popi_act_consent.label_tag }} {{ form.popi_act_consent }}</div>
-                        </fieldset>
-
+                        {{ form|crispy }}
                         <div class="text-center mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">Register</button>
                         </div>
@@ -82,13 +26,122 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
-// This script block is intentionally left minimal to ensure form submission is not blocked.
-// The dynamic showing/hiding of fields is removed for this debugging step.
-// All validation will be handled by the server.
 document.addEventListener('DOMContentLoaded', function() {
-    // The dynamic field logic has been temporarily removed to guarantee submission.
-    // We can add it back once we confirm the form submits correctly.
+    const organizationType = document.getElementById('id_organization_type');
+    const provinceField = document.getElementById('province-field');
+    const regionField = document.getElementById('region-field');
+    const lfaField = document.getElementById('lfa-field');
+    const clubField = document.getElementById('club-field');
+
+    const idDocumentType = document.getElementById('id_id_document_type');
+    const saIdContainer = document.getElementById('sa-id-container');
+    const passportContainer = document.getElementById('passport-container');
+    const dobGenderManualRow = document.getElementById('dob-gender-manual-row');
+
+    function toggleFields() {
+        const selectedOrgTypeId = organizationType.value;
+
+        if (selectedOrgTypeId) {
+            // Fetch the organization type name from the server
+            fetch(`/api/organization-type-name/${selectedOrgTypeId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const orgTypeName = data.name.toUpperCase();
+
+                    provinceField.style.display = 'none';
+                    regionField.style.display = 'none';
+                    lfaField.style.display = 'none';
+                    clubField.style.display = 'none';
+
+                    if (orgTypeName.includes('PROVINCE')) {
+                        provinceField.style.display = 'block';
+                    } else if (orgTypeName.includes('REGION')) {
+                        provinceField.style.display = 'block';
+                        regionField.style.display = 'block';
+                    } else if (orgTypeName.includes('LFA') || orgTypeName.includes('LOCAL')) {
+                        provinceField.style.display = 'block';
+                        regionField.style.display = 'block';
+                        lfaField.style.display = 'block';
+                    } else if (orgTypeName.includes('CLUB')) {
+                        provinceField.style.display = 'block';
+                        regionField.style.display = 'block';
+                        lfaField.style.display = 'block';
+                        clubField.style.display = 'block';
+                    }
+                });
+        } else {
+            provinceField.style.display = 'none';
+            regionField.style.display = 'none';
+            lfaField.style.display = 'none';
+            clubField.style.display = 'none';
+        }
+    }
+
+    function updateRegions() {
+        const provinceId = document.getElementById('id_province').value;
+        const regionSelect = document.getElementById('id_region');
+        regionSelect.innerHTML = '<option value="">---------</option>';
+
+        if (provinceId) {
+            fetch(`/api/regions-for-province/${provinceId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(region => {
+                        const option = new Option(region.name, region.id);
+                        regionSelect.add(option);
+                    });
+                });
+        }
+    }
+
+    function updateLfas() {
+        const regionId = document.getElementById('id_region').value;
+        const lfaSelect = document.getElementById('id_local_federation');
+        lfaSelect.innerHTML = '<option value="">---------</option>';
+
+        if (regionId) {
+            fetch(`/api/lfas-for-region/${regionId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(lfa => {
+                        const option = new Option(lfa.name, lfa.id);
+                        lfaSelect.add(option);
+                    });
+                });
+        }
+    }
+
+    function updateClubs() {
+        const lfaId = document.getElementById('id_local_federation').value;
+        const clubSelect = document.getElementById('id_club');
+        clubSelect.innerHTML = '<option value="">---------</option>';
+
+        if (lfaId) {
+            fetch(`/api/clubs-for-lfa/${lfaId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(club => {
+                        const option = new Option(club.name, club.id);
+                        clubSelect.add(option);
+                    });
+                });
+        }
+    }
+
+    organizationType.addEventListener('change', toggleFields);
+    idDocumentType.addEventListener('change', toggleIdFields);
+    document.getElementById('id_province').addEventListener('change', updateRegions);
+    document.getElementById('id_region').addEventListener('change', updateLfas);
+    document.getElementById('id_local_federation').addEventListener('change', updateClubs);
+
+    // Initial setup
+    toggleFields();
+    toggleIdFields();
 });
 </script>
+<script src="{% static 'js/national_registration_validation.js' %}"></script>
 {% endblock %}

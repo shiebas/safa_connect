@@ -49,7 +49,7 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         required=False,
     )
     id_document_type = forms.ChoiceField(
-        choices=CustomUser.ID_DOCUMENT_TYPE_CHOICES,
+        choices=[('ID', 'ID Number'), ('PP', 'Passport')],
         required=True,
         label="ID Document Type"
     )
@@ -65,6 +65,13 @@ class NationalAdminRegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({'class': 'form-select'})
+            elif isinstance(field.widget, forms.DateInput):
+                field.widget.attrs.update({'class': 'form-control', 'type': 'date'})
+            else:
+                field.widget.attrs.update({'class': 'form-control'})
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
@@ -79,6 +86,7 @@ class NationalAdminRegistrationForm(forms.ModelForm):
                     Column('phone_number', css_class='form-group col-md-6 mb-0'),
                     css_class='form-row'
                 ),
+                Div(id='email-validation-message', css_class='mt-1 small'),
                 'profile_picture',
             ),
             Fieldset(
@@ -113,6 +121,7 @@ class NationalAdminRegistrationForm(forms.ModelForm):
                     'id_number',
                     id='sa-id-container'
                 ),
+                Div(id='id-validation-message', css_class='mt-1 small'),
                 Div(
                     'passport_number',
                     id='passport-container',

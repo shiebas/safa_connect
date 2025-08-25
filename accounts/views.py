@@ -213,20 +213,17 @@ def club_admin_add_player(request):
     return render(request, 'accounts/club_admin_add_player.html', context)
 
 
-def get_regions_for_province(request):
-    province_id = request.GET.get('province_id')
+def get_regions_for_province(request, province_id):
     regions = Region.objects.filter(province_id=province_id).order_by('name')
     return JsonResponse(list(regions.values('id', 'name')), safe=False)
 
 
-def get_lfas_for_region(request):
-    region_id = request.GET.get('region_id')
+def get_lfas_for_region(request, region_id):
     lfas = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
     return JsonResponse(list(lfas.values('id', 'name')), safe=False)
 
 
-def get_clubs_for_lfa(request):
-    lfa_id = request.GET.get('lfa_id')
+def get_clubs_for_lfa(request, lfa_id):
     clubs = Club.objects.filter(localfootballassociation_id=lfa_id).order_by('name')
     return JsonResponse(list(clubs.values('id', 'name')), safe=False)
 
@@ -692,3 +689,15 @@ def lfa_admin_dashboard(request):
 @login_required
 def club_admin_dashboard(request):
     return render(request, 'accounts/club_admin_dashboard.html')
+
+def get_organization_type_name(request, org_type_id):
+    org_type = get_object_or_404(OrganizationType, id=org_type_id)
+    return JsonResponse({'name': org_type.name})
+
+@require_GET
+def check_email(request):
+    email = request.GET.get('email', None)
+    if email:
+        exists = CustomUser.objects.filter(email=email).exists()
+        return JsonResponse({'exists': exists})
+    return JsonResponse({'exists': False})
