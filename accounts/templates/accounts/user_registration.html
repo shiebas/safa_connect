@@ -30,4 +30,75 @@
 
 {% block extra_js %}
 <script src="{% static 'js/registration.js' %}"></script>
+<script src="{% static 'js/sa_id_validation.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const docTypeField = document.getElementById('id_id_document_type');
+    const saIdField = document.querySelector('.sa-id-field');
+    const passportField = document.querySelector('.passport-field');
+    const dobField = document.getElementById('id_date_of_birth');
+    const genderField = document.getElementById('id_gender');
+    const dobRow = document.getElementById('dob-gender-manual-row');
+
+    function toggleDocumentFields() {
+        const selectedType = docTypeField.value;
+        if (selectedType === 'ID') {
+            if (saIdField) saIdField.style.display = 'block';
+            if (passportField) passportField.style.display = 'none';
+            if (dobRow) dobRow.style.display = 'none';
+            if (dobField) dobField.readOnly = true;
+            if (genderField) genderField.readOnly = true;
+        } else if (selectedType === 'PP') {
+            if (saIdField) saIdField.style.display = 'none';
+            if (passportField) passportField.style.display = 'block';
+            if (dobRow) dobRow.style.display = 'flex';
+            if (dobField) dobField.readOnly = false;
+            if (genderField) genderField.readOnly = false;
+        } else {
+            if (saIdField) saIdField.style.display = 'none';
+            if (passportField) passportField.style.display = 'none';
+            if (dobRow) dobRow.style.display = 'none';
+            if (dobField) dobField.readOnly = true;
+            if (genderField) genderField.readOnly = true;
+        }
+    }
+
+    if (docTypeField) {
+        docTypeField.addEventListener('change', toggleDocumentFields);
+        toggleDocumentFields(); // Initialize on page load
+    }
+});
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const idNumberField = document.getElementById('id_id_number');
+        const idValidationMessage = document.getElementById('id-validation-message');
+        const dobField = document.getElementById('id_date_of_birth');
+        const genderField = document.getElementById('id_gender');
+
+        function validateIDNumber() {
+            const idNumber = idNumberField.value;
+            const validationResult = validateSAIDNumber(idNumber);
+
+            if (validationResult.isValid) {
+                idValidationMessage.textContent = '';
+                idValidationMessage.classList.remove('text-danger');
+                idValidationMessage.classList.add('text-success');
+                idValidationMessage.textContent = `Valid ID. DOB: ${formatDateYMD(validationResult.dateOfBirth)}, Gender: ${validationResult.gender}, Citizenship: ${validationResult.citizenship}`;
+                dobField.value = formatDateYMD(validationResult.dateOfBirth);
+                genderField.value = validationResult.gender;
+            } else {
+                idValidationMessage.textContent = '';
+                idValidationMessage.classList.remove('text-success');
+                idValidationMessage.classList.add('text-danger');
+                idValidationMessage.textContent = validationResult.errorMessage;
+            }
+        }
+
+        // Add event listener for ID number field
+        if (idNumberField) {
+            idNumberField.addEventListener('input', validateIDNumber);
+        }
+    });
+</script>
 {% endblock %}
