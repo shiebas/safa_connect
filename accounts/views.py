@@ -1,35 +1,32 @@
 import logging
-from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView
-from django.db.models import Q, Sum
-from django.http import JsonResponse, HttpResponse
+from django.core.paginator import Paginator
+from django.db.models import Count, Q, Sum
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
-from django.core.paginator import Paginator
 
-from geography.models import Club, LocalFootballAssociation, Region, Province, NationalFederation, Country
-from membership.models import Member, Invoice
-from .utils import send_welcome_email, send_rejection_email, send_approval_email, send_support_request_email, get_dashboard_stats
+from geography.models import (Association, Club, ClubStatus, Country,
+                              LocalFootballAssociation, NationalFederation,
+                              Province, Region)
+from membership.models import Invoice, Member
 
-from .forms import (
-    PlayerForm, NationalAdminRegistrationForm, RejectMemberForm,
-    ClubAdminAddPlayerForm, MemberApprovalForm, AdvancedMemberSearchForm, ModernContactForm,
-    ProfileForm, SettingsForm, UpdateProfilePhotoForm, RegistrationForm
-)
-from .models import CustomUser, OrganizationType, Position, UserRole, Notification
-from .utils import generate_unique_safa_id
+from .decorators import role_required
+from .forms import (AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
+                    ModernContactForm, RejectMemberForm, RegistrationForm,
+                    SettingsForm, UpdateProfilePhotoForm)
+from .models import (CustomUser, Notification, OrganizationType, Position,
+                   UserRole)
+from .utils import (generate_unique_safa_id, get_dashboard_stats,
+                    send_approval_email, send_rejection_email,
+                    send_support_request_email)
 
 logger = logging.getLogger(__name__)
-
-
-
 
 
 def modern_home(request):
@@ -54,8 +51,8 @@ def user_registration(request):
 
             # Create SupporterProfile for the new user
             from supporters.models import SupporterProfile
-            SupporterProfile.objects.get_or_create(user=user) # Use get_or_create to avoid duplicates if somehow called twice
-
+            SupporterProfile.objects.get_or_create(
+                user=user)  # Use get_or_create to avoid duplicates
             login(request, user)
 
             national_federation = NationalFederation.objects.first()
@@ -63,7 +60,8 @@ def user_registration(request):
                 country = Country.objects.first()
                 if not country:
                     country = Country.objects.create(name='South Africa')
-                national_federation = NationalFederation.objects.create(name='SAFA', country=country)
+                national_federation = NationalFederation.objects.create(
+                    name='SAFA', country=country)
             Member.objects.create(
                 user=user,
                 safa_id=user.safa_id,
@@ -83,13 +81,14 @@ def user_registration(request):
                 current_club=form.cleaned_data.get('club'),
             )
 
-            messages.success(request, 'Registration successful. Your application is pending approval.')
+            messages.success(
+                request,
+                'Registration successful. Your application is pending approval.'
+            )
             return redirect('accounts:home')
     else:
         form = RegistrationForm()
     return render(request, 'accounts/user_registration.html', {'form': form})
-
-
 
 
 # Placeholder functions for missing utilities
@@ -104,7 +103,8 @@ def get_admin_jurisdiction_queryset(user):
         return CustomUser.objects.filter(region=user.region)
 
     if user.role == 'ADMIN_LOCAL_FED':
-        return CustomUser.objects.filter(local_federation=user.local_federation)
+        return CustomUser.objects.filter(
+            local_federation=user.local_federation)
 
     if user.role == 'CLUB_ADMIN':
         return CustomUser.objects.filter(club=user.club)
@@ -122,7 +122,8 @@ def can_approve_member(user, member):
     if user.role == 'ADMIN_REGION' and member.region == user.region:
         return True
 
-    if user.role == 'ADMIN_LOCAL_FED' and member.local_federation == user.local_federation:
+    if user.role == 'ADMIN_LOCAL_FED' and \
+            member.local_federation == user.local_federation:
         return True
 
     if user.role == 'CLUB_ADMIN' and member.club == user.club:
@@ -161,13 +162,11 @@ def get_association_stats(association):
     return {}
 
 
-
-
-
 @login_required
 def club_admin_add_player(request):
     if request.user.role != 'CLUB_ADMIN':
-        messages.error(request, "You do not have permission to perform this action.")
+        messages.error(
+            request, "You do not have permission to perform this action.")
         return redirect('accounts:home')
 
     if request.method == 'POST':
@@ -180,7 +179,9 @@ def club_admin_add_player(request):
             password = get_random_string(12)
             player.set_password(password)
             player.save()
-            messages.success(request, f"Player {player.get_full_name()} added successfully.")
+            messages.success(
+                request,
+                f"Player {player.get_full_name()} added successfully.")
             return redirect('accounts:home')
     else:
         form = ClubAdminAddPlayerForm()
@@ -198,19 +199,20 @@ def get_regions_for_province(request, province_id):
 
 
 def get_lfas_for_region(request, region_id):
-    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
+    lfas = LocalFootballAssociation.objects.filter(
+        region_id=region_id).order_by('name')
     return JsonResponse(list(lfas.values('id', 'name')), safe=False)
 
 
 def get_clubs_for_lfa(request, lfa_id):
-    clubs = Club.objects.filter(localfootballassociation_id=lfa_id).order_by('name')
+    clubs = Club.objects.filter(
+        localfootballassociation_id=lfa_id).order_by('name')
     return JsonResponse(list(clubs.values('id', 'name')), safe=False)
 
 
 @login_required
 def profile(request):
     user_roles = UserRole.objects.filter(user=request.user)
-    organizations = [role.organization for role in user_roles]
 
     if user_roles:
         current_role = user_roles.first()
@@ -229,7 +231,8 @@ def profile(request):
         }
         return render(request, 'accounts/profile.html', context)
 
-    return render(request, 'accounts/profile.html', {'user': request.user, 'organization': None})
+    return render(request, 'accounts/profile.html',
+                  {'user': request.user, 'organization': None})
 
 
 @login_required
@@ -239,7 +242,10 @@ def switch_organization(request):
         try:
             role = UserRole.objects.get(id=role_id, user=request.user)
             request.session['current_role_id'] = role.id
-            messages.success(request, f"Switched to role: {role.position.name} at {role.organization.name}")
+            messages.success(
+                request,
+                f"Switched to role: {role.position.name} at "
+                f"{role.organization.name}")
         except UserRole.DoesNotExist:
             messages.error(request, "Invalid role selected.")
     return redirect('accounts:profile')
@@ -247,14 +253,18 @@ def switch_organization(request):
 
 @login_required
 def notification_center(request):
-    notifications = Notification.objects.filter(user=request.user).order_by('-timestamp')
-    return render(request, 'accounts/notification_center.html', {'notifications': notifications})
+    notifications = Notification.objects.filter(
+        user=request.user).order_by('-timestamp')
+    return render(request,
+                  'accounts/notification_center.html',
+                  {'notifications': notifications})
 
 
 @require_POST
 @login_required
 def mark_notification_read(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification = get_object_or_404(
+        Notification, id=notification_id, user=request.user)
     notification.is_read = True
     notification.save()
     return JsonResponse({'status': 'success'})
@@ -268,11 +278,14 @@ def health_check(request):
 def member_approvals_list(request):
     members_to_approve = Member.objects.none()
 
-    if request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'ADMIN_NATIONAL'):
+    if request.user.is_superuser or \
+       (hasattr(request.user, 'role') and
+            request.user.role == 'ADMIN_NATIONAL'):
         members_to_approve = Member.objects.filter(status='PENDING')
     else:
         # Placeholder for other admin roles, can be expanded later
-        messages.error(request, "You do not have permission to view this page.")
+        messages.error(
+            request, "You do not have permission to view this page.")
         return redirect('accounts:home')
 
     if request.method == 'POST':
@@ -293,9 +306,14 @@ def member_approvals_list(request):
             # Generate invoice
             try:
                 Invoice.create_member_invoice(member)
-                messages.success(request, f"Member {member.get_full_name()} approved and invoice created.")
+                messages.success(
+                    request,
+                    f"Member {member.get_full_name()} approved and "
+                    f"invoice created.")
             except Exception as e:
-                messages.error(request, f"Member approved, but failed to create invoice: {e}")
+                messages.error(
+                    request,
+                    f"Member approved, but failed to create invoice: {e}")
 
             # send_approval_email(member.user) # This can be re-enabled later
 
@@ -311,7 +329,9 @@ def member_approvals_list(request):
                     member.user.save()
 
                 # send_rejection_email(member.user, rejection_reason) # Re-enable later
-                messages.success(request, f"Member {member.get_full_name()} has been rejected.")
+                messages.success(
+                    request,
+                    f"Member {member.get_full_name()} has been rejected.")
             else:
                 messages.error(request, "Rejection reason is required.")
 
@@ -336,12 +356,16 @@ def reject_member(request, member_id):
 
             send_rejection_email(member.user, rejection_reason)
 
-            messages.success(request, f"Member {member.user.get_full_name()} has been rejected.")
+            messages.success(
+                request,
+                f"Member {member.user.get_full_name()} has been rejected.")
             return redirect('accounts:member_approvals_list')
     else:
         form = RejectMemberForm()
 
-    return render(request, 'accounts/reject_member.html', {'form': form, 'member': member})
+    return render(request,
+                  'accounts/reject_member.html',
+                  {'form': form, 'member': member})
 
 
 @login_required
@@ -353,7 +377,9 @@ def advanced_search(request):
         if form.is_valid():
             results = form.search()
 
-    return render(request, 'accounts/advanced_search.html', {'form': form, 'results': results})
+    return render(request,
+                  'accounts/advanced_search.html',
+                  {'form': form, 'results': results})
 
 
 @login_required
@@ -361,10 +387,12 @@ def statistics(request):
     stats = {
         'total_users': CustomUser.objects.count(),
         'total_members': Member.objects.count(),
-        'members_by_province': (Member.objects
-                               .values('club__lfa__region__province__name')
-                               .annotate(count=Count('id'))
-                               .order_by('-count'))
+        'members_by_province': (
+            Member.objects
+            .values('club__lfa__region__province__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
     }
     return render(request, 'accounts/statistics.html', {'stats': stats})
 
@@ -407,9 +435,13 @@ def quick_approve_member(request):
         member.status = 'Approved'
         member.save()
         send_approval_email(member.user)
-        return JsonResponse({'status': 'success', 'message': f'Member {member.user.get_full_name()} approved.'})
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Member {member.user.get_full_name()} approved.'
+        })
     except Member.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Member not found.'}, status=404)
+        return JsonResponse(
+            {'status': 'error', 'message': 'Member not found.'}, status=404)
 
 
 @login_required
@@ -421,7 +453,8 @@ def get_organization_types_api(request):
 @login_required
 def get_positions_for_org_type_api(request):
     org_type_id = request.GET.get('organization_type_id')
-    positions = Position.objects.filter(organization_type_id=org_type_id)
+    positions = Position.objects.filter(
+        organization_type_id=org_type_id)
     return JsonResponse(list(positions.values('id', 'name')), safe=False)
 
 
@@ -445,7 +478,10 @@ def contact_support(request):
 
             send_support_request_email(support_request)
 
-            messages.success(request, "Your support request has been sent. We will get back to you shortly.")
+            messages.success(
+                request,
+                "Your support request has been sent. We will get back to you "
+                "shortly.")
             return redirect('accounts:home')
     else:
         form = ModernContactForm()
@@ -478,7 +514,8 @@ def registration_portal(request):
 @login_required
 @require_POST
 def update_profile_photo(request):
-    form = UpdateProfilePhotoForm(request.POST, request.FILES, instance=request.user)
+    form = UpdateProfilePhotoForm(
+        request.POST, request.FILES, instance=request.user)
     if form.is_valid():
         form.save()
         messages.success(request, "Profile photo updated successfully.")
@@ -559,14 +596,10 @@ def custom_500_view(request):
     return render(request, 'errors/500.html', status=500)
 
 
-from django.contrib.auth import logout
-from .decorators import role_required
-from geography.models import Province, Region, LocalFootballAssociation, Association, Club
-from geography.models import ClubStatus
-
 def custom_admin_logout(request):
     logout(request)
     return redirect('/')
+
 
 @role_required(allowed_roles=['ADMIN_NATIONAL'])
 def national_admin_dashboard(request):
@@ -579,11 +612,13 @@ def national_admin_dashboard(request):
     }
 
     paginators = {
-        org_type: Paginator(queryset, 10) for org_type, queryset in org_lists.items()
+        org_type: Paginator(queryset, 10)
+        for org_type, queryset in org_lists.items()
     }
 
     page_numbers = {
-        org_type: request.GET.get(f'{org_type}_page', 1) for org_type in org_lists.keys()
+        org_type: request.GET.get(f'{org_type}_page', 1)
+        for org_type in org_lists.keys()
     }
 
     org_data = {
@@ -592,13 +627,17 @@ def national_admin_dashboard(request):
     }
 
     # Financial Summary
-    total_paid = Invoice.objects.filter(status='PAID').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    total_outstanding = Invoice.objects.filter(status='PENDING').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_paid = Invoice.objects.filter(
+        status='PAID').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_outstanding = Invoice.objects.filter(
+        status='PENDING'
+    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
 
     # Pending Approvals
     pending_provinces = Province.objects.filter(status='INACTIVE')
     pending_regions = Region.objects.filter(status='INACTIVE')
-    pending_lfas = LocalFootballAssociation.objects.filter(status='INACTIVE')
+    pending_lfas = LocalFootballAssociation.objects.filter(
+        status='INACTIVE')
     pending_associations = Association.objects.filter(status='INACTIVE')
     pending_clubs = Club.objects.filter(status='INACTIVE')
 
@@ -614,6 +653,7 @@ def national_admin_dashboard(request):
         'pending_clubs': pending_clubs,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
+
 
 @require_POST
 @role_required(allowed_roles=['ADMIN_NATIONAL'])
@@ -645,7 +685,9 @@ def update_organization_status(request):
     org.status = new_status
     org.save()
 
-    messages.success(request, f"Status for {org.name} has been updated to {new_status}.")
+    messages.success(
+        request,
+        f"Status for {org.name} has been updated to {new_status}.")
     return redirect('accounts:national_admin_dashboard')
 
 
@@ -653,25 +695,31 @@ def update_organization_status(request):
 def national_finance_dashboard(request):
     return render(request, 'accounts/national_finance_dashboard.html')
 
+
 @login_required
 def provincial_admin_dashboard(request):
     return render(request, 'accounts/provincial_admin_dashboard.html')
+
 
 @login_required
 def regional_admin_dashboard(request):
     return render(request, 'accounts/regional_admin_dashboard.html')
 
+
 @login_required
 def lfa_admin_dashboard(request):
     return render(request, 'accounts/lfa_admin_dashboard.html')
+
 
 @login_required
 def club_admin_dashboard(request):
     return render(request, 'accounts/club_admin_dashboard.html')
 
+
 def get_organization_type_name(request, org_type_id):
     org_type = get_object_or_404(OrganizationType, id=org_type_id)
     return JsonResponse({'name': org_type.name})
+
 
 @require_GET
 def check_email(request):
