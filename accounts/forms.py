@@ -335,6 +335,47 @@ class RegistrationForm(forms.ModelForm):
         except Country.DoesNotExist:
             pass
 
+        if 'province' in self.data:
+            try:
+                province_id = int(self.data.get('province'))
+                self.fields['region'].queryset = Region.objects.filter(province_id=province_id).order_by('name')
+            except (ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty queryset
+        elif self.instance.pk and self.instance.province:
+            self.fields['region'].queryset = self.instance.province.region_set.order_by('name')
+
+        if 'region' in self.data:
+            try:
+                region_id = int(self.data.get('region'))
+                self.fields['lfa'].queryset = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.region:
+            self.fields['lfa'].queryset = self.instance.region.localfootballassociation_set.order_by('name')
+
+        if 'lfa' in self.data:
+            try:
+                lfa_id = int(self.data.get('lfa'))
+                self.fields['club'].queryset = Club.objects.filter(localfootballassociation_id=lfa_id).order_by('name')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.lfa:
+            self.fields['club'].queryset = self.instance.lfa.club_set.order_by('name')
+
+        # Add autocomplete attributes
+        self.fields['first_name'].widget.attrs.update({'autocomplete': 'given-name'})
+        self.fields['last_name'].widget.attrs.update({'autocomplete': 'family-name'})
+        self.fields['email'].widget.attrs.update({'autocomplete': 'email'})
+        # Check if phone_number field exists before trying to update its attrs
+        if 'phone_number' in self.fields:
+            self.fields['phone_number'].widget.attrs.update({'autocomplete': 'tel'})
+        self.fields['id_number'].widget.attrs.update({'autocomplete': 'off'})
+        self.fields['passport_number'].widget.attrs.update({'autocomplete': 'off'})
+        self.fields['date_of_birth'].widget.attrs.update({'autocomplete': 'bday'})
+        self.fields['gender'].widget.attrs.update({'autocomplete': 'sex'})
+        self.fields['password'].widget.attrs.update({'autocomplete': 'new-password'})
+        self.fields['password2'].widget.attrs.update({'autocomplete': 'new-password'})
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             'role',

@@ -65,19 +65,35 @@ def get_organizations(request, org_type):
     # Filtering
     province_id = request.query_params.get('province')
     if province_id and org_type == 'regions':
-        queryset = queryset.filter(province_id=province_id)
+        try:
+            province_id = int(province_id)
+            queryset = queryset.filter(province_id=province_id)
+        except ValueError:
+            return Response({"error": "Invalid province ID"}, status=400)
 
     region_id = request.query_params.get('region')
     if region_id and org_type == 'lfas':
-        queryset = queryset.filter(region_id=region_id)
+        try:
+            region_id = int(region_id)
+            queryset = queryset.filter(region_id=region_id)
+        except ValueError:
+            return Response({"error": "Invalid region ID"}, status=400)
 
     lfa_id = request.query_params.get('lfa')
     if lfa_id and org_type == 'clubs':
-        queryset = queryset.filter(localfootballassociation_id=lfa_id)
+        try:
+            lfa_id = int(lfa_id)
+            queryset = queryset.filter(localfootballassociation_id=lfa_id)
+        except ValueError:
+            return Response({"error": "Invalid LFA ID"}, status=400)
 
     country_id = request.query_params.get('country')
     if country_id and org_type == 'provinces':
-        queryset = queryset.filter(national_federation__country_id=country_id)
+        try:
+            country_id = int(country_id)
+            queryset = queryset.filter(national_federation__country_id=country_id)
+        except ValueError:
+            return Response({"error": "Invalid country ID"}, status=400)
 
 
     serializer_class_map = {

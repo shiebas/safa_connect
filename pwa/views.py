@@ -14,7 +14,7 @@ def manifest(request):
     manifest_data = {
         "name": "SAFA Connect Management System",
         "short_name": "SAFA Connect",
-        "description": "Official South African Football Association management system for supporters, officials, and administrators",
+        "description": "Official South African Football Association management system for Members",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#006633",
@@ -29,7 +29,7 @@ def manifest(request):
                 "purpose": "any maskable"
             },
             {
-                "src": "/static/images/safa-logo-512.png",
+                "src": "/static/images/safa_logo-512.png",
                 "sizes": "512x512", 
                 "type": "image/png",
                 "purpose": "any maskable"
@@ -53,30 +53,7 @@ def manifest(request):
             }
         ],
         "shortcuts": [
-            {
-                "name": "Supporter Registration",
-                "short_name": "Register",
-                "description": "Register as a SAFA supporter",
-                "url": "/supporters/register/",
-                "icons": [
-                    {
-                        "src": "/static/images/register-icon.png",
-                        "sizes": "96x96"
-                    }
-                ]
-            },
-            {
-                "name": "Membership Verification",
-                "short_name": "Verify",
-                "description": "Verify membership status",
-                "url": "/membership/verify/",
-                "icons": [
-                    {
-                        "src": "/static/images/verify-icon.png",
-                        "sizes": "96x96"
-                    }
-                ]
-            },
+            
             {
                 "name": "SAFA Store",
                 "short_name": "Store",
@@ -110,10 +87,7 @@ const CACHE_FILES = [
     '/',
     '/static/css/bootstrap.min.css',
     '/static/js/bootstrap.bundle.min.js',
-    '/static/images/safa-logo.png',
-    '/supporters/register/',
-    '/membership/verify/',
-    '/store/',
+    '/static/images/safa_logo.png',
     OFFLINE_URL
 ];
 
