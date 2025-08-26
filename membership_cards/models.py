@@ -160,7 +160,7 @@ class DigitalCard(models.Model):
         qr_data = {
             'id': str(self.card_uuid)[:8],  # Shortened UUID
             'u': self.user.id,
-            'n': f"{self.user.name} {self.user.surname}"[:30],  # Limit name length
+            'n': f"{self.user.first_name} {self.user.last_name}"[:30],  # Limit name length
             's': self.user.safa_id,
             'c': self.card_number,
             'st': self.status[0],  # Single character status
