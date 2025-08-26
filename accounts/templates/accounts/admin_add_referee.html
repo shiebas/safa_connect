@@ -279,7 +279,7 @@
                             </div>
                         </div>
                         
-                        <div class="row">
+                        <div class="row" id="dob-gender-manual-row">
                             <div class="col-md-4 mb-4">
                                 <label for="{{ official_form.date_of_birth.id_for_label }}" class="form-label required-field">Date of Birth</label>
                                 {{ official_form.date_of_birth }}
@@ -435,21 +435,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const saIdField = document.querySelector('.sa-id-field');
     const passportField = document.querySelector('.passport-field');
     const dobField = document.getElementById('{{ official_form.date_of_birth.id_for_label }}');
+    const dobRow = document.getElementById('dob-gender-manual-row');
 
     function toggleDocumentFields() {
         const selectedType = docTypeField.value;
-        // console.log('Selected doc type:', selectedType); // You can keep this for debugging
-        if (selectedType === 'ID') { // <-- match your actual value
+        if (selectedType === 'ID') {
             if (saIdField) saIdField.style.display = 'block';
             if (passportField) passportField.style.display = 'none';
+            if (dobRow) dobRow.style.display = 'none';
             if (dobField) dobField.readOnly = true;
         } else if (selectedType === 'PP') {
             if (saIdField) saIdField.style.display = 'none';
             if (passportField) passportField.style.display = 'block';
+            if (dobRow) dobRow.style.display = 'flex';
             if (dobField) dobField.readOnly = false;
         } else {
             if (saIdField) saIdField.style.display = 'none';
             if (passportField) passportField.style.display = 'none';
+            if (dobRow) dobRow.style.display = 'none';
             if (dobField) dobField.readOnly = true;
         }
     }

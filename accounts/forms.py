@@ -318,6 +318,7 @@ class RegistrationForm(forms.ModelForm):
         required=False,
     )
 
+    popi_act_consent = forms.BooleanField(required=True, label="POPI Act Consent")
     password = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
 
@@ -325,7 +326,7 @@ class RegistrationForm(forms.ModelForm):
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'id_number', 'passport_number',
                   'date_of_birth', 'gender', 'profile_picture', 'id_document',
-                   'country_code', 'nationality', 'popi_act_consent']
+                   'country_code', 'nationality']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -477,6 +478,11 @@ class ClubAdminAddPlayerForm(forms.ModelForm):
 
 
 class AssociationOfficialRegistrationForm(forms.ModelForm):
+    id_document_type = forms.ChoiceField(
+        choices=[('ID', 'ID Number'), ('PP', 'Passport')],
+        required=True,
+        label="ID Document Type"
+    )
     password = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
 
@@ -487,6 +493,37 @@ class AssociationOfficialRegistrationForm(forms.ModelForm):
             'date_of_birth', 'gender', 'profile_picture', 'id_document',
             'popi_act_consent'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'first_name',
+            'last_name',
+            'email',
+            'id_document_type',
+            'id_number',
+            'passport_number',
+            'date_of_birth',
+            'gender',
+            'profile_picture',
+            'id_document',
+            'popi_act_consent',
+            'password',
+            'password2',
+        )
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if first_name and not first_name.isalpha():
+            raise forms.ValidationError("First name should only contain letters.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if last_name and not last_name.isalpha():
+            raise forms.ValidationError("Last name should only contain letters.")
+        return last_name
 
     def clean_password2(self):
         cd = self.cleaned_data
@@ -533,7 +570,7 @@ class ProfileForm(forms.ModelForm):
                   'street_address', 'suburb', 'city', 'state', 'postal_code',
                   'national_federation', 'province', 'region', 'local_federation', 'club', 'association', 'mother_body']
         widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'})
         }
 
 
