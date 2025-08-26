@@ -30,6 +30,7 @@ urlpatterns = [
     path('club-info/', registration_views.get_club_info, name='club_info'),
 
     # Season Configuration URLs
-    path('seasons/', views.manage_season_config, name='manage_season_config'),
-    path('seasons/<int:pk>/edit/', views.manage_season_config, name='edit_season_config'),
+    path('seasons/list/', views.season_list, name='season_list'),
+    path('seasons/add/', views.add_season_config, name='add_season_config'),
+    path('seasons/<int:pk>/edit/', views.edit_season_config, name='edit_season_config'),
 ]

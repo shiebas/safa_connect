@@ -67,12 +67,12 @@ def handle_membership_activation(sender, instance, created, **kwargs):
             logger.info(f"Digital card #{digital_card.card_number} updated for {instance.email}")
         
         # Generate Physical Card (only if requested)
-        if instance.physical_card_requested or instance.card_delivery_preference in ['PHYSICAL_ONLY', 'BOTH']:
+        if hasattr(instance, 'member_profile') and (instance.member_profile.physical_card_requested or instance.member_profile.card_delivery_preference in ['PHYSICAL_ONLY', 'BOTH']):
             physical_card, created = PhysicalCard.objects.get_or_create(
                 user=instance,
                 defaults={
                     'card_number': digital_card.card_number,
-                    'shipping_address': instance.physical_card_delivery_address or '',
+                    'shipping_address': instance.member_profile.physical_card_delivery_address or '',
                     'print_status': 'PENDING'
                 }
             )

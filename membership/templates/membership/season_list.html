@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+    <hr>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'membership:add_season_config' %}" class="btn btn-primary">Add New Season</a>
+    </div>
+
+    {% if seasons %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Season Year</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Is Active</th>
+                    <th>Payment Due Days</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for season in seasons %}
+                <tr>
+                    <td>{{ season.season_year }}</td>
+                    <td>{{ season.season_start_date }}</td>
+                    <td>{{ season.season_end_date }}</td>
+                    <td>
+                        {% if season.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ season.payment_due_days }}</td>
+                    <td>
+                        <a href="{% url 'membership:edit_season_config' pk=season.pk %}" class="btn btn-sm btn-info">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No season configurations found. Please add a new season.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

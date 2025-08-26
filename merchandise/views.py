@@ -170,6 +170,7 @@ def add_to_cart(request):
         })
         
     except Exception as e:
+        print(f"Error adding to cart: {e}") # Add this line for debugging
         return JsonResponse({
             'success': False,
             'message': 'Failed to add product to cart'

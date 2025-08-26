@@ -143,6 +143,30 @@ class Member(TimeStampedModel):
         help_text=_("All required documents and information provided")
     )
 
+    # Card Preferences
+    physical_card_requested = models.BooleanField(
+        _("Physical Card Requested"),
+        default=False,
+        help_text=_("Whether the member has requested a physical membership card.")
+    )
+    CARD_DELIVERY_CHOICES = [
+        ('DIGITAL_ONLY', _('Digital Only')),
+        ('PHYSICAL_ONLY', _('Physical Only')),
+        ('BOTH', _('Both Digital and Physical')),
+    ]
+    card_delivery_preference = models.CharField(
+        _("Card Delivery Preference"),
+        max_length=20,
+        choices=CARD_DELIVERY_CHOICES,
+        default='DIGITAL_ONLY',
+        help_text=_("Preferred method for receiving membership cards.")
+    )
+    physical_card_delivery_address = models.TextField(
+        _("Physical Card Delivery Address"),
+        blank=True,
+        help_text=_("Address for physical card delivery, if different from primary address.")
+    )
+
     # Registration method and current season
     registration_method = models.CharField(
         _("Registration Method"),
@@ -483,7 +507,10 @@ class Member(TimeStampedModel):
         club = self.current_club
 
         # Check if club is in member's LFA/Region/Province
-        if self.lfa and club.lfa != self.lfa:
+        club = self.current_club
+
+        # Check if club is in member's LFA/Region/Province
+        if self.lfa and club.localfootballassociation != self.lfa: # Line 510
             raise ValidationError(_(
                 f"Selected club {club.name} is not in your Local Football Association area"
             ))
@@ -554,19 +581,30 @@ class Member(TimeStampedModel):
 
     def calculate_registration_fee(self, season_config=None):
         """Calculate member's registration fee including pro-rata if applicable"""
+        import logging
+        logger = logging.getLogger(__name__)
+
         if not season_config:
             season_config = self.current_season or SAFASeasonConfig.get_active_season()
+        
+        if not season_config:
+            logger.warning("No active season found for fee calculation.")
+            return Decimal('0.00')
 
         entity_type = self.get_entity_type_for_fees()
+        logger.info(f"Calculating fee for member {self.safa_id}, entity_type: {entity_type}, season: {season_config.season_year}")
+
         fee_structure = SAFAFeeStructure.objects.filter(
             season_config=season_config,
             entity_type=entity_type
         ).first()
 
         if not fee_structure:
+            logger.warning(f"No SAFAFeeStructure found for entity_type: {entity_type} and season: {season_config.season_year}")
             return Decimal('0.00')
 
         base_fee = fee_structure.annual_fee
+        logger.info(f"Base fee for {entity_type}: {base_fee}")
 
         # Apply pro-rata if applicable and registration is after season start
         if fee_structure.is_pro_rata and season_config:
@@ -581,7 +619,10 @@ class Member(TimeStampedModel):
                     # Apply minimum fee if set
                     if fee_structure.minimum_fee:
                         pro_rata_fee = max(pro_rata_fee, fee_structure.minimum_fee)
+                    logger.info(f"Applied pro-rata fee: {pro_rata_fee}")
                     return pro_rata_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                else:
+                    logger.info("No remaining days for pro-rata calculation, returning base fee.")
 
         return base_fee
 

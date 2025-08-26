@@ -52,6 +52,10 @@ def user_registration(request):
             user.is_active = True
             user.save()
 
+            # Create SupporterProfile for the new user
+            from supporters.models import SupporterProfile
+            SupporterProfile.objects.get_or_create(user=user) # Use get_or_create to avoid duplicates if somehow called twice
+
             login(request, user)
 
             national_federation = NationalFederation.objects.first()

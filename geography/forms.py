@@ -428,12 +428,14 @@ class ClubRegistrationForm(forms.ModelForm):
 class ClubComplianceForm(forms.ModelForm):
     class Meta:
         model = Club
-        fields = ['logo', 'club_type', 'club_owner_type', 'club_documents']
+        fields = ['logo', 'club_type', 'club_owner_type', 'constitution_document', 'minutes_of_agm_document', 'financial_statements_document']
         widgets = {
             'logo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'club_type': forms.Select(attrs={'class': 'form-select'}),
             'club_owner_type': forms.Select(attrs={'class': 'form-select'}),
-            'club_documents': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'constitution_document': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'minutes_of_agm_document': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'financial_statements_document': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'logo': 'Club Logo'

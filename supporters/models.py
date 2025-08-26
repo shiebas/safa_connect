@@ -83,7 +83,7 @@ class SupporterPreferences(models.Model):
         verbose_name_plural = "Supporter Preferences"
     
     def __str__(self):
-        return f"Preferences for {self.supporterprofile.user.get_full_name()}"
+        return f"Preferences for {self.supporterprofile.user.get_full_name()}" if hasattr(self, 'supporterprofile') else f"Preferences (ID: {self.pk})"
     
     @property
     def total_preferences_selected(self):

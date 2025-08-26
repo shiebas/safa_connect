@@ -160,7 +160,7 @@ class SAFAFeeStructureAdmin(SAFAAccountsAdminMixin, admin.ModelAdmin):
             'fields': ('season_config', 'entity_type', 'annual_fee', 'minimum_fee')
         }),
         ('Settings', {
-            'fields': ('is_pro_rata', 'requires_organization_payment', 'description')
+            'fields': ('is_pro_rata', 'description')
         }),
         ('System Information', {
             'fields': ('is_organization', 'created_by', 'created_at', 'updated_at'),
@@ -372,12 +372,12 @@ class MemberAdmin(admin.ModelAdmin):
 class InvoiceItemInline(admin.TabularInline):
     model = InvoiceItem
     extra = 1
-    fields = ('description', 'quantity', 'unit_price', 'sub_total_display')
-    readonly_fields = ('sub_total_display',)
+    fields = ('description', 'quantity', 'amount', 'total_price')
+    readonly_fields = ('total_price',)
 
-    def sub_total_display(self, obj):
-        return f"R{obj.sub_total:.2f}"
-    sub_total_display.short_description = "Sub Total"
+    def total_price(self, obj):
+        return f"R{obj.total_price:.2f}"
+    total_price.short_description = "Total Price"
 
 
 @admin.register(Invoice)

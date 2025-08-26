@@ -301,6 +301,47 @@ class Province(TimeStampedModel, ModelWithLogo):
         null=True,
         help_text=_("Unique SAFA identification")
     )
+    fifa_id = models.CharField(
+        _("FIFA ID"),
+        max_length=7,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text=_("7-digit FIFA alphanumeric code (A-Z, 0-9)")
+    )
+
+    # Compliance Documents
+    constitution_document = models.FileField(
+        upload_to='documents/province_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Constitution Document'),
+        help_text=_('Upload the province\'s constitution (PDF, DOC, etc)')
+    )
+    minutes_of_agm_document = models.FileField(
+        upload_to='documents/province_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Minutes of AGM'),
+        help_text=_('Upload the minutes of the last Annual General Meeting')
+    )
+    financial_statements_document = models.FileField(
+        upload_to='documents/province_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Financial Statements'),
+        help_text=_('Upload the latest financial statements')
+    )
+    is_compliant = models.BooleanField(
+        default=False,
+        verbose_name=_('Compliance Verified'),
+        help_text=_('Indicates if the province meets all compliance requirements')
+    )
+    compliance_verified_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Compliance Verified Date')
+    )
     
     class Meta:
         verbose_name = _('Province')
@@ -328,12 +369,53 @@ class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         choices=ClubStatus.choices,
         default=ClubStatus.INACTIVE
     )
-    
+    fifa_id = models.CharField(
+        _("FIFA ID"),
+        max_length=7,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text=_("7-digit FIFA alphanumeric code (A-Z, 0-9)")
+    )
+
+    # Compliance Documents
+    constitution_document = models.FileField(
+        upload_to='documents/region_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Constitution Document'),
+        help_text=_('Upload the region\'s constitution (PDF, DOC, etc)')
+    )
+    minutes_of_agm_document = models.FileField(
+        upload_to='documents/region_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Minutes of AGM'),
+        help_text=_('Upload the minutes of the last Annual General Meeting')
+    )
+    financial_statements_document = models.FileField(
+        upload_to='documents/region_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Financial Statements'),
+        help_text=_('Upload the latest financial statements')
+    )
+    is_compliant = models.BooleanField(
+        default=False,
+        verbose_name=_('Compliance Verified'),
+        help_text=_('Indicates if the region meets all compliance requirements')
+    )
+    compliance_verified_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Compliance Verified Date')
+    )
+
     class Meta:
         verbose_name = _('Region')
         verbose_name_plural = _('Regions')
         ordering = ['province', 'name']
-    
+
     def __str__(self):
         return f"{self.name} ({self.province.name} - {self.province.national_federation.name})"
 
@@ -357,12 +439,53 @@ class Association(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         choices=ClubStatus.choices,
         default=ClubStatus.INACTIVE
     )
-    
+    fifa_id = models.CharField(
+        _("FIFA ID"),
+        max_length=7,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text=_("7-digit FIFA alphanumeric code (A-Z, 0-9)")
+    )
+
+    # Compliance Documents
+    constitution_document = models.FileField(
+        upload_to='documents/association_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Constitution Document'),
+        help_text=_('Upload the association\'s constitution (PDF, DOC, etc)')
+    )
+    minutes_of_agm_document = models.FileField(
+        upload_to='documents/association_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Minutes of AGM'),
+        help_text=_('Upload the minutes of the last Annual General Meeting')
+    )
+    financial_statements_document = models.FileField(
+        upload_to='documents/association_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Financial Statements'),
+        help_text=_('Upload the latest financial statements')
+    )
+    is_compliant = models.BooleanField(
+        default=False,
+        verbose_name=_('Compliance Verified'),
+        help_text=_('Indicates if the association meets all compliance requirements')
+    )
+    compliance_verified_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Compliance Verified Date')
+    )
+
     class Meta:
         verbose_name = _('Association')
         verbose_name_plural = _('Associations')
         ordering = ['national_federation', 'name']
-    
+
     def __str__(self):
         return f"{self.name} ({self.national_federation.country.name})"
 
@@ -394,12 +517,53 @@ class LocalFootballAssociation(TimeStampedModel, ModelWithLogo, SAFAIdentifiable
         choices=ClubStatus.choices,
         default=ClubStatus.INACTIVE
     )
-    
+    fifa_id = models.CharField(
+        _("FIFA ID"),
+        max_length=7,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text=_("7-digit FIFA alphanumeric code (A-Z, 0-9)")
+    )
+
+    # Compliance Documents
+    constitution_document = models.FileField(
+        upload_to='documents/lfa_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Constitution Document'),
+        help_text=_('Upload the LFA\'s constitution (PDF, DOC, etc)')
+    )
+    minutes_of_agm_document = models.FileField(
+        upload_to='documents/lfa_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Minutes of AGM'),
+        help_text=_('Upload the minutes of the last Annual General Meeting')
+    )
+    financial_statements_document = models.FileField(
+        upload_to='documents/lfa_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Financial Statements'),
+        help_text=_('Upload the latest financial statements')
+    )
+    is_compliant = models.BooleanField(
+        default=False,
+        verbose_name=_('Compliance Verified'),
+        help_text=_('Indicates if the LFA meets all compliance requirements')
+    )
+    compliance_verified_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Compliance Verified Date')
+    )
+
     class Meta:
         verbose_name = _('Local Football Association')
         verbose_name_plural = _('Local Football Associations')
         ordering = ['region', 'name']
-    
+
     def __str__(self):
         return f"{self.name} ({self.region.name})"
 
@@ -502,12 +666,36 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
         verbose_name=_('Club Owner Type'),
         help_text=_('Private, NPO, or Constitutional')
     )
-    club_documents = models.FileField(
-        upload_to='documents/club_documents/',
+    constitution_document = models.FileField(
+        upload_to='documents/club_compliance/',
         blank=True,
         null=True,
-        verbose_name=_('Club Compliance Documents'),
-        help_text=_('Upload constitution or other compliance documents (PDF, DOC, etc)')
+        verbose_name=_('Club Constitution'),
+        help_text=_('Upload the club\'s constitution (PDF, DOC, etc)')
+    )
+    minutes_of_agm_document = models.FileField(
+        upload_to='documents/club_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Minutes of AGM'),
+        help_text=_('Upload the minutes of the last Annual General Meeting')
+    )
+    financial_statements_document = models.FileField(
+        upload_to='documents/club_compliance/',
+        blank=True,
+        null=True,
+        verbose_name=_('Financial Statements'),
+        help_text=_('Upload the latest financial statements')
+    )
+    is_compliant = models.BooleanField(
+        default=False,
+        verbose_name=_('Compliance Verified'),
+        help_text=_('Indicates if the club meets all compliance requirements')
+    )
+    compliance_verified_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Compliance Verified Date')
     )
     affiliation_fees_paid = models.BooleanField(
         default=False,

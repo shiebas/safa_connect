@@ -153,30 +153,47 @@ def is_national_admin(user):
 
 @login_required
 @user_passes_test(is_national_admin)
-def manage_season_config(request, pk=None):
-    if pk:
-        instance = get_object_or_404(SAFASeasonConfig, pk=pk)
-        title = 'Edit Season Configuration'
-    else:
-        instance = None
-        title = 'Add Season Configuration'
+def season_list(request):
+    seasons = SAFASeasonConfig.objects.all().order_by('-season_year')
+    context = {
+        'seasons': seasons,
+        'title': 'Manage Season Configurations'
+    }
+    return render(request, 'membership/season_list.html', context)
 
+@login_required
+@user_passes_test(is_national_admin)
+def add_season_config(request):
+    if request.method == 'POST':
+        form = SAFASeasonConfigForm(request.POST)
+        if form.is_valid():
+            season_config = form.save(commit=False)
+            season_config.created_by = request.user
+            season_config.save()
+            messages.success(request, 'Season configuration added successfully.')
+            return redirect('membership:season_list')
+    else:
+        form = SAFASeasonConfigForm()
+    context = {
+        'form': form,
+        'title': 'Add New Season Configuration'
+    }
+    return render(request, 'membership/add_season_config.html', context)
+
+@login_required
+@user_passes_test(is_national_admin)
+def edit_season_config(request, pk):
+    instance = get_object_or_404(SAFASeasonConfig, pk=pk)
     if request.method == 'POST':
         form = SAFASeasonConfigForm(request.POST, instance=instance)
         if form.is_valid():
-            season_config = form.save(commit=False)
-            if not instance:
-                season_config.created_by = request.user
-            season_config.save()
-            messages.success(request, 'Season configuration saved successfully.')
-            return redirect('membership:manage_season_config')
+            form.save()
+            messages.success(request, 'Season configuration updated successfully.')
+            return redirect('membership:season_list')
     else:
         form = SAFASeasonConfigForm(instance=instance)
-
-    seasons = SAFASeasonConfig.objects.all()
     context = {
         'form': form,
-        'seasons': seasons,
-        'title': title
+        'title': 'Edit Season Configuration'
     }
-    return render(request, 'membership/manage_season_config.html', context)
+    return render(request, 'membership/edit_season_config.html', context)
