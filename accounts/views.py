@@ -317,12 +317,12 @@ def health_check(request):
 
 @login_required
 def member_approvals_list(request):
-    members_to_approve = Member.objects.none()
+    users_to_approve = CustomUser.objects.none()
 
     if request.user.is_superuser or \
        (hasattr(request.user, 'role') and
             request.user.role == 'ADMIN_NATIONAL'):
-        members_to_approve = Member.objects.filter(status='PENDING')
+        users_to_approve = CustomUser.objects.filter(membership_status='PENDING')
     else:
         # Placeholder for other admin roles, can be expanded later
         messages.error(
@@ -330,60 +330,71 @@ def member_approvals_list(request):
         return redirect('accounts:modern_home')
 
     if request.method == 'POST':
-        member_id = request.POST.get('member_id')
-        member = get_object_or_404(Member, id=member_id)
+        user_id = request.POST.get('member_id') # The form sends member_id
+        action = request.POST.get('action')
+
+        user = get_object_or_404(CustomUser, id=user_id)
 
         if 'approve' in request.POST:
-            if member.user and member.user.age < 18 and not member.user.parental_consent:
+            if user.age and user.age < 18 and not user.parental_consent:
                 messages.error(request, "Cannot approve a junior member without parental consent.")
                 return redirect('accounts:member_approvals_list')
 
-            member.status = 'ACTIVE'
-            member.approved_by = request.user
-            member.approved_date = timezone.now()
-            member.save()
+            user.membership_status = 'ACTIVE'
+            user.save()
 
-            # Also update the CustomUser status
-            if member.user:
-                member.user.membership_status = 'ACTIVE'
-                member.user.save()
-
-            # Generate invoice
+            # Also update the Member status if exists
             try:
-                Invoice.create_member_invoice(member)
+                member = Member.objects.get(user=user)
+                member.status = 'ACTIVE'
+                member.approved_by = request.user
+                member.approved_date = timezone.now()
+                member.save()
+
+                # Generate invoice
+                try:
+                    Invoice.create_member_invoice(member)
+                    messages.success(
+                        request,
+                        f"Member {user.get_full_name()} approved and "
+                        f"invoice created.")
+                except Exception as e:
+                    messages.error(
+                        request,
+                        f"Member approved, but failed to create invoice: {e}")
+            except Member.DoesNotExist:
                 messages.success(
                     request,
-                    f"Member {member.get_full_name()} approved and "
-                    f"invoice created.")
-            except Exception as e:
-                messages.error(
-                    request,
-                    f"Member approved, but failed to create invoice: {e}")
+                    f"User {user.get_full_name()} approved successfully.")
 
-            # send_approval_email(member.user) # This can be re-enabled later
+            # send_approval_email(user) # This can be re-enabled later
 
         elif 'reject' in request.POST:
             rejection_reason = request.POST.get('rejection_reason')
             if rejection_reason:
-                member.status = 'REJECTED'
-                member.rejection_reason = rejection_reason
-                member.save()
+                user.membership_status = 'REJECTED'
+                user.save()
 
-                if member.user:
-                    member.user.membership_status = 'REJECTED'
-                    member.user.save()
+                # Also update the Member status if exists
+                try:
+                    member = Member.objects.get(user=user)
+                    member.status = 'REJECTED'
+                    member.rejection_reason = rejection_reason
+                    member.save()
+                except Member.DoesNotExist:
+                    pass
 
-                # send_rejection_email(member.user, rejection_reason) # Re-enable later
                 messages.success(
                     request,
-                    f"Member {member.get_full_name()} has been rejected.")
+                    f"User {user.get_full_name()} has been rejected with reason: {rejection_reason}.")
             else:
                 messages.error(request, "Rejection reason is required.")
+
 
         return redirect('accounts:member_approvals_list')
 
     context = {
-        'members_to_approve': members_to_approve,
+        'users_to_approve': users_to_approve,
     }
     return render(request, 'accounts/member_approvals_list.html', context)
 
