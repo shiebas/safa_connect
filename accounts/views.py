@@ -698,7 +698,7 @@ def national_admin_dashboard(request):
     pending_associations = Association.objects.filter(status='INACTIVE')
     pending_clubs = Club.objects.filter(status='INACTIVE')
 
-    pending_members = Member.objects.filter(status='PENDING').select_related('user', 'current_club').order_by('-created')
+    pending_members = CustomUser.objects.filter(membership_status='PENDING').order_by('-registration_date')
 
     context = {
         'org_data': org_data,
