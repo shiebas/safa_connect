@@ -807,6 +807,7 @@ def club_admin_dashboard(request):
 
     male_players = players.filter(gender='M').count()
     female_players = players.filter(gender='F').count()
+    total_players = male_players + female_players
 
     context = {
         'club': club,
@@ -815,6 +816,7 @@ def club_admin_dashboard(request):
         'seniors': seniors,
         'male_players': male_players,
         'female_players': female_players,
+        'total_players': total_players,
     }
     return render(request, 'accounts/club_admin_dashboard.html', context)
 
