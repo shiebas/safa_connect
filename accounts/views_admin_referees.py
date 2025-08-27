@@ -17,7 +17,7 @@ def admin_add_referee(request):
     if not (request.user.is_superuser or request.user.is_staff or 
             (hasattr(request.user, 'role') and request.user.role in allowed_roles)):
         messages.error(request, "You don't have permission to register referees.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
     
     if request.method == 'POST':
         official_form = AssociationOfficialRegistrationForm(request.POST, request.FILES)

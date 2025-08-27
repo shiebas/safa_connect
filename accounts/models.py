@@ -47,6 +47,8 @@ class CustomUserManager(BaseUserManager):
 
 ROLES = (
     ('MEMBER', _('Member')),
+    ('PLAYER', _('Player')),
+    ('OFFICIAL', _('Official')),
     ('ADMIN_NATIONAL', _('National Federation Admin')),
     ('ADMIN_NATIONAL_ACCOUNTS', _('National Accounts Administrator')),
     ('ADMIN_PROVINCE', _('Provincial Administrator')),

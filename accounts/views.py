@@ -21,6 +21,13 @@ from .forms import (AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
                     ClubAdminRegistrationForm, ModernContactForm, ProfileForm,
                     RejectMemberForm, RegistrationForm, SettingsForm,
                     UpdateProfilePhotoForm, EditPlayerForm)
+from geography.forms import (
+    ProvinceComplianceForm,
+    RegionComplianceForm,
+    LFAComplianceForm,
+    AssociationComplianceForm,
+    ClubComplianceForm,
+)
 from .models import (CustomUser, Notification, OrganizationType, Position,
                    UserRole)
 from .utils import (generate_unique_safa_id, get_dashboard_stats,
