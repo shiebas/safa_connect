@@ -873,7 +873,10 @@ def add_club_administrator(request):
             user.save()
 
             # Create SupporterProfile
-            SupporterProfile.objects.get_or_create(user=user)
+            supporter_profile, created = SupporterProfile.objects.get_or_create(user=user)
+            if created:
+                supporter_profile.safa_id = user.safa_id
+                supporter_profile.save()
 
             # Create Member object (similar to user_registration)
             national_federation = NationalFederation.objects.first()
