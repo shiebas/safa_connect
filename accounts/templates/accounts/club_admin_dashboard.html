@@ -36,15 +36,15 @@
     <h1>{{ club.name }} - Admin Dashboard</h1>
 
     <div class="row mt-4">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total Members</h5>
-                    <p class="card-text">{{ players.count }}</p>
+                    <p class="card-text">{{ total_players }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Juniors (&lt;18)</h5>
@@ -52,7 +52,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Seniors (18+)</h5>
@@ -60,7 +60,18 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Male Members</h5>
+                    <p class="card-text">{{ male_players }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Female Members</h5>
