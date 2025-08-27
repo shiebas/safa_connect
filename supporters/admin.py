@@ -103,12 +103,12 @@ class SupporterPreferencesAdmin(admin.ModelAdmin):
 @admin.register(SupporterProfile)
 class SupporterProfileAdmin(admin.ModelAdmin):
     list_display = (
-        'user', 'favorite_club', 'membership_type', 'is_verified', 'created_at',
+        'user', 'safa_id', 'favorite_club', 'membership_type', 'is_verified', 'created_at',
         'location_city', 'location_province', 'has_location', 'has_invoice', 
         'event_tickets_count', 'preferences_summary'
     )
     list_filter = ('membership_type', 'is_verified', 'favorite_club', 'location_province', 'location_country')
-    search_fields = ('user__first_name', 'user__last_name', 'user__email', 'id_number', 'location_city')
+    search_fields = ('user__first_name', 'user__last_name', 'user__email', 'safa_id', 'id_number', 'location_city')
     readonly_fields = ('created_at', 'location_timestamp')
     
     def has_location(self, obj):

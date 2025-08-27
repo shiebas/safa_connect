@@ -73,3 +73,40 @@ class UserRegistrationTests(TestCase):
         self.assertTrue(Member.objects.filter(email='testuser@example.com').exists())
         member = Member.objects.get(email='testuser@example.com')
         self.assertEqual(member.role, 'OFFICIAL')
+
+    def test_add_club_administrator(self):
+        # Create a club admin to perform the action
+        club_admin_user = CustomUser.objects.create_user(
+            email='clubadmin@example.com',
+            password='ComplexPassword123!',
+            role='CLUB_ADMIN',
+            club=self.club,
+            is_staff=True
+        )
+        self.client.login(email='clubadmin@example.com', password='ComplexPassword123!')
+
+        admin_form_data = {
+            'first_name': 'New',
+            'last_name': 'Admin',
+            'email': 'newadmin@example.com',
+            'password': 'NewAdminPassword123!',
+            'password2': 'NewAdminPassword123!',
+            'phone_number': '1234567890',
+            'id_document_type': 'ID',
+            'id_number': '9001015800087',
+            'popi_act_consent': True,
+        }
+
+        response = self.client.post(reverse('accounts:add_club_administrator'), admin_form_data)
+        self.assertEqual(response.status_code, 302) # Should redirect on success
+
+        # Check if the new admin was created
+        self.assertTrue(CustomUser.objects.filter(email='newadmin@example.com').exists())
+        new_admin = CustomUser.objects.get(email='newadmin@example.com')
+        self.assertEqual(new_admin.role, 'CLUB_ADMIN')
+        self.assertTrue(new_admin.is_staff)
+        self.assertEqual(new_admin.club, self.club)
+
+        # Check that the password is hashed correctly
+        self.assertTrue(new_admin.check_password('NewAdminPassword123!'))
+        self.assertNotEqual(new_admin.password, 'NewAdminPassword123!')
