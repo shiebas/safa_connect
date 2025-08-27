@@ -1,10 +1,12 @@
 from django.urls import path, include
 from . import views
 from . import urls_api
+from .views_management import GeographyManagementView
 
 app_name = 'geography'
 
 urlpatterns = [
+    path('management/', GeographyManagementView.as_view(), name='geography_management'),
     path('api/', include(urls_api)),
     path('admin/', views.geography_admin, name='geography_admin'),
     path('advanced/', views.advanced_home, name='advance_home'),
