@@ -710,7 +710,6 @@ def national_admin_dashboard(request):
         'pending_lfas': pending_lfas,
         'pending_associations': pending_associations,
         'pending_clubs': pending_clubs,
-        'pending_members': pending_members,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 
@@ -814,7 +813,6 @@ def club_admin_dashboard(request):
 
     male_players = players.filter(gender='M').count()
     female_players = players.filter(gender='F').count()
-    total_players = male_players + female_players
 
     context = {
         'club': club,
@@ -823,7 +821,6 @@ def club_admin_dashboard(request):
         'seniors': seniors,
         'male_players': male_players,
         'female_players': female_players,
-        'total_players': total_players,
     }
     return render(request, 'accounts/club_admin_dashboard.html', context)
 
@@ -950,10 +947,7 @@ def add_club_administrator(request):
                     province = region.province
                     if province:
                         initial_data['province'] = province
-
-            national_federation = NationalFederation.objects.first()
-            if national_federation:
-                initial_data['national_federation'] = national_federation
+                        initial_data['national_federation'] = province.national_federation
 
         form = ClubAdminRegistrationForm(initial=initial_data)
 
