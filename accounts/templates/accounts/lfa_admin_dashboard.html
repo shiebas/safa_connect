@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">LFA Administrator Dashboard</h2>
+    <h2 class="mb-4">LFA Administrator Dashboard for {{ lfa.name }}</h2>
 
     <div class="row mb-4">
         <div class="col-md-8">
@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <a href="#" class="btn btn-primary">Manage Clubs</a>
                     <a href="#" class="btn btn-secondary">View Members</a>
-                    <a href="{% url 'accounts:club_compliance_view' %}" class="btn btn-warning">Club Compliance</a>
+                    <a href="{% url 'accounts:lfa_compliance_view' %}" class="btn btn-warning">LFA Compliance</a>
                 </div>
             </div>
         </div>
@@ -26,12 +26,43 @@
                     <h5 class="mb-0">LFA Summary</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Total Clubs:</strong> 0</p>
-                    <p><strong>Total Members:</strong> 0</p>
+                    <p><strong>Total Clubs:</strong> {{ clubs|length }}</p>
+                    <p><strong>Total Members:</strong> 0</p> {# Placeholder for member count #}
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Clubs in {{ lfa.name }}</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Club Name</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for club in clubs %}
+                    <tr>
+                        <td>{{ club.name }}</td>
+                        <td><span class="badge {% if club.status == 'ACTIVE' %}bg-success{% else %}bg-danger{% endif %}">{{ club.get_status_display }}</span></td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-info">View Details</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No clubs found for this LFA.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
