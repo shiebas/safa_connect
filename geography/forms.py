@@ -252,37 +252,56 @@ class AssociationForm(forms.ModelForm):
 
         return cleaned_data
 
+from django.forms import modelformset_factory
+
+
 class ProvinceForm(forms.ModelForm):
     class Meta:
         model = Province
-        fields = ['name', 'code', 'description']  # Removed 'logo'
+        fields = ['name', 'code', 'description', 'status', 'is_compliant']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
+            'description': forms.Textarea(attrs={'rows': 2}),
+            'status': forms.Select(attrs={'class': 'form-control form-control-sm'}),
+            'is_compliant': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add Bootstrap classes to form fields
         for field_name, field in self.fields.items():
-            if field_name != 'logo':
-                field.widget.attrs.update({'class': 'form-control'})
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({'class': 'form-control form-control-sm'})
 
-    def clean(self):
-        cleaned_data = super().clean()
-        code = cleaned_data.get("code")
-        country = cleaned_data.get("country")
+ProvinceFormSet = modelformset_factory(
+    Province,
+    form=ProvinceForm,
+    extra=0,
+    can_delete=True
+)
 
-        # Check for unique constraint on code and country
-        if code and country:
-            qs = Province.objects.filter(code=code, country=country)
-            if self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
-            if qs.exists():
-                raise forms.ValidationError(
-                    "A province with this code already exists for this country."
-                )
 
-        return cleaned_data
+class RegionForm(forms.ModelForm):
+    class Meta:
+        model = Region
+        fields = ['name', 'code', 'description', 'status', 'is_compliant']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 2}),
+            'status': forms.Select(attrs={'class': 'form-control form-control-sm'}),
+            'is_compliant': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({'class': 'form-control form-control-sm'})
+
+
+RegionFormSet = modelformset_factory(
+    Region,
+    form=RegionForm,
+    extra=0,
+    can_delete=True
+)
 
 class RegionForm(forms.ModelForm):
     class Meta:

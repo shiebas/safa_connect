@@ -1,5 +1,6 @@
 # geography/models.py
 from django.contrib.auth.models import AbstractUser
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -764,3 +765,77 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     def qr_code(self):
         """Return QR code for club identification"""
         return self.generate_qr_code()
+
+
+class GeographyUpdateLog(TimeStampedModel):
+    """Log for tracking updates to geographical entities that require approval."""
+    STATUS_CHOICES = (
+        ('PENDING', _('Pending')),
+        ('APPROVED', _('Approved')),
+        ('REJECTED', _('Rejected')),
+    )
+
+    user = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='geography_updates'
+    )
+    content_type = models.ForeignKey(
+        'contenttypes.ContentType',
+        on_delete=models.CASCADE
+    )
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    field_name = models.CharField(max_length=100)
+    old_value = models.TextField(blank=True, null=True)
+    new_value = models.TextField(blank=True, null=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING'
+    )
+    approved_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_geography_updates'
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text=_("Reason for approval or rejection.")
+    )
+    approval_timestamp = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = _('Geography Update Log')
+        verbose_name_plural = _('Geography Update Logs')
+        ordering = ['-created']
+
+    def __str__(self):
+        return f"Update on {self.content_object} by {self.user} at {self.created}"
+
+    def approve(self, user, notes=""):
+        """Approve the change and apply it to the content object."""
+        if self.status == 'PENDING':
+            setattr(self.content_object, self.field_name, self.new_value)
+            self.content_object.save()
+
+            self.status = 'APPROVED'
+            self.approved_by = user
+            self.approval_timestamp = timezone.now()
+            self.notes = notes
+            self.save()
+
+    def reject(self, user, notes=""):
+        """Reject the change."""
+        if self.status == 'PENDING':
+            self.status = 'REJECTED'
+            self.approved_by = user
+            self.approval_timestamp = timezone.now()
+            self.notes = notes
+            self.save()

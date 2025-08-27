@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Geography Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+    .card {
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        border: none;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #006400, #00a000);
+        color: white;
+        padding: 1.2rem;
+        border-bottom: 4px solid rgba(255,255,255,0.2);
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+    .form-control-sm {
+        height: calc(1.5em + .5rem + 2px);
+        padding: .25rem .5rem;
+        font-size: .875rem;
+        line-height: 1.5;
+        border-radius: .2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0"><i class="bi bi-geo-alt-fill me-2"></i>Geography Management - {{ level }}s</h3>
+                </div>
+                <div class="card-body">
+                    {% if formset %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="formset_type" value="{{ level }}">
+                        {{ formset.management_form }}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Code</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Compliant</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for form in formset %}
+                                    <tr id="form-{{ forloop.counter0 }}">
+                                        {{ form.id }}
+                                        <td>{{ form.instance.name }}</td>
+                                        <td>{{ form.code|add_class:"form-control form-control-sm" }}</td>
+                                        <td>{{ form.description|add_class:"form-control form-control-sm" }}</td>
+                                        <td>{{ form.status|add_class:"form-select form-select-sm" }}</td>
+                                        <td class="text-center">{{ form.is_compliant }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Submit Changes for Approval</button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-info">You do not have any geographical entities to manage.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if pending_updates %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0"><i class="bi bi-hourglass-split me-2"></i>Pending Approvals</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Entity</th>
+                                    <th>Field</th>
+                                    <th>Old Value</th>
+                                    <th>New Value</th>
+                                    <th>Changed By</th>
+                                    <th style="width: 20%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for update in pending_updates %}
+                                <tr>
+                                    <td>{{ update.content_object }}</td>
+                                    <td>{{ update.field_name }}</td>
+                                    <td>{{ update.old_value }}</td>
+                                    <td>{{ update.new_value }}</td>
+                                    <td>{{ update.user.get_full_name }}</td>
+                                    <td>
+                                        {% if update.can_approve %}
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" name="approve" value="{{ update.id }}" class="btn btn-success btn-sm">Approve</button>
+                                        </form>
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" name="reject" value="{{ update.id }}" class="btn btn-danger btn-sm">Reject</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted">No permission</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
