@@ -50,6 +50,7 @@ urlpatterns = [
     # Contact support
     path('contact-support/', views.contact_support, name='contact_support'),
     path('profile/', views.profile, name='profile'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'), # Added this line
     path('my-invoices/', views.my_invoices, name='my_invoices'),
     path('settings/', views.settings, name='settings'),
     path('registration-portal/', views.registration_portal, name='registration_portal'),

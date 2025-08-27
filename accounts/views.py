@@ -18,7 +18,7 @@ from membership.models import Invoice, Member
 
 from .decorators import role_required
 from .forms import (AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
-                    ModernContactForm, RejectMemberForm, RegistrationForm,
+                    ModernContactForm, ProfileForm, RejectMemberForm, RegistrationForm,
                     SettingsForm, UpdateProfilePhotoForm)
 from .models import (CustomUser, Notification, OrganizationType, Position,
                    UserRole)
@@ -243,6 +243,22 @@ def profile(request):
 
     return render(request, 'accounts/profile.html',
                   {'user': request.user, 'organization': None})
+
+
+@login_required
+def edit_profile(request):
+    user = request.user
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile was successfully updated!')
+            return redirect('accounts:profile')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = ProfileForm(instance=user)
+    return render(request, 'accounts/edit_profile.html', {'form': form})
 
 
 @login_required

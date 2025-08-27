@@ -90,6 +90,9 @@
                         <div class="col-sm-3"><strong>Age:</strong></div>
                         <div class="col-sm-9">{% if user.age %}{{ user.age }}{% else %}<span class="text-muted">Not set</span>{% endif %}</div>
                     </div>
+                    <div class="text-end mt-3"> {# Added this div for the button #}
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+                    </div>
                 </div>
             </div>
             
