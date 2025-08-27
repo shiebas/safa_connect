@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Regional Administrator Dashboard</h2>
+    <h2 class="mb-4">Regional Administrator Dashboard for {{ user_region.name }}</h2>
 
     <div class="row mb-4">
         <div class="col-md-8">
@@ -26,8 +26,34 @@
                     <h5 class="mb-0">Regional Summary</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Total LFAs:</strong> 0</p>
+                    <p><strong>Region:</strong> {{ user_region.name }}</p>
+                    <p><strong>Total LFAs:</strong> {{ lfas.count }}</p>
                     <p><strong>Total Members:</strong> 0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">LFAs in {{ user_region.name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if lfas %}
+                    <ul class="list-group">
+                        {% for lfa in lfas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ lfa.name }}
+                            <span class="badge bg-primary rounded-pill">{{ lfa.clubs.count }} Clubs</span>
+                            <a href="{% url 'geography:lfa-update' pk=lfa.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No LFAs associated with this region.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

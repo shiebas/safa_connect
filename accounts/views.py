@@ -763,7 +763,16 @@ def provincial_admin_dashboard(request):
 
 @login_required
 def regional_admin_dashboard(request):
-    return render(request, 'accounts/regional_admin_dashboard.html')
+    user_region = request.user.region
+    lfas = []
+    if user_region:
+        lfas = user_region.localfootballassociation_set.all()
+
+    context = {
+        'user_region': user_region,
+        'lfas': lfas,
+    }
+    return render(request, 'accounts/regional_admin_dashboard.html', context)
 
 
 @login_required
