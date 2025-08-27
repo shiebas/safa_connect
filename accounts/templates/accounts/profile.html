@@ -10,12 +10,10 @@
             <!-- Profile Photo Section -->
             <div class="card">
                 <div class="card-body text-center">
-                    {% if user.profile_picture %}
+                                        {% if user.profile_picture %}
                         <img src="{{ user.profile_picture.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;">
                     {% else %}
-                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 200px; height: 200px; margin: 0 auto;">
-                            <i class="fas fa-user fa-5x text-white"></i>
-                        </div>
+                        <img src="{% static 'images/connection.png' %}" alt="Default Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;">
                     {% endif %}
                     <h4>{{ user.get_full_name }}</h4>
                     <p class="text-muted">{{ user.get_role_display }}</p>
@@ -118,7 +116,7 @@
                                     {% if org.region or org.province %}<br><small class="text-muted">Region: {{ org.region }}, {{ org.province }}</small>{% endif %}
                                 {% elif org.type == 'Club' %}
                                     Club: {{ org.name }}
-                                    {% if org.lfa or org.region or org.province %}<br><small class="text-muted">LFA: {{ org.lfa }}, Region: {{ org.region }}, {{ org.province }}</small>{% endif %}
+                                    {% if org.localfootballassociation or org.region or org.province %}<br><small class="text-muted">LFA: {{ org.localfootballassociation.name }}, Region: {{ org.region.name }}, {{ org.province.name }}</small>{% endif %}
                                 {% elif org.type == 'Association' %}
                                     Association: {{ org.name }}
                                 {% else %}
@@ -130,6 +128,8 @@
                 </div>
             </div>
             {% endif %}
+
+            
             
             <!-- Compliance Status -->
             <div class="card mt-4">
@@ -192,18 +192,10 @@
                     <div class="row mb-3">
                         <div class="col-sm-3"><strong>Overall Status:</strong></div>
                         <div class="col-sm-9">
-                            {% if user.is_profile_complete %}
+                            {% if user.is_profile_complete == True %}
                                 <span class="badge bg-success"><i class="fas fa-check-circle"></i> Complete</span>
                             {% else %}
-                                <span class="badge bg-warning"><i class="fas fa-exclamation-circle"></i> Incomplete</span>
-                                <div class="mt-2">
-                                    <small class="text-muted">Missing items:</small>
-                                    <ul class="small mt-1">
-                                        {% if not user.profile_picture %}<li>Profile photo</li>{% endif %}
-                                        {% if not user.id_document %}<li>ID document upload</li>{% endif %}
-                                        {% if not user.popi_act_consent %}<li>POPI Act consent</li>{% endif %}
-                                    </ul>
-                                </div>
+                                <span class="badge bg-warning"><i class="fas fa-exclamation-circle"></i> Incomplete: {{ user.is_profile_complete }}</span>
                             {% endif %}
                         </div>
                     </div>

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>{{ title }}</h2>
+                </div>
+                <div class="card-body">
+                    <p>This is the administration panel for managing member cards.</p>
+                    <p>Here, administrators can view, generate, and manage digital membership cards for users.</p>
+
+                    <h3>Members List (Placeholder)</h3>
+                    {% if members %}
+                        <ul class="list-group">
+                            {% for member in members %}
+                                <li class="list-group-item">{{ member.get_full_name }} - {{ member.safa_id }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No members found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Club Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Club Management Dashboard</h1>
+    <p>Welcome to the Club Management Dashboard.</p>
+    <a href="{% url 'accounts:add_club_administrator' %}" class="btn btn-primary">Add New Administrator</a>
+</div>
+{% endblock %}

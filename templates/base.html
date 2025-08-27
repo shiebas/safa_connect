@@ -637,18 +637,12 @@
                                 </a>
                             {% endif %}
                         </li>
-                        
                         {% if user.is_staff %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-cogs me-1"></i>Administration
                                 </a>
                                 <ul class="dropdown-menu">
-                                    {% if user.role == 'ADMIN_NATIONAL' %}
-                                    <li><a class="dropdown-item" href="{% url 'accounts:national_admin_dashboard' %}">
-                                        <i class="fas fa-shield-alt me-2"></i>National Dashboard
-                                    </a></li>
-                                    {% endif %}
                                     <li><a class="dropdown-item" href="{% url 'accounts:member_approvals_list' %}">
                                         <i class="fas fa-user-check me-2"></i>Member Approvals
                                     </a></li>
@@ -657,6 +651,9 @@
                                     </a></li>
                                     <li><a class="dropdown-item" href="{% url 'accounts:statistics' %}">
                                         <i class="fas fa-chart-bar me-2"></i>Statistics
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:member_cards_admin' %}">
+                                        <i class="fas fa-id-card me-2"></i>Member Cards
                                     </a></li>
                                     {% if user.is_superuser %}
                                         <li><hr class="dropdown-divider"></li>
@@ -667,12 +664,6 @@
                                 </ul>
                             </li>
                         {% endif %}
-                        
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'membership_cards:my_card' %}">
-                                <i class="fas fa-id-card me-1"></i>My Card
-                            </a>
-                        </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:registration_portal' %}">
@@ -691,23 +682,23 @@
                                 {{ user.get_full_name|default:user.email|truncatechars:20 }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                {% if user.role == 'ADMIN_NATIONAL' %}
-                                <li><a class="dropdown-item" href="{% url 'accounts:national_admin_dashboard' %}">
-                                    <i class="fas fa-shield-alt me-2"></i>National Dashboard
-                                </a></li>
-                                {% endif %}
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
                                     <i class="fas fa-user me-2"></i>My Profile
                                 </a></li>
+                                {% if user.role == 'CLUB_ADMIN' %}
+                                <li><a class="dropdown-item" href="{% url 'accounts:club_admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Club Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:club_management_dashboard' %}">
+                                    <i class="fas fa-cog me-2"></i>Club Management
+                                </a></li>
+                                {% endif %}
                                 <li><a class="dropdown-item" href="{% url 'accounts:my_invoices' %}">
                                     <i class="fas fa-file-invoice me-2"></i>My Invoices
                                 </a></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:settings' %}">
-                                    <i class="fas fa-cog me-2"></i>Settings
-                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="post" action="{% url 'account_logout' %}" class="d-inline">
+                                    <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit" class="dropdown-item">
                                             <i class="fas fa-sign-out-alt me-2"></i>Logout

@@ -18,8 +18,9 @@ from membership.models import Invoice, Member
 
 from .decorators import role_required
 from .forms import (AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
-                    ModernContactForm, ProfileForm, RejectMemberForm, RegistrationForm,
-                    SettingsForm, UpdateProfilePhotoForm)
+                    ClubAdminRegistrationForm, ModernContactForm, ProfileForm,
+                    RejectMemberForm, RegistrationForm, SettingsForm,
+                    UpdateProfilePhotoForm, EditPlayerForm)
 from .models import (CustomUser, Notification, OrganizationType, Position,
                    UserRole)
 from .utils import (generate_unique_safa_id, get_dashboard_stats,
@@ -42,6 +43,8 @@ def modern_home(request):
                 return redirect('accounts:lfa_admin_dashboard')
             elif request.user.role == 'CLUB_ADMIN':
                 return redirect('accounts:club_admin_dashboard')
+            elif request.user.role == 'ASSOCIATION_ADMIN':
+                return redirect('accounts:association_admin_dashboard')
         return redirect('accounts:profile') # Default redirect if no specific role or role not found
     return render(request, 'accounts/modern_home.html')
 
@@ -51,6 +54,9 @@ def user_registration(request):
         form = RegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(commit=False)
+
+            if form.cleaned_data['role'] in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'CLUB_ADMIN', 'ASSOCIATION_ADMIN']:
+                user.is_staff = True
 
             if not user.safa_id:
                 user.safa_id = generate_unique_safa_id()
@@ -415,7 +421,7 @@ def statistics(request):
         'total_members': Member.objects.count(),
         'members_by_province': (
             Member.objects
-            .values('club__lfa__region__province__name')
+            .values('current_club__name') # Simplified to just club name
             .annotate(count=Count('id'))
             .order_by('-count')
         )
@@ -610,6 +616,18 @@ def club_invoices(request):
     return render(request, 'accounts/club_invoices.html', context)
 
 
+@login_required
+@role_required(allowed_roles=['ADMIN_NATIONAL', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'CLUB_ADMIN', 'ASSOCIATION_ADMIN'])
+def member_cards_admin(request):
+    # Placeholder for logic to display/manage member cards for admins
+    # This could involve listing members, generating cards, etc.
+    context = {
+        'title': 'Member Cards Management',
+        'members': [], # Replace with actual member query
+    }
+    return render(request, 'accounts/member_cards_admin.html', context)
+
+
 def custom_403_view(request, exception=None):
     return render(request, 'errors/403.html', status=403)
 
@@ -739,7 +757,202 @@ def lfa_admin_dashboard(request):
 
 @login_required
 def club_admin_dashboard(request):
-    return render(request, 'accounts/club_admin_dashboard.html')
+    club = request.user.club
+    players = CustomUser.objects.filter(club=club)
+
+    # Player breakdown
+    juniors = 0
+    seniors = 0
+    for player in players:
+        if player.age and player.age < 18:
+            juniors += 1
+        elif player.age and player.age >= 18:
+            seniors += 1
+
+    male_players = players.filter(gender='M').count()
+    female_players = players.filter(gender='F').count()
+
+    context = {
+        'club': club,
+        'players': players,
+        'juniors': juniors,
+        'seniors': seniors,
+        'male_players': male_players,
+        'female_players': female_players,
+    }
+    return render(request, 'accounts/club_admin_dashboard.html', context)
+
+
+@login_required
+def association_admin_dashboard(request):
+    return render(request, 'accounts/association_admin_dashboard.html')
+
+
+@login_required
+def edit_player(request, player_id):
+    player = get_object_or_404(CustomUser, id=player_id)
+    if request.method == 'POST':
+        form = EditPlayerForm(request.POST, instance=player)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Player {player.get_full_name()} updated successfully.')
+            return redirect('accounts:club_admin_dashboard')
+    else:
+        form = EditPlayerForm(instance=player)
+    context = {
+        'form': form,
+        'player': player,
+    }
+    return render(request, 'accounts/edit_player.html', context)
+
+
+@login_required
+def approve_player(request, player_id):
+    player = get_object_or_404(CustomUser, id=player_id)
+    player.membership_status = 'ACTIVE'
+    player.save()
+    messages.success(request, f'Player {player.get_full_name()} approved successfully.')
+    return redirect('accounts:club_admin_dashboard')
+
+
+@login_required
+def club_management_dashboard(request):
+    return render(request, 'accounts/club_management_dashboard.html')
+
+
+@login_required
+def add_club_administrator(request):
+    if request.method == 'POST':
+        form = ClubAdminRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.role = 'CLUB_ADMIN'
+            user.is_staff = True
+            user.club = request.user.club
+            user.save()
+            messages.success(request, f'Administrator {user.get_full_name()} added successfully.')
+            return redirect('accounts:club_management_dashboard')
+    else:
+        form = ClubAdminRegistrationForm()
+    context = {
+        'form': form,
+    }
+    return render(request, 'accounts/add_club_administrator.html', context)
+
+
+@login_required
+def province_compliance_view(request):
+    province = request.user.province
+    if not province:
+        messages.error(request, "You are not associated with a province.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        form = ProvinceComplianceForm(request.POST, request.FILES, instance=province)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Province compliance updated successfully.')
+            return redirect('accounts:province_compliance_view')
+    else:
+        form = ProvinceComplianceForm(instance=province)
+
+    context = {
+        'province': province,
+        'form': form,
+    }
+    return render(request, 'accounts/province_compliance.html', context)
+
+
+@login_required
+def region_compliance_view(request):
+    region = request.user.region
+    if not region:
+        messages.error(request, "You are not associated with a region.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        form = RegionComplianceForm(request.POST, request.FILES, instance=region)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Region compliance updated successfully.')
+            return redirect('accounts:region_compliance_view')
+    else:
+        form = RegionComplianceForm(instance=region)
+
+    context = {
+        'region': region,
+        'form': form,
+    }
+    return render(request, 'accounts/region_compliance.html', context)
+
+
+@login_required
+def lfa_compliance_view(request):
+    lfa = request.user.local_federation
+    if not lfa:
+        messages.error(request, "You are not associated with an LFA.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        form = LFAComplianceForm(request.POST, request.FILES, instance=lfa)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'LFA compliance updated successfully.')
+            return redirect('accounts:lfa_compliance_view')
+    else:
+        form = LFAComplianceForm(instance=lfa)
+
+    context = {
+        'lfa': lfa,
+        'form': form,
+    }
+    return render(request, 'accounts/lfa_compliance.html', context)
+
+
+@login_required
+def association_compliance_view(request):
+    association = request.user.association
+    if not association:
+        messages.error(request, "You are not associated with an Association.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        form = AssociationComplianceForm(request.POST, request.FILES, instance=association)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Association compliance updated successfully.')
+            return redirect('accounts:association_compliance_view')
+    else:
+        form = AssociationComplianceForm(instance=association)
+
+    context = {
+        'association': association,
+        'form': form,
+    }
+    return render(request, 'accounts/association_compliance.html', context)
+
+
+@login_required
+def club_compliance_view(request):
+    club = request.user.club
+    if not club:
+        messages.error(request, "You are not associated with a Club.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        form = ClubComplianceForm(request.POST, request.FILES, instance=club)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Club compliance updated successfully.')
+            return redirect('accounts:club_compliance_view')
+    else:
+        form = ClubComplianceForm(instance=club)
+
+    context = {
+        'club': club,
+        'form': form,
+    }
+    return render(request, 'accounts/club_compliance.html', context)
 
 
 def get_organization_type_name(request, org_type_id):

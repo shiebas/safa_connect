@@ -262,10 +262,7 @@ class RegistrationForm(forms.ModelForm):
 
 
     role = forms.ChoiceField(
-        choices=[
-            ('PLAYER', 'Player'),
-            ('OFFICIAL', 'Official'),
-        ],
+        choices=ROLES,
         required=True,
         label="I am a..."
     )
@@ -356,6 +353,14 @@ class RegistrationForm(forms.ModelForm):
         self.fields['gender'].widget.attrs.update({'autocomplete': 'sex'})
         self.fields['password'].widget.attrs.update({'autocomplete': 'new-password'})
         self.fields['password2'].widget.attrs.update({'autocomplete': 'new-password'})
+
+        if 'role' in self.data:
+            try:
+                role = self.data.get('role')
+                if role in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'ASSOCIATION_ADMIN']:
+                    self.fields['club'].required = False
+            except (ValueError, TypeError):
+                pass
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -555,21 +560,26 @@ class PlayerForm(forms.ModelForm):
 
 class ProfileForm(forms.ModelForm):
     """Form for updating user profile"""
+    # email is kept as a field, but will be made read-only in __init__
     email = forms.EmailField(required=True)
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name',
-                  'date_of_birth', 'gender',
-                  'id_document_type', 'id_number', 'passport_number',
-                  'profile_picture', 'phone_number', 'safa_id', 'fifa_id',
-                  'country_code', 'nationality', 'popi_act_consent',
-                  'has_sa_passport', 'sa_passport_number', 'sa_passport_document', 'sa_passport_expiry_date',
-                  'street_address', 'suburb', 'city', 'state', 'postal_code',
-                  'national_federation', 'province', 'region', 'local_federation', 'club', 'association', 'mother_body']
+        fields = [
+            'email', # Keep email, but make it read-only
+            'profile_picture',
+            'phone_number',
+            'id_document', # Keep id_document for upload
+            'street_address', 'suburb', 'city', 'state', 'postal_code',
+        ]
         widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date'})
+            # 'date_of_birth': forms.DateInput(attrs={'type': 'date'}) # Removed as date_of_birth is removed from fields
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make email read-only
+        self.fields['email'].widget.attrs['readonly'] = True
 
 
 class SettingsForm(forms.ModelForm):
@@ -1282,3 +1292,58 @@ class StatisticsForm(forms.Form):
             return start, today
         else:  # all time
             return None, None
+
+
+class EditPlayerForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name', 'last_name', 'email', 'id_number', 'passport_number',
+            'date_of_birth', 'gender', 'membership_status',
+            'street_address', 'suburb', 'city', 'state', 'postal_code',
+            'guardian_name', 'guardian_phone', 'guardian_email', 'parental_consent'
+        ]
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+            'street_address': forms.TextInput(attrs={'class': 'form-control'}),
+            'suburb': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'guardian_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'guardian_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'guardian_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'parental_consent': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'membership_status': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make most fields read-only
+        read_only_fields = [
+            'first_name', 'last_name', 'email', 'id_number', 'passport_number',
+            'date_of_birth', 'gender',
+        ]
+        for field in read_only_fields:
+            if field in self.fields:
+                self.fields[field].widget.attrs['readonly'] = True
+                self.fields[field].widget.attrs['class'] = 'form-control-plaintext' # Add a class for styling read-only fields
+
+        # Conditionally make guardian fields required for minors
+        if self.instance and self.instance.age and self.instance.age < 18:
+            self.fields['guardian_name'].required = True
+            self.fields['guardian_phone'].required = True
+            self.fields['parental_consent'].required = True
+
+
+class ClubAdminRegistrationForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, label="Password")
+    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name', 'last_name', 'email', 'phone_number', 'id_document_type', 'id_number', 'passport_number',
+            'date_of_birth', 'gender', 'profile_picture', 'id_document',
+            'popi_act_consent', 'password', 'password2'
+        ]

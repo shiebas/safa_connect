@@ -46,6 +46,7 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 ROLES = (
+    ('MEMBER', _('Member')),
     ('ADMIN_NATIONAL', _('National Federation Admin')),
     ('ADMIN_NATIONAL_ACCOUNTS', _('National Accounts Administrator')),
     ('ADMIN_PROVINCE', _('Provincial Administrator')),
@@ -127,7 +128,7 @@ class ModelWithLogo(models.Model):
                     return self.logo.url
         except Exception:
             pass
-        return '/static/default_logo.png'
+        return '/static/images/connection.png'
 
     class Meta:
         abstract = True
@@ -171,7 +172,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
     
     # Core Fields
-    role = models.CharField(max_length=30, choices=ROLES, default='ADMIN_PROVINCE')
+    role = models.CharField(max_length=30, choices=ROLES, default='MEMBER')
     
     # Add missing required validation
     first_name = models.CharField(_('first name'), max_length=150, blank=False)
@@ -219,6 +220,13 @@ class CustomUser(AbstractUser):
     city = models.CharField(max_length=100, blank=True, null=True)
     state = models.CharField(max_length=100, blank=True, null=True)
     postal_code = models.CharField(max_length=10, blank=True, null=True)
+
+    # Guardian Information (for minors)
+    guardian_name = models.CharField(max_length=255, blank=True, null=True)
+    guardian_phone = models.CharField(max_length=20, blank=True, null=True)
+    guardian_email = models.EmailField(blank=True, null=True)
+    # Consent for minors
+    parental_consent = models.BooleanField(default=False)
 
     # Organizational Relationships (Foreign Keys to Geography App)
     national_federation = models.ForeignKey('geography.NationalFederation', on_delete=models.SET_NULL, null=True, blank=True)
@@ -281,12 +289,15 @@ class CustomUser(AbstractUser):
         This is based on the foreign key fields on the user model.
         """
         if self.club:
+            lfa = self.club.localfootballassociation
+            region = lfa.region if lfa else None
+            province = region.province if region else None
             return {
                 'type': 'Club',
                 'name': self.club.name,
-                'lfa': self.club.lfa.name if self.club.lfa else '',
-                'region': self.club.lfa.region.name if self.club.lfa and self.club.lfa.region else '',
-                'province': self.club.lfa.region.province.name if self.club.lfa and self.club.lfa.region and self.club.lfa.region.province else '',
+                'lfa': lfa.name if lfa else '',
+                'region': region.name if region else '',
+                'province': province.name if province else '',
             }
         if self.local_federation:
             return {
@@ -320,41 +331,57 @@ class CustomUser(AbstractUser):
 
     @property
     def is_profile_complete(self):
-        """Check if essential profile information is complete for approval."""
+        """
+        Checks if essential profile information is complete for approval.
+        Returns True if complete, or a string indicating the missing item.
+        """
         # Basic checks for all users
-        if not all([
-            self.first_name, self.last_name, self.email,
-            self.id_document_type, self.date_of_birth, self.gender,
-            self.profile_picture, self.id_document, self.popi_act_consent
-        ]):
-            return False
+        profile_picture_exists = bool(self.profile_picture and self.profile_picture.name)
+        id_document_exists = bool(self.id_document and self.id_document.name)
+
+        if not self.first_name: return "Missing First Name"
+        if not self.last_name: return "Missing Last Name"
+        if not self.email: return "Missing Email"
+        if not self.id_document_type: return "Missing ID Document Type"
+        if not self.date_of_birth: return "Missing Date of Birth"
+        if not self.gender: return "Missing Gender"
+        if not profile_picture_exists: return "Missing Profile Picture"
+        if not id_document_exists: return "Missing ID Document Upload"
+        if not self.popi_act_consent: return "Missing POPI Act Consent"
 
         # Check ID/Passport based on type
         if self.id_document_type == 'ID' and not self.id_number:
-            return False
+            return "Missing ID Number for ID Document Type"
         if self.id_document_type == 'PP' and not self.passport_number:
-            return False
+            return "Missing Passport Number for Passport Document Type"
 
         # Role-specific checks
         if self.role == 'PLAYER' and not self.club:
-            return False
+            return "Missing Club for Player Role"
         if self.role == 'OFFICIAL' and not self.association:
-            return False
+            return "Missing Association for Official Role"
         
         # For admins, check if their organizational affiliation is set
         if self.role in ['ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'CLUB_ADMIN', 'ASSOCIATION_ADMIN']:
-            if self.organization_type.level == 'PROVINCE' and not self.province:
-                return False
-            if self.organization_type.level == 'REGION' and not self.region:
-                return False
-            if self.organization_type.level == 'LFA' and not self.local_federation:
-                return False
-            if self.organization_type.level == 'CLUB' and not self.club:
-                return False
-            if self.organization_type.level == 'ASSOCIATION' and not self.association:
-                return False
+            # Try to get the user's primary role and its organization
+            # Assuming a user has at least one UserRole if they are an admin
+            user_role_obj = self.userrole_set.first() # Access related UserRole objects
+            if user_role_obj and user_role_obj.organization:
+                org_level = user_role_obj.organization.level
+                if org_level == 'PROVINCE' and not self.province:
+                    return "Missing Province for Admin Role"
+                if org_level == 'REGION' and not self.region:
+                    return "Missing Region for Admin Role"
+                if org_level == 'LFA' and not self.local_federation:
+                    return "Missing LFA for Admin Role"
+                if org_level == 'CLUB' and not self.club:
+                    return "Missing Club for Admin Role"
+                if org_level == 'ASSOCIATION' and not self.association:
+                    return "Missing Association for Admin Role"
+            else:
+                return "Missing Organization Type for Admin Role" # No UserRole or Organization found
 
-        return True
+        return True # All checks passed
 
     @property
     def payment_required(self):

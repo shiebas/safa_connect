@@ -12,6 +12,7 @@ urlpatterns = [
     path('invoices/generate/', invoice_views.generate_invoices, name='generate_invoices'),
     path('invoices/<uuid:uuid>/', invoice_views.InvoiceDetailView.as_view(), name='invoice_detail'),
     path('invoices/<uuid:uuid>/pdf/', invoice_views.InvoicePDFView.as_view(), name='invoice_pdf'),
+    path('invoices/<int:invoice_id>/pdf-export/', views.generate_invoice_pdf, name='generate_invoice_pdf'),
     path('invoices/<uuid:uuid>/pay/', invoice_views.mark_invoice_paid, name='mark_invoice_paid'),
     path('invoices/export/<str:format>/', invoice_views.export_invoices, name='export_invoices'),
     path('reports/outstanding/', invoice_views.OutstandingReportView.as_view(), name='outstanding_report'),

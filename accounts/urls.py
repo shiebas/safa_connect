@@ -52,7 +52,6 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'), # Added this line
     path('my-invoices/', views.my_invoices, name='my_invoices'),
-    path('settings/', views.settings, name='settings'),
     path('registration-portal/', views.registration_portal, name='registration_portal'),
     path('update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),
     path('senior-membership-dashboard/', views.senior_membership_dashboard, name='senior_membership_dashboard'),
@@ -64,6 +63,17 @@ urlpatterns = [
     path('regional-admin-dashboard/', views.regional_admin_dashboard, name='regional_admin_dashboard'),
     path('lfa-admin-dashboard/', views.lfa_admin_dashboard, name='lfa_admin_dashboard'),
     path('club-admin-dashboard/', views.club_admin_dashboard, name='club_admin_dashboard'),
+    path('association-admin-dashboard/', views.association_admin_dashboard, name='association_admin_dashboard'),
+    path('member-cards-admin/', views.member_cards_admin, name='member_cards_admin'), # New link for Member Cards Admin
+    path('edit-player/<int:player_id>/', views.edit_player, name='edit_player'),
+    path('approve-player/<int:player_id>/', views.approve_player, name='approve_player'),
+    path('club-management-dashboard/', views.club_management_dashboard, name='club_management_dashboard'),
+    path('add-club-administrator/', views.add_club_administrator, name='add_club_administrator'),
+    path('province-compliance/', views.province_compliance_view, name='province_compliance_view'),
+    path('region-compliance/', views.region_compliance_view, name='region_compliance_view'),
+    path('lfa-compliance/', views.lfa_compliance_view, name='lfa_compliance_view'),
+    path('association-compliance/', views.association_compliance_view, name='association_compliance_view'),
+    path('club-compliance/', views.club_compliance_view, name='club_compliance_view'),
     path('update-organization-status/', views.update_organization_status, name='update_organization_status'),
 
     # API endpoints for registration form

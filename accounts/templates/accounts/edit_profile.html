@@ -13,6 +13,87 @@
                     <h2>Edit Profile</h2>
                 </div>
                 <div class="card-body">
+                    <h5 class="mb-3">Core Identity Information (Read-Only)</h5>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>First Name:</strong></div>
+                        <div class="col-sm-8">{{ user.first_name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Last Name:</strong></div>
+                        <div class="col-sm-8">{{ user.last_name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Email:</strong></div>
+                        <div class="col-sm-8">{{ user.email }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Date of Birth:</strong></div>
+                        <div class="col-sm-8">{% if user.date_of_birth %}{{ user.date_of_birth|date:"F d, Y" }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Gender:</strong></div>
+                        <div class="col-sm-8">{% if user.gender %}{{ user.get_gender_display }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>ID Document Type:</strong></div>
+                        <div class="col-sm-8">{% if user.id_document_type %}{{ user.get_id_document_type_display }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>ID Number:</strong></div>
+                        <div class="col-sm-8">{% if user.id_number %}...{{ user.id_number|slice:":-4" }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Passport Number:</strong></div>
+                        <div class="col-sm-8">{% if user.passport_number %}Provided{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>SAFA ID:</strong></div>
+                        <div class="col-sm-8">{% if user.safa_id %}{{ user.safa_id }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Country Code:</strong></div>
+                        <div class="col-sm-8">{% if user.country_code %}{{ user.country_code }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Nationality:</strong></div>
+                        <div class="col-sm-8">{% if user.nationality %}{{ user.nationality }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>POPI Consent:</strong></div>
+                        <div class="col-sm-8">{% if user.popi_act_consent %}Agreed{% else %}Not Agreed{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>National Federation:</strong></div>
+                        <div class="col-sm-8">{% if user.national_federation %}{{ user.national_federation }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Province:</strong></div>
+                        <div class="col-sm-8">{% if user.province %}{{ user.province }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Region:</strong></div>
+                        <div class="col-sm-8">{% if user.region %}{{ user.region }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>LFA:</strong></div>
+                        <div class="col-sm-8">{% if user.local_federation %}{{ user.local_federation }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Club:</strong></div>
+                        <div class="col-sm-8">{% if user.club %}{{ user.club }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Association:</strong></div>
+                        <div class="col-sm-8">{% if user.association %}{{ user.association }}{% else %}Not set{% endif %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Mother Body:</strong></div>
+                        <div class="col-sm-8">{% if user.mother_body %}{{ user.mother_body }}{% else %}Not set{% endif %}</div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Editable Profile Information</h5>
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         {{ form|crispy }}
@@ -111,4 +192,4 @@ try {
 } catch (e) {
     console.error("Error in validateIDNumber script:", e);
 }
-</script>
+</script>{% endblock %}

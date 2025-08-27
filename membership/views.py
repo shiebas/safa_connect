@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.utils import timezone
 from .forms import PlayerRegistrationForm, OfficialRegistrationForm, AdminRegistrationForm
-from .models import Member
+from .models import Member, Invoice
 from accounts.models import CustomUser
 from django.http import HttpResponse
 from django.template.loader import get_template
@@ -140,6 +140,24 @@ def generate_membership_card(request, member_id):
     pisa_status = pisa.CreatePDF(
        html, dest=response)
     # if error then show some funy view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+
+def generate_invoice_pdf(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    template_path = 'membership/invoice_template.html'
+    context = {'invoice': invoice}
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+
+    template = get_template(template_path)
+    html = template.render(context)
+
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
     if pisa_status.err:
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response

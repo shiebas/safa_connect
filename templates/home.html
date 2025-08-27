@@ -51,33 +51,7 @@
                         </div>
                     </div>
 
-                    {% if user.is_staff %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body text-center p-4">
-                                <i class="fas fa-trophy text-safa-gold fs-1 mb-3"></i>
-                                <h5>League Management</h5>
-                                <p class="text-muted">Manage competitions and teams</p>
-                                <a href="{% url 'league_management:dashboard' %}" class="btn btn-safa">
-                                    Open Dashboard
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 mb-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body text-center p-4">
-                                <i class="fas fa-cogs" style="color: var(--safa-gold); font-size: 2rem;" class="mb-3"></i>
-                                <h5>Administration</h5>
-                                <p class="text-muted">System administration panel</p>
-                                <a href="/admin/" class="btn btn-safa">
-                                    Admin Panel
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
+                    
                 </div>
             {% else %}
 

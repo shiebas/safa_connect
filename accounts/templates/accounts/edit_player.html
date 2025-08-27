@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Player{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control-plaintext {
+        display: block;
+        width: 100%;
+        padding: .375rem .75rem;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: .5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Edit Member: {{ player.get_full_name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <fieldset class="form-group">
+                    <legend>Personal Information</legend>
+                    <div class="mb-3">
+                        <label for="id_first_name" class="form-label">First Name:</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_last_name" class="form-label">Last Name:</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email:</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_id_number" class="form-label">ID Number:</label>
+                        {{ form.id_number }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_passport_number" class="form-label">Passport Number:</label>
+                        {{ form.passport_number }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_date_of_birth" class="form-label">Date of Birth:</label>
+                        {{ form.date_of_birth }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_gender" class="form-label">Gender:</label>
+                        {{ form.gender }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_membership_status" class="form-label">Membership Status:</label>
+                        {{ form.membership_status }}
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-md-6">
+                <fieldset class="form-group">
+                    <legend>Address Information</legend>
+                    <div class="mb-3">
+                        <label for="id_street_address" class="form-label">Street Address:</label>
+                        {{ form.street_address }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_suburb" class="form-label">Suburb:</label>
+                        {{ form.suburb }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_city" class="form-label">City:</label>
+                        {{ form.city }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_state" class="form-label">State/Province:</label>
+                        {{ form.state }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_postal_code" class="form-label">Postal Code:</label>
+                        {{ form.postal_code }}
+                    </div>
+                </fieldset>
+
+                {% if player.age and player.age < 18 %}
+                <fieldset class="form-group mt-4">
+                    <legend>Guardian Information (for Minors)</legend>
+                    <div class="mb-3">
+                        <label for="id_guardian_name" class="form-label">Guardian Name:</label>
+                        {{ form.guardian_name }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_guardian_phone" class="form-label">Guardian Phone:</label>
+                        {{ form.guardian_phone }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_guardian_email" class="form-label">Guardian Email:</label>
+                        {{ form.guardian_email }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.parental_consent }} <label class="form-check-label" for="id_parental_consent">Parental Consent Given</label>
+                    </div>
+                </fieldset>
+                {% endif %}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-4">Save Changes</button>
+        <a href="{% url 'accounts:club_admin_dashboard' %}" class="btn btn-secondary mt-4">Cancel</a>
+    </form>
+</div>
+{% endblock %}

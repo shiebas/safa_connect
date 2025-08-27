@@ -1,35 +1,106 @@
-{% extends "base.html" %}
-{% load static %}
+{% extends 'base.html' %}
 
 {% block title %}Club Admin Dashboard{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Club Administrator Dashboard</h2>
+{% block extra_css %}
+<style>
+    .card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    .card-title {
+        color: #333;
+        font-size: 1.1em;
+        font-weight: bold;
+    }
+    .card-text {
+        color: #007bff;
+        font-size: 1.8em;
+        font-weight: bold;
+    }
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: bold;
+    }
+    .table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+{% endblock %}
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
-                </div>
+{% block content %}
+<div class="container mt-5">
+    <h1>{{ club.name }} - Admin Dashboard</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center">
                 <div class="card-body">
-                    <a href="{% url 'accounts:club_admin_add_player' %}" class="btn btn-primary">Add Player</a>
-                    <a href="#" class="btn btn-secondary">View Players</a>
+                    <h5 class="card-title">Total Members</h5>
+                    <p class="card-text">{{ players.count }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Club Summary</h5>
-                </div>
+        <div class="col-md-3">
+            <div class="card text-center">
                 <div class="card-body">
-                    <p><strong>Total Players:</strong> 0</p>
+                    <h5 class="card-title">Juniors (&lt;18)</h5>
+                    <p class="card-text">{{ juniors }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Seniors (18+)</h5>
+                    <p class="card-text">{{ seniors }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Female Members</h5>
+                    <p class="card-text">{{ female_players }}</p>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Members</h2>
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>SAFA ID</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                    <tr>
+                        <td>{{ player.get_full_name }}</td>
+                        <td>{{ player.safa_id }}</td>
+                        <td>{{ player.age }}</td>
+                        <td>{{ player.get_gender_display }}</td>
+                        <td>{{ player.get_membership_status_display }}</td>
+                        <td>
+                            <a href="{% url 'accounts:edit_player' player.id %}" class="btn btn-primary btn-sm">Edit</a>
+                            <a href="{% url 'accounts:approve_player' player.id %}" class="btn btn-success btn-sm">Approve</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
