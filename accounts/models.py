@@ -128,7 +128,7 @@ class ModelWithLogo(models.Model):
                     return self.logo.url
         except Exception:
             pass
-        return '/static/images/connection.png'
+        return '/static/images/connecticon.png'
 
     class Meta:
         abstract = True

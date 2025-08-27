@@ -139,6 +139,17 @@
                                                 </ul>
                                             </div>
                                         </form>
+                                        {% if org_type == 'province' %}
+                                        <a href="{% url 'geography:province-update' pk=org.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                                        {% elif org_type == 'region' %}
+                                        <a href="{% url 'geography:region-update' pk=org.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                                        {% elif org_type == 'lfa' %}
+                                        <a href="{% url 'geography:localfootballassociation-update' pk=org.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                                        {% elif org_type == 'association' %}
+                                        <a href="{% url 'geography:association-update' pk=org.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                                        {% elif org_type == 'club' %}
+                                        <a href="{% url 'geography:club-update' pk=org.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}

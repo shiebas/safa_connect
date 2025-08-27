@@ -742,7 +742,16 @@ def national_finance_dashboard(request):
 
 @role_required(allowed_roles=['ADMIN_PROVINCE'])
 def provincial_admin_dashboard(request):
-    return render(request, 'accounts/provincial_admin_dashboard.html')
+    user_province = request.user.province
+    regions = []
+    if user_province:
+        regions = user_province.region_set.all()
+    
+    context = {
+        'user_province': user_province,
+        'regions': regions,
+    }
+    return render(request, 'accounts/provincial_admin_dashboard.html', context)
 
 
 @login_required

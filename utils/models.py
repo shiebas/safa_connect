@@ -19,7 +19,7 @@ class ModelWithLogo(models.Model):
         if self.logo:
             return format_html('<img src="{}" width="50" height="50" />', self.logo.url)
         # Display default logo from static files
-        default_logo_url = static('images/connection.png')
+        default_logo_url = static('images/connecticon.png')
         return format_html('<img src="{}" width="50" height="50" alt="Default Logo" />', default_logo_url)
     
     display_logo.short_description = 'Logo'

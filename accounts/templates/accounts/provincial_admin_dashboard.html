@@ -26,8 +26,34 @@
                     <h5 class="mb-0">Provincial Summary</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Total Regions:</strong> 0</p>
+                    <p><strong>Province:</strong> {{ user_province.name }}</p>
+                    <p><strong>Total Regions:</strong> {{ regions.count }}</p>
                     <p><strong>Total Members:</strong> 0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Regions in {{ user_province.name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if regions %}
+                    <ul class="list-group">
+                        {% for region in regions %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ region.name }}
+                            <span class="badge bg-primary rounded-pill">{{ region.localfootballassociation_set.count }} LFAs</span>
+                            <a href="{% url 'geography:region-update' pk=region.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No regions associated with this province.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
