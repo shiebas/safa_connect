@@ -334,6 +334,10 @@ def member_approvals_list(request):
         member = get_object_or_404(Member, id=member_id)
 
         if 'approve' in request.POST:
+            if member.user and member.user.age < 18 and not member.user.parental_consent:
+                messages.error(request, "Cannot approve a junior member without parental consent.")
+                return redirect('accounts:member_approvals_list')
+
             member.status = 'ACTIVE'
             member.approved_by = request.user
             member.approved_date = timezone.now()
@@ -694,6 +698,8 @@ def national_admin_dashboard(request):
     pending_associations = Association.objects.filter(status='INACTIVE')
     pending_clubs = Club.objects.filter(status='INACTIVE')
 
+    pending_members = Member.objects.filter(status='PENDING').select_related('user', 'current_club').order_by('-created')
+
     context = {
         'org_data': org_data,
         'ClubStatus': ClubStatus,
@@ -704,6 +710,7 @@ def national_admin_dashboard(request):
         'pending_lfas': pending_lfas,
         'pending_associations': pending_associations,
         'pending_clubs': pending_clubs,
+        'pending_members': pending_members,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 
@@ -847,6 +854,10 @@ def edit_player(request, player_id):
 @login_required
 def approve_player(request, player_id):
     player = get_object_or_404(CustomUser, id=player_id)
+    if player.age < 18 and not player.parental_consent:
+        messages.error(request, "Cannot approve a junior member without parental consent.")
+        return redirect('accounts:club_admin_dashboard')
+
     player.membership_status = 'ACTIVE'
     player.save()
     messages.success(request, f'Player {player.get_full_name()} approved successfully.')
@@ -866,7 +877,21 @@ def add_club_administrator(request):
             user = form.save(commit=False)
             user.role = 'CLUB_ADMIN'
             user.is_staff = True
-            user.club = request.user.club
+
+            # Get club and related geographic info from the logged-in user
+            club = request.user.club
+            user.club = club
+            if club:
+                lfa = club.localfootballassociation
+                user.local_federation = lfa
+                if lfa:
+                    region = lfa.region
+                    user.region = region
+                    if region:
+                        province = region.province
+                        user.province = province
+                        if province:
+                            user.national_federation = province.national_federation
 
             # Generate safa_id if not present
             if not user.safa_id:
