@@ -1062,11 +1062,11 @@ def edit_club_logo(request):
     """View for club admins to edit their club's logo"""
     if not request.user.is_authenticated or request.user.role != 'CLUB_ADMIN':
         messages.error(request, 'You do not have permission to access this page.')
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
     
     if not request.user.club:
         messages.error(request, 'Your user profile is not linked to a club. Please contact support.')
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
     
     club = request.user.club
     
@@ -1075,7 +1075,7 @@ def edit_club_logo(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Club logo updated successfully!')
-            return redirect('accounts:home')
+            return redirect('accounts:modern_home')
     else:
         form = ClubLogoForm(instance=club)
     

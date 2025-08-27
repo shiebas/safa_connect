@@ -104,6 +104,7 @@ class GeographyManagementViewTest(TestCase):
             'regions-0-id': self.region.id,
             'regions-0-name': 'New Region Name',
             'regions-0-code': 'NR',
+            'regions-0-province': self.province.id,
             'regions-0-description': 'New description',
             'regions-0-status': 'ACTIVE',
             'regions-0-is_compliant': 'on'

@@ -100,26 +100,27 @@ class GeographyManagementView(LoginRequiredMixin, View):
             model = Region
 
         if formset and formset.is_valid():
-            for form in formset.changed_forms:
-                instance = form.instance
+            for form in formset.forms:
+                if form.has_changed():
+                    instance = form.instance
+                    for field_name in form.changed_data:
+                        old_value = form.initial.get(field_name)
+                        new_value = form.cleaned_data.get(field_name)
+
+                        GeographyUpdateLog.objects.create(
+                            user=user,
+                            content_type=ContentType.objects.get_for_model(instance),
+                            object_id=instance.pk,
+                            field_name=field_name,
+                            old_value=str(old_value),
+                            new_value=str(new_value),
+                            status='PENDING'
+                        )
+            messages.success(request, "Your changes have been submitted for approval.")
+            return redirect('geography:geography_management')
         else:
             if formset:
                 print(formset.errors)
-                for field_name in form.changed_data:
-                    old_value = form.initial.get(field_name)
-                    new_value = form.cleaned_data.get(field_name)
-
-                    GeographyUpdateLog.objects.create(
-                        user=user,
-                        content_type=ContentType.objects.get_for_model(instance),
-                        object_id=instance.pk,
-                        field_name=field_name,
-                        old_value=str(old_value),
-                        new_value=str(new_value),
-                        status='PENDING'
-                    )
-            messages.success(request, "Your changes have been submitted for approval.")
-            return redirect('geography:geography_management')
 
         context = self.get_context_data(request, formset=formset)
         return render(request, self.template_name, context)
