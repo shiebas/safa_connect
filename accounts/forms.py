@@ -1339,11 +1339,17 @@ class EditPlayerForm(forms.ModelForm):
 class ClubAdminRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, label="Password")
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+    national_federation = forms.ModelChoiceField(queryset=NationalFederation.objects.all(), required=False, disabled=True)
+    province = forms.ModelChoiceField(queryset=Province.objects.all(), required=False, disabled=True)
+    region = forms.ModelChoiceField(queryset=Region.objects.all(), required=False, disabled=True)
+    lfa = forms.ModelChoiceField(queryset=LocalFootballAssociation.objects.all(), required=False, disabled=True, label="LFA")
+    club = forms.ModelChoiceField(queryset=Club.objects.all(), required=False, disabled=True)
 
     class Meta:
         model = CustomUser
         fields = [
             'first_name', 'last_name', 'email', 'phone_number', 'id_document_type', 'id_number', 'passport_number',
             'date_of_birth', 'gender', 'profile_picture', 'id_document',
+            'national_federation', 'province', 'region', 'lfa', 'club',
             'popi_act_consent', 'password', 'password2'
         ]
