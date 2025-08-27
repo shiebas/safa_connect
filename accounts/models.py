@@ -13,6 +13,7 @@ from geography.models import (
     NationalFederation, MotherBody, Province
 )
 from membership.models import Member
+from .utils import extract_sa_id_dob_gender
 
 
 class CustomUserManager(BaseUserManager):
@@ -242,6 +243,21 @@ class CustomUser(AbstractUser):
         ordering = ['email']
         verbose_name = 'Custom User'
         verbose_name_plural = 'Custom Users'
+
+    @property
+    def is_id_valid(self):
+        """
+        Checks if the user's ID number is valid using the SA ID validation logic.
+        Returns True if valid, False otherwise.
+        """
+        if self.id_document_type == 'ID' and self.id_number:
+            # Use the extract_sa_id_dob_gender function for validation
+            dob, gender = extract_sa_id_dob_gender(self.id_number)
+            return dob is not None and gender is not None
+        elif self.id_document_type == 'PP' and self.passport_number:
+            # For passport, we assume it's valid if provided, or add specific passport validation here
+            return True # Placeholder: Add actual passport validation if needed
+        return True # If no ID or Passport is provided, or other document type, consider it valid for this check
 
     def get_full_name(self):
         """Return the first_name plus the last_name, with a space in between."""
