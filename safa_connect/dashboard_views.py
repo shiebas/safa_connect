@@ -81,7 +81,7 @@ def superuser_dashboard(request):
     recent_activities = recent_activities[:15]  # Limit to 15 most recent
     
     # ==== PENDING APPROVALS ====
-    pending_approvals = Member.objects.filter(status='PENDING').select_related('user', 'current_club')
+    pending_approvals = CustomUser.objects.filter(membership_status='PENDING').order_by('-registration_date')
 
     context = {
         'online_users': online_users,

@@ -90,7 +90,6 @@
         <div class="profile-section">
             <h3>Identification</h3>
             <div class="profile-item"><strong>ID Document Type:</strong> {{ user.get_id_document_type_display|default:"N/A" }}</div>
-            <div class="profile-item"><strong>ID Number:</strong> {{ user.id_number|default:"N/A" }}</div>
             <div class="profile-item"><strong>Passport Number:</strong> {{ user.passport_number|default:"N/A" }}</div>
             {% if user.id_document %}
             <div class="profile-item"><strong>ID Document:</strong> <a href="{{ user.id_document.url }}">View Document</a></div>
