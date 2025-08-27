@@ -1344,6 +1344,7 @@ class ClubAdminRegistrationForm(forms.ModelForm):
     region = forms.ModelChoiceField(queryset=Region.objects.all(), required=False, disabled=True)
     lfa = forms.ModelChoiceField(queryset=LocalFootballAssociation.objects.all(), required=False, disabled=True, label="LFA")
     club = forms.ModelChoiceField(queryset=Club.objects.all(), required=False, disabled=True)
+    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False)
 
     class Meta:
         model = CustomUser
@@ -1353,3 +1354,9 @@ class ClubAdminRegistrationForm(forms.ModelForm):
             'national_federation', 'province', 'region', 'lfa', 'club',
             'popi_act_consent', 'password', 'password2'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({'class': 'form-control'})
