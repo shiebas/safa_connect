@@ -202,37 +202,6 @@ class NationalAdminRegistrationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        organization_type = cleaned_data.get("organization_type")
-        province = cleaned_data.get("province")
-        region = cleaned_data.get("region")
-        local_federation = cleaned_data.get("local_federation")
-        club = cleaned_data.get("club")
-
-        if organization_type:
-            org_name = organization_type.name.upper()
-            if 'PROVINCE' in org_name and not province:
-                self.add_error('province', 'Province is required for this administrator type.')
-            if 'REGION' in org_name:
-                if not province:
-                    self.add_error('province', 'Province is required for this administrator type.')
-                if not region:
-                    self.add_error('region', 'Region is required for this administrator type.')
-            if 'LFA' in org_name or 'LOCAL' in org_name:
-                if not province:
-                    self.add_error('province', 'Province is required for this administrator type.')
-                if not region:
-                    self.add_error('region', 'Region is required for this administrator type.')
-                if not local_federation:
-                    self.add_error('local_federation', 'Local Football Association is required for this administrator type.')
-            if 'CLUB' in org_name:
-                if not province:
-                    self.add_error('province', 'Province is required for this administrator type.')
-                if not region:
-                    self.add_error('region', 'Region is required for this administrator type.')
-                if not local_federation:
-                    self.add_error('local_federation', 'Local Football Association is required for this administrator type.')
-                if not club:
-                    self.add_error('club', 'Club is required for this administrator type.')
 
         id_document_type = cleaned_data.get('id_document_type')
         id_number = cleaned_data.get('id_number')
@@ -243,13 +212,8 @@ class NationalAdminRegistrationForm(forms.ModelForm):
         if id_document_type == 'ID':
             if not id_number:
                 self.add_error('id_number', 'ID number is required when document type is ID.')
-            else:
-                dob, gen = extract_sa_id_dob_gender(id_number)
-                if dob and gen:
-                    cleaned_data['date_of_birth'] = dob
-                    cleaned_data['gender'] = gen
-                else:
-                    self.add_error('id_number', 'Invalid South African ID number.')
+            # The extract_sa_id_dob_gender and setting of dob/gender is now handled in clean_id_number
+            # So no need to repeat here.
         elif id_document_type == 'PP':
             if not passport_number:
                 self.add_error('passport_number', 'Passport number is required when document type is Passport.')
@@ -257,7 +221,11 @@ class NationalAdminRegistrationForm(forms.ModelForm):
                 self.add_error('date_of_birth', 'Date of birth is required when document type is Passport.')
             if not gender:
                 self.add_error('gender', 'Gender is required when document type is Passport.')
+        else: # Should not happen with required ChoiceField, but for robustness
+            self.add_error('id_document_type', 'Please select a document type.')
 
+
+        # Existing file size and type validations
         profile_picture = cleaned_data.get('profile_picture')
         if profile_picture:
             if profile_picture.size > 5 * 1024 * 1024:
@@ -272,11 +240,17 @@ class NationalAdminRegistrationForm(forms.ModelForm):
             if id_document.content_type not in ['image/jpeg', 'image/png', 'application/pdf']:
                 self.add_error('id_document', 'Invalid file type. Only JPG, PNG, and PDF are allowed.')
 
+        # Geographic validations (if applicable, based on your model)
+        province = cleaned_data.get('province')
+        region = cleaned_data.get('region')
+        local_federation = cleaned_data.get('lfa') # Note: 'lfa' in RegistrationForm, not 'local_federation'
+        club = cleaned_data.get('club')
+
         if province and region and region.province != province:
             self.add_error('region', 'Region does not belong to the selected province.')
 
         if region and local_federation and local_federation.region != region:
-            self.add_error('local_federation', 'LFA does not belong to the selected region.')
+            self.add_error('lfa', 'LFA does not belong to the selected region.')
 
         if local_federation and club and club.localfootballassociation != local_federation:
             self.add_error('club', 'Club does not belong to the selected LFA.')
@@ -285,8 +259,8 @@ class NationalAdminRegistrationForm(forms.ModelForm):
 
 
 class RegistrationForm(forms.ModelForm):
-    
-    
+
+
     role = forms.ChoiceField(
         choices=[
             ('PLAYER', 'Player'),
@@ -294,6 +268,12 @@ class RegistrationForm(forms.ModelForm):
         ],
         required=True,
         label="I am a..."
+    )
+    id_document_type = forms.ChoiceField(
+        choices=[('ID', 'ID Number'), ('PP', 'Passport')],
+        required=True,
+        label="ID Document Type",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_id_document_type'})
     )
     country = forms.ModelChoiceField(
         queryset=Country.objects.all(),
@@ -324,7 +304,7 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'id_number', 'passport_number',
+        fields = ['first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
                   'date_of_birth', 'gender', 'profile_picture', 'id_document',
                    'country_code', 'nationality']
 
@@ -388,8 +368,8 @@ class RegistrationForm(forms.ModelForm):
                 'id_number',
                 HTML('<div id="id-validation-message" class="mt-1 small"></div>'), # Placeholder for JS validation messages
                 css_id='id_number_box',
-                css_class='id-number-field',
-                style='display:none;' # Hidden by default, shown by JS
+                css_class='sa-id-field', # Changed css_class to sa-id-field
+                style='display:block;' # Changed to display:block
             ),
             Div(
                 'passport_number',
@@ -397,8 +377,12 @@ class RegistrationForm(forms.ModelForm):
                 css_class='passport-field',
                 style='display:none;' # Hidden by default, shown by JS
             ),
-            'date_of_birth',
-            'gender',
+            Div( # New Div for dob and gender
+                'date_of_birth',
+                'gender',
+                css_id='dob-gender-manual-row',
+                style='display:none;' # Hidden by default, shown by JS when passport is selected
+            ),
             'profile_picture',
             'id_document',
             'country_code',
@@ -433,8 +417,22 @@ class RegistrationForm(forms.ModelForm):
 
     def clean_id_number(self):
         id_number = self.cleaned_data.get('id_number')
-        if id_number and CustomUser.objects.filter(id_number=id_number).exists():
+        if not id_number:
+            return id_number # Allow empty if not required, or handle required elsewhere
+
+        # Check for uniqueness first
+        if CustomUser.objects.filter(id_number=id_number).exists():
             raise forms.ValidationError("A user with this ID number already exists.")
+
+        # Validate SA ID number format and extract DOB/Gender
+        dob, gen = extract_sa_id_dob_gender(id_number)
+        if not dob or not gen:
+            raise forms.ValidationError("Invalid South African ID number format or checksum.")
+
+        # Set date_of_birth and gender in cleaned_data
+        self.cleaned_data['date_of_birth'] = dob
+        self.cleaned_data['gender'] = gen
+
         return id_number
 
     def clean_password2(self):

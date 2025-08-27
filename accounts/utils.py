@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
+from datetime import date # Moved this import to the top
 
 def generate_unique_safa_id():
     """Generate a unique SAFA ID that is not in CustomUser or Member model"""
@@ -125,32 +126,63 @@ def send_support_request_email(support_request):
 
 
 def extract_sa_id_dob_gender(id_number):
-    """Extract date of birth and gender from SA ID number"""
-    if not id_number or len(id_number) != 13:
+    """
+    Extract date of birth and gender from SA ID number and validate it.
+    Includes Luhn algorithm check and basic date validation.
+    """
+    if not id_number or not id_number.isdigit() or len(id_number) != 13:
         return None, None
-    
+
+    # Luhn algorithm check
+    def luhn_check(id_num):
+        digits = [int(d) for d in id_num]
+        for i in range(len(digits) - 2, -1, -2):
+            doubled_digit = digits[i] * 2
+            digits[i] = doubled_digit - 9 if doubled_digit > 9 else doubled_digit
+        total_sum = sum(digits)
+        return total_sum % 10 == 0
+
+    if not luhn_check(id_number):
+        return None, None
+
     try:
-        # Extract date components
-        year = int(id_number[:2])
+        year_digits = int(id_number[:2])
         month = int(id_number[2:4])
         day = int(id_number[4:6])
+
+        current_year_full = timezone.now().year
+        current_year_short = current_year_full % 100
         
-        # Determine century
-        current_year = timezone.now().year % 100
-        century = 2000 if year <= current_year else 1900
-        full_year = century + year
+        if year_digits <= current_year_short:
+            full_year = 2000 + year_digits
+        else:
+            full_year = 1900 + year_digits
+
+        # Attempt to create date object, will raise ValueError for invalid dates
+        dob = date(full_year, month, day)
+
+        # Basic date validation: ensure date is not in the future
+        if dob > timezone.now().date():
+            return None, None
         
-        # Create date
-        from datetime import date
-        date_of_birth = date(full_year, month, day)
-        
-        # Extract gender
+        # Basic age check (e.g., not older than 120 years)
+        # Using timedelta for age calculation
+        age_in_days = (timezone.now().date() - dob).days
+        if age_in_days < 0 or age_in_days / 365.25 > 120: # Also check for negative age (future date)
+            return None, None
+
         gender_digit = int(id_number[6:10])
         gender = 'M' if gender_digit >= 5000 else 'F'
-        
-        return date_of_birth, gender
-    
-    except (ValueError, IndexError):
+
+        return dob, gender
+
+    except ValueError: # Catches invalid date components (e.g., month 13, day 32)
+        return None, None
+    except IndexError: # Catches if id_number slicing goes out of bounds (should be caught by initial len check, but good for robustness)
+        return None, None
+    except Exception as e: # Catch any other unexpected errors
+        # Log the error for debugging purposes in a real application
+        # print(f"Error logging user activity: {e}")
         return None, None
 
 def log_user_activity(user, action, details=""):

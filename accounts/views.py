@@ -31,8 +31,18 @@ logger = logging.getLogger(__name__)
 
 def modern_home(request):
     if request.user.is_authenticated:
-        # Redirect based on user role or show a generic dashboard
-        return redirect('accounts:profile')
+        if hasattr(request.user, 'role'):
+            if request.user.role == 'ADMIN_NATIONAL':
+                return redirect('accounts:national_admin_dashboard')
+            elif request.user.role == 'ADMIN_PROVINCE':
+                return redirect('accounts:provincial_admin_dashboard')
+            elif request.user.role == 'ADMIN_REGION':
+                return redirect('accounts:regional_admin_dashboard')
+            elif request.user.role == 'ADMIN_LOCAL_FED':
+                return redirect('accounts:lfa_admin_dashboard')
+            elif request.user.role == 'CLUB_ADMIN':
+                return redirect('accounts:club_admin_dashboard')
+        return redirect('accounts:profile') # Default redirect if no specific role or role not found
     return render(request, 'accounts/modern_home.html')
 
 
@@ -696,7 +706,7 @@ def national_finance_dashboard(request):
     return render(request, 'accounts/national_finance_dashboard.html')
 
 
-@login_required
+@role_required(allowed_roles=['ADMIN_PROVINCE'])
 def provincial_admin_dashboard(request):
     return render(request, 'accounts/provincial_admin_dashboard.html')
 
