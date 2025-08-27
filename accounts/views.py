@@ -870,6 +870,7 @@ def add_club_administrator(request):
             if not user.safa_id:
                 user.safa_id = generate_unique_safa_id()
 
+            user.set_password(form.cleaned_data['password'])
             user.save()
 
             # Create SupporterProfile

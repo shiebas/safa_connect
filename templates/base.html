@@ -685,6 +685,9 @@
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
                                     <i class="fas fa-user me-2"></i>My Profile
                                 </a></li>
+                                <li><a class="dropdown-item" href="{% url 'membership:export_profile_pdf' user.id %}">
+                                    <i class="fas fa-file-pdf me-2"></i>Download Profile as PDF
+                                </a></li>
                                 {% if user.role == 'CLUB_ADMIN' %}
                                 <li><a class="dropdown-item" href="{% url 'accounts:club_admin_dashboard' %}">
                                     <i class="fas fa-tachometer-alt me-2"></i>Club Dashboard

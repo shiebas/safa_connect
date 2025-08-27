@@ -215,3 +215,23 @@ def edit_season_config(request, pk):
         'title': 'Edit Season Configuration'
     }
     return render(request, 'membership/edit_season_config.html', context)
+
+
+@login_required
+def export_profile_pdf(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    template_path = 'membership/membership_profile_export_pdf.html'
+    context = {'user': user}
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{user.safa_id}_profile.pdf"'
+
+    template = get_template(template_path)
+    html = template.render(context)
+
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response

@@ -26,6 +26,7 @@ urlpatterns = [
     path('member-approvals/<int:member_id>/approve/', views.approve_member, name='approve_member'),
     path('member-approvals/<int:member_id>/reject/', views.reject_member, name='reject_member'),
     path('card/<int:member_id>/', views.generate_membership_card, name='generate_membership_card'),
+    path('profile/<int:user_id>/export-pdf/', views.export_profile_pdf, name='export_profile_pdf'),
 
     # Registration AJAX
     path('club-info/', registration_views.get_club_info, name='club_info'),
