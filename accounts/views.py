@@ -15,6 +15,7 @@ from geography.models import (Association, Club, ClubStatus, Country,
                               LocalFootballAssociation, NationalFederation,
                               Province, Region)
 from membership.models import Invoice, Member
+from supporters.models import SupporterProfile
 
 from .decorators import role_required
 from .forms import (AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
@@ -73,9 +74,10 @@ def user_registration(request):
             user.save()
 
             # Create SupporterProfile for the new user
-            from supporters.models import SupporterProfile
-            SupporterProfile.objects.get_or_create(
-                user=user)  # Use get_or_create to avoid duplicates
+            supporter_profile, created = SupporterProfile.objects.get_or_create(user=user)
+            if created:
+                supporter_profile.safa_id = user.safa_id
+                supporter_profile.save()
             login(request, user)
 
             national_federation = NationalFederation.objects.first()
@@ -863,7 +865,44 @@ def add_club_administrator(request):
             user.role = 'CLUB_ADMIN'
             user.is_staff = True
             user.club = request.user.club
+
+            # Generate safa_id if not present
+            if not user.safa_id:
+                user.safa_id = generate_unique_safa_id()
+
             user.save()
+
+            # Create SupporterProfile
+            SupporterProfile.objects.get_or_create(user=user)
+
+            # Create Member object (similar to user_registration)
+            national_federation = NationalFederation.objects.first()
+            if not national_federation:
+                country = Country.objects.first()
+                if not country:
+                    country = Country.objects.create(name='South Africa')
+                national_federation = NationalFederation.objects.create(
+                    name='SAFA', country=country)
+
+            Member.objects.create(
+                user=user,
+                safa_id=user.safa_id,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                email=user.email,
+                role=user.role, # Use the role assigned to the user
+                status='ACTIVE', # Administrators are typically active immediately
+                date_of_birth=user.date_of_birth,
+                gender=user.gender,
+                id_number=user.id_number,
+                passport_number=user.passport_number,
+                national_federation=national_federation,
+                province=request.user.club.localfootballassociation.region.province if request.user.club and request.user.club.localfootballassociation and request.user.club.localfootballassociation.region else None,
+                region=request.user.club.localfootballassociation.region if request.user.club and request.user.club.localfootballassociation else None,
+                lfa=request.user.club.localfootballassociation if request.user.club else None,
+                current_club=request.user.club,
+            )
+
             messages.success(request, f'Administrator {user.get_full_name()} added successfully.')
             return redirect('accounts:club_management_dashboard')
     else:

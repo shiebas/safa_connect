@@ -155,6 +155,7 @@ class SupporterProfile(models.Model):
     )
     
     created_at = models.DateTimeField(auto_now_add=True)
+    safa_id = models.CharField(max_length=5, unique=True, null=True, blank=True, help_text="Unique SAFA ID for Supporter")
     # ID verification fields
     id_number = models.CharField(max_length=64, blank=True)
     id_document = models.FileField(upload_to='documents/supporter_ids/', blank=True, null=True)
