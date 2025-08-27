@@ -912,7 +912,26 @@ def add_club_administrator(request):
             messages.success(request, f'Administrator {user.get_full_name()} added successfully.')
             return redirect('accounts:club_management_dashboard')
     else:
-        form = ClubAdminRegistrationForm()
+        initial_data = {}
+        club = request.user.club
+        if club:
+            initial_data['club'] = club
+            lfa = club.localfootballassociation
+            if lfa:
+                initial_data['lfa'] = lfa
+                region = lfa.region
+                if region:
+                    initial_data['region'] = region
+                    province = region.province
+                    if province:
+                        initial_data['province'] = province
+
+            national_federation = NationalFederation.objects.first()
+            if national_federation:
+                initial_data['national_federation'] = national_federation
+
+        form = ClubAdminRegistrationForm(initial=initial_data)
+
     context = {
         'form': form,
     }
