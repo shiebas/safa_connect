@@ -105,7 +105,11 @@
                         <td>{{ player.get_membership_status_display }}</td>
                         <td>
                             <a href="{% url 'accounts:edit_player' player.id %}" class="btn btn-primary btn-sm">Edit</a>
-                            <a href="{% url 'accounts:approve_player' player.id %}" class="btn btn-success btn-sm">Approve</a>
+                            {% if player.age < 18 and not player.parental_consent %}
+                                <button class="btn btn-success btn-sm" disabled title="Parental consent required for junior members">Approve</button>
+                            {% else %}
+                                <a href="{% url 'accounts:approve_player' player.id %}" class="btn btn-success btn-sm">Approve</a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
