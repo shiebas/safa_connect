@@ -101,7 +101,7 @@ def user_registration(request):
                 request,
                 'Registration successful. Your application is pending approval.'
             )
-            return redirect('accounts:home')
+            return redirect('accounts:modern_home')
     else:
         form = RegistrationForm()
     return render(request, 'accounts/user_registration.html', {'form': form})
@@ -183,7 +183,7 @@ def club_admin_add_player(request):
     if request.user.role != 'CLUB_ADMIN':
         messages.error(
             request, "You do not have permission to perform this action.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
 
     if request.method == 'POST':
         form = ClubAdminAddPlayerForm(request.POST, request.FILES)
@@ -198,7 +198,7 @@ def club_admin_add_player(request):
             messages.success(
                 request,
                 f"Player {player.get_full_name()} added successfully.")
-            return redirect('accounts:home')
+            return redirect('accounts:modern_home')
     else:
         form = ClubAdminAddPlayerForm()
 
@@ -318,7 +318,7 @@ def member_approvals_list(request):
         # Placeholder for other admin roles, can be expanded later
         messages.error(
             request, "You do not have permission to view this page.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
 
     if request.method == 'POST':
         member_id = request.POST.get('member_id')
@@ -514,7 +514,7 @@ def contact_support(request):
                 request,
                 "Your support request has been sent. We will get back to you "
                 "shortly.")
-            return redirect('accounts:home')
+            return redirect('accounts:modern_home')
     else:
         form = ModernContactForm()
     return render(request, 'accounts/contact_support.html', {'form': form})
@@ -717,14 +717,14 @@ def update_organization_status(request):
     model = model_map.get(org_type)
     if not model or not org_id or not new_status:
         messages.error(request, "Invalid request.")
-        return redirect(request.META.get('HTTP_REFERER', 'accounts:home'))
+        return redirect(request.META.get('HTTP_REFERER', 'accounts:modern_home'))
 
     org = get_object_or_404(model, id=org_id)
 
     valid_statuses = [choice[0] for choice in ClubStatus.choices]
     if new_status not in valid_statuses:
         messages.error(request, "Invalid status.")
-        return redirect(request.META.get('HTTP_REFERER', 'accounts:home'))
+        return redirect(request.META.get('HTTP_REFERER', 'accounts:modern_home'))
 
     org.status = new_status
     org.save()
@@ -761,7 +761,16 @@ def regional_admin_dashboard(request):
 
 @login_required
 def lfa_admin_dashboard(request):
-    return render(request, 'accounts/lfa_admin_dashboard.html')
+    lfa = request.user.local_federation
+    clubs = []
+    if lfa:
+        clubs = lfa.clubs.all()
+
+    context = {
+        'lfa': lfa,
+        'clubs': clubs,
+    }
+    return render(request, 'accounts/lfa_admin_dashboard.html', context)
 
 
 @login_required
@@ -854,7 +863,7 @@ def province_compliance_view(request):
     province = request.user.province
     if not province:
         messages.error(request, "You are not associated with a province.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
 
     if request.method == 'POST':
         form = ProvinceComplianceForm(request.POST, request.FILES, instance=province)
@@ -877,7 +886,7 @@ def region_compliance_view(request):
     region = request.user.region
     if not region:
         messages.error(request, "You are not associated with a region.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
 
     if request.method == 'POST':
         form = RegionComplianceForm(request.POST, request.FILES, instance=region)
@@ -900,7 +909,7 @@ def lfa_compliance_view(request):
     lfa = request.user.local_federation
     if not lfa:
         messages.error(request, "You are not associated with an LFA.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
 
     if request.method == 'POST':
         form = LFAComplianceForm(request.POST, request.FILES, instance=lfa)
@@ -923,7 +932,7 @@ def association_compliance_view(request):
     association = request.user.association
     if not association:
         messages.error(request, "You are not associated with an Association.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
 
     if request.method == 'POST':
         form = AssociationComplianceForm(request.POST, request.FILES, instance=association)
@@ -946,7 +955,7 @@ def club_compliance_view(request):
     club = request.user.club
     if not club:
         messages.error(request, "You are not associated with a Club.")
-        return redirect('accounts:home')
+        return redirect('accounts:modern_home')
 
     if request.method == 'POST':
         form = ClubComplianceForm(request.POST, request.FILES, instance=club)
