@@ -319,32 +319,21 @@ def health_check(request):
 def member_approvals_list(request):
     users_to_approve = CustomUser.objects.none()
 
-    if (request.user.is_superuser or 
-        (hasattr(request.user, 'role') and 
-         request.user.role in ['ADMIN_NATIONAL', 'CLUB_ADMIN'])):
-        
-        # Superusers and national admins see all pending users
-        if request.user.is_superuser or request.user.role == 'ADMIN_NATIONAL':
-            users_to_approve = CustomUser.objects.filter(membership_status='PENDING')
-        # Club admins only see users from their own club
-        elif request.user.role == 'CLUB_ADMIN':
-            # Assuming there's a relationship between User and Club through Member model
-            # and the club admin has a club associated with them
-            try:
-                # Get the club that this admin manages
-                admin_club = request.user.member.club  # Adjust this based on your model structure
-                # Get users who are members of this club and pending approval
-                users_to_approve = CustomUser.objects.filter(
-                    membership_status='PENDING',
-                    member__club=admin_club
-                )
-            except (Member.DoesNotExist, AttributeError):
-                messages.error(request, "You are not associated with any club.")
-                return redirect('accounts:modern_home')
+    if request.user.is_superuser or \
+       (hasattr(request.user, 'role') and
+            request.user.role == 'ADMIN_NATIONAL'):
+        users_to_approve = CustomUser.objects.filter(membership_status='PENDING')
     else:
-        messages.error(request, "You do not have permission to view this page.")
+        # Placeholder for other admin roles, can be expanded later
+        messages.error(
+            request, "You do not have permission to view this page.")
         return redirect('accounts:modern_home')
 
+
+    if request.method == 'POST':
+        user_id = request.POST.get('member_id') # The form sends member_id
+        user = get_object_or_404(CustomUser, 
+                                 
         if request.method == 'POST':
             user_id = request.POST.get('member_id')
             action = request.POST.get('action')
@@ -360,6 +349,7 @@ def member_approvals_list(request):
             except (Member.DoesNotExist, AttributeError):
                 messages.error(request, "This user is not associated with any club.")
                 return redirect('accounts:member_approvals_list')
+
 
         if 'approve' in request.POST:
             if user.age and user.age < 18 and not user.parental_consent:
@@ -416,12 +406,14 @@ def member_approvals_list(request):
             else:
                 messages.error(request, "Rejection reason is required.")
 
+
         return redirect('accounts:member_approvals_list')
 
     context = {
         'users_to_approve': users_to_approve,
     }
     return render(request, 'accounts/member_approvals_list.html', context)
+
 
 @login_required
 def reject_member(request, member_id):
@@ -735,6 +727,13 @@ def national_admin_dashboard(request):
 
     pending_members = Member.objects.filter(status='PENDING').select_related('user', 'current_club').order_by('-created')
 
+    # All Members list
+    all_members_list = CustomUser.objects.all().order_by('first_name', 'last_name')
+    member_paginator = Paginator(all_members_list, 10)
+    member_page_number = request.GET.get('member_page', 1)
+    members_page = member_paginator.get_page(member_page_number)
+
+
     context = {
         'org_data': org_data,
         'ClubStatus': ClubStatus,
@@ -745,6 +744,8 @@ def national_admin_dashboard(request):
         'pending_lfas': pending_lfas,
         'pending_associations': pending_associations,
         'pending_clubs': pending_clubs,
+        'members_page': members_page,
+        'pending_members': pending_members,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 
