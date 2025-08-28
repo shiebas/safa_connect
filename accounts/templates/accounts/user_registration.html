@@ -32,16 +32,24 @@
 <script src="{% static 'js/registration.js' %}"></script>
 <script src="{% static 'js/sa_id_validation.js' %}"></script>
 <script>
-try {
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        // Element selectors
         const docTypeField = document.getElementById('id_id_document_type');
         const saIdContainer = document.getElementById('id_number_box');
         const passportContainer = document.getElementById('passport_box');
         const dobGenderContainer = document.getElementById('dob-gender-manual-row');
-
         const dobField = document.getElementById('id_date_of_birth');
         const genderField = document.getElementById('id_gender');
+        const idNumberField = document.getElementById('id_id_number');
+        const idValidationMessage = document.getElementById('id-validation-message');
+        const roleField = document.getElementById('id_role');
+        const clubField = document.getElementById('div_id_club');
+        const associationField = document.getElementById('div_id_association');
+        const existingMemberField = document.getElementById('id_is_existing_member');
+        const previousSafaIdField = document.getElementById('div_id_previous_safa_id');
 
+        // Function to toggle fields based on Document Type (ID vs Passport)
         function toggleDocumentFields() {
             const selectedType = docTypeField.value;
             if (selectedType === 'ID') {
@@ -49,139 +57,90 @@ try {
                 if (passportContainer) passportContainer.style.display = 'none';
                 if (dobGenderContainer) dobGenderContainer.style.display = 'none';
                 if (dobField) dobField.readOnly = true;
-                if (genderField) genderField.readOnly = true;
-            } else if (selectedType === 'PP') {
+                if (genderField) genderField.disabled = true; // Use disabled for form submission
+            } else { // 'PP' or other
                 if (saIdContainer) saIdContainer.style.display = 'none';
                 if (passportContainer) passportContainer.style.display = 'block';
                 if (dobGenderContainer) dobGenderContainer.style.display = 'flex';
                 if (dobField) dobField.readOnly = false;
-                if (genderField) genderField.readOnly = false;
-            } else { // Default or unexpected value
-                if (saIdContainer) saIdContainer.style.display = 'none';
-                if (passportContainer) passportContainer.style.display = 'none';
-                if (dobGenderContainer) dobGenderContainer.style.display = 'none';
-                if (dobField) dobField.readOnly = true;
-                if (genderField) genderField.readOnly = true;
+                if (genderField) genderField.disabled = false;
             }
         }
 
-        if (docTypeField) {
-            docTypeField.addEventListener('change', toggleDocumentFields);
-            toggleDocumentFields(); // Initialize on page load
-        }
-    });
-} catch (e) {
-    console.error("Error in toggleDocumentFields script:", e);
-}
-</script>
-<script>
-try {
-    document.addEventListener('DOMContentLoaded', function() {
-        const idNumberField = document.getElementById('id_id_number');
-        const idValidationMessage = document.getElementById('id-validation-message');
-        const dobField = document.getElementById('id_date_of_birth');
-        const genderField = document.getElementById('id_gender');
-
+        // Function to validate SA ID Number and populate fields
         function validateIDNumber() {
+            if (!idNumberField) return;
             const idNumber = idNumberField.value;
             const validationResult = validateSAIDNumber(idNumber);
 
             if (validationResult.isValid) {
-                idValidationMessage.textContent = '';
-                idValidationMessage.classList.remove('text-danger');
-                idValidationMessage.classList.add('text-success');
-                idValidationMessage.textContent = `Valid ID. DOB: ${formatDateYMD(validationResult.dateOfBirth)}, Gender: ${validationResult.gender}, Citizenship: ${validationResult.citizenship}`;
-                dobField.value = formatDateYMD(validationResult.dateOfBirth);
-                genderField.value = validationResult.gender;
+                idValidationMessage.textContent = `Valid ID. DOB: ${formatDateYMD(validationResult.dateOfBirth)}, Gender: ${validationResult.gender}`;
+                idValidationMessage.className = 'mt-1 small text-success';
+                if (dobField) dobField.value = formatDateYMD(validationResult.dateOfBirth);
+                if (genderField) genderField.value = validationResult.gender;
             } else {
-                idValidationMessage.textContent = '';
-                idValidationMessage.classList.remove('text-success');
-                idValidationMessage.classList.add('text-danger');
-                idValidationMessage.textContent = validationResult.errorMessage;
+                idValidationMessage.textContent = validationResult.errorMessage || '';
+                idValidationMessage.className = 'mt-1 small text-danger';
             }
         }
 
-        if (idNumberField) {
-            idNumberField.addEventListener('input', validateIDNumber);
-            if (idNumberField.value) {
-                validateIDNumber();
-            }
-        }
-    });
-} catch (e) {
-    console.error("Error in validateIDNumber script:", e);
-}
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Role-based field visibility
-        const roleField = document.getElementById('id_role');
-        const clubField = document.getElementById('div_id_club');
-        const associationField = document.getElementById('div_id_association');
-
+        // Function to toggle fields based on selected Role
         function toggleRoleFields() {
             const selectedRole = roleField.value;
-            if (clubField) {
-                clubField.style.display = selectedRole === 'PLAYER' ? 'block' : 'none';
-            }
-            if (associationField) {
-                associationField.style.display = selectedRole === 'OFFICIAL' ? 'block' : 'none';
-            }
+            if (clubField) clubField.style.display = selectedRole === 'PLAYER' ? 'block' : 'none';
+            if (associationField) associationField.style.display = selectedRole === 'OFFICIAL' ? 'block' : 'none';
         }
 
-        if (roleField) {
-            roleField.addEventListener('change', toggleRoleFields);
-            toggleRoleFields(); // Initial check
-        }
-
-        // Existing member field visibility
-        const existingMemberField = document.getElementById('id_is_existing_member');
-        const previousSafaIdField = document.getElementById('div_id_previous_safa_id');
-
+        // Function to toggle the Previous SAFA ID field
         function toggleExistingMemberField() {
-            if (previousSafaIdField) {
-                previousSafaIdField.style.display = existingMemberField.checked ? 'block' : 'none';
+            const safaIdInput = document.getElementById('id_previous_safa_id');
+            if (previousSafaIdField && safaIdInput) {
+                if (existingMemberField.checked) {
+                    previousSafaIdField.style.display = 'block';
+                    safaIdInput.disabled = false;
+                } else {
+                    previousSafaIdField.style.display = 'none';
+                    safaIdInput.disabled = true;
+                    safaIdInput.value = ''; // Clear the value when hidden
+                }
             }
         }
 
-        if (existingMemberField) {
-            existingMemberField.addEventListener('change', toggleExistingMemberField);
-            toggleExistingMemberField(); // Initial check
+        // Add event listeners
+        if (docTypeField) {
+            docTypeField.addEventListener('change', toggleDocumentFields);
         }
-
-
-        const idNumberField = document.getElementById('id_id_number');
-        const idValidationMessage = document.getElementById('id-validation-message');
-        const dobField = document.getElementById('id_date_of_birth');
-        const genderField = document.getElementById('id_gender');
-
-        function validateIDNumber() {
-            const idNumber = idNumberField.value;
-            const validationResult = validateSAIDNumber(idNumber);
-
-            if (validationResult.isValid) {
-                idValidationMessage.textContent = '';
-                idValidationMessage.classList.remove('text-danger');
-                idValidationMessage.classList.add('text-success');
-                idValidationMessage.textContent = `Valid ID. DOB: ${formatDateYMD(validationResult.dateOfBirth)}, Gender: ${validationResult.gender}, Citizenship: ${validationResult.citizenship}`;
-                dobField.value = formatDateYMD(validationResult.dateOfBirth);
-                genderField.value = validationResult.gender;
-            } else {
-                idValidationMessage.textContent = '';
-                idValidationMessage.classList.remove('text-success');
-                idValidationMessage.classList.add('text-danger');
-                idValidationMessage.textContent = validationResult.errorMessage;
-            }
-        }
-
-        // Add event listener for ID number field
         if (idNumberField) {
             idNumberField.addEventListener('input', validateIDNumber);
-            // Also trigger validation on initial load if there's a pre-filled value
-            if (idNumberField.value) {
-                validateIDNumber();
-            }
         }
-    });
+        if (roleField) {
+            roleField.addEventListener('change', toggleRoleFields);
+        }
+        if (existingMemberField) {
+            existingMemberField.addEventListener('change', toggleExistingMemberField);
+        }
+
+        // Initial setup on page load
+        toggleDocumentFields();
+        toggleRoleFields();
+        toggleExistingMemberField();
+        if (idNumberField && idNumberField.value) {
+            validateIDNumber();
+        }
+
+        // Initialize flatpickr
+        if (dobField) {
+            flatpickr(dobField, {
+                altInput: true,
+                altFormat: "F j, Y",
+                dateFormat: "Y-m-d",
+                maxDate: "today"
+            });
+        }
+
+    } catch (e) {
+        console.error("Error in registration form script:", e);
+    }
+});
 </script>
 {% endblock %}

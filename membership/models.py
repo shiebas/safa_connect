@@ -122,12 +122,12 @@ class Member(TimeStampedModel):
     passport_number = models.CharField(_('Passport Number'), max_length=25, blank=True, null=True)
 
     # Address Information
-    street_address = models.CharField(_("Street Address"), max_length=255, blank=True)
-    suburb = models.CharField(_("Suburb"), max_length=100, blank=True)
-    city = models.CharField(_("City"), max_length=100, blank=True)
-    state = models.CharField(_("State/Province"), max_length=100, blank=True)
-    postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True)
-    country = models.CharField(_("Country"), max_length=100, blank=True)
+    street_address = models.CharField(_("Street Address"), max_length=255, blank=True, null=True)
+    suburb = models.CharField(_("Suburb"), max_length=100, blank=True, null=True)
+    city = models.CharField(_("City"), max_length=100, blank=True, null=True)
+    state = models.CharField(_("State/Province"), max_length=100, blank=True, null=True)
+    postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True, null=True)
+    country = models.CharField(_("Country"), max_length=100, blank=True, null=True)
 
     # SAFA Registration Details
     role = models.CharField(_("Member Role"), max_length=20, choices=MEMBER_ROLES, null=True, blank=True)
@@ -615,7 +615,7 @@ class Member(TimeStampedModel):
                 remaining_days = (season_config.season_end_date - today).days
 
                 if remaining_days > 0:
-                    pro_rata_fee = base_fee * (remaining_days / season_days)
+                    pro_rata_fee = base_fee * (Decimal(remaining_days) / Decimal(season_days))
                     # Apply minimum fee if set
                     if fee_structure.minimum_fee:
                         pro_rata_fee = max(pro_rata_fee, fee_structure.minimum_fee)
@@ -1482,7 +1482,7 @@ class Invoice(TimeStampedModel):
     )
 
     # Dates
-    issue_date = models.DateField(_("Issue Date"), default=timezone.now)
+    issue_date = models.DateField(_("Issue Date"), default=date.today)
     due_date = models.DateField(_("Due Date"), null=True, blank=True)
     payment_date = models.DateTimeField(_("Payment Date"), null=True, blank=True)
 

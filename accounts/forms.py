@@ -316,9 +316,13 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
+        fields = ['role', 'first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
                   'date_of_birth', 'gender', 'profile_picture', 'id_document',
-                   'country_code', 'nationality', 'is_existing_member', 'previous_safa_id', 'association']
+                   'country_code', 'nationality', 'street_address', 'suburb', 'city', 'state', 'postal_code',
+                   'is_existing_member', 'previous_safa_id', 'association']
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
