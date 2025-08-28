@@ -1,11 +1,10 @@
-
 {% extends "base.html" %}
 {% load static %}
 
 {% block content %}
 
 <div class="container mt-4"> <h2>Members Pending Approval</h2> <hr>
-    
+
 {% if messages %}
     {% for message in messages %}
         <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -85,9 +84,6 @@
         </div>
     </div>
 </div>
-<<<<<<< HEAD
-</div> 
-=======
 </div>
->>>>>>> f4484cdb4521855e913e69671d43bd0b87514744
-{% endblock %}
+ {% endblock %}
+   
