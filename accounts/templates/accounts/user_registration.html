@@ -114,6 +114,42 @@ try {
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Role-based field visibility
+        const roleField = document.getElementById('id_role');
+        const clubField = document.getElementById('div_id_club');
+        const associationField = document.getElementById('div_id_association');
+
+        function toggleRoleFields() {
+            const selectedRole = roleField.value;
+            if (clubField) {
+                clubField.style.display = selectedRole === 'PLAYER' ? 'block' : 'none';
+            }
+            if (associationField) {
+                associationField.style.display = selectedRole === 'OFFICIAL' ? 'block' : 'none';
+            }
+        }
+
+        if (roleField) {
+            roleField.addEventListener('change', toggleRoleFields);
+            toggleRoleFields(); // Initial check
+        }
+
+        // Existing member field visibility
+        const existingMemberField = document.getElementById('id_is_existing_member');
+        const previousSafaIdField = document.getElementById('div_id_previous_safa_id');
+
+        function toggleExistingMemberField() {
+            if (previousSafaIdField) {
+                previousSafaIdField.style.display = existingMemberField.checked ? 'block' : 'none';
+            }
+        }
+
+        if (existingMemberField) {
+            existingMemberField.addEventListener('change', toggleExistingMemberField);
+            toggleExistingMemberField(); // Initial check
+        }
+
+
         const idNumberField = document.getElementById('id_id_number');
         const idValidationMessage = document.getElementById('id-validation-message');
         const dobField = document.getElementById('id_date_of_birth');
