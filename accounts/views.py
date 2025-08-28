@@ -345,15 +345,11 @@ def member_approvals_list(request):
         messages.error(request, "You do not have permission to view this page.")
         return redirect('accounts:modern_home')
 
-    if request.method == 'POST':
-<<<<<<< HEAD
-        user_id = request.POST.get('member_id')
-        action = request.POST.get('action')
-
-=======
-        user_id = request.POST.get('member_id') # The form sends member_id
->>>>>>> f4484cdb4521855e913e69671d43bd0b87514744
-        user = get_object_or_404(CustomUser, id=user_id)
+        if request.method == 'POST':
+            user_id = request.POST.get('member_id')
+            action = request.POST.get('action')
+            user_id = request.POST.get('member_id') # The form sends member_id
+            user = get_object_or_404(CustomUser, id=user_id)
         
         # Additional permission check for club admins - can only approve their club members
         if request.user.role == 'CLUB_ADMIN':
