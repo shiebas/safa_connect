@@ -631,6 +631,30 @@
                                 <a class="nav-link" href="{% url 'superuser_dashboard' %}">
                                     <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                                 </a>
+                            {% elif user.role == 'ADMIN_NATIONAL' %}
+                                <a class="nav-link" href="{% url 'accounts:national_admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            {% elif user.role == 'ADMIN_PROVINCE' %}
+                                <a class="nav-link" href="{% url 'accounts:provincial_admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            {% elif user.role == 'ADMIN_REGION' %}
+                                <a class="nav-link" href="{% url 'accounts:regional_admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            {% elif user.role == 'ADMIN_LOCAL_FED' %}
+                                <a class="nav-link" href="{% url 'accounts:lfa_admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            {% elif user.role == 'CLUB_ADMIN' %}
+                                <a class="nav-link" href="{% url 'accounts:club_admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            {% elif user.role == 'ASSOCIATION_ADMIN' %}
+                                <a class="nav-link" href="{% url 'accounts:association_admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
                             {% else %}
                                 <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
                                     <i class="fas fa-tachometer-alt me-1"></i>Dashboard
