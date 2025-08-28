@@ -166,6 +166,73 @@
     </div>
 
     <div class="row">
+        <!-- All Members -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="section-header mb-0">
+                        <i class="bi bi-people-fill text-primary"></i> All Members
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Age</th>
+                                    <th>Organization</th>
+                                    <th>Status</th>
+                                    <th>Gender</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members_page %}
+                                <tr>
+                                    <td>{{ member.get_full_name }}</td>
+                                    <td>{{ member.email }}</td>
+                                    <td>{{ member.age|default:"N/A" }}</td>
+                                    <td>{{ member.get_organization_info.name|default:"N/A" }}</td>
+                                    <td><span class="badge {% if member.membership_status == 'ACTIVE' %}bg-success{% elif member.membership_status == 'PENDING' %}bg-warning{% else %}bg-secondary{% endif %}">{{ member.get_membership_status_display }}</span></td>
+                                    <td>{{ member.get_gender_display }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'accounts:edit_player' player_id=member.id %}" class="btn btn-primary btn-sm">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No members found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <nav aria-label="Member list navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if members_page.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?member_page=1">&laquo; first</a></li>
+                                <li class="page-item"><a class="page-link" href="?member_page={{ members_page.previous_page_number }}">previous</a></li>
+                            {% endif %}
+
+                            <li class="page-item disabled"><a class="page-link" href="#">Page {{ members_page.number }} of {{ members_page.paginator.num_pages }}.</a></li>
+
+                            {% if members_page.has_next %}
+                                <li class="page-item"><a class="page-link" href="?member_page={{ members_page.next_page_number }}">next</a></li>
+                                <li class="page-item"><a class="page-link" href="?member_page={{ members_page.paginator.num_pages }}">last &raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
         <!-- Revenue & Invoicing -->
         <div class="col-lg-8 mb-4">
             <div class="card">

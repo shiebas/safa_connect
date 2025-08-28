@@ -739,13 +739,6 @@ def national_admin_dashboard(request):
 
     pending_members = Member.objects.filter(status='PENDING').select_related('user', 'current_club').order_by('-created')
 
-    # All Members list
-    all_members_list = CustomUser.objects.all().order_by('first_name', 'last_name')
-    member_paginator = Paginator(all_members_list, 10)
-    member_page_number = request.GET.get('member_page', 1)
-    members_page = member_paginator.get_page(member_page_number)
-
-
     context = {
         'org_data': org_data,
         'ClubStatus': ClubStatus,
@@ -756,7 +749,6 @@ def national_admin_dashboard(request):
         'pending_lfas': pending_lfas,
         'pending_associations': pending_associations,
         'pending_clubs': pending_clubs,
-        'members_page': members_page,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 

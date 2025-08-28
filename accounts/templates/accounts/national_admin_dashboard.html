@@ -128,61 +128,41 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <h4 class="mb-0">All Members</h4>
+            <h4 class="mb-0">Pending Member Approvals</h4>
         </div>
         <div class="card-body">
+            {% if pending_members %}
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th>Full Name</th>
+                            <th>Name</th>
                             <th>Email</th>
-                            <th>Age</th>
-                            <th>Organization</th>
-                            <th>Status</th>
-                            <th>Gender</th>
+                            <th>Role</th>
+                            <th>Date Registered</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for member in members_page %}
+                        {% for member in pending_members %}
                         <tr>
                             <td>{{ member.get_full_name }}</td>
                             <td>{{ member.email }}</td>
-                            <td>{{ member.age|default:"N/A" }}</td>
-                            <td>{{ member.get_organization_info.name|default:"N/A" }}</td>
-                            <td><span class="badge {% if member.membership_status == 'ACTIVE' %}bg-success{% elif member.membership_status == 'PENDING' %}bg-warning{% else %}bg-secondary{% endif %}">{{ member.get_membership_status_display }}</span></td>
-                            <td>{{ member.get_gender_display }}</td>
+                            <td>{{ member.get_role_display }}</td>
+                            <td>{{ member.created|date:"Y-m-d" }}</td>
                             <td class="text-center">
-                                <a href="{% url 'accounts:edit_player' player_id=member.id %}" class="btn btn-primary btn-sm">
-                                    View
+                                <a href="{% url 'accounts:member_approvals_list' %}" class="btn btn-primary btn-sm">
+                                    Review
                                 </a>
                             </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">No members found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
-            <nav aria-label="Member list navigation">
-                <ul class="pagination justify-content-center">
-                    {% if members_page.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?member_page=1">&laquo; first</a></li>
-                        <li class="page-item"><a class="page-link" href="?member_page={{ members_page.previous_page_number }}">previous</a></li>
-                    {% endif %}
-
-                    <li class="page-item disabled"><a class="page-link" href="#">Page {{ members_page.number }} of {{ members_page.paginator.num_pages }}.</a></li>
-
-                    {% if members_page.has_next %}
-                        <li class="page-item"><a class="page-link" href="?member_page={{ members_page.next_page_number }}">next</a></li>
-                        <li class="page-item"><a class="page-link" href="?member_page={{ members_page.paginator.num_pages }}">last &raquo;</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
+            {% else %}
+            <p class="text-muted">No members are currently waiting for approval.</p>
+            {% endif %}
         </div>
     </div>
 

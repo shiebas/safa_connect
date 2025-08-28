@@ -3,8 +3,7 @@
 
 {% block content %}
 
-<div class="container mt-4"> <h2>Members Pending Approval</h2> <hr>
-
+<div class="container mt-4"> <h2>Members Pending Approval</h2> 
 {% if messages %}
     {% for message in messages %}
         <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -86,3 +85,5 @@
 </div>
 </div>
  {% endblock %}
+
+   

@@ -81,7 +81,14 @@ def superuser_dashboard(request):
     recent_activities = recent_activities[:15]  # Limit to 15 most recent
     
     # ==== PENDING APPROVALS ====
+    from django.core.paginator import Paginator
     pending_approvals = Member.objects.filter(status='PENDING').select_related('user', 'current_club')
+
+    # All Members list
+    all_members_list = CustomUser.objects.all().order_by('first_name', 'last_name')
+    member_paginator = Paginator(all_members_list, 10)
+    member_page_number = request.GET.get('member_page', 1)
+    members_page = member_paginator.get_page(member_page_number)
 
     context = {
         'online_users': online_users,
@@ -90,6 +97,7 @@ def superuser_dashboard(request):
         'invoice_by_type': invoice_by_type,
         'recent_activities': recent_activities,
         'pending_approvals': pending_approvals,
+        'members_page': members_page,
     }
     
     return render(request, 'admin/superuser_dashboard.html', context)
