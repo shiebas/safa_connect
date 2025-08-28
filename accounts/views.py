@@ -683,6 +683,41 @@ def custom_admin_logout(request):
 
 @role_required(allowed_roles=['ADMIN_NATIONAL'])
 def national_admin_dashboard(request):
+    """
+    Dashboard for national administrators, providing a comprehensive overview
+    of the entire system.
+    """
+    # ==== ALL MEMBERS LIST (PAGINATED) ====
+    all_members_list = CustomUser.objects.all().order_by('first_name', 'last_name')
+    member_paginator = Paginator(all_members_list, 15)  # Show 15 members per page
+    member_page_number = request.GET.get('member_page', 1)
+    members_page = member_paginator.get_page(member_page_number)
+
+    # ==== PENDING ORGANIZATION APPROVALS ====
+    pending_organizations = {
+        'Provinces': Province.objects.filter(status='INACTIVE'),
+        'Regions': Region.objects.filter(status='INACTIVE'),
+        'LFAs': LocalFootballAssociation.objects.filter(status='INACTIVE'),
+        'Associations': Association.objects.filter(status='INACTIVE'),
+        'Clubs': Club.objects.filter(status='INACTIVE'),
+    }
+
+    # ==== PENDING MEMBER APPROVALS ====
+    pending_members = Member.objects.filter(status='PENDING').select_related(
+        'user', 'current_club'
+    ).order_by('-created')
+
+    # ==== FINANCIAL SUMMARY ====
+    financial_summary = {
+        'total_paid': Invoice.objects.filter(status='PAID').aggregate(
+            Sum('total_amount')
+        )['total_amount__sum'] or 0,
+        'total_outstanding': Invoice.objects.filter(status='PENDING').aggregate(
+            Sum('total_amount')
+        )['total_amount__sum'] or 0,
+    }
+
+    # ==== PAGINATED ORGANIZATION LISTS ====
     org_lists = {
         'province': Province.objects.all(),
         'region': Region.objects.all(),
@@ -690,58 +725,24 @@ def national_admin_dashboard(request):
         'association': Association.objects.all(),
         'club': Club.objects.all(),
     }
-
     paginators = {
-        org_type: Paginator(queryset, 10)
-        for org_type, queryset in org_lists.items()
+        org_type: Paginator(queryset, 10) for org_type, queryset in org_lists.items()
     }
-
     page_numbers = {
-        org_type: request.GET.get(f'{org_type}_page', 1)
-        for org_type in org_lists.keys()
+        org_type: request.GET.get(f'{org_type}_page', 1) for org_type in org_lists.keys()
     }
-
     org_data = {
         org_type: paginator.get_page(page_numbers[org_type])
         for org_type, paginator in paginators.items()
     }
 
-    # Financial Summary
-    total_paid = Invoice.objects.filter(
-        status='PAID').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    total_outstanding = Invoice.objects.filter(
-        status='PENDING'
-    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-
-    # Pending Approvals
-    pending_provinces = Province.objects.filter(status='INACTIVE')
-    pending_regions = Region.objects.filter(status='INACTIVE')
-    pending_lfas = LocalFootballAssociation.objects.filter(
-        status='INACTIVE')
-    pending_associations = Association.objects.filter(status='INACTIVE')
-    pending_clubs = Club.objects.filter(status='INACTIVE')
-
-    pending_members = Member.objects.filter(status='PENDING').select_related('user', 'current_club').order_by('-created')
-
-    # All Members list
-    all_members_list = CustomUser.objects.all().order_by('first_name', 'last_name')
-    member_paginator = Paginator(all_members_list, 10)
-    member_page_number = request.GET.get('member_page', 1)
-    members_page = member_paginator.get_page(member_page_number)
-
-
     context = {
+        'members_page': members_page,
+        'pending_organizations': pending_organizations,
+        'pending_members': pending_members,
+        'financial_summary': financial_summary,
         'org_data': org_data,
         'ClubStatus': ClubStatus,
-        'total_paid': total_paid,
-        'total_outstanding': total_outstanding,
-        'pending_provinces': pending_provinces,
-        'pending_regions': pending_regions,
-        'pending_lfas': pending_lfas,
-        'pending_associations': pending_associations,
-        'pending_clubs': pending_clubs,
-        'members_page': members_page,
-        'pending_members': pending_members,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 
