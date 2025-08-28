@@ -47,7 +47,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             {{ lfa.name }}
                             <span class="badge bg-primary rounded-pill">{{ lfa.clubs.count }} Clubs</span>
-                            <a href="{% url 'geography:localfootballassociation-update' pk=lfa.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
+                            <a href="{% url 'geography:lfa-update' pk=lfa.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
                         </li>
                         {% endfor %}
                     </ul>

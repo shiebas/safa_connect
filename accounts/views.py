@@ -346,9 +346,13 @@ def member_approvals_list(request):
         return redirect('accounts:modern_home')
 
     if request.method == 'POST':
+<<<<<<< HEAD
         user_id = request.POST.get('member_id')
         action = request.POST.get('action')
 
+=======
+        user_id = request.POST.get('member_id') # The form sends member_id
+>>>>>>> f4484cdb4521855e913e69671d43bd0b87514744
         user = get_object_or_404(CustomUser, id=user_id)
         
         # Additional permission check for club admins - can only approve their club members
@@ -733,7 +737,14 @@ def national_admin_dashboard(request):
     pending_associations = Association.objects.filter(status='INACTIVE')
     pending_clubs = Club.objects.filter(status='INACTIVE')
 
-    pending_members = CustomUser.objects.filter(membership_status='PENDING').order_by('-registration_date')
+    pending_members = Member.objects.filter(status='PENDING').select_related('user', 'current_club').order_by('-created')
+
+    # All Members list
+    all_members_list = CustomUser.objects.all().order_by('first_name', 'last_name')
+    member_paginator = Paginator(all_members_list, 10)
+    member_page_number = request.GET.get('member_page', 1)
+    members_page = member_paginator.get_page(member_page_number)
+
 
     context = {
         'org_data': org_data,
@@ -745,6 +756,7 @@ def national_admin_dashboard(request):
         'pending_lfas': pending_lfas,
         'pending_associations': pending_associations,
         'pending_clubs': pending_clubs,
+        'members_page': members_page,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 
