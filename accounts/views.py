@@ -329,9 +329,27 @@ def member_approvals_list(request):
             request, "You do not have permission to view this page.")
         return redirect('accounts:modern_home')
 
+
     if request.method == 'POST':
         user_id = request.POST.get('member_id') # The form sends member_id
-        user = get_object_or_404(CustomUser, id=user_id)
+        user = get_object_or_404(CustomUser, 
+                                 
+        if request.method == 'POST':
+            user_id = request.POST.get('member_id')
+            action = request.POST.get('action')
+            user_id = request.POST.get('member_id') # The form sends member_id
+            user = get_object_or_404(CustomUser, id=user_id)
+        
+        # Additional permission check for club admins - can only approve their club members
+        if request.user.role == 'CLUB_ADMIN':
+            try:
+                if user.member.club != request.user.member.club:
+                    messages.error(request, "You can only approve members of your own club.")
+                    return redirect('accounts:member_approvals_list')
+            except (Member.DoesNotExist, AttributeError):
+                messages.error(request, "This user is not associated with any club.")
+                return redirect('accounts:member_approvals_list')
+
 
         if 'approve' in request.POST:
             if user.age and user.age < 18 and not user.parental_consent:
