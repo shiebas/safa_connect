@@ -5,7 +5,6 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.utils import timezone
-from .forms import PlayerRegistrationForm, OfficialRegistrationForm, AdminRegistrationForm
 from .models import Member, Invoice
 from accounts.models import CustomUser
 from django.http import HttpResponse
@@ -13,13 +12,8 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 
 def registration_portal(request):
-    """Registration portal with different registration options"""
-    if request.user.is_authenticated:
-        return redirect('accounts:modern_home')
-    context = {
-        'title': 'SAFA Registration Portal',
-    }
-    return render(request, 'membership/registration_portal.html', context)
+    """Redirects to the main user registration page."""
+    return redirect('accounts:user_registration')
 
 def registration_success(request):
     """Registration success page"""
@@ -28,65 +22,6 @@ def registration_success(request):
     }
     return render(request, 'membership/registration_success.html', context)
 
-class PlayerRegistrationView(CreateView):
-    model = Member
-    form_class = PlayerRegistrationForm
-    template_name = 'membership/player_registration.html'
-    success_url = reverse_lazy('membership:registration_success')
-
-    def form_valid(self, form):
-        # Create CustomUser and Member objects
-        user = CustomUser.objects.create_user(
-            email=form.cleaned_data['email'],
-            password=form.cleaned_data['password'],
-            first_name=form.cleaned_data['first_name'],
-            last_name=form.cleaned_data['last_name'],
-            role='PLAYER'
-        )
-        member = form.save(commit=False)
-        member.user = user
-        member.save()
-        return redirect(self.success_url)
-
-class OfficialRegistrationView(CreateView):
-    model = Member
-    form_class = OfficialRegistrationForm
-    template_name = 'membership/official_registration.html'
-    success_url = reverse_lazy('membership:registration_success')
-
-    def form_valid(self, form):
-        # Create CustomUser and Member objects
-        user = CustomUser.objects.create_user(
-            email=form.cleaned_data['email'],
-            password=form.cleaned_data['password'],
-            first_name=form.cleaned_data['first_name'],
-            last_name=form.cleaned_data['last_name'],
-            role='OFFICIAL'
-        )
-        member = form.save(commit=False)
-        member.user = user
-        member.save()
-        return redirect(self.success_url)
-
-class AdminRegistrationView(CreateView):
-    model = Member
-    form_class = AdminRegistrationForm
-    template_name = 'membership/admin_registration.html'
-    success_url = reverse_lazy('membership:registration_success')
-
-    def form_valid(self, form):
-        # Create CustomUser and Member objects
-        user = CustomUser.objects.create_user(
-            email=form.cleaned_data['email'],
-            password=form.cleaned_data['password'],
-            first_name=form.cleaned_data['first_name'],
-            last_name=form.cleaned_data['last_name'],
-            role=form.cleaned_data['role']
-        )
-        member = form.save(commit=False)
-        member.user = user
-        member.save()
-        return redirect(self.success_url)
 
 class MemberApprovalListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Member

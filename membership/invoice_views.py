@@ -438,7 +438,14 @@ def mark_invoice_paid(request, uuid):
     # The invoice.mark_as_paid() method now handles associated status updates
     # and history creation.
     if invoice.invoice_type == 'MEMBER_REGISTRATION' and invoice.member:
-        messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid. {invoice.member.get_full_name()}'s registration is now pending approval."))
+        try:
+            workflow = invoice.member.workflow
+            workflow.payment_status = 'COMPLETED'
+            workflow.current_step = 'SAFA_APPROVAL'
+            workflow.save()
+            messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid. {invoice.member.get_full_name()}'s registration is now pending approval."))
+        except Member.workflow.RelatedObjectDoesNotExist:
+            messages.warning(request, _(f"Invoice {invoice.invoice_number} marked as paid, but no registration workflow was found for the member."))
     else:
         messages.success(request, _(f"Invoice {invoice.invoice_number} marked as paid."))
     

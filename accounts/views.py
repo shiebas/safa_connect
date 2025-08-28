@@ -14,7 +14,7 @@ from django.views.decorators.http import require_GET, require_POST
 from geography.models import (Association, Club, ClubStatus, Country,
                               LocalFootballAssociation, NationalFederation,
                               Province, Region)
-from membership.models import Invoice, Member
+from membership.models import Invoice, Member, RegistrationWorkflow
 from supporters.models import SupporterProfile
 
 from .decorators import role_required
@@ -95,7 +95,7 @@ def user_registration(request):
                     country = Country.objects.create(name='South Africa')
                 national_federation = NationalFederation.objects.create(
                     name='SAFA', country=country)
-            Member.objects.create(
+            member = Member.objects.create(
                 user=user,
                 safa_id=user.safa_id,
                 first_name=user.first_name,
@@ -112,13 +112,41 @@ def user_registration(request):
                 region=form.cleaned_data.get('region'),
                 lfa=form.cleaned_data.get('lfa'),
                 current_club=form.cleaned_data.get('club'),
+                is_existing_member=form.cleaned_data.get('is_existing_member', False),
+                previous_safa_id=form.cleaned_data.get('previous_safa_id')
             )
+            association = form.cleaned_data.get('association')
+            if association:
+                member.associations.add(association)
 
-            messages.success(
-                request,
-                'Registration successful. Your application is pending approval.'
-            )
-            return redirect('accounts:modern_home')
+            # The RegistrationWorkflow is created by a signal. Get it and update it.
+            workflow = member.workflow
+            workflow.personal_info_status = 'COMPLETED'
+            workflow.club_selection_status = 'COMPLETED'
+            workflow.document_upload_status = 'COMPLETED' # Assuming docs are uploaded in form
+            workflow.current_step = 'PAYMENT'
+            workflow.save()
+
+            # Generate invoice for the member
+            invoice = Invoice.create_member_invoice(member)
+
+            if invoice:
+                messages.success(
+                    request,
+                    'Registration successful! Please complete payment to proceed.'
+                )
+                # Redirect to a payment page, passing invoice id
+                return redirect('membership:invoice_detail', uuid=invoice.uuid)
+            else:
+                # Handle case where no invoice is needed (e.g., for Admins)
+                workflow.payment_status = 'COMPLETED'
+                workflow.current_step = 'SAFA_APPROVAL'
+                workflow.save()
+                messages.success(
+                    request,
+                    'Registration successful. Your application is pending approval.'
+                )
+                return redirect('accounts:modern_home')
     else:
         form = RegistrationForm()
     return render(request, 'accounts/user_registration.html', {'form': form})
@@ -325,96 +353,72 @@ def health_check(request):
 
 @login_required
 def member_approvals_list(request):
-    users_to_approve = CustomUser.objects.none()
+    # Get members whose workflow is at the SAFA_APPROVAL stage
+    workflows = RegistrationWorkflow.objects.filter(current_step='SAFA_APPROVAL').select_related('member__user')
 
-    if request.user.is_superuser or \
-       (hasattr(request.user, 'role') and
-            request.user.role == 'ADMIN_NATIONAL'):
-        users_to_approve = CustomUser.objects.filter(membership_status='PENDING')
-    else:
-        # Placeholder for other admin roles, can be expanded later
-        messages.error(
-            request, "You do not have permission to view this page.")
+    # In a real-world scenario, you would filter this based on the admin's jurisdiction
+    # For now, we assume a national admin can see all.
+    if not request.user.is_superuser and request.user.role != 'ADMIN_NATIONAL':
+        messages.error(request, "You do not have permission to view this page.")
         return redirect('accounts:modern_home')
 
-    if request.method == 'POST':
-        user_id = request.POST.get('member_id')
-        action = request.POST.get('action')
-    
-    # Get the user object
-        user = get_object_or_404(CustomUser, id=user_id)
-    
-    # Additional permission check for club admins - can only approve their club members
-    if request.user.role == 'CLUB_ADMIN':
-        try:
-            if user.member.club != request.user.member.club:
-                messages.error(request, "You can only approve members of your own club.")
-                return redirect('accounts:member_approvals_list')
-        except (Member.DoesNotExist, AttributeError):
-            messages.error(request, "This user is not associated with any club.")
-            return redirect('accounts:member_approvals_list')
+    members_to_approve = [wf.member for wf in workflows]
 
+    if request.method == 'POST':
+        member_id = request.POST.get('member_id')
+        member = get_object_or_404(Member, id=member_id)
+        user = member.user
 
         if 'approve' in request.POST:
+            # Check for parental consent for minors
             if user.age and user.age < 18 and not user.parental_consent:
                 messages.error(request, "Cannot approve a junior member without parental consent.")
                 return redirect('accounts:member_approvals_list')
 
+            # Update user and member status
             user.membership_status = 'ACTIVE'
+            user.is_approved = True
             user.save()
 
-            # Also update the Member status if exists
+            member.status = 'ACTIVE'
+            member.approved_by = request.user
+            member.approved_date = timezone.now()
+            member.save()
+
+            # Update workflow
             try:
-                member = Member.objects.get(user=user)
-                member.status = 'ACTIVE'
-                member.approved_by = request.user
-                member.approved_date = timezone.now()
-                member.save()
+                workflow = member.workflow
+                workflow.safa_approval_status = 'COMPLETED'
+                workflow.current_step = 'COMPLETE'
+                workflow.save()
+            except RegistrationWorkflow.DoesNotExist:
+                pass # Should not happen in this flow
 
-                # Generate invoice
-                try:
-                    Invoice.create_member_invoice(member)
-                    messages.success(
-                        request,
-                        f"Member {user.get_full_name()} approved and "
-                        f"invoice created.")
-                except Exception as e:
-                    messages.error(
-                        request,
-                        f"Member approved, but failed to create invoice: {e}")
-            except Member.DoesNotExist:
-                messages.success(
-                    request,
-                    f"User {user.get_full_name()} approved successfully.")
-
-            # send_approval_email(user) # This can be re-enabled later
+            messages.success(request, f"Member {user.get_full_name()} has been approved.")
 
         elif 'reject' in request.POST:
-            rejection_reason = request.POST.get('rejection_reason')
-            if rejection_reason:
-                user.membership_status = 'REJECTED'
-                user.save()
+            rejection_reason = request.POST.get('rejection_reason', 'No reason provided.')
+            user.membership_status = 'REJECTED'
+            user.save()
 
-                # Also update the Member status if exists
-                try:
-                    member = Member.objects.get(user=user)
-                    member.status = 'REJECTED'
-                    member.rejection_reason = rejection_reason
-                    member.save()
-                except Member.DoesNotExist:
-                    pass
+            member.status = 'REJECTED'
+            member.rejection_reason = rejection_reason
+            member.save()
 
-                messages.success(
-                    request,
-                    f"User {user.get_full_name()} has been rejected with reason: {rejection_reason}.")
-            else:
-                messages.error(request, "Rejection reason is required.")
+            # Optionally, you could move the workflow back or to a 'REJECTED' state
+            try:
+                workflow = member.workflow
+                workflow.safa_approval_status = 'BLOCKED' # Or a new 'REJECTED' status
+                workflow.save()
+            except RegistrationWorkflow.DoesNotExist:
+                pass
 
+            messages.warning(request, f"Member {user.get_full_name()} has been rejected.")
 
         return redirect('accounts:member_approvals_list')
 
     context = {
-        'users_to_approve': users_to_approve,
+        'members_to_approve': members_to_approve,
     }
     return render(request, 'accounts/member_approvals_list.html', context)
 

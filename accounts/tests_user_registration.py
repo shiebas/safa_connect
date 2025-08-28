@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from accounts.models import CustomUser, OrganizationType, Position
-from membership.models import Member
+from membership.models import Member, SAFASeasonConfig
 from geography.models import Country, NationalFederation, Province, Region, LocalFootballAssociation, Club
 from PIL import Image
 import io
@@ -16,6 +16,9 @@ def create_test_image():
     file.seek(0)
     return SimpleUploadedFile(file.name, file.read(), content_type='image/jpeg')
 
+from accounts.models import Association
+
+
 class UserRegistrationTests(TestCase):
 
     def setUp(self):
@@ -26,6 +29,19 @@ class UserRegistrationTests(TestCase):
         self.region = Region.objects.create(name='Test Region', province=self.province)
         self.lfa = LocalFootballAssociation.objects.create(name='Test LFA', region=self.region)
         self.club = Club.objects.create(name='Test Club', localfootballassociation=self.lfa)
+        self.association = Association.objects.create(name='Test Association', national_federation=self.national_federation)
+        self.admin_user = CustomUser.objects.create_user(email='admin@test.com', password='password')
+        self.season = SAFASeasonConfig.objects.create(
+            season_year=2025,
+            is_active=True,
+            season_start_date='2025-01-01',
+            season_end_date='2025-12-31',
+            organization_registration_start='2025-01-01',
+            organization_registration_end='2025-12-31',
+            member_registration_start='2025-01-01',
+            member_registration_end='2025-12-31',
+            created_by=self.admin_user
+        )
 
         self.form_data = {
             'first_name': 'Test',
@@ -51,7 +67,14 @@ class UserRegistrationTests(TestCase):
         self.assertTemplateUsed(response, 'accounts/user_registration.html')
 
     def test_valid_form_submission(self):
-        response = self.client.post(reverse('accounts:user_registration'), self.form_data)
+        data = self.form_data.copy()
+        data.update({
+            'province': self.province.id,
+            'region': self.region.id,
+            'lfa': self.lfa.id,
+            'club': self.club.id,
+        })
+        response = self.client.post(reverse('accounts:user_registration'), data)
         self.assertEqual(response.status_code, 302) # Should redirect on success
         self.assertTrue(CustomUser.objects.filter(email='testuser@example.com').exists())
         self.assertTrue(Member.objects.filter(email='testuser@example.com').exists())
@@ -67,7 +90,10 @@ class UserRegistrationTests(TestCase):
 
     def test_role_selection(self):
         data = self.form_data.copy()
-        data['role'] = 'OFFICIAL'
+        data.update({
+            'role': 'OFFICIAL',
+            'association': self.association.id,
+        })
         response = self.client.post(reverse('accounts:user_registration'), data)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Member.objects.filter(email='testuser@example.com').exists())
