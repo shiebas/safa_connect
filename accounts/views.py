@@ -873,17 +873,32 @@ def association_admin_dashboard(request):
 @login_required
 def edit_player(request, player_id):
     player = get_object_or_404(CustomUser, id=player_id)
+    redirect_url = request.GET.get('next', None)
+
     if request.method == 'POST':
         form = EditPlayerForm(request.POST, instance=player)
         if form.is_valid():
             form.save()
             messages.success(request, f'Player {player.get_full_name()} updated successfully.')
-            return redirect('accounts:club_admin_dashboard')
+
+            # Redirect back to the original page, or a default if 'next' is not provided
+            if redirect_url:
+                return redirect(redirect_url)
+            else:
+                # Default redirection logic based on user role
+                if request.user.role == 'CLUB_ADMIN':
+                    return redirect('accounts:club_admin_dashboard')
+                elif request.user.role == 'ADMIN_NATIONAL':
+                    return redirect('accounts:national_admin_dashboard')
+                else:
+                    return redirect('accounts:profile') # Fallback
     else:
         form = EditPlayerForm(instance=player)
+
     context = {
         'form': form,
         'player': player,
+        'next': redirect_url, # Pass 'next' to the template if needed
     }
     return render(request, 'accounts/edit_player.html', context)
 
