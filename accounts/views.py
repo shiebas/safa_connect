@@ -31,6 +31,9 @@ from geography.forms import (
 )
 from .models import (CustomUser, Notification, OrganizationType, Position,
                    UserRole)
+import qrcode
+import base64
+from io import BytesIO
 from .utils import (generate_unique_safa_id, get_dashboard_stats,
                     send_approval_email, send_rejection_email,
                     send_support_request_email)
@@ -69,88 +72,118 @@ def user_registration(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST, request.FILES)
         if form.is_valid():
+            is_existing = form.cleaned_data.get('is_existing_member')
+            previous_safa_id = form.cleaned_data.get('previous_safa_id')
+
+            # Create the CustomUser object first, but don't save if we might link to an existing member
             user = form.save(commit=False)
 
-            if form.cleaned_data['role'] in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'CLUB_ADMIN', 'ASSOCIATION_ADMIN']:
-                user.is_staff = True
+            if is_existing and previous_safa_id:
+                try:
+                    member = Member.objects.get(safa_id=previous_safa_id)
+                    if member.user:
+                        messages.error(request, "This member account is already linked to a user account. Please login or reset your password.")
+                        return render(request, 'accounts/user_registration.html', {'form': form})
 
-            if not user.safa_id:
-                user.safa_id = generate_unique_safa_id()
+                    # The user object is new, but the member object exists.
+                    # We need to save the new user, then link it.
+                    user.save()
+                    member.user = user
+                    # Optionally, update the member's details with the new form data
+                    member.first_name = user.first_name
+                    member.last_name = user.last_name
+                    member.email = user.email
+                    member.street_address = user.street_address
+                    member.suburb = user.suburb
+                    member.city = user.city
+                    member.state = user.state
+                    member.postal_code = user.postal_code
+                    # ... update other fields as necessary ...
+                    member.save()
 
-            user.membership_status = 'PENDING'
-            user.is_active = True
+                except Member.DoesNotExist:
+                    messages.error(request, "No member found with the provided SAFA ID. Please register as a new member.")
+                    return render(request, 'accounts/user_registration.html', {'form': form})
+            else:
+                # This is a new member registration
+                user.save()
+                national_federation = NationalFederation.objects.first()
+                if not national_federation:
+                    country = Country.objects.get(name='South Africa')
+                    national_federation = NationalFederation.objects.create(name='SAFA', country=country)
+
+                member = Member.objects.create(
+                    user=user,
+                    safa_id=user.safa_id,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    email=user.email,
+                    role=user.role,
+                    status='PENDING',
+                    date_of_birth=user.date_of_birth,
+                    gender=user.gender,
+                    id_number=user.id_number,
+                    passport_number=user.passport_number,
+                    street_address=user.street_address,
+                    suburb=user.suburb,
+                    city=user.city,
+                    state=user.state,
+                    postal_code=user.postal_code,
+                    national_federation=national_federation,
+                    province=form.cleaned_data.get('province'),
+                    region=form.cleaned_data.get('region'),
+                    lfa=form.cleaned_data.get('lfa'),
+                    current_club=form.cleaned_data.get('club')
+                )
+                association = form.cleaned_data.get('association')
+                if association:
+                    member.associations.add(association)
+
+            # Common logic for both new and existing members starts here
+
+            # Sync data to CustomUser
+            user.national_federation = member.national_federation
+            user.province = member.province
+            user.region = member.region
+            user.local_federation = member.lfa
+            user.club = member.current_club
+            user.association = member.associations.first()
+            user.popi_act_consent = form.cleaned_data.get('popi_act_consent', False)
             user.save()
 
-            # Create SupporterProfile for the new user
-            supporter_profile, created = SupporterProfile.objects.get_or_create(user=user)
-            if created:
-                supporter_profile.safa_id = user.safa_id
-                supporter_profile.save()
+            # Create SupporterProfile
+            SupporterProfile.objects.get_or_create(user=user, defaults={'safa_id': user.safa_id})
+
+            # Login the user
             login(request, user)
 
-            national_federation = NationalFederation.objects.first()
-            if not national_federation:
-                country = Country.objects.first()
-                if not country:
-                    country = Country.objects.create(name='South Africa')
-                national_federation = NationalFederation.objects.create(
-                    name='SAFA', country=country)
-            member = Member.objects.create(
-                user=user,
-                safa_id=user.safa_id,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                email=user.email,
-                role=form.cleaned_data['role'],
-                status='PENDING',
-                date_of_birth=user.date_of_birth,
-                gender=user.gender,
-                id_number=user.id_number,
-                passport_number=user.passport_number,
-                national_federation=national_federation,
-                province=form.cleaned_data.get('province'),
-                region=form.cleaned_data.get('region'),
-                lfa=form.cleaned_data.get('lfa'),
-                current_club=form.cleaned_data.get('club'),
-                is_existing_member=form.cleaned_data.get('is_existing_member', False),
-                previous_safa_id=form.cleaned_data.get('previous_safa_id')
-            )
-            association = form.cleaned_data.get('association')
-            if association:
-                member.associations.add(association)
-
-            # The RegistrationWorkflow is created by a signal. Get it and update it.
-            workflow = member.workflow
+            # Handle workflow and invoicing
+            workflow, _ = RegistrationWorkflow.objects.get_or_create(member=member)
+            # Unconditionally set the status after a successful registration form submission
             workflow.personal_info_status = 'COMPLETED'
             workflow.club_selection_status = 'COMPLETED'
-            workflow.document_upload_status = 'COMPLETED' # Assuming docs are uploaded in form
+            workflow.document_upload_status = 'COMPLETED' # Assume docs are optional for now
             workflow.current_step = 'PAYMENT'
             workflow.save()
 
-            # Generate invoice for the member
             invoice = Invoice.create_member_invoice(member)
 
             if invoice:
-                messages.success(
-                    request,
-                    'Registration successful! Please complete payment to proceed.'
-                )
-                # Redirect to a payment page, passing invoice id
+                messages.success(request, 'Registration successful! Please complete payment to proceed.')
                 return redirect('membership:invoice_detail', uuid=invoice.uuid)
             else:
-                # Handle case where no invoice is needed (e.g., for Admins)
                 workflow.payment_status = 'COMPLETED'
                 workflow.current_step = 'SAFA_APPROVAL'
                 workflow.save()
-                messages.success(
-                    request,
-                    'Registration successful. Your application is pending approval.'
-                )
+                messages.success(request, 'Registration successful. Your application is pending approval.')
                 return redirect('accounts:modern_home')
+
     else:
         form = RegistrationForm()
     return render(request, 'accounts/user_registration.html', {'form': form})
 
+
+# ... (the rest of the file remains the same) ...
 
 # Placeholder functions for missing utilities
 def get_admin_jurisdiction_queryset(user):
@@ -273,27 +306,53 @@ def get_clubs_for_lfa(request, lfa_id):
 
 @login_required
 def profile(request):
-    user_roles = UserRole.objects.filter(user=request.user)
+    try:
+        member = request.user.member_profile
+    except Member.DoesNotExist:
+        member = None
 
-    if user_roles:
-        current_role = user_roles.first()
-        organization = current_role.organization
-        position = current_role.position
+    context = {
+        'user': request.user,
+        'member': member,
+    }
+    return render(request, 'accounts/profile.html', context)
 
-        stats = get_dashboard_stats(organization)
 
-        context = {
-            'user': request.user,
-            'organization': organization,
-            'position': position,
-            'stats': stats,
-            'user_roles': user_roles,
-            'current_role': current_role,
-        }
-        return render(request, 'accounts/profile.html', context)
+@login_required
+def generate_digital_card(request):
+    try:
+        member = request.user.member_profile
+    except Member.DoesNotExist:
+        messages.error(request, "You do not have a member profile to generate a card.")
+        return redirect('accounts:profile')
 
-    return render(request, 'accounts/profile.html',
-                  {'user': request.user, 'organization': None})
+    # Information to be encoded in the QR code
+    profile_url = request.build_absolute_uri(reverse('accounts:profile'))
+    qr_data = f"SAFA Member: {member.get_full_name()}\nSAFA ID: {member.safa_id}\nProfile: {profile_url}"
+
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=8,
+        border=4,
+    )
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # Save QR code to a BytesIO buffer and encode it in base64
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    context = {
+        'member': member,
+        'user': request.user,
+        'qr_code': qr_code_base64,
+    }
+    return render(request, 'accounts/digital_card.html', context)
 
 
 @login_required
@@ -302,7 +361,18 @@ def edit_profile(request):
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            # Also update the related Member profile
+            try:
+                member = user.member_profile
+                member.street_address = user.street_address
+                member.suburb = user.suburb
+                member.city = user.city
+                member.state = user.state
+                member.postal_code = user.postal_code
+                member.save()
+            except Member.DoesNotExist:
+                pass # Or handle cases where a user might not have a member profile
             messages.success(request, 'Your profile was successfully updated!')
             return redirect('accounts:profile')
         else:
@@ -733,7 +803,9 @@ def national_admin_dashboard(request):
     pending_associations = Association.objects.filter(status='INACTIVE')
     pending_clubs = Club.objects.filter(status='INACTIVE')
 
-    pending_members = Member.objects.filter(status='PENDING').select_related('user', 'current_club').order_by('-created')
+    # Correctly fetch members awaiting approval from the workflow
+    workflows = RegistrationWorkflow.objects.filter(current_step='SAFA_APPROVAL').select_related('member__user', 'member__current_club')
+    pending_members = [wf.member for wf in workflows]
 
     # All Members list
     all_members_list = CustomUser.objects.all().order_by('first_name', 'last_name')
@@ -983,6 +1055,11 @@ def add_club_administrator(request):
                 gender=user.gender,
                 id_number=user.id_number,
                 passport_number=user.passport_number,
+                street_address=user.street_address,
+                suburb=user.suburb,
+                city=user.city,
+                state=user.state,
+                postal_code=user.postal_code,
                 national_federation=national_federation,
                 province=request.user.club.localfootballassociation.region.province if request.user.club and request.user.club.localfootballassociation and request.user.club.localfootballassociation.region else None,
                 region=request.user.club.localfootballassociation.region if request.user.club and request.user.club.localfootballassociation else None,

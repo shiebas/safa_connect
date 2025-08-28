@@ -2,7 +2,9 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views, views_admin_referees
-from .views import modern_home
+from .views import (
+    modern_home, profile, edit_profile, generate_digital_card
+)
 
 app_name = 'accounts'
 
@@ -51,6 +53,7 @@ urlpatterns = [
     path('contact-support/', views.contact_support, name='contact_support'),
     path('profile/', views.profile, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'), # Added this line
+    path('my-card/', generate_digital_card, name='digital_card'),
     path('my-invoices/', views.my_invoices, name='my_invoices'),
     path('registration-portal/', views.registration_portal, name='registration_portal'),
     path('update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),

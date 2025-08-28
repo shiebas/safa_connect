@@ -88,8 +88,15 @@
                         <div class="col-sm-3"><strong>Age:</strong></div>
                         <div class="col-sm-9">{% if user.age %}{{ user.age }}{% else %}<span class="text-muted">Not set</span>{% endif %}</div>
                     </div>
-                    <div class="text-end mt-3"> {# Added this div for the button #}
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+                    <div class="text-end mt-3 d-flex justify-content-end gap-2">
+                        {% if member %}
+                        <a href="{% url 'accounts:digital_card' %}" class="btn btn-safa-primary">
+                            <i class="fas fa-id-card"></i> View Digital Card
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
                     </div>
                 </div>
             </div>
