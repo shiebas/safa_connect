@@ -40,20 +40,28 @@ logger = logging.getLogger(__name__)
 
 def modern_home(request):
     if request.user.is_authenticated:
-        if hasattr(request.user, 'role'):
-            if request.user.role == 'ADMIN_NATIONAL':
+        try:
+            role = request.user.role
+            if role == 'ADMIN_NATIONAL':
                 return redirect('accounts:national_admin_dashboard')
-            elif request.user.role == 'ADMIN_PROVINCE':
+            elif role == 'ADMIN_PROVINCE':
                 return redirect('accounts:provincial_admin_dashboard')
-            elif request.user.role == 'ADMIN_REGION':
+            elif role == 'ADMIN_REGION':
                 return redirect('accounts:regional_admin_dashboard')
-            elif request.user.role == 'ADMIN_LOCAL_FED':
+            elif role == 'ADMIN_LOCAL_FED':
                 return redirect('accounts:lfa_admin_dashboard')
-            elif request.user.role == 'CLUB_ADMIN':
+            elif role == 'CLUB_ADMIN':
                 return redirect('accounts:club_admin_dashboard')
-            elif request.user.role == 'ASSOCIATION_ADMIN':
+            elif role == 'ASSOCIATION_ADMIN':
                 return redirect('accounts:association_admin_dashboard')
-        return redirect('accounts:profile') # Default redirect if no specific role or role not found
+            else:
+                # Default redirect for other authenticated users
+                return redirect('accounts:profile')
+        except AttributeError:
+            messages.warning(request, "Your user profile is not fully configured. Please contact support.")
+            return redirect('accounts:profile')
+
+    # For anonymous users
     return render(request, 'accounts/modern_home.html')
 
 
