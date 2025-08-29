@@ -2,6 +2,7 @@
 from django.urls import path
 from . import views
 from . import invoice_views
+from . import registration_views
 
 app_name = 'membership'
 
@@ -17,12 +18,18 @@ urlpatterns = [
     path('reports/outstanding/', invoice_views.OutstandingReportView.as_view(), name='outstanding_report'),
 
     path('register/', views.registration_portal, name='registration_portal'),
+    path('register/player/', views.PlayerRegistrationView.as_view(), name='player_registration'),
+    path('register/official/', views.OfficialRegistrationView.as_view(), name='official_registration'),
+    path('register/admin/', views.AdminRegistrationView.as_view(), name='admin_registration'),
     path('register/success/', views.registration_success, name='registration_success'),
     path('member-approvals/', views.MemberApprovalListView.as_view(), name='member_approval_list'),
     path('member-approvals/<int:member_id>/approve/', views.approve_member, name='approve_member'),
     path('member-approvals/<int:member_id>/reject/', views.reject_member, name='reject_member'),
     path('card/<int:member_id>/', views.generate_membership_card, name='generate_membership_card'),
     path('profile/<int:user_id>/export-pdf/', views.export_profile_pdf, name='export_profile_pdf'),
+
+    # Registration AJAX
+    path('club-info/', registration_views.get_club_info, name='club_info'),
 
     # Season Configuration URLs
     path('seasons/list/', views.season_list, name='season_list'),
