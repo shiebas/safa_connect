@@ -122,12 +122,12 @@ class Member(TimeStampedModel):
     passport_number = models.CharField(_('Passport Number'), max_length=25, blank=True, null=True)
 
     # Address Information
-    street_address = models.CharField(_("Street Address"), max_length=255, blank=True)
-    suburb = models.CharField(_("Suburb"), max_length=100, blank=True)
-    city = models.CharField(_("City"), max_length=100, blank=True)
-    state = models.CharField(_("State/Province"), max_length=100, blank=True)
-    postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True)
-    country = models.CharField(_("Country"), max_length=100, blank=True)
+    street_address = models.CharField(_("Street Address"), max_length=255, blank=True, null=True)
+    suburb = models.CharField(_("Suburb"), max_length=100, blank=True, null=True)
+    city = models.CharField(_("City"), max_length=100, blank=True, null=True)
+    state = models.CharField(_("State/Province"), max_length=100, blank=True, null=True)
+    postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True, null=True)
+    country = models.CharField(_("Country"), max_length=100, blank=True, null=True)
 
     # SAFA Registration Details
     role = models.CharField(_("Member Role"), max_length=20, choices=MEMBER_ROLES, null=True, blank=True)
@@ -615,7 +615,7 @@ class Member(TimeStampedModel):
                 remaining_days = (season_config.season_end_date - today).days
 
                 if remaining_days > 0:
-                    pro_rata_fee = base_fee * (remaining_days / season_days)
+                    pro_rata_fee = base_fee * (Decimal(remaining_days) / Decimal(season_days))
                     # Apply minimum fee if set
                     if fee_structure.minimum_fee:
                         pro_rata_fee = max(pro_rata_fee, fee_structure.minimum_fee)
@@ -1482,7 +1482,7 @@ class Invoice(TimeStampedModel):
     )
 
     # Dates
-    issue_date = models.DateField(_("Issue Date"), default=timezone.now)
+    issue_date = models.DateField(_("Issue Date"), default=date.today)
     due_date = models.DateField(_("Due Date"), null=True, blank=True)
     payment_date = models.DateTimeField(_("Payment Date"), null=True, blank=True)
 
@@ -1527,12 +1527,32 @@ class Invoice(TimeStampedModel):
             self.invoice_number = self.generate_invoice_number()
 
         # Calculate totals
-        if self.subtotal is not None:
+        # Determine if VAT needs to be reverse-calculated
+        # This logic applies if total_amount is set, but subtotal is not,
+        # and it's an organization/admin related invoice type.
+        is_reverse_vat_calculation = (
+            self.total_amount is not None and
+            self.subtotal is None and
+            self.invoice_type in ['ORGANIZATION_MEMBERSHIP', 'ANNUAL_FEE'] # Assuming these are for administrators/organizations
+        )
+
+        if is_reverse_vat_calculation:
+            # Calculate subtotal from total_amount (total / (1 + vat_rate))
+            self.subtotal = (self.total_amount / (Decimal('1') + self.vat_rate)).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+            # Calculate vat_amount (total_amount - subtotal)
+            self.vat_amount = (self.total_amount - self.subtotal).quantize(
+                Decimal('0.01'), rounding=ROUND_HALF_UP
+            )
+        elif self.subtotal is not None: # Original calculation if subtotal is provided
             self.vat_amount = (self.subtotal * self.vat_rate).quantize(
                 Decimal('0.01'), rounding=ROUND_HALF_UP
             )
             self.total_amount = self.subtotal + self.vat_amount
-            self.outstanding_amount = self.total_amount - self.paid_amount
+        # else: if neither subtotal nor total_amount is set, they remain as default 0.00
+
+        self.outstanding_amount = self.total_amount - self.paid_amount # This line should always be after total_amount is set
 
         # Set due date if not set
         if not self.due_date:
@@ -1646,7 +1666,8 @@ class Invoice(TimeStampedModel):
                     invoice_type='MEMBER_REGISTRATION',
                     subtotal=fee_amount,
                     season_config=member.current_season,
-                    status='PENDING'
+                    status='PENDING',
+                    payment_method='Cash or EFT' # ADD THIS LINE
                 )
                 return invoice
         except Exception as e:
@@ -1671,6 +1692,7 @@ class InvoiceItem(models.Model):
         verbose_name_plural = _("Invoice Items")
 
     def __str__(self):
+        # Ensure self.amount is a Decimal
         amount_decimal = Decimal(self.amount) if not isinstance(self.amount, Decimal) else self.amount
         return f"{self.description} - R{amount_decimal} x{self.quantity}"
 

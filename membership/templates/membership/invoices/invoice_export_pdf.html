@@ -1,0 +1,117 @@
+{% load static %}
+ <style>
+     body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 0; }
+         .container { width: 100%; margin: 0 auto; padding: 20px; }
+         .header { text-align: center; margin-bottom: 20px; }
+         .header img { max-width: 150px; float: right; }
+         .header h1 { margin: 0; color: #333; }
+         .invoice-details, .billed-to, .invoice-items, .totals, .payment-details {
+       margin-bottom: 20px; }
+         table { width: 100%; border-collapse: collapse; }
+         th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+         th { background-color: #f2f2f2; }
+         .text-right { text-align: right; }
+         .clearfix::after { content: ""; clear: both; display: table; }
+ </style>
+    
+     <div class="container">
+          <div class="header clearfix">
+            <img src="{{ safa_logo_url }}" alt="SAFA Logo">
+            <h1>Tax Invoice</h1>
+            <p>VAT Number: [SAFA VAT Number]</p> {# Placeholder for VAT Number #}
+        </div>
+    
+         {% for invoice in invoices %}
+         <div style="page-break-after: always;">
+             <hr style="border-top: 2px solid #333; margin: 30px 0;">
+    
+             <div class="invoice-details">
+                 <h3>Invoice #: {{ invoice.invoice_number }}</h3>
+                 <p>Issue Date: {{ invoice.issue_date|date:"Y-m-d" }}</p>
+                 <p>Due Date: {{ invoice.due_date|date:"Y-m-d" }}</p>
+                 <p>Status: {{ invoice.get_status_display }}</p>
+             </div>
+    
+             <div class="billed-to">
+                 <h3>Billed To:</h3>
+                 {% if invoice.member %}
+                     <p>Name: {{ invoice.member.get_full_name }}</p>
+                     <p>Email: {{ invoice.member.email }}</p>
+                     <p>SAFA ID: {{ invoice.member.safa_id }}</p>
+                     <p>Club: {{ invoice.member.current_club.name|default:"N/A" }}</p>
+                 {% elif invoice.organization %}
+                     <p>Organization: {{ invoice.organization.name }}</p>
+                     <p>Type: {{ invoice.organization.get_organization_type_display }}</p>
+                 {% else %}
+                     <p>N/A</p>
+                 {% endif %}
+             </div>
+    
+             <div class="invoice-items">
+                 <h3>Invoice Items:</h3>
+                 <table>
+                     <thead>
+                         <tr>
+                             <th>Description</th>
+                             <th>Quantity</th>
+                             <th>Unit Price</th>
+                             <th>Total</th>
+                         </tr>
+                     </thead>
+                     <tbody>
+                         {% for item in invoice.items.all %}
+                         <tr>
+                             <td>{{ item.description }}</td>
+                             <td>{{ item.quantity }}</td>
+                             <td>R {{ item.amount|floatformat:2 }}</td>
+                             <td>R {{ item.total_price|floatformat:2 }}</td>
+                         </tr>
+                         {% endfor %}
+                     </tbody>
+                 </table>
+             </div>
+    
+             <div class="totals">
+                 <table>
+                     <tr>
+                         <td class="text-right">Subtotal:</td>
+                         <td class="text-right">R {{ invoice.subtotal|floatformat:2 }}</td>
+                     </tr>
+                     <tr>
+                         <td class="text-right">VAT ({{ invoice.vat_percentage|floatformat:0 }}%):</td>
+                         <td class="text-right">R {{ invoice.vat_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right"><strong>Total Amount:</strong></td>
+                        <td class="text-right"><strong>R {{invoice.total_amount|floatformat:2 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">Amount Paid:</td>
+                        <td class="text-right">R {{ invoice.paid_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">Outstanding Amount:</td>
+                        <td class="text-right">R {{invoice.outstanding_amount|floatformat:2 }}</td>
+                    </tr>
+                </table>
+            </div>
+    
+                 
+             <div class="payment-instructions" style="margin-top: 30px;">
+                 <h3>Payment Instructions:</h3>
+                <ul>
+                    <li><h3>Bank Name: FIRST NATIONAL BANK</h3></li>
+                    <li><h3>Account Name: SAFA</h3></li>
+                    <li><h3>Account Number: 63098138027</h3></li>
+                    <li><h3>Account Type: CURRENT ACCOUNT</h3></li>
+                    <li><h3>Branch : COMM ACCOUNT SERVICE CUST</h3></li>
+                    <li><h3>Branch Code: 210554</h3></li>
+                    <li><h3>Reference: Invoice #{{ invoice.invoice_number }}</h3></li>
+                </ul>
+                <p><h3>Alternatively, payment can be made via EFT or Cash at designated outlets</h3></p>
+
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>

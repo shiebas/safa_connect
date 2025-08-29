@@ -68,43 +68,32 @@ function validateSAIDNumber(idNumber) {
         const citizenshipDigit = parseInt(idNumber.charAt(10));
         result.citizenship = citizenshipDigit === 0 ? "SA Citizen" : "Permanent Resident";
 
-        // Luhn algorithm validation for South African ID
-        // Using the standard algorithm for SA IDs:
-        // 1. Add all digits in odd positions (1st, 3rd, 5th, etc.)
-        // 2. Concatenate all digits in even positions (2nd, 4th, 6th, etc.)
-        // 3. Multiply the result of step 2 by 2
-        // 4. Add the digits of the result from step 3
-        // 5. Add the result from step 4 to the result from step 1
-        // 6. The check digit is (10 - (result % 10)) % 10
-
-        let oddSum = 0;
-        let evenDigits = "";
-
-        // Process all digits except the check digit
-        for (let i = 0; i < idNumber.length - 1; i++) {
-            const digit = parseInt(idNumber.charAt(i));
-            if (i % 2 === 0) {  // Odd position (1-indexed)
-                oddSum += digit;
-            } else {  // Even position (1-indexed)
-                evenDigits += digit;
-            }
+        // SA-specific Luhn Algorithm
+        let odd_sum = 0;
+        for (let i = 0; i < 12; i += 2) {
+            odd_sum += parseInt(idNumber[i], 10);
         }
 
-        // Double the even digits as a single number and sum its digits
-        const doubledEven = parseInt(evenDigits) * 2;
-        const evenSum = doubledEven.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+        let even_digits_str = "";
+        for (let i = 1; i < 12; i += 2) {
+            even_digits_str += idNumber[i];
+        }
+        const even_doubled = parseInt(even_digits_str, 10) * 2;
 
-        // Calculate the total and check digit
-        const total = oddSum + evenSum;
-        const checkDigit = (10 - (total % 10)) % 10;
-
-        // Compare with the actual check digit
-        if (checkDigit === parseInt(idNumber.charAt(12))) {
-            result.isValid = true;
-        } else {
-            result.errorMessage = "ID number has an invalid checksum digit.";
+        let even_sum = 0;
+        for (const digit of String(even_doubled)) {
+            even_sum += parseInt(digit, 10);
         }
 
+        const total_sum = odd_sum + even_sum;
+        const check_digit = (10 - (total_sum % 10)) % 10;
+
+        if (check_digit !== parseInt(idNumber[12], 10)) {
+            result.errorMessage = "Invalid ID number (checksum failed).";
+            return result;
+        }
+
+        result.isValid = true;
         return result;
     } catch (e) {
         console.error("Error validating SA ID number:", e);

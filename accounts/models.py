@@ -239,6 +239,21 @@ class CustomUser(AbstractUser):
     association = models.ForeignKey('geography.Association', on_delete=models.SET_NULL, null=True, blank=True)
     mother_body = models.ForeignKey('geography.MotherBody', on_delete=models.SET_NULL, null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.safa_id:
+            self.safa_id = self._generate_unique_safa_id()
+        super().save(*args, **kwargs)
+
+    def _generate_unique_safa_id(self):
+        """Generates a unique 5-character alphanumeric SAFA ID."""
+        import string
+        import random
+        while True:
+            chars = string.ascii_uppercase + string.digits
+            safa_id = ''.join(random.choices(chars, k=5))
+            if not CustomUser.objects.filter(safa_id=safa_id).exists():
+                return safa_id
+
     # Specify the custom manager
     objects = CustomUserManager()
 

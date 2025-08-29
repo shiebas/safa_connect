@@ -29,6 +29,7 @@ from membership.models import Invoice, InvoiceItem
 from geography.models import Club, LocalFootballAssociation, Region, Province
 from .models import SAFASeasonConfig, SAFAFeeStructure, Member
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.staticfiles.storage import staticfiles_storage # ADDED
 
 def generate_invoices(request):
     if not request.user.is_superuser:
@@ -228,7 +229,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
 class InvoicePDFView(LoginRequiredMixin, DetailView):
     """Generate PDF version of an invoice"""
     model = Invoice
-    template_name = 'membership/invoices/invoice_pdf.html'
+    template_name = 'membership/invoices/invoice_export_pdf.html'
     slug_field = 'uuid'
     slug_url_kwarg = 'uuid'
     
@@ -548,7 +549,23 @@ def export_invoices(request, format='csv'):
             'invoices': queryset,
             'title': 'Invoices Export',
             'date': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'safa_logo_url': request.build_absolute_uri(staticfiles_storage.url('images/safa_logo.png')), # ADD THIS LINE
         }
+        # Render the template to HTML
+        context = {
+            'title': 'Invoices Export',
+            'date': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'safa_logo_url': request.build_absolute_uri(staticfiles_storage.url('images/safa_logo.png')),
+        }
+
+        # Calculate VAT percentage for each invoice
+        invoices_with_vat_percentage = []
+        for invoice in queryset:
+            invoice.vat_percentage = invoice.vat_rate * 100
+            invoices_with_vat_percentage.append(invoice)
+        
+        context['invoices'] = invoices_with_vat_percentage # Update context with modified invoices
+
         html_string = render(request, 'membership/invoices/invoice_export_pdf.html', context).content.decode('utf-8')
         
         # Generate PDF
@@ -556,7 +573,7 @@ def export_invoices(request, format='csv'):
         
         # Create HTTP response with PDF
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="{filename}.pdf"'
         
         return response
     
