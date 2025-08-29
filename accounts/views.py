@@ -1048,99 +1048,77 @@ def club_management_dashboard(request):
 
 
 @login_required
-def add_club_administrator(request):
+@role_required(allowed_roles=['CLUB_ADMIN'])
+def club_admin_add_person(request):
+    """
+    Allows a Club Admin to register a new Player or Official for their club.
+    The form will be pre-populated with the admin's geographic details.
+    """
     if request.method == 'POST':
-        form = ClubAdminRegistrationForm(request.POST, request.FILES)
+        # Pass the admin's user object to the form to handle disabled fields
+        form = RegistrationForm(request.POST, request.FILES, user=request.user, limit_role_choices=True)
         if form.is_valid():
             user = form.save(commit=False)
-            user.role = 'CLUB_ADMIN'
-            user.is_staff = True
-
-            # Get club and related geographic info from the logged-in user
-            club = request.user.club
-            user.club = club
-            if club:
-                lfa = club.localfootballassociation
+            
+            # Set a random password for the new user
+            password = get_random_string(12)
+            user.set_password(password)
+            
+            # Set the club and geographic info from the logged-in admin
+            admin_user = request.user
+            user.club = admin_user.club
+            if admin_user.club:
+                lfa = admin_user.club.localfootballassociation
                 user.local_federation = lfa
                 if lfa:
                     region = lfa.region
                     user.region = region
                     if region:
-                        province = region.province
-                        user.province = province
-                        if province:
-                            user.national_federation = province.national_federation
-
-            # Generate safa_id if not present
-            if not user.safa_id:
-                user.safa_id = generate_unique_safa_id()
-
-            user.set_password(form.cleaned_data['password'])
+                        user.province = region.province
+            
             user.save()
 
-            # Create SupporterProfile
-            supporter_profile, created = SupporterProfile.objects.get_or_create(user=user)
-            if created:
-                supporter_profile.safa_id = user.safa_id
-                supporter_profile.save()
-
-            # Create Member object (similar to user_registration)
-            national_federation = NationalFederation.objects.first()
-            if not national_federation:
-                country = Country.objects.first()
-                if not country:
-                    country = Country.objects.create(name='South Africa')
-                national_federation = NationalFederation.objects.create(
-                    name='SAFA', country=country)
-
+            # Create the corresponding Member record
             Member.objects.create(
                 user=user,
                 safa_id=user.safa_id,
                 first_name=user.first_name,
                 last_name=user.last_name,
                 email=user.email,
-                role=user.role, # Use the role assigned to the user
-                status='ACTIVE', # Administrators are typically active immediately
+                role=form.cleaned_data.get('role'),
+                status='ACTIVE', # Players/Officials added by admins are auto-approved at club level
                 date_of_birth=user.date_of_birth,
                 gender=user.gender,
                 id_number=user.id_number,
                 passport_number=user.passport_number,
-                street_address=user.street_address,
-                suburb=user.suburb,
-                city=user.city,
-                state=user.state,
-                postal_code=user.postal_code,
-                national_federation=national_federation,
-                province=request.user.club.localfootballassociation.region.province if request.user.club and request.user.club.localfootballassociation and request.user.club.localfootballassociation.region else None,
-                region=request.user.club.localfootballassociation.region if request.user.club and request.user.club.localfootballassociation else None,
-                lfa=request.user.club.localfootballassociation if request.user.club else None,
-                current_club=request.user.club,
+                current_club=user.club,
+                province=user.province,
+                region=user.region,
+                lfa=user.local_federation,
+                registration_method='CLUB'
             )
-
-            messages.success(request, f'Administrator {user.get_full_name()} added successfully.')
-            return redirect('accounts:club_management_dashboard')
+            
+            messages.success(request, f"{form.cleaned_data.get('role').capitalize()} '{user.get_full_name()}' was added successfully. A temporary password has been set.")
+            return redirect('accounts:club_admin_dashboard')
     else:
+        # Pre-fill the form with the admin's club info
         initial_data = {}
-        club = request.user.club
-        if club:
-            initial_data['club'] = club
-            lfa = club.localfootballassociation
-            if lfa:
-                initial_data['lfa'] = lfa
-                region = lfa.region
-                if region:
-                    initial_data['region'] = region
-                    province = region.province
-                    if province:
-                        initial_data['province'] = province
-                        initial_data['national_federation'] = province.national_federation
+        if request.user.club:
+            initial_data['club'] = request.user.club
+            if request.user.club.localfootballassociation:
+                initial_data['lfa'] = request.user.club.localfootballassociation
+                if request.user.club.localfootballassociation.region:
+                    initial_data['region'] = request.user.club.localfootballassociation.region
+                    if request.user.club.localfootballassociation.region.province:
+                        initial_data['province'] = request.user.club.localfootballassociation.region.province
 
-        form = ClubAdminRegistrationForm(initial=initial_data)
+        form = RegistrationForm(initial=initial_data, user=request.user, limit_role_choices=True)
 
     context = {
         'form': form,
+        'title': 'Add New Player or Official'
     }
-    return render(request, 'accounts/add_club_administrator.html', context)
+    return render(request, 'accounts/user_registration.html', context)
 
 
 @login_required
@@ -1272,22 +1250,19 @@ def check_email(request):
 
 
 @login_required
-def get_regions_for_province(request):
-    province_id = request.GET.get('province_id')
+def get_regions_for_province(request, province_id):
     regions = Region.objects.filter(province_id=province_id).order_by('name')
     return JsonResponse(list(regions.values('id', 'name')), safe=False)
 
 
 @login_required
-def get_lfas_for_region(request):
-    region_id = request.GET.get('region_id')
+def get_lfas_for_region(request, region_id):
     lfas = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
     return JsonResponse(list(lfas.values('id', 'name')), safe=False)
 
 
 @login_required
-def get_clubs_for_lfa(request):
-    lfa_id = request.GET.get('lfa_id')
+def get_clubs_for_lfa(request, lfa_id):
     clubs = Club.objects.filter(localfootballassociation_id=lfa_id).order_by('name')
     return JsonResponse(list(clubs.values('id', 'name')), safe=False)
 

@@ -313,19 +313,27 @@ class RegistrationForm(forms.ModelForm):
     popi_act_consent = forms.BooleanField(required=True, label="POPI Act Consent")
     password = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+    extracted_dob = forms.DateField(required=False, widget=forms.HiddenInput())
+    extracted_gender = forms.CharField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = CustomUser
         fields = ['role', 'first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
                   'date_of_birth', 'gender', 'profile_picture', 'id_document',
                    'country_code', 'nationality', 'street_address', 'suburb', 'city', 'state', 'postal_code',
-                   'is_existing_member', 'previous_safa_id', 'association']
+                   'is_existing_member', 'previous_safa_id', 'association', 'extracted_dob', 'extracted_gender']
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        limit_role_choices = kwargs.pop('limit_role_choices', False)
         super().__init__(*args, **kwargs)
+
+        if limit_role_choices:
+            self.fields['role'].choices = REGISTRATION_ROLES # Use the limited choices
+
         try:
             south_africa = Country.objects.get(name='South Africa')
             self.fields['country'].initial = south_africa
@@ -384,6 +392,12 @@ class RegistrationForm(forms.ModelForm):
             else: # For ADMIN roles
                 self.fields['club'].required = False
                 self.fields['association'].required = False
+        
+        if user and user.role == 'CLUB_ADMIN':
+            self.fields['province'].disabled = True
+            self.fields['region'].disabled = True
+            self.fields['lfa'].disabled = True
+            self.fields['club'].disabled = True
 
         self.helper = FormHelper()
         self.helper.layout = Layout(

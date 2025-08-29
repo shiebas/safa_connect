@@ -1,66 +1,302 @@
 {% extends 'base.html' %}
-{% load static %}
 {% load crispy_forms_tags %}
 
 {% block title %}SAFA Member Registration{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
+<div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header text-center">
-                    <h2>SAFA Member Registration</h2>
-                </div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data" id="registrationForm">
-                        {% csrf_token %}
-                        {{ form|crispy }}
-                        <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Register</button>
+        <div class="col-lg-9">
+            <h1 class="mb-4 text-center">SAFA Member Registration</h1>
+
+            <form method="post" enctype="multipart/form-data" id="registrationForm" novalidate>
+                {% csrf_token %}
+
+                <div class="accordion" id="registrationAccordion">
+
+                    <!-- Step 1: Role and Basic Info -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Step 1: Your Role & Basic Information
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#registrationAccordion">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.role|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6 mb-3 d-flex align-items-center pt-3">
+                                        {{ form.is_existing_member|as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="mb-3 d-none" id="previous_safa_id_container">
+                                    {{ form.previous_safa_id|as_crispy_field }}
+                                </div>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Step 2: Personal Details -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Step 2: Personal Details
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#registrationAccordion">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.first_name|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.last_name|as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.email|as_crispy_field }}
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.id_document_type|as_crispy_field }}
+                                </div>
+                                <div class="mb-3 d-none" id="sa_id_container">
+                                    {{ form.id_number|as_crispy_field }}
+                                </div>
+                                <div class="mb-3 d-none" id="passport_container">
+                                    {{ form.passport_number|as_crispy_field }}
+                                </div>
+                                <div class="row d-none" id="manual_dob_gender_container">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.date_of_birth|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.gender|as_crispy_field }}
+                                    </div>
+                                </div>
+                                {{ form.extracted_dob }}
+                                {{ form.extracted_gender }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Location -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Step 3: Your Location
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#registrationAccordion">
+                            <div class="accordion-body">
+                                <div class="mb-3">
+                                    {{ form.province|as_crispy_field }}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_region" class="form-label">Region</label>
+                                    <select name="region" class="form-select" id="id_region">
+                                        <option value="">Select Province First</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_lfa" class="form-label">Local Football Association</label>
+                                    <select name="lfa" class="form-select" id="id_lfa">
+                                        <option value="">Select Region First</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3" id="club_container">
+                                    <label for="id_club" class="form-label">Club</label>
+                                    <select name="club" class="form-select" id="id_club">
+                                        <option value="">Select LFA First</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3 d-none" id="association_container">
+                                    {{ form.association|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Documents & Security -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Step 4: Documents & Security
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#registrationAccordion">
+                            <div class="accordion-body">
+                                <div class="mb-3">
+                                    {{ form.profile_picture|as_crispy_field }}
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.id_document|as_crispy_field }}
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.password|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.password2|as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.popi_act_consent|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg" id="submit_btn">Register</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- FIELD SELECTORS ---
+    const roleField = document.getElementById('id_role');
+    const isExistingMemberField = document.getElementById('id_is_existing_member');
+    const previousSafaIdContainer = document.getElementById('previous_safa_id_container');
+    const idDocumentTypeField = document.getElementById('id_id_document_type');
+    const saIdContainer = document.getElementById('sa_id_container');
+    const passportContainer = document.getElementById('passport_container');
+    const manualDobGenderContainer = document.getElementById('manual_dob_gender_container');
+    const clubContainer = document.getElementById('club_container');
+    const associationContainer = document.getElementById('div_id_association');
     const idNumberField = document.getElementById('id_id_number');
     const dobField = document.getElementById('id_date_of_birth');
-    const genderMaleField = document.getElementById('id_gender_0');
-    const genderFemaleField = document.getElementById('id_gender_1');
+    const genderField = document.getElementById('id_gender');
+    const provinceField = document.getElementById('id_province');
+    const regionField = document.getElementById('id_region');
+    const lfaField = document.getElementById('id_lfa');
+    const clubField = document.getElementById('id_club');
 
-    if (idNumberField) {
-        idNumberField.addEventListener('blur', function() {
-            const idNumber = this.value;
-            if (idNumber.length === 13 && /^USDATA EXTRACTION FOR ID NUMBERS AND DOB AND GENDER INFORMATION IS NOT AVAILABLE. Please enter a valid ID number.$/.test(idNumber)) {
-                fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.date_of_birth && data.gender) {
-                            if(dobField) {
-                                dobField.value = data.date_of_birth;
-                            }
-                            if(data.gender === 'M' && genderMaleField) {
-                                genderMaleField.checked = true;
-                            } else if (data.gender === 'F' && genderFemaleField) {
-                                genderFemaleField.checked = true;
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error extracting ID data:', error);
-                    });
-            }
-        });
+    // --- UTILITY FUNCTIONS ---
+    const showField = (el) => el.classList.remove('d-none');
+    const hideField = (el) => el.classList.add('d-none');
+
+    // --- EVENT HANDLERS ---
+
+    // Handle Role Change
+    roleField.addEventListener('change', function() {
+        if (this.value === 'PLAYER') {
+            showField(clubContainer);
+            hideField(associationContainer);
+            clubField.required = true;
+            document.getElementById('id_association').required = false;
+        } else if (this.value === 'OFFICIAL') {
+            hideField(clubContainer);
+            showField(associationContainer);
+            clubField.required = false;
+            document.getElementById('id_association').required = true;
+        } else {
+            hideField(clubContainer);
+            hideField(associationContainer);
+        }
+    });
+
+    // Handle Existing Member Checkbox
+    isExistingMemberField.addEventListener('change', function() {
+        if (this.checked) {
+            showField(previousSafaIdContainer);
+        } else {
+            hideField(previousSafaIdContainer);
+        }
+    });
+
+    // Handle Document Type Change
+    idDocumentTypeField.addEventListener('change', function() {
+        if (this.value === 'ID') {
+            showField(saIdContainer);
+            hideField(passportContainer);
+            hideField(manualDobGenderContainer);
+        } else if (this.value === 'PP') {
+            hideField(saIdContainer);
+            showField(passportContainer);
+            showField(manualDobGenderContainer);
+        }
+    });
+
+    // Handle SA ID Number Extraction
+    idNumberField.addEventListener('blur', function() {
+        const idNumber = this.value;
+        if (idNumber.length === 13 && /^\d+$/.test(idNumber)) {
+            fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.date_of_birth && data.gender) {
+                        dobField.value = data.date_of_birth;
+                        genderField.value = data.gender;
+                        idNumberField.classList.remove('is-invalid');
+                        idNumberField.classList.add('is-valid');
+                    } else {
+                        idNumberField.classList.add('is-invalid');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    });
+
+    // --- CASCADING DROPDOWNS ---
+    function updateDropdown(url, targetElement, prompt) {
+        targetElement.innerHTML = `<option value="">Loading...</option>`;
+        targetElement.disabled = true;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                targetElement.innerHTML = `<option value="">${prompt}</option>`;
+                data.forEach(item => {
+                    targetElement.add(new Option(item.name, item.id));
+                });
+                targetElement.disabled = false;
+            });
     }
+
+    provinceField.addEventListener('change', function() {
+        const provinceId = this.value;
+        if (provinceId) {
+            updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
+        } else {
+            regionField.innerHTML = '<option value="">Select Province First</option>';
+        }
+        lfaField.innerHTML = '<option value="">Select Region First</option>';
+        clubField.innerHTML = '<option value="">Select LFA First</option>';
+    });
+
+    regionField.addEventListener('change', function() {
+        const regionId = this.value;
+        if (regionId) {
+            updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
+        } else {
+            lfaField.innerHTML = '<option value="">Select Region First</option>';
+        }
+        clubField.innerHTML = '<option value="">Select LFA First</option>';
+    });
+
+    lfaField.addEventListener('change', function() {
+        const lfaId = this.value;
+        if (lfaId) {
+            updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
+        } else {
+            clubField.innerHTML = '<option value="">Select LFA First</option>';
+        }
+    });
+
+    // --- INITIALIZATION ---
+    roleField.dispatchEvent(new Event('change'));
+    idDocumentTypeField.dispatchEvent(new Event('change'));
+    isExistingMemberField.dispatchEvent(new Event('change'));
+
 });
 </script>
 {% endblock %}
-

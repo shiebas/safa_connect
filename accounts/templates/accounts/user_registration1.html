@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}SAFA Member Registration{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>SAFA Member Registration</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="registrationForm">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const idNumberField = document.getElementById('id_id_number');
+    const dobField = document.getElementById('id_date_of_birth');
+    const genderMaleField = document.getElementById('id_gender_0');
+    const genderFemaleField = document.getElementById('id_gender_1');
+
+    if (idNumberField) {
+        idNumberField.addEventListener('blur', function() {
+            const idNumber = this.value;
+            if (idNumber.length === 13 && /^USDATA EXTRACTION FOR ID NUMBERS AND DOB AND GENDER INFORMATION IS NOT AVAILABLE. Please enter a valid ID number.$/.test(idNumber)) {
+                fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.date_of_birth && data.gender) {
+                            if(dobField) {
+                                dobField.value = data.date_of_birth;
+                            }
+                            if(data.gender === 'M' && genderMaleField) {
+                                genderMaleField.checked = true;
+                            } else if (data.gender === 'F' && genderFemaleField) {
+                                genderFemaleField.checked = true;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error extracting ID data:', error);
+                    });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
