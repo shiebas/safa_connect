@@ -195,6 +195,12 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'invoice'
     slug_field = 'uuid'
     slug_url_kwarg = 'uuid'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        invoice = self.get_object()
+        context['vat_percentage'] = invoice.vat_rate * 100
+        return context
     
     def get_queryset(self):
         """Filter invoices based on user permissions"""
