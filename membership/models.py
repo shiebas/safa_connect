@@ -1617,6 +1617,21 @@ class Invoice(TimeStampedModel):
             if self.member:
                 self.create_or_update_season_history()
 
+                # ADDED: Update registration workflow
+                try:
+                    workflow = self.member.workflow
+                    if workflow.current_step == 'PAYMENT':
+                        workflow.payment_status = 'COMPLETED'
+                        workflow.current_step = 'SAFA_APPROVAL'
+                        workflow.save()
+                except RegistrationWorkflow.DoesNotExist:
+                    # If no workflow exists, create one and set it to the approval step
+                    RegistrationWorkflow.objects.create(
+                        member=self.member,
+                        payment_status='COMPLETED',
+                        current_step='SAFA_APPROVAL'
+                    )
+
     def create_or_update_season_history(self):
         """Create or update season history when member invoice is paid"""
         if not self.member:
