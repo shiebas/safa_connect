@@ -1517,7 +1517,10 @@ class Invoice(TimeStampedModel):
             entity_name = getattr(self.organization, 'name', str(self.organization))
         else:
             entity_name = "Unknown"
-        return f"INV-{self.invoice_number} - {entity_name} - R{self.total_amount}"
+        
+        # Ensure total_amount is a Decimal before formatting
+        total_amount_decimal = Decimal(self.total_amount) if not isinstance(self.total_amount, Decimal) else self.total_amount
+        return f"INV-{self.invoice_number} - {entity_name} - R{total_amount_decimal}"
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:

@@ -436,26 +436,42 @@ class InvoiceAdmin(SAFAAccountsAdminMixin, admin.ModelAdmin):
         return "Unknown"
     billed_to.short_description = "Billed To"
     
+    @admin.display(description="Total Amount", ordering="total_amount")
     def total_amount_display(self, obj):
-        return f"R{obj.total_amount:,.2f}"
-    total_amount_display.short_description = "Total Amount"
+        total_amount = Decimal(obj.total_amount) if not isinstance(obj.total_amount, Decimal) else obj.total_amount
+        return f"R{total_amount:,.2f}"
     
+    @admin.display(description="Paid Amount", ordering="paid_amount")
     def paid_amount_display(self, obj):
-        if obj.paid_amount > 0:
-            return format_html('<strong style="color: green;">R{:,.2f}</strong>', obj.paid_amount)
-        return f"R{obj.paid_amount:,.2f}"
-    paid_amount_display.short_description = "Paid Amount"
+        paid_amount = Decimal(obj.paid_amount) if not isinstance(obj.paid_amount, Decimal) else obj.paid_amount
+        if paid_amount > 0:
+            return format_html('<strong style="color: green;">R{:,.2f}</strong>', paid_amount)
+        return f"R{paid_amount:,.2f}"
     
+    @admin.display(description="Outstanding", ordering="outstanding_amount")
     def outstanding_amount_display(self, obj):
         if hasattr(obj, 'outstanding_amount'):
             amount = obj.outstanding_amount
         else:
             amount = obj.total_amount - obj.paid_amount
+
+        amount = Decimal(amount) if not isinstance(amount, Decimal) else amount
         
         if amount > 0:
             return format_html('<strong style="color: red;">R{:,.2f}</strong>', amount)
         return f"R{amount:,.2f}"
-    outstanding_amount_display.short_description = "Outstanding"
+    
+    @admin.display(description="Overdue")
+    def is_overdue_display(self, obj):
+        if hasattr(obj, 'is_overdue'):
+            is_overdue = obj.is_overdue
+        else:
+            is_overdue = (obj.due_date and obj.due_date < timezone.now().date() 
+                         and obj.status in ['PENDING', 'PARTIALLY_PAID'])
+        
+        if is_overdue:
+            return format_html('<span style="color: red;">Yes</span>')
+        return "No"
     
     def is_overdue_display(self, obj):
         if hasattr(obj, 'is_overdue'):
