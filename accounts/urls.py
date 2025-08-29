@@ -55,6 +55,7 @@ urlpatterns = [
     path('profile/edit/', views.edit_profile, name='edit_profile'), # Added this line
     path('my-card/', generate_digital_card, name='digital_card'),
     path('my-invoices/', views.my_invoices, name='my_invoices'),
+    path('invoice/<uuid:invoice_uuid>/', views.invoice_detail, name='invoice_detail'),
     path('registration-portal/', views.registration_portal, name='registration_portal'),
     path('update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),
     path('senior-membership-dashboard/', views.senior_membership_dashboard, name='senior_membership_dashboard'),

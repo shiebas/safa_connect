@@ -1,22 +1,46 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load humanize %}
 
-{% block head_title %}{% trans "My Invoices" %}{% endblock %}
+{% block title %}My Invoices{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h1>{% trans "My Invoices" %}</h1>
-                </div>
-                <div class="card-body">
-                    <p>{% trans "This page will display a list of your invoices." %}</p>
-                    <p>{% trans "This feature is not yet implemented." %}</p>
-                </div>
+    <h1 class="mb-4">My Invoices</h1>
+
+    {% if invoices %}
+        <div class="card">
+            <div class="list-group list-group-flush">
+                {% for invoice in invoices %}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="mb-1">Invoice #{{ invoice.invoice_number }}</h5>
+                                <p class="mb-1 text-muted">Issued on: {{ invoice.issue_date|date:"d M Y" }}</p>
+                            </div>
+                            <div class="col-md-3 text-md-end">
+                                <h5 class="mb-1">R {{ invoice.total_amount|intcomma }}</h5>
+                            </div>
+                            <div class="col-md-3 text-md-end">
+                                {% if invoice.status == 'PAID' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif invoice.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif invoice.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ invoice.get_status_display }}</span>
+                                {% endif %}
+                                <a href="{% url 'accounts:invoice_detail' invoice.uuid %}" class="btn btn-sm btn-outline-primary ms-2">View</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
-    </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            You do not have any invoices yet.
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

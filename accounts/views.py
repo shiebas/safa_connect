@@ -14,7 +14,7 @@ from django.views.decorators.http import require_GET, require_POST
 from geography.models import (Association, Club, ClubStatus, Country,
                               LocalFootballAssociation, NationalFederation,
                               Province, Region)
-from membership.models import Invoice, Member, RegistrationWorkflow
+from membership.models import Invoice, Member, RegistrationWorkflow, InvoiceItem
 from supporters.models import SupporterProfile
 
 from .decorators import role_required
@@ -34,9 +34,13 @@ from .models import (CustomUser, Notification, OrganizationType, Position,
 import qrcode
 import base64
 from io import BytesIO
-from .utils import (generate_unique_safa_id, get_dashboard_stats,
-                    send_approval_email, send_rejection_email,
-                    send_support_request_email)
+from .utils import (
+    generate_unique_safa_id,
+    get_dashboard_stats,
+    send_approval_email,
+    send_rejection_email,
+    send_support_request_email
+)
 
 logger = logging.getLogger(__name__)
 
@@ -402,9 +406,10 @@ def switch_organization(request):
 def notification_center(request):
     notifications = Notification.objects.filter(
         user=request.user).order_by('-timestamp')
-    return render(request,
-                  'accounts/notification_center.html',
-                  {'notifications': notifications})
+    return render(
+        request,
+        'accounts/notification_center.html',
+        {'notifications': notifications})
 
 
 @require_POST
@@ -513,9 +518,10 @@ def reject_member(request, member_id):
     else:
         form = RejectMemberForm()
 
-    return render(request,
-                  'accounts/reject_member.html',
-                  {'form': form, 'member': member})
+    return render(
+        request,
+        'accounts/reject_member.html',
+        {'form': form, 'member': member})
 
 
 @login_required
@@ -527,9 +533,10 @@ def advanced_search(request):
         if form.is_valid():
             results = form.search()
 
-    return render(request,
-                  'accounts/advanced_search.html',
-                  {'form': form, 'results': results})
+    return render(
+        request,
+        'accounts/advanced_search.html',
+        {'form': form, 'results': results})
 
 
 @login_required
@@ -640,7 +647,18 @@ def contact_support(request):
 
 @login_required
 def my_invoices(request):
-    return render(request, 'accounts/my_invoices.html')
+    """Display a list of invoices for the logged-in user."""
+    try:
+        # Invoices are linked to the Member model, which is linked to the User
+        invoices = Invoice.objects.filter(member__user=request.user).order_by('-issue_date')
+    except Invoice.DoesNotExist:
+        invoices = []
+    
+    context = {
+        'invoices': invoices,
+        'title': 'My Invoices'
+    }
+    return render(request, 'accounts/my_invoices.html', context)
 
 
 @login_required
@@ -749,14 +767,11 @@ def member_cards_admin(request):
 def custom_403_view(request, exception=None):
     return render(request, 'errors/403.html', status=403)
 
-
 def custom_404_view(request, exception=None):
     return render(request, 'errors/404.html', status=404)
 
-
 def custom_500_view(request):
     return render(request, 'errors/500.html', status=500)
-
 
 def custom_admin_logout(request):
     logout(request)
@@ -1254,3 +1269,37 @@ def check_email(request):
         exists = CustomUser.objects.filter(email=email).exists()
         return JsonResponse({'exists': exists})
     return JsonResponse({'exists': False})
+
+
+@login_required
+def get_regions_for_province(request):
+    province_id = request.GET.get('province_id')
+    regions = Region.objects.filter(province_id=province_id).order_by('name')
+    return JsonResponse(list(regions.values('id', 'name')), safe=False)
+
+
+@login_required
+def get_lfas_for_region(request):
+    region_id = request.GET.get('region_id')
+    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
+    return JsonResponse(list(lfas.values('id', 'name')), safe=False)
+
+
+@login_required
+def get_clubs_for_lfa(request):
+    lfa_id = request.GET.get('lfa_id')
+    clubs = Club.objects.filter(localfootballassociation_id=lfa_id).order_by('name')
+    return JsonResponse(list(clubs.values('id', 'name')), safe=False)
+
+@login_required
+def invoice_detail(request, invoice_uuid):
+    invoice = get_object_or_404(Invoice, uuid=invoice_uuid)
+    # Security check to ensure the user owns the invoice or is staff
+    if not request.user.is_staff and invoice.member.user != request.user:
+        return HttpResponse('Unauthorized', status=403)
+
+    context = {
+        'invoice': invoice,
+        'invoice_items': invoice.items.all(),
+    }
+    return render(request, 'accounts/invoice_detail.html', context)

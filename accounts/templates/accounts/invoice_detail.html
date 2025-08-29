@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Invoice #{{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header p-4">
+                    <a class="pt-2 d-inline-block" href="{% url 'accounts:modern_home' %}" data-abc="true">SAFA Connect</a>
+                    <div class="float-end">
+                        <h6 class="mb-0">Invoice #{{ invoice.invoice_number }}</h6>
+                        Date: {{ invoice.issue_date|date:"d M Y" }}
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <h6 class="mb-3">From:</h6>
+                            <div><strong>SAFA</strong></div>
+                            <div>National Office</div>
+                            <div>Johannesburg, SA</div>
+                            <div>Email: info@safa.net</div>
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <h6 class="mb-3">To:</h6>
+                            <div><strong>{{ invoice.member.get_full_name }}</strong></div>
+                            <div>{{ invoice.member.street_address|default:'' }}</div>
+                            <div>{{ invoice.member.city|default:'' }}, {{ invoice.member.postal_code|default:'' }}</div>
+                            <div>Email: {{ invoice.member.email }}</div>
+                        </div>
+                    </div>
+                    <div class="table-responsive-sm">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="center">#</th>
+                                    <th>Item</th>
+                                    <th class="right">Unit Cost</th>
+                                    <th class="center">Qty</th>
+                                    <th class="right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in invoice_items %}
+                                <tr>
+                                    <td class="center">{{ forloop.counter }}</td>
+                                    <td class="left strong">{{ item.description }}</td>
+                                    <td class="right">R {{ item.amount|intcomma }}</td>
+                                    <td class="center">{{ item.quantity }}</td>
+                                    <td class="right">R {{ item.total_price|intcomma }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="center">No items on this invoice.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 col-sm-5"></div>
+                        <div class="col-lg-4 col-sm-5 ms-auto">
+                            <table class="table table-clear">
+                                <tbody>
+                                    <tr>
+                                        <td class="left"><strong>Subtotal</strong></td>
+                                        <td class="right">R {{ invoice.subtotal|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="left"><strong>VAT ({{ invoice.vat_rate|floatformat:"0p" }})</strong></td>
+                                        <td class="right">R {{ invoice.vat_amount|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="left"><strong>Total</strong></td>
+                                        <td class="right"><strong>R {{ invoice.total_amount|intcomma }}</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                     <div class="row">
+                        <div class="col-lg-12">
+                            <p class="text-muted"><strong>Status:</strong> 
+                                {% if invoice.status == 'PAID' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif invoice.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">Pending Payment</span>
+                                {% elif invoice.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ invoice.get_status_display }}</span>
+                                {% endif %}
+                            </p>
+                            {% if invoice.status == 'PENDING' or invoice.status == 'OVERDUE' %}
+                                <a href="#" class="btn btn-primary">Pay Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white p-4">
+                    <p class="mb-0">SAFA Connect | Thank you for your membership.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
