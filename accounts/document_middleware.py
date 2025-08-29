@@ -55,21 +55,7 @@ class DocumentAccessMiddleware(MiddlewareMixin):
         if request.GET.get('download') == '1' or '/download/' in request.path:
             return self.handle_document_download(request, full_path, file_path)
 
-        # If it's not a download request, serve the file for viewing
-        try:
-            # We must use FileResponse for efficiency, especially with large files.
-            # It streams the file instead of loading it all into memory.
-            response = FileResponse(open(full_path, 'rb'))
-            content_type, _ = mimetypes.guess_type(full_path)
-            if content_type:
-                response['Content-Type'] = content_type
-            return response
-        except FileNotFoundError:
-            # This should have been caught by os.path.exists, but as a fallback.
-            return None
-        except Exception as e:
-            logger.error(f"Error serving file {full_path}: {e}")
-            return None
+        return None
     
     def log_document_access(self, request, file_path, action='view', success=True, watermarked=False):
         """Log document access to database"""

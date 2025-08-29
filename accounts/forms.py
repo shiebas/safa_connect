@@ -266,16 +266,6 @@ class RegistrationForm(forms.ModelForm):
         required=True,
         label="I am a..."
     )
-    is_existing_member = forms.BooleanField(
-        required=False,
-        label="I already have a SAFA ID"
-    )
-    previous_safa_id = forms.CharField(
-        max_length=5,
-        required=False,
-        label="My existing SAFA ID",
-        help_text="Enter your existing 5-character SAFA ID."
-    )
     id_document_type = forms.ChoiceField(
         choices=[('ID', 'ID Number'), ('PP', 'Passport')],
         required=True,
@@ -304,11 +294,6 @@ class RegistrationForm(forms.ModelForm):
         queryset=Club.objects.none(),
         required=False,
     )
-    association = forms.ModelChoiceField(
-        queryset=Association.objects.all(),
-        required=False,
-        label="Association (for Officials)"
-    )
 
     popi_act_consent = forms.BooleanField(required=True, label="POPI Act Consent")
     password = forms.CharField(widget=forms.PasswordInput)
@@ -316,13 +301,9 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['role', 'first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
+        fields = ['first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
                   'date_of_birth', 'gender', 'profile_picture', 'id_document',
-                   'country_code', 'nationality', 'street_address', 'suburb', 'city', 'state', 'postal_code',
-                   'is_existing_member', 'previous_safa_id', 'association']
-        widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
-        }
+                   'country_code', 'nationality']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -373,23 +354,17 @@ class RegistrationForm(forms.ModelForm):
         self.fields['password'].widget.attrs.update({'autocomplete': 'new-password'})
         self.fields['password2'].widget.attrs.update({'autocomplete': 'new-password'})
 
-        role = self.data.get('role') or self.initial.get('role')
-        if role:
-            if role == 'PLAYER':
-                self.fields['club'].required = True
-                self.fields['association'].required = False
-            elif role == 'OFFICIAL':
-                self.fields['club'].required = False
-                self.fields['association'].required = True
-            else: # For ADMIN roles
-                self.fields['club'].required = False
-                self.fields['association'].required = False
+        if 'role' in self.data:
+            try:
+                role = self.data.get('role')
+                if role in ['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'ADMIN_PROVINCE', 'ADMIN_REGION', 'ADMIN_LOCAL_FED', 'ASSOCIATION_ADMIN']:
+                    self.fields['club'].required = False
+            except (ValueError, TypeError):
+                pass
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             'role',
-            'is_existing_member',
-            'previous_safa_id',
             'first_name',
             'last_name',
             'email',
@@ -425,7 +400,6 @@ class RegistrationForm(forms.ModelForm):
             'region',
             'lfa',
             'club',
-            'association',
         )
 
     def clean_first_name(self):

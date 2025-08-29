@@ -133,22 +133,17 @@ def extract_sa_id_dob_gender(id_number):
     if not id_number or not id_number.isdigit() or len(id_number) != 13:
         return None, None
 
-    # Luhn algorithm check for SA ID
+    # Luhn algorithm check
     def luhn_check(id_num):
-        """
-        Validate a South African ID number using the specified Luhn algorithm.
-        """
-        if len(id_num) != 13 or not id_num.isdigit():
-            return False
-
-        digits = [int(d) for d in id_num]
-        odd_sum = sum(digits[i] for i in range(0, 12, 2))
-        even_digits_str = "".join(str(digits[i]) for i in range(1, 12, 2))
-        even_doubled = int(even_digits_str) * 2
-        even_sum = sum(int(d) for d in str(even_doubled))
-        total_sum = odd_sum + even_sum
-        check_digit = (10 - (total_sum % 10)) % 10
-        return check_digit == digits[12]
+        s = 0
+        for i, digit in enumerate(reversed(id_num)):
+            d = int(digit)
+            if i % 2 == 1:
+                d *= 2
+            if d > 9:
+                d -= 9
+            s += d
+        return s % 10 == 0
 
     if not luhn_check(id_number):
         return None, None

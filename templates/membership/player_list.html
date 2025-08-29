@@ -9,7 +9,7 @@
             <a href="{% url 'membership:player_create' %}" class="btn btn-primary">Add New Player (Admin)</a>
         {% endif %}
         {% if user.member_profile.role == 'CLUB_ADMIN' %}
-            <a href="{% url 'accounts:user_registration' %}" class="btn btn-success">Register New Player</a>
+            <a href="{% url 'membership:player_registration' %}" class="btn btn-success">Register New Player</a>
         {% endif %}
     </div>
     
