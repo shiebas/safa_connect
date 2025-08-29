@@ -396,7 +396,6 @@ class RegistrationForm(forms.ModelForm):
             'id_document_type',
             Div(
                 'id_number',
-                HTML('<div id="id-validation-message" class="mt-1 small"></div>'), # Placeholder for JS validation messages
                 css_id='id_number_box',
                 css_class='sa-id-field', # Changed css_class to sa-id-field
                 style='display:block;' # Changed to display:block

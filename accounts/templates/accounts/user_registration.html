@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const genderField = document.getElementById('id_gender');
         const idValidationMessage = document.getElementById('id-validation-message');
+        console.log("DEBUG: idValidationMessage after getElementById:", idValidationMessage); // DEBUG
         const roleField = document.getElementById('id_role');
         const clubField = document.getElementById('div_id_club');
         const associationField = document.getElementById('div_id_association');
@@ -100,16 +101,25 @@ document.addEventListener('DOMContentLoaded', function() {
         function validateIDNumber() {
             if (!idNumberField) return;
             const idNumber = idNumberField.value;
+            console.log("validateIDNumber called. idNumber:", idNumber); // DEBUG
             const validationResult = validateSAIDNumber(idNumber);
+            console.log("validationResult:", validationResult); // DEBUG
 
             if (validationResult.isValid) {
                 idValidationMessage.textContent = `Valid ID. DOB: ${formatDateYMD(validationResult.dateOfBirth)}, Gender: ${validationResult.gender}`;
                 idValidationMessage.className = 'mt-1 small text-success';
-                if (dobField) dobField.value = formatDateYMD(validationResult.dateOfBirth);
-                if (genderField) genderField.value = validationResult.gender;
+                if (dobField) {
+                    dobField.value = formatDateYMD(validationResult.dateOfBirth);
+                    console.log("DOB field set to:", dobField.value); // DEBUG
+                }
+                if (genderField) {
+                    genderField.value = validationResult.gender;
+                    console.log("Gender field set to:", genderField.value); // DEBUG
+                }
             } else {
                 idValidationMessage.textContent = validationResult.errorMessage || '';
                 idValidationMessage.className = 'mt-1 small text-danger';
+                console.log("Validation failed. Error:", validationResult.errorMessage); // DEBUG
             }
         }
 
