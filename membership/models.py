@@ -1533,7 +1533,7 @@ class Invoice(TimeStampedModel):
         is_reverse_vat_calculation = (
             self.total_amount is not None and
             self.subtotal is None and
-            self.invoice_type in ['ORGANIZATION_MEMBERSHIP', 'ANNUAL_FEE'] # Assuming these are for administrators/organizations
+            self.invoice_type in ['ORGANIZATION_MEMBERSHIP', 'ANNUAL_FEE', 'MEMBER_REGISTRATION'] # Assuming these are for administrators/organizations
         )
 
         if is_reverse_vat_calculation:
@@ -1664,10 +1664,11 @@ class Invoice(TimeStampedModel):
                 invoice = cls.objects.create(
                     member=member,
                     invoice_type='MEMBER_REGISTRATION',
-                    subtotal=fee_amount,
+                    total_amount=fee_amount,
+                    subtotal=None,
                     season_config=member.current_season,
                     status='PENDING',
-                    payment_method='Cash or EFT' # ADD THIS LINE
+                    payment_method='Cash or EFT'
                 )
                 return invoice
         except Exception as e:
