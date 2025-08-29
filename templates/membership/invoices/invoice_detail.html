@@ -5,7 +5,7 @@
 {% block title %}{% trans "Invoice" %} #{{ invoice.invoice_number }}{% endblock %}
 
 {% block content %}
-<div class="container my-4">
+<div class="container my-4 invoice-printable-area">
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card border-0">
@@ -27,8 +27,8 @@
                     </div>
 
                     <div class="text-center my-4">
-                        <p class="mb-0">VAT Number: [SAFA VAT Number]</p>
                         <h1>{% trans "TAX INVOICE" %}</h1>
+                        <p class="mb-0">VAT Number: [SAFA VAT Number]</p>
                     </div>
                     
                     <div class="row">
@@ -210,6 +210,9 @@
         }
         .no-print, .navbar-safa, .footer-safa {
             display: none !important;
+        }
+        .container.invoice-printable-area {
+            page-break-inside: avoid;
         }
         .container {
             width: 100%;
