@@ -16,4 +16,5 @@ urlpatterns = [
     path('statistics/<uuid:competition_id>/<uuid:group_id>/', views.league_statistics, name='group_statistics'),
     path('team/<uuid:competition_id>/<uuid:team_id>/', views.team_statistics, name='team_statistics'),
     path('api/', include(router.urls)),
+    path('fixture-generation/', views.fixture_generation_view, name='fixture_generation'),
 ]

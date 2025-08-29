@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Fixture Generation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Generate League Fixtures</h2>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="competition" class="form-label">Select Competition:</label>
+            <select class="form-select" id="competition" name="competition" required>
+                <option value="">-- Select a Competition --</option>
+                {% for comp in competitions %}
+                    <option value="{{ comp.id }}">{{ comp.name }} ({{ comp.season_year }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="group" class="form-label">Select Group (Optional):</label>
+            <select class="form-select" id="group" name="group">
+                <option value="">-- All Teams in Competition (or no groups) --</option>
+                {% for group in groups %}
+                    <option value="{{ group.id }}" data-competition-id="{{ group.competition.id }}">{{ group.name }} ({{ group.competition.name }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="clear_existing" name="clear_existing">
+            <label class="form-check-label" for="clear_existing">
+                Clear existing matches before generating new ones
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Generate Fixtures</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const competitionSelect = document.getElementById('competition');
+        const groupSelect = document.getElementById('group');
+        const allGroupOptions = Array.from(groupSelect.options); // Store all options
+
+        function filterGroups() {
+            const selectedCompetitionId = competitionSelect.value;
+            
+            // Clear current options, but keep the "All Teams" option
+            groupSelect.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '-- All Teams in Competition (or no groups) --';
+            groupSelect.appendChild(defaultOption);
+
+            if (selectedCompetitionId) {
+                allGroupOptions.forEach(option => {
+                    if (option.dataset.competitionId === selectedCompetitionId) {
+                        groupSelect.appendChild(option.cloneNode(true)); // Append a clone
+                    }
+                });
+            }
+        }
+
+        // Initial filter on page load
+        filterGroups();
+
+        // Add event listener for competition change
+        competitionSelect.addEventListener('change', filterGroups);
+    });
+</script>
+{% endblock %}

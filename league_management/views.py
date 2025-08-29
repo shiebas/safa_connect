@@ -213,6 +213,44 @@ class CompetitionCategoryViewSet(viewsets.ModelViewSet):
     queryset = CompetitionCategory.objects.all()
     serializer_class = CompetitionCategorySerializer
 
+from django.core.management import call_command
+from io import StringIO
+
 class CompetitionViewSet(viewsets.ModelViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
+
+@staff_member_required
+def fixture_generation_view(request):
+    competitions = Competition.objects.all().order_by('name')
+    groups = CompetitionGroup.objects.all().order_by('name')
+    
+    if request.method == 'POST':
+        competition_id = request.POST.get('competition')
+        group_id = request.POST.get('group')
+        clear_existing = request.POST.get('clear_existing') == 'on'
+        
+        if not competition_id:
+            messages.error(request, "Please select a competition.")
+            return redirect('league_management:fixture_generation')
+            
+        args = [competition_id]
+        options = {'clear_existing': clear_existing}
+        
+        if group_id:
+            options['group_id'] = group_id
+            
+        out = StringIO()
+        try:
+            call_command('generate_fixtures', *args, stdout=out, **options)
+            messages.success(request, f"Fixture generation initiated successfully. Output: {out.getvalue()}")
+        except Exception as e:
+            messages.error(request, f"Error generating fixtures: {e}. Output: {out.getvalue()}")
+            
+        return redirect('league_management:fixture_generation')
+        
+    context = {
+        'competitions': competitions,
+        'groups': groups,
+    }
+    return render(request, 'league_management/fixture_generation.html', context)
