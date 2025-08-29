@@ -80,11 +80,11 @@
                     <table>
                         <tr>
                             <td class="title">
-                                <img src="{% static 'imgages/safa_logo.png' %}" style="width:100%; max-width:150px;">
+                                <img src="{% static 'images/safa_logo.png' %}" style="width:100%; max-width:150px;">
                             </td>
                             <td>
                                 Invoice #: {{ invoice.invoice_number }}<br>
-                                Created: {{ invoice.invoice_date|date:"F d, Y" }}<br>
+                                Created: {{ invoice.issue_date|date:"F d, Y" }}<br>
                                 Due: {{ invoice.due_date|date:"F d, Y" }}
                             </td>
                         </tr>
@@ -110,18 +110,10 @@
                 </td>
             </tr>
             <tr class="heading">
-                <td>Payment Method</td>
-                <td>Check #</td>
-            </tr>
-            <tr class="details">
-                <td>Bank Transfer</td>
-                <td>1000</td>
-            </tr>
-            <tr class="heading">
                 <td>Item</td>
                 <td>Price</td>
             </tr>
-            {% for item in invoice.invoiceitem_set.all %}
+            {% for item in invoice.items.all %}
             <tr class="item">
                 <td>{{ item.description }}</td>
                 <td>R{{ item.amount|floatformat:2 }}</td>
@@ -129,9 +121,30 @@
             {% endfor %}
             <tr class="total">
                 <td></td>
-                <td>Total: R{{ invoice.total_amount|floatformat:2 }}</td>
+                <td>Subtotal: R{{ invoice.subtotal|floatformat:2 }}</td>
+            </tr>
+            <tr class="total">
+                <td></td>
+                <td>VAT ({{ invoice.vat_rate|multiply:100|floatformat:0 }}%): R{{ invoice.vat_amount|floatformat:2 }}</td>
+            </tr>
+            <tr class="total">
+                <td></td>
+                <td><strong>Total: R{{ invoice.total_amount|floatformat:2 }}</strong></td>
             </tr>
         </table>
+        <div class="payment-instructions" style="margin-top: 30px;">
+            <h3>Payment Instructions:</h3>
+           <ul>
+               <li><h3>Bank Name: FIRST NATIONAL BANK</h3></li>
+               <li><h3>Account Name: SAFA</h3></li>
+               <li><h3>Account Number: 63098138027</h3></li>
+               <li><h3>Account Type: CURRENT ACCOUNT</h3></li>
+               <li><h3>Branch : COMM ACCOUNT SERVICE CUST</h3></li>
+               <li><h3>Branch Code: 210554</h3></li>
+               <li><h3>Reference: Invoice #{{ invoice.invoice_number }}</h3></li>
+           </ul>
+           <p><h3>Alternatively, payment can be made via EFT or Cash at designated outlets</h3></p>
+       </div>
     </div>
 </body>
 </html>
