@@ -1671,7 +1671,8 @@ class InvoiceItem(models.Model):
         verbose_name_plural = _("Invoice Items")
 
     def __str__(self):
-        return f"{self.description} - R{self.amount} x{self.quantity}"
+        amount_decimal = Decimal(self.amount) if not isinstance(self.amount, Decimal) else self.amount
+        return f"{self.description} - R{amount_decimal} x{self.quantity}"
 
     def save(self, *args, **kwargs):
         # Auto-calculate total price

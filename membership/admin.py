@@ -376,7 +376,8 @@ class InvoiceItemInline(admin.TabularInline):
     readonly_fields = ('total_price',)
 
     def total_price(self, obj):
-        return f"R{obj.total_price:.2f}"
+        total_price_decimal = Decimal(obj.total_price) if not isinstance(obj.total_price, Decimal) else obj.total_price
+        return f"R{total_price_decimal:.2f}"
     total_price.short_description = "Total Price"
 
 
@@ -439,15 +440,17 @@ class InvoiceAdmin(SAFAAccountsAdminMixin, admin.ModelAdmin):
     @admin.display(description="Total Amount", ordering="total_amount")
     def total_amount_display(self, obj):
         total_amount = Decimal(obj.total_amount) if not isinstance(obj.total_amount, Decimal) else obj.total_amount
-        return f"R{total_amount:,.2f}"
-    
+        formatted_amount = f"R{total_amount:,.2f}"
+        return formatted_amount
+
     @admin.display(description="Paid Amount", ordering="paid_amount")
     def paid_amount_display(self, obj):
         paid_amount = Decimal(obj.paid_amount) if not isinstance(obj.paid_amount, Decimal) else obj.paid_amount
+        formatted_amount = f"R{paid_amount:,.2f}"
         if paid_amount > 0:
-            return format_html('<strong style="color: green;">R{:,.2f}</strong>', paid_amount)
-        return f"R{paid_amount:,.2f}"
-    
+            return format_html('<strong style="color: green;">{}</strong>', formatted_amount)
+        return formatted_amount
+
     @admin.display(description="Outstanding", ordering="outstanding_amount")
     def outstanding_amount_display(self, obj):
         if hasattr(obj, 'outstanding_amount'):
@@ -457,9 +460,10 @@ class InvoiceAdmin(SAFAAccountsAdminMixin, admin.ModelAdmin):
 
         amount = Decimal(amount) if not isinstance(amount, Decimal) else amount
         
+        formatted_amount = f"R{amount:,.2f}"
         if amount > 0:
-            return format_html('<strong style="color: red;">R{:,.2f}</strong>', amount)
-        return f"R{amount:,.2f}"
+            return format_html('<strong style="color: red;">{}</strong>', formatted_amount)
+        return formatted_amount
     
     @admin.display(description="Overdue")
     def is_overdue_display(self, obj):
