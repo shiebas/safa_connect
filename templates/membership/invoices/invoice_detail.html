@@ -106,7 +106,7 @@
                                         </tr>
                                         {% if invoice.vat_amount > 0 %}
                                         <tr>
-                                            <th colspan="3" class="text-end">{% trans "VAT" %} ({{ invoice.vat_rate|multiply:100|floatformat:0 }}%):</th>
+                                            <th colspan="3" class="text-end">{% trans "VAT" %} ({{ vat_percentage|floatformat:0 }}%):</th>
                                             <th class="text-end">R {{ invoice.vat_amount|floatformat:2 }}</th>
                                         </tr>
                                         {% endif %}
