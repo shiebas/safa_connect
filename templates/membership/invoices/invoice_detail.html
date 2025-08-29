@@ -9,14 +9,13 @@
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card border-0">
-                <div class="card-body p-0">
+                <div class="card-body p-4">
                     <!-- Invoice Header -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
+                    <div class="row mb-4 align-items-center">
+                        <div class="col-md-6" style="padding-left: 2rem;">
                             <img src="{% static 'images/safa_logo.png' %}" alt="SAFA Logo" style="max-height: 80px;">
-                            <h1 class="mt-2">{% trans "INVOICE" %}</h1>
                         </div>
-                        <div class="col-md-6 text-md-end">
+                        <div class="col-md-6 text-md-end" style="padding-right: 2rem;">
                             <h4>{% trans "South African Football Association" %}</h4>
                             <p class="mb-0">
                                 SAFA House, 76 Nasrec Road<br>
@@ -25,6 +24,11 @@
                                 Tel: +27 11 567 2000
                             </p>
                         </div>
+                    </div>
+
+                    <div class="text-center my-4">
+                        <p class="mb-0">VAT Number: [SAFA VAT Number]</p>
+                        <h1>{% trans "TAX INVOICE" %}</h1>
                     </div>
                     
                     <div class="row">
@@ -65,10 +69,14 @@
                             <div class="card mb-4">
                                 <div class="card-body">
                                     <h5 class="card-title">{% trans "Billed To" %}</h5>
-                                    <p><strong>{{ invoice.player.get_full_name }}</strong></p>
-                                    <p>{{ invoice.player.get_address_display }}</p>
-                                    <p>{% trans "Email" %}: {{ invoice.player.email }}</p>
-                                    <p>{% trans "Phone" %}: {{ invoice.player.phone_number }}</p>
+                                    {% if invoice.member.user %}
+                                    <p><strong>{{ invoice.member.user.get_full_name }}</strong></p>
+                                    <p>{% trans "Email" %}: {{ invoice.member.user.email }}</p>
+                                    {% else %}
+                                    <p><strong>{{ invoice.member.get_full_name }}</strong></p>
+                                    <p>{% trans "Email" %}: {{ invoice.member.email }}</p>
+                                    {% endif %}
+                                    <p>{% trans "Phone" %}: {{ invoice.member.phone_number }}</p>
                                     <p><strong>{% trans "Club" %}:</strong> {{ invoice.club.name }}</p>
                                 </div>
                             </div>
@@ -136,7 +144,7 @@
                                         <div class="col-md-6">
                                             <p><strong>{% trans "Account Type" %}:</strong> Current account</p>
                                             <p><strong>{% trans "Account Number" %}:</strong> 6309 8138 027</p>
-                                            <p><strong>{% trans "Reference" %}:</strong> {{ invoice.reference }}</p>
+                                            <p><strong>{% trans "Reference" %}:</strong> {{ invoice.invoice_number }}</p>
                                         </div>
                                     </div>
                                     <div class="mt-3">
@@ -162,7 +170,7 @@
                     {% endif %}
                     
                     <!-- Actions -->
-                    <div class="row">
+                    <div class="row no-print">
                         <div class="col-md-12">
                             <div class="d-flex justify-content-between">
                                 <a href="javascript:window.print();" class="btn btn-outline-primary">
@@ -200,7 +208,7 @@
         body {
             font-size: 12pt;
         }
-        .no-print {
+        .no-print, .navbar-safa, .footer-safa {
             display: none !important;
         }
         .container {
@@ -209,6 +217,7 @@
         }
         .card {
             border: none !important;
+            box-shadow: none !important;
         }
         .card-body {
             padding: 0.5rem !important;
