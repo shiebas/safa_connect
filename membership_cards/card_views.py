@@ -1,8 +1,3 @@
-"""
-SAFA Digital Card Views
-Views for displaying, downloading, and managing digital membership cards
-"""
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -14,31 +9,38 @@ from django.db.models import Q
 from django.utils import timezone
 from django.conf import settings
 
-from membership.models import Member
-from .card_generator import SAFACardGenerator
+from membership.models import Member, MemberSeasonHistory, get_current_season
+from .card_generator import SAFACardGenerator, generate_print_ready_pdf
+from .models import PhysicalCard
 import os
 
 
 @login_required
 def my_digital_card(request):
-    """Display user's digital membership card"""
+    """Display user's digital membership card as a mobile-optimized image."""
     try:
         # Get the member associated with the current user
         member = Member.objects.get(email=request.user.email)
         
         if not member.safa_id:
-            messages.warning(request, "Your SAFA ID has not been assigned yet. Please contact an administrator.")
-            return render(request, 'membership_cards/no_card.html')
+            # Return a placeholder image or a 404 Not Found
+            # For now, returning a simple HTTP 404 is clean.
+            return HttpResponse("Card not available: SAFA ID not assigned.", status=404)
         
-        context = {
-            'member': member,
-            'card_ready': True,
-        }
-        return render(request, 'membership_cards/my_card.html', context)
+        # Generate the mobile-optimized card
+        generator = SAFACardGenerator()
+        card_data = generator.generate_mobile_card(member)
+        
+        # Return the image directly in the response
+        response = HttpResponse(card_data.read(), content_type='image/png')
+        return response
         
     except Member.DoesNotExist:
-        messages.error(request, "No membership record found for your account.")
-        return render(request, 'membership_cards/no_card.html')
+        return HttpResponse("Membership record not found.", status=404)
+    except Exception as e:
+        # Log the error for debugging
+        # logger.error(f"Error generating card for user {request.user.id}: {str(e)}")
+        return HttpResponse(f"An error occurred while generating your card.", status=500)
 
 
 @login_required
@@ -273,3 +275,61 @@ def card_verification(request, safa_id):
             'error': 'Member not found',
             'verified_at': timezone.now().isoformat(),
         }, status=404)
+
+@staff_member_required
+def admin_select_for_printing(request):
+    """Admin view to select paid members for card printing."""
+    current_season = get_current_season() # Replace with your logic to get the current season
+    
+    # Find members who have paid in the current season
+    paid_member_histories = MemberSeasonHistory.objects.filter(
+        season_config=current_season,
+        invoice_paid=True
+    ).select_related('member')
+    
+    members_to_print = [history.member for history in paid_member_histories]
+    
+    context = {
+        'members_to_print': members_to_print,
+    }
+    return render(request, 'membership_cards/admin_select_for_printing.html', context)
+
+@staff_member_required
+@require_POST
+def admin_generate_print_sheet(request):
+    """Generate a PDF print sheet for selected members."""
+    member_ids = request.POST.getlist('member_ids')
+    
+    if not member_ids:
+        messages.error(request, "No members selected for printing.")
+        return redirect('membership_cards:admin_select_for_printing')
+        
+    # Security check: Ensure all selected members have paid and requested a physical card
+    members = Member.objects.filter(
+        id__in=member_ids,
+        season_history__invoice_paid=True,
+        physical_card_requested=True
+    ).distinct()
+    
+    # We need PhysicalCard objects for the generator function
+    physical_cards = PhysicalCard.objects.filter(user__member__in=members)
+    
+    if not physical_cards.exists():
+        messages.warning(request, "No valid physical cards found for the selected paid members. Ensure they have requested a physical card.")
+        return redirect('membership_cards:admin_select_for_printing')
+
+    try:
+        pdf_data = generate_print_ready_pdf(physical_cards)
+        
+        response = HttpResponse(pdf_data, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="SAFA_Card_Print_Sheet_{timezone.now().strftime("%Y%m%d")}.pdf"'
+        
+        # Optionally, mark these cards as 'PRINTED'
+        # physical_cards.update(print_status='PRINTED', printed_date=timezone.now())
+        
+        messages.success(request, f"Generated print sheet for {physical_cards.count()} card(s).")
+        return response
+
+    except Exception as e:
+        messages.error(request, f"An error occurred while generating the print sheet: {str(e)}")
+        return redirect('membership_cards:admin_select_for_printing')

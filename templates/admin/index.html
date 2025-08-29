@@ -1,30 +1,21 @@
-
-{% extends "admin/base_site.html" %}
-{% load i18n static %}
-
-{% block extrastyle %}
-{{ block.super }}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-<style>
-    /* You can keep existing styles or add new ones here */
-</style>
-{% endblock %}
+{% extends "admin/index.html" %}
+{% load i18n %}
 
 {% block content %}
-{% if user.is_superuser %}
-    <div class="row">
-        <div class="col-12 mb-4">
-            <a href="{% url 'accounts:senior_membership_dashboard' %}" class="dashboard-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white; padding: 20px; display: block; text-decoration: none;">
-                <div class="text-center">
-                    <i class="bi bi-check2-square" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                    <h4>Senior Membership Approval</h4>
-                    <p class="mb-0">View and approve pending senior membership applications</p>
-                </div>
-            </a>
-        </div>
-    </div>
-{% endif %}
-
-{# This line includes the default Django admin app list #}
 {{ block.super }}
+<div class="app-membership_cards module">
+    <table>
+        <caption>
+            <a href="{% url 'membership_cards:admin_select_for_printing' %}" class="section" title="Custom Card Actions">Card Actions</a>
+        </caption>
+        <tbody>
+            <tr>
+                <th scope="row">
+                    <a href="{% url 'membership_cards:admin_select_for_printing' %}">Generate Print Sheet for Paid Members</a>
+                </th>
+                <td>Click to select paid members and generate a PDF print batch.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 {% endblock %}

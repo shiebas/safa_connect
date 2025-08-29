@@ -184,6 +184,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>SAFA Card Management</h1>
         <div>
+            <a href="{% url 'membership_cards:admin_select_for_printing' %}" class="btn btn-success">
+                <i class="bi bi-printer-fill"></i> Generate Print Sheet
+            </a>
             <span class="badge bg-primary">Total: {{ total_with_ids|add:total_without_ids }}</span>
         </div>
     </div>

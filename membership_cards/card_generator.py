@@ -35,7 +35,7 @@ class SAFACardGenerator:
     CARD_HEIGHT_MM = 53.98
     
     def __init__(self):
-        self.template_path = os.path.join(settings.MEDIA_ROOT, 'card_templates', 'front', 'safamembership.jpg')
+        self.template_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'safacard.png')
         self.font_paths = self._get_font_paths()
     
     def _get_font_paths(self):

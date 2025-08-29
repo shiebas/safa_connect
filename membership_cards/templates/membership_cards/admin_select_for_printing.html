@@ -1,0 +1,55 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Select Members for Card Printing{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Select Paid Members for Card Printing</h1>
+    <p>The following members have paid their fees for the current season and have requested a physical card. Select the members you wish to include in the print batch.</p>
+
+    {% if members_to_print %}
+    <form action="{% url 'membership_cards:admin_generate_print_sheet' %}" method="post">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-header">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="select-all">
+                    <label class="form-check-label" for="select-all">
+                        <strong>Select All</strong>
+                    </label>
+                </div>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for member in members_to_print %}
+                <li class="list-group-item">
+                    <div class="form-check">
+                        <input class="form-check-input member-checkbox" type="checkbox" name="member_ids" value="{{ member.id }}" id="member_{{ member.id }}">
+                        <label class="form-check-label" for="member_{{ member.id }}">
+                            <strong>{{ member.get_full_name }}</strong> (SAFA ID: {{ member.safa_id|default:"N/A" }}) - Club: {{ member.current_club.name|default:"N/A" }}
+                        </label>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Generate PDF Print Sheet</button>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        There are no members who have paid their fees and are awaiting card printing.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('select-all').addEventListener('click', function(event) {
+    var checkboxes = document.querySelectorAll('.member-checkbox');
+    for (var checkbox of checkboxes) {
+        checkbox.checked = event.target.checked;
+    }
+});
+</script>
+{% endblock %}

@@ -3,7 +3,8 @@ from . import views
 from .card_views import (
     my_digital_card, download_my_card, card_preview_image,
     admin_card_management, admin_generate_card, admin_bulk_generate_cards,
-    admin_card_preview, card_verification
+    admin_card_preview, card_verification, admin_select_for_printing,
+    admin_generate_print_sheet
 )
 from rest_framework import routers
 from .views import DigitalCardViewSet
@@ -24,6 +25,8 @@ urlpatterns = [
     path('admin/generate/<int:member_id>/', admin_generate_card, name='admin_generate_card'),
     path('admin/bulk-generate/', admin_bulk_generate_cards, name='admin_bulk_generate'),
     path('admin/preview/<int:member_id>/', admin_card_preview, name='admin_card_preview'),
+    path('admin/print-sheet/', admin_select_for_printing, name='admin_select_for_printing'),
+    path('admin/generate-print-sheet/', admin_generate_print_sheet, name='admin_generate_print_sheet'),
     
     # Card verification
     path('verify/<str:safa_id>/', card_verification, name='card_verification'),
