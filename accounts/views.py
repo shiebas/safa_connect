@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
+from datetime import date
 
 from geography.models import (Association, Club, ClubStatus, Country,
                               LocalFootballAssociation, NationalFederation,
@@ -1256,7 +1257,6 @@ def club_compliance_view(request):
     }
     return render(request, 'accounts/club_compliance.html', context)
 
-
 def get_organization_type_name(request, org_type_id):
     org_type = get_object_or_404(OrganizationType, id=org_type_id)
     return JsonResponse({'name': org_type.name})
@@ -1303,3 +1303,31 @@ def invoice_detail(request, invoice_uuid):
         'invoice_items': invoice.items.all(),
     }
     return render(request, 'accounts/invoice_detail.html', context)
+
+@require_GET
+def ajax_extract_id_data(request):
+    id_number = request.GET.get('id_number', None)
+    if not id_number or len(id_number) != 13 or not id_number.isdigit():
+        return JsonResponse({'error': 'Invalid ID number'}, status=400)
+
+    try:
+        year = int(id_number[:2])
+        month = int(id_number[2:4])
+        day = int(id_number[4:6])
+
+        if year < 25:
+            year += 2000
+        else:
+            year += 1900
+
+        dob = date(year, month, day)
+
+        gender_digit = int(id_number[6])
+        gender = 'M' if gender_digit >= 5 else 'F'
+
+        return JsonResponse({
+            'date_of_birth': dob.strftime('%Y-%m-%d'),
+            'gender': gender,
+        })
+    except (ValueError, IndexError):
+        return JsonResponse({'error': 'Invalid date or gender in ID number'}, status=400)

@@ -13,7 +13,7 @@
                     <h2>SAFA Member Registration</h2>
                 </div>
                 <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" id="registrationForm">
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div class="text-center mt-4">
@@ -29,218 +29,38 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/registration.js' %}"></script>
-<script src="{% static 'js/sa_id_validation.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    try {
-        // Element selectors
-        const docTypeField = document.getElementById('id_id_document_type');
-        // const saIdContainer = document.getElementById('id_number_box'); // OLD
-        // const passportContainer = document.getElementById('passport_box'); // OLD
-        // const dobGenderContainer = document.getElementById('dob-gender-manual-row'); // OLD
+    const idNumberField = document.getElementById('id_id_number');
+    const dobField = document.getElementById('id_date_of_birth');
+    const genderMaleField = document.getElementById('id_gender_0');
+    const genderFemaleField = document.getElementById('id_gender_1');
 
-        // New way to get containers: find parent of the input field
-        const idNumberField = document.getElementById('id_id_number');
-        const saIdContainer = idNumberField ? idNumberField.closest('.form-group') || idNumberField.closest('div') : null; // Find closest parent div/form-group
-        
-        const passportNumberField = document.getElementById('id_passport_number'); // Assuming this ID
-        const passportContainer = passportNumberField ? passportNumberField.closest('.form-group') || passportNumberField.closest('div') : null;
-
-        const dobField = document.getElementById('id_date_of_birth');
-        const dobGenderContainer = dobField ? dobField.closest('.form-group') || dobField.closest('div') : null; // Find closest parent div/form-group
-
-        const genderField = document.getElementById('id_gender');
-        const idValidationMessage = document.getElementById('id-validation-message');
-        console.log("DEBUG: idValidationMessage after getElementById:", idValidationMessage); // DEBUG
-        const roleField = document.getElementById('id_role');
-        const clubField = document.getElementById('div_id_club');
-        const associationField = document.getElementById('div_id_association');
-        const existingMemberField = document.getElementById('id_is_existing_member');
-        const previousSafaIdField = document.getElementById('div_id_previous_safa_id');
-
-        // Geographic field containers
-        const countryFieldContainer = document.getElementById('div_id_country');
-        const provinceFieldContainer = document.getElementById('div_id_province');
-        const regionFieldContainer = document.getElementById('div_id_region');
-        const lfaFieldContainer = document.getElementById('div_id_lfa');
-        const clubFieldContainer = document.getElementById('div_id_club');
-        const associationFieldContainer = document.getElementById('div_id_association');
-
-        console.log("DOMContentLoaded fired."); // DEBUG
-        console.log("docTypeField:", docTypeField); // DEBUG
-
-        // Function to toggle fields based on Document Type (ID vs Passport)
-        function toggleDocumentFields() {
-            const selectedType = docTypeField.value;
-            console.log("toggleDocumentFields called. selectedType:", selectedType); // DEBUG
-
-            if (selectedType === 'ID') {
-                if (saIdContainer) saIdContainer.style.display = 'block';
-                if (passportContainer) passportContainer.style.display = 'none';
-                if (dobGenderContainer) dobGenderContainer.style.display = 'none'; // Hides DOB/Gender
-                if (dobField) dobField.readOnly = true;
-                if (genderField) genderField.disabled = true; // Disables Gender
-                console.log("Selected ID. Hiding passport, DOB/Gender."); // DEBUG
-            } else { // 'PP' or other
-                if (saIdContainer) saIdContainer.style.display = 'none';
-                if (passportContainer) passportContainer.style.display = 'block';
-                if (dobGenderContainer) dobGenderContainer.style.display = 'flex'; // Shows DOB/Gender
-                if (dobField) dobField.readOnly = false;
-                if (genderField) genderField.disabled = false; // Enables Gender
-                console.log("Selected Passport. Showing passport, DOB/Gender."); // DEBUG
+    if (idNumberField) {
+        idNumberField.addEventListener('blur', function() {
+            const idNumber = this.value;
+            if (idNumber.length === 13 && /^USDATA EXTRACTION FOR ID NUMBERS AND DOB AND GENDER INFORMATION IS NOT AVAILABLE. Please enter a valid ID number.$/.test(idNumber)) {
+                fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.date_of_birth && data.gender) {
+                            if(dobField) {
+                                dobField.value = data.date_of_birth;
+                            }
+                            if(data.gender === 'M' && genderMaleField) {
+                                genderMaleField.checked = true;
+                            } else if (data.gender === 'F' && genderFemaleField) {
+                                genderFemaleField.checked = true;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error extracting ID data:', error);
+                    });
             }
-            console.log("saIdContainer display:", saIdContainer ? saIdContainer.style.display : 'N/A'); // DEBUG
-            console.log("passportContainer display:", passportContainer ? passportContainer.style.display : 'N/A'); // DEBUG
-            console.log("dobGenderContainer display:", dobGenderContainer ? dobGenderContainer.style.display : 'N/A'); // DEBUG
-            console.log("dobField readOnly:", dobField ? dobField.readOnly : 'N/A'); // DEBUG
-            console.log("genderField disabled:", genderField ? genderField.disabled : 'N/A'); // DEBUG
-        }
-
-        // Function to validate SA ID Number and populate fields
-        function validateIDNumber() {
-            if (!idNumberField) return;
-            const idNumber = idNumberField.value;
-            console.log("validateIDNumber called. idNumber:", idNumber); // DEBUG
-            const validationResult = validateSAIDNumber(idNumber);
-            console.log("validationResult:", validationResult); // DEBUG
-
-            if (validationResult.isValid) {
-                idValidationMessage.textContent = `Valid ID. DOB: ${formatDateYMD(validationResult.dateOfBirth)}, Gender: ${validationResult.gender}`;
-                idValidationMessage.className = 'mt-1 small text-success';
-                if (dobField) {
-                    dobField.value = formatDateYMD(validationResult.dateOfBirth);
-                    console.log("DOB field set to:", dobField.value); // DEBUG
-                }
-                if (genderField) {
-                    genderField.value = validationResult.gender;
-                    console.log("Gender field set to:", genderField.value); // DEBUG
-                }
-            } else {
-                idValidationMessage.textContent = validationResult.errorMessage || '';
-                idValidationMessage.className = 'mt-1 small text-danger';
-                console.log("Validation failed. Error:", validationResult.errorMessage); // DEBUG
-            }
-        }
-
-        // Function to toggle fields based on selected Role
-        function toggleRoleFields() {
-            const selectedRole = roleField.value;
-
-            // Hide all geographic fields by default
-            if (countryFieldContainer) countryFieldContainer.style.display = 'none';
-            if (provinceFieldContainer) provinceFieldContainer.style.display = 'none';
-            if (regionFieldContainer) regionFieldContainer.style.display = 'none';
-            if (lfaFieldContainer) lfaFieldContainer.style.display = 'none';
-            if (clubFieldContainer) clubFieldContainer.style.display = 'none';
-            if (associationFieldContainer) associationFieldContainer.style.display = 'none';
-
-            switch (selectedRole) {
-                case 'PLAYER':
-                    if (countryFieldContainer) countryFieldContainer.style.display = 'block';
-                    if (provinceFieldContainer) provinceFieldContainer.style.display = 'block';
-                    if (regionFieldContainer) regionFieldContainer.style.display = 'block';
-                    if (lfaFieldContainer) lfaFieldContainer.style.display = 'block';
-                    if (clubFieldContainer) clubFieldContainer.style.display = 'block';
-                    break;
-                case 'OFFICIAL':
-                    if (countryFieldContainer) countryFieldContainer.style.display = 'block';
-                    if (provinceFieldContainer) provinceFieldContainer.style.display = 'block';
-                    if (regionFieldContainer) regionFieldContainer.style.display = 'block';
-                    if (lfaFieldContainer) lfaFieldContainer.style.display = 'block';
-                    if (associationFieldContainer) associationFieldContainer.style.display = 'block';
-                    break;
-                case 'ADMIN_NATIONAL':
-                    // No geographic fields for National Admin
-                    break;
-                case 'ADMIN_PROVINCE':
-                    if (countryFieldContainer) countryFieldContainer.style.display = 'block';
-                    if (provinceFieldContainer) provinceFieldContainer.style.display = 'block';
-                    break;
-                case 'ADMIN_REGION':
-                    if (countryFieldContainer) countryFieldContainer.style.display = 'block';
-                    if (provinceFieldContainer) provinceFieldContainer.style.display = 'block';
-                    if (regionFieldContainer) regionFieldContainer.style.display = 'block';
-                    break;
-                case 'ADMIN_LOCAL_FED':
-                    if (countryFieldContainer) countryFieldContainer.style.display = 'block';
-                    if (provinceFieldContainer) provinceFieldContainer.style.display = 'block';
-                    if (regionFieldContainer) regionFieldContainer.style.display = 'block';
-                    if (lfaFieldContainer) lfaFieldContainer.style.display = 'block';
-                    break;
-                case 'CLUB_ADMIN':
-                    if (countryFieldContainer) countryFieldContainer.style.display = 'block';
-                    if (provinceFieldContainer) provinceFieldContainer.style.display = 'block';
-                    if (regionFieldContainer) regionFieldContainer.style.display = 'block';
-                    if (lfaFieldContainer) lfaFieldContainer.style.display = 'block';
-                    if (clubFieldContainer) clubFieldContainer.style.display = 'block';
-                    break;
-                case 'ASSOCIATION_ADMIN':
-                    if (countryFieldContainer) countryFieldContainer.style.display = 'block';
-                    if (provinceFieldContainer) provinceFieldContainer.style.display = 'block';
-                    if (regionFieldContainer) regionFieldContainer.style.display = 'block';
-                    if (lfaFieldContainer) lfaFieldContainer.style.display = 'block';
-                    if (associationFieldContainer) associationFieldContainer.style.display = 'block';
-                    break;
-                case 'ADMIN_NATIONAL_ACCOUNTS':
-                    // No geographic fields for National Accounts Admin
-                    break;
-                default:
-                    // Default behavior if role is not explicitly handled
-                    break;
-            }
-        }
-
-        // Function to toggle the Previous SAFA ID field
-        function toggleExistingMemberField() {
-            const safaIdInput = document.getElementById('id_previous_safa_id');
-            if (previousSafaIdField && safaIdInput) {
-                if (existingMemberField.checked) {
-                    previousSafaIdField.style.display = 'block';
-                    safaIdInput.disabled = false;
-                } else {
-                    previousSafaIdField.style.display = 'none';
-                    safaIdInput.disabled = true;
-                    safaIdInput.value = ''; // Clear the value when hidden
-                }
-            }
-        }
-
-        // Add event listeners
-        if (docTypeField) {
-            docTypeField.addEventListener('change', toggleDocumentFields);
-        }
-        if (idNumberField) {
-            idNumberField.addEventListener('input', validateIDNumber);
-        }
-        if (roleField) {
-            roleField.addEventListener('change', toggleRoleFields);
-        }
-        if (existingMemberField) {
-            existingMemberField.addEventListener('change', toggleExistingMemberField);
-        }
-
-        // Initial setup on page load
-        toggleDocumentFields();
-        toggleRoleFields();
-        toggleExistingMemberField();
-        if (idNumberField && idNumberField.value) {
-            validateIDNumber();
-        }
-
-        // Initialize flatpickr
-        if (dobField) {
-            flatpickr(dobField, {
-                altInput: true,
-                altFormat: "F j, Y",
-                dateFormat: "Y-m-d",
-                maxDate: "today"
-            });
-        }
-
-    } catch (e) {
-        console.error("Error in registration form script:", e);
+        });
     }
 });
 </script>
 {% endblock %}
+

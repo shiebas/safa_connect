@@ -22,6 +22,7 @@ urlpatterns = [
     path('ajax/get-lfas-for-region/', views.get_lfas_for_region, name='get_lfas_for_region'),
     path('ajax/get-clubs-for-lfa/', views.get_clubs_for_lfa, name='get_clubs_for_lfa'),
     path('ajax/check-id-number/', views.check_id_number, name='check_id_number'),
+    path('ajax/extract-id-data/', views.ajax_extract_id_data, name='ajax_extract_id_data'),
     path('ajax/dashboard-stats/', views.dashboard_stats_api, name='dashboard_stats_api'),
     path('ajax/search-members/', views.search_members_api, name='search_members_api'),
     path('ajax/quick-approve-member/', views.quick_approve_member, name='quick_approve_member'),
