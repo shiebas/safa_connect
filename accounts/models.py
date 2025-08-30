@@ -58,6 +58,11 @@ ROLES = (
     ('ASSOCIATION_ADMIN', _('Association Administrator')),
 )
 
+REGISTRATION_ROLES = (
+    ('PLAYER', _('Player')),
+    ('OFFICIAL', _('Official')),
+)
+
 # Add new employment status choices
 EMPLOYMENT_STATUS = (
     ('EMPLOYEE', _('Full-time Employee')),
