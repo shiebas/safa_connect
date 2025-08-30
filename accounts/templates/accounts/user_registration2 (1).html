@@ -23,11 +23,6 @@
                 {% if form.errors and not form.non_field_errors %}
                      <div class="alert alert-danger" role="alert">
                         <p class="mb-0">Please correct the errors highlighted below to continue.</p>
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <p class="mb-0"><strong>{{ field.label }}:</strong> {{ error }}</p>
-                            {% endfor %}
-                        {% endfor %}
                     </div>
                 {% endif %}
 
@@ -206,91 +201,67 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- EVENT HANDLERS ---
 
     // Handle Role Change
-    if (roleField) {
-        roleField.addEventListener('change', function() {
-            if (this.value === 'PLAYER') {
-                showField(clubContainer);
-                hideField(associationContainer);
-                if (clubField) clubField.required = true;
-                const associationSelect = document.getElementById('id_association');
-                if (associationSelect) associationSelect.required = false;
-            } else if (this.value === 'OFFICIAL') {
-                hideField(clubContainer);
-                showField(associationContainer);
-                if (clubField) clubField.required = false;
-                const associationSelect = document.getElementById('id_association');
-                if (associationSelect) associationSelect.required = true;
-            } else {
-                hideField(clubContainer);
-                hideField(associationContainer);
-            }
-        });
-    }
+    roleField.addEventListener('change', function() {
+        if (this.value === 'PLAYER') {
+            showField(clubContainer);
+            hideField(associationContainer);
+            clubField.required = true;
+            document.getElementById('id_association').required = false;
+        } else if (this.value === 'OFFICIAL') {
+            hideField(clubContainer);
+            showField(associationContainer);
+            clubField.required = false;
+            document.getElementById('id_association').required = true;
+        } else {
+            hideField(clubContainer);
+            hideField(associationContainer);
+        }
+    });
 
     // Handle Existing Member Checkbox
-    if (isExistingMemberField) {
-        isExistingMemberField.addEventListener('change', function() {
-            if (this.checked) {
-                showField(previousSafaIdContainer);
-            } else {
-                hideField(previousSafaIdContainer);
-            }
-        });
-    }
+    isExistingMemberField.addEventListener('change', function() {
+        if (this.checked) {
+            showField(previousSafaIdContainer);
+        } else {
+            hideField(previousSafaIdContainer);
+        }
+    });
 
     // Handle Document Type Change
-    if (idDocumentTypeField) {
-        idDocumentTypeField.addEventListener('change', function() {
-            if (this.value === 'ID') {
-                showField(saIdContainer);
-                hideField(passportContainer);
-                hideField(manualDobGenderContainer);
-            } else if (this.value === 'PP') {
-                hideField(saIdContainer);
-                showField(passportContainer);
-                showField(manualDobGenderContainer);
-            }
-        });
-    }
+    idDocumentTypeField.addEventListener('change', function() {
+        if (this.value === 'ID') {
+            showField(saIdContainer);
+            hideField(passportContainer);
+            hideField(manualDobGenderContainer);
+        } else if (this.value === 'PP') {
+            hideField(saIdContainer);
+            showField(passportContainer);
+            showField(manualDobGenderContainer);
+        }
+    });
 
     // Handle SA ID Number Extraction
-    if (idNumberField) {
-        idNumberField.addEventListener('blur', function() {
-            const idNumber = this.value;
-            if (idNumber.length === 13 && /^\d+$/.test(idNumber)) {
-                fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.date_of_birth && data.gender) {
-                            if (dobField) dobField.value = data.date_of_birth;
-                            if (genderField) genderField.value = data.gender;
-                            
-                            idNumberField.classList.remove('is-invalid');
-                            idNumberField.classList.add('is-valid');
-                        } else if (data.error) {
-                            idNumberField.classList.add('is-invalid');
-                            console.error('ID Extraction Error:', data.error);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+    idNumberField.addEventListener('blur', function() {
+        const idNumber = this.value;
+        if (idNumber.length === 13 && /^\d+$/.test(idNumber)) {
+            fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.date_of_birth && data.gender) {
+                        dobField.value = data.date_of_birth;
+                        genderField.value = data.gender;
+                        idNumberField.classList.remove('is-invalid');
+                        idNumberField.classList.add('is-valid');
+                    } else {
                         idNumberField.classList.add('is-invalid');
-                    });
-            } else if (idNumber.length > 0) {
-                idNumberField.classList.add('is-invalid');
-            }
-        });
-    }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    });
 
     // --- CASCADING DROPDOWNS ---
     function updateDropdown(url, targetElement, prompt) {
-        if (!targetElement) return;
-        
         targetElement.innerHTML = `<option value="">Loading...</option>`;
         targetElement.disabled = true;
 
@@ -302,54 +273,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     targetElement.add(new Option(item.name, item.id));
                 });
                 targetElement.disabled = false;
-            })
-            .catch(error => {
-                console.error('Error loading dropdown:', error);
-                targetElement.innerHTML = `<option value="">Error loading options</option>`;
-                targetElement.disabled = false;
             });
     }
 
-    if (provinceField) {
-        provinceField.addEventListener('change', function() {
-            const provinceId = this.value;
-            if (provinceId && regionField) {
-                updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
-            } else if (regionField) {
-                regionField.innerHTML = '<option value="">Select Province First</option>';
-            }
-            if (lfaField) lfaField.innerHTML = '<option value="">Select Region First</option>';
-            if (clubField) clubField.innerHTML = '<option value="">Select LFA First</option>';
-        });
-    }
+    provinceField.addEventListener('change', function() {
+        const provinceId = this.value;
+        if (provinceId) {
+            updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
+        } else {
+            regionField.innerHTML = '<option value="">Select Province First</option>';
+        }
+        lfaField.innerHTML = '<option value="">Select Region First</option>';
+        clubField.innerHTML = '<option value="">Select LFA First</option>';
+    });
 
-    if (regionField) {
-        regionField.addEventListener('change', function() {
-            const regionId = this.value;
-            if (regionId && lfaField) {
-                updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
-            } else if (lfaField) {
-                lfaField.innerHTML = '<option value="">Select Region First</option>';
-            }
-            if (clubField) clubField.innerHTML = '<option value="">Select LFA First</option>';
-        });
-    }
+    regionField.addEventListener('change', function() {
+        const regionId = this.value;
+        if (regionId) {
+            updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
+        } else {
+            lfaField.innerHTML = '<option value="">Select Region First</option>';
+        }
+        clubField.innerHTML = '<option value="">Select LFA First</option>';
+    });
 
-    if (lfaField) {
-        lfaField.addEventListener('change', function() {
-            const lfaId = this.value;
-            if (lfaId && clubField) {
-                updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
-            } else if (clubField) {
-                clubField.innerHTML = '<option value="">Select LFA First</option>';
-            }
-        });
-    }
+    lfaField.addEventListener('change', function() {
+        const lfaId = this.value;
+        if (lfaId) {
+            updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
+        } else {
+            clubField.innerHTML = '<option value="">Select LFA First</option>';
+        }
+    });
 
     // --- INITIALIZATION ---
-    if (roleField) roleField.dispatchEvent(new Event('change'));
-    if (idDocumentTypeField) idDocumentTypeField.dispatchEvent(new Event('change'));
-    if (isExistingMemberField) isExistingMemberField.dispatchEvent(new Event('change'));
+    roleField.dispatchEvent(new Event('change'));
+    idDocumentTypeField.dispatchEvent(new Event('change'));
+    isExistingMemberField.dispatchEvent(new Event('change'));
 
 });
 </script>

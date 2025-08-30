@@ -28,7 +28,7 @@ class NationalAdminRegistrationForm(forms.ModelForm):
     )
     position = forms.ModelChoiceField(
         queryset=Position.objects.all(),
-        required=True,
+        required=False,
         label="Position",
         help_text="Select your position within the organization."
     )
@@ -264,7 +264,7 @@ class RegistrationForm(forms.ModelForm):
     role = forms.ChoiceField(
         choices=ROLES,
         required=True,
-        label="I am a..."
+        label="I am a.../Ek is n"
     )
     is_existing_member = forms.BooleanField(
         required=False,
@@ -320,7 +320,7 @@ class RegistrationForm(forms.ModelForm):
         model = CustomUser
         fields = ['role', 'first_name', 'last_name', 'email', 'id_document_type', 'id_number', 'passport_number',
                   'date_of_birth', 'gender', 'profile_picture', 'id_document',
-                   'country_code', 'nationality', 'street_address', 'suburb', 'city', 'state', 'postal_code',
+                   'street_address', 'suburb', 'city', 'state', 'postal_code',
                    'is_existing_member', 'previous_safa_id', 'association', 'extracted_dob', 'extracted_gender']
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
@@ -432,8 +432,6 @@ class RegistrationForm(forms.ModelForm):
             ),
             'profile_picture',
             'id_document',
-            'country_code',
-            'nationality',
             'popi_act_consent',
             'password',
             'password2',
