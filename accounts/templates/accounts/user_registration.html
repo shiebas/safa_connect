@@ -110,7 +110,12 @@
                         <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#registrationAccordion">
                             <div class="accordion-body">
                                 <div class="mb-3">
-                                    {{ form.province|as_crispy_field }}
+                                    <label for="id_province" class="form-label">Province</label>
+                                    <select name="province" class="form-select" id="id_province">
+                                        {% for choice in form.province.field.queryset %}
+                                            <option value="{{ choice.pk }}" {% if form.province.value == choice.pk %}selected{% endif %}>{{ choice.name }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="id_region" class="form-label">Region</label>
@@ -181,6 +186,8 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded and parsed.');
+
     // --- FIELD SELECTORS ---
     const roleField = document.getElementById('id_role');
     const isExistingMemberField = document.getElementById('id_is_existing_member');
@@ -199,6 +206,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const lfaField = document.getElementById('id_lfa');
     const clubField = document.getElementById('id_club');
 
+    console.log('Fields selected:', { provinceField, regionField, lfaField, clubField });
+
     // --- UTILITY FUNCTIONS ---
     const showField = (el) => el.classList.remove('d-none');
     const hideField = (el) => el.classList.add('d-none');
@@ -208,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Role Change
     if (roleField) {
         roleField.addEventListener('change', function() {
+            console.log('Role field changed to:', this.value);
             if (this.value === 'PLAYER') {
                 showField(clubContainer);
                 hideField(associationContainer);
@@ -230,6 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Existing Member Checkbox
     if (isExistingMemberField) {
         isExistingMemberField.addEventListener('change', function() {
+            console.log('isExistingMemberField changed, checked:', this.checked);
             if (this.checked) {
                 showField(previousSafaIdContainer);
             } else {
@@ -241,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Document Type Change
     if (idDocumentTypeField) {
         idDocumentTypeField.addEventListener('change', function() {
+            console.log('idDocumentTypeField changed to:', this.value);
             if (this.value === 'ID') {
                 showField(saIdContainer);
                 hideField(passportContainer);
@@ -257,15 +269,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (idNumberField) {
         idNumberField.addEventListener('blur', function() {
             const idNumber = this.value;
-            if (idNumber.length === 13 && /^\d+$/.test(idNumber)) {
+            console.log('ID Number field blurred, value:', idNumber);
+            if (idNumber.length === 13 && /^\\d+$/.test(idNumber)) {
+                console.log('Fetching ID data for:', idNumber);
                 fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
                     .then(response => {
+                        console.log('ID data fetch response status:', response.status);
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
                         }
                         return response.json();
                     })
                     .then(data => {
+                        console.log('ID data received:', data);
                         if (data.date_of_birth && data.gender) {
                             if (dobField) dobField.value = data.date_of_birth;
                             if (genderField) genderField.value = data.gender;
@@ -278,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        console.error('Error fetching ID data:', error);
                         idNumberField.classList.add('is-invalid');
                     });
             } else if (idNumber.length > 0) {
@@ -289,14 +305,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- CASCADING DROPDOWNS ---
     function updateDropdown(url, targetElement, prompt) {
-        if (!targetElement) return;
+        console.log('updateDropdown called for URL:', url, 'Target:', targetElement.id);
+        if (!targetElement) {
+            console.error('updateDropdown: targetElement is null or undefined');
+            return;
+        }
         
         targetElement.innerHTML = `<option value="">Loading...</option>`;
         targetElement.disabled = true;
 
         fetch(url)
-            .then(response => response.json())
+            .then(response => {
+                console.log('Fetch response for dropdown:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Data received for dropdown:', data);
                 targetElement.innerHTML = `<option value="">${prompt}</option>`;
                 data.forEach(item => {
                     targetElement.add(new Option(item.name, item.id));
@@ -313,44 +340,65 @@ document.addEventListener('DOMContentLoaded', function() {
     if (provinceField) {
         provinceField.addEventListener('change', function() {
             const provinceId = this.value;
+            console.log('Province field changed, ID:', provinceId);
             if (provinceId && regionField) {
                 updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
             } else if (regionField) {
+                console.log('Province ID empty, resetting Region dropdown.');
                 regionField.innerHTML = '<option value="">Select Province First</option>';
             }
-            if (lfaField) lfaField.innerHTML = '<option value="">Select Region First</option>';
-            if (clubField) clubField.innerHTML = '<option value="">Select LFA First</option>';
+            if (lfaField) {
+                console.log('Resetting LFA dropdown.');
+                lfaField.innerHTML = '<option value="">Select Region First</option>';
+            }
+            if (clubField) {
+                console.log('Resetting Club dropdown.');
+                clubField.innerHTML = '<option value="">Select LFA First</option>';
+            }
         });
     }
 
     if (regionField) {
         regionField.addEventListener('change', function() {
             const regionId = this.value;
+            console.log('Region field changed, ID:', regionId);
             if (regionId && lfaField) {
                 updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
             } else if (lfaField) {
+                console.log('Region ID empty, resetting LFA dropdown.');
                 lfaField.innerHTML = '<option value="">Select Region First</option>';
             }
-            if (clubField) clubField.innerHTML = '<option value="">Select LFA First</option>';
+            if (clubField) {
+                console.log('Resetting Club dropdown.');
+                clubField.innerHTML = '<option value="">Select LFA First</option>';
+            }
         });
     }
 
     if (lfaField) {
         lfaField.addEventListener('change', function() {
             const lfaId = this.value;
+            console.log('LFA field changed, ID:', lfaId);
             if (lfaId && clubField) {
                 updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
             } else if (clubField) {
+                console.log('LFA ID empty, resetting Club dropdown.');
                 clubField.innerHTML = '<option value="">Select LFA First</option>';
             }
         });
     }
 
     // --- INITIALIZATION ---
+    console.log('Dispatching initial change events...');
     if (roleField) roleField.dispatchEvent(new Event('change'));
     if (idDocumentTypeField) idDocumentTypeField.dispatchEvent(new Event('change'));
     if (isExistingMemberField) isExistingMemberField.dispatchEvent(new Event('change'));
 
+    // Trigger initial load for province if a value is already selected (e.g., on form error re-render)
+    if (provinceField && provinceField.value) {
+        console.log('Initial province value detected, triggering change event.');
+        provinceField.dispatchEvent(new Event('change'));
+    }
 });
 </script>
 {% endblock %}

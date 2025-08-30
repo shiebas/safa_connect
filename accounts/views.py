@@ -83,66 +83,39 @@ def user_registration(request):
             # Create the CustomUser object first, but don't save if we might link to an existing member
             user = form.save(commit=False)
 
-            if is_existing and previous_safa_id:
-                try:
-                    member = Member.objects.get(safa_id=previous_safa_id)
-                    if member.user:
-                        messages.error(request, "This member account is already linked to a user account. Please login or reset your password.")
-                        return render(request, 'accounts/user_registration.html', {'form': form})
+            # This is a new member registration
+            user.save() # Ensure user is saved before creating member
+            national_federation = NationalFederation.objects.first()
+            if not national_federation:
+                country = Country.objects.get(name='South Africa')
+                national_federation = NationalFederation.objects.create(name='SAFA', country=country)
 
-                    # The user object is new, but the member object exists.
-                    # We need to save the new user, then link it.
-                    user.save()
-                    member.user = user
-                    # Optionally, update the member's details with the new form data
-                    member.first_name = user.first_name
-                    member.last_name = user.last_name
-                    member.email = user.email
-                    member.street_address = user.street_address
-                    member.suburb = user.suburb
-                    member.city = user.city
-                    member.state = user.state
-                    member.postal_code = user.postal_code
-                    # ... update other fields as necessary ...
-                    member.save()
-
-                except Member.DoesNotExist:
-                    messages.error(request, "No member found with the provided SAFA ID. Please register as a new member.")
-                    return render(request, 'accounts/user_registration.html', {'form': form})
-            else:
-                # This is a new member registration
-                user.save()
-                national_federation = NationalFederation.objects.first()
-                if not national_federation:
-                    country = Country.objects.get(name='South Africa')
-                    national_federation = NationalFederation.objects.create(name='SAFA', country=country)
-
-                member = Member.objects.create(
-                    user=user,
-                    safa_id=user.safa_id,
-                    first_name=user.first_name,
-                    last_name=user.last_name,
-                    email=user.email,
-                    role=user.role,
-                    status='PENDING',
-                    date_of_birth=user.date_of_birth,
-                    gender=user.gender,
-                    id_number=user.id_number,
-                    passport_number=user.passport_number,
-                    street_address=user.street_address,
-                    suburb=user.suburb,
-                    city=user.city,
-                    state=user.state,
-                    postal_code=user.postal_code,
-                    national_federation=national_federation,
-                    province=form.cleaned_data.get('province'),
-                    region=form.cleaned_data.get('region'),
-                    lfa=form.cleaned_data.get('lfa'),
-                    current_club=form.cleaned_data.get('club')
-                )
-                association = form.cleaned_data.get('association')
-                if association:
-                    member.associations.add(association)
+            member = Member.objects.create(
+                user=user,
+                safa_id=user.safa_id,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                email=user.email,
+                role=user.role,
+                status='PENDING',
+                date_of_birth=user.date_of_birth,
+                gender=user.gender,
+                id_number=user.id_number,
+                passport_number=user.passport_number,
+                street_address=user.street_address,
+                suburb=user.suburb,
+                city=user.city,
+                state=user.state,
+                postal_code=user.postal_code,
+                national_federation=national_federation,
+                province=form.cleaned_data.get('province'),
+                region=form.cleaned_data.get('region'),
+                lfa=form.cleaned_data.get('lfa'),
+                current_club=form.cleaned_data.get('club')
+            )
+            association = form.cleaned_data.get('association')
+            if association:
+                member.associations.add(association)
 
             # Common logic for both new and existing members starts here
 
@@ -293,20 +266,32 @@ def club_admin_add_player(request):
 
 
 def get_regions_for_province(request, province_id):
-    regions = Region.objects.filter(province_id=province_id).order_by('name')
-    return JsonResponse(list(regions.values('id', 'name')), safe=False)
+    try:
+        regions = Region.objects.filter(province_id=province_id).order_by('name')
+        return JsonResponse(list(regions.values('id', 'name')), safe=False)
+    except Exception as e:
+        logger.error(f"Error in get_regions_for_province for province_id {province_id}: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def get_lfas_for_region(request, region_id):
-    lfas = LocalFootballAssociation.objects.filter(
-        region_id=region_id).order_by('name')
-    return JsonResponse(list(lfas.values('id', 'name')), safe=False)
+    try:
+        lfas = LocalFootballAssociation.objects.filter(
+            region_id=region_id).order_by('name')
+        return JsonResponse(list(lfas.values('id', 'name')), safe=False)
+    except Exception as e:
+        logger.error(f"Error in get_lfas_for_region for region_id {region_id}: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def get_clubs_for_lfa(request, lfa_id):
-    clubs = Club.objects.filter(
-        localfootballassociation_id=lfa_id).order_by('name')
-    return JsonResponse(list(clubs.values('id', 'name')), safe=False)
+    try:
+        clubs = Club.objects.filter(
+            localfootballassociation_id=lfa_id).order_by('name')
+        return JsonResponse(list(clubs.values('id', 'name')), safe=False)
+    except Exception as e:
+        logger.error(f"Error in get_clubs_for_lfa for lfa_id {lfa_id}: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
@@ -1249,22 +1234,13 @@ def check_email(request):
     return JsonResponse({'exists': False})
 
 
-@login_required
-def get_regions_for_province(request, province_id):
-    regions = Region.objects.filter(province_id=province_id).order_by('name')
-    return JsonResponse(list(regions.values('id', 'name')), safe=False)
 
 
-@login_required
-def get_lfas_for_region(request, region_id):
-    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).order_by('name')
-    return JsonResponse(list(lfas.values('id', 'name')), safe=False)
 
 
-@login_required
-def get_clubs_for_lfa(request, lfa_id):
-    clubs = Club.objects.filter(localfootballassociation_id=lfa_id).order_by('name')
-    return JsonResponse(list(clubs.values('id', 'name')), safe=False)
+
+
+
 
 @login_required
 def invoice_detail(request, invoice_uuid):
