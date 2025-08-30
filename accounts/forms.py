@@ -8,7 +8,7 @@ from django.forms import ValidationError
 from django.utils import timezone
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder, Submit, Row, Column
-from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, ROLES
+from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, ROLES, REGISTRATION_ROLES
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association, Country
 from django.db.models import Q
 from membership.models import Member
@@ -388,7 +388,11 @@ class RegistrationForm(forms.ModelForm):
                 self.fields['association'].required = False
             elif role == 'OFFICIAL':
                 self.fields['club'].required = False
-                self.fields['association'].required = True
+                # Association is only required if it's not a club admin doing the registration
+                if not user or user.role != 'CLUB_ADMIN':
+                    self.fields['association'].required = True
+                else:
+                    self.fields['association'].required = False
             else: # For ADMIN roles
                 self.fields['club'].required = False
                 self.fields['association'].required = False
@@ -478,6 +482,12 @@ class RegistrationForm(forms.ModelForm):
         self.cleaned_data['gender'] = gen
 
         return id_number
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and CustomUser.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("A user with this email address already exists. Please use a different email or log in.")
+        return email
 
     def clean_password2(self):
         password = self.cleaned_data.get("password")
