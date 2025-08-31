@@ -1313,30 +1313,32 @@ def ajax_extract_id_data(request):
 @login_required
 @role_required(allowed_roles=['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'SUPERUSER'])
 def confirm_payment(request):
-    form = ConfirmPaymentForm()
-    invoice = None
+    form = ConfirmPaymentForm(request.GET or None)
+    invoices = None
+
+    if form.is_valid():
+        query = form.cleaned_data.get('invoice_number')
+        if query:
+            invoices = Invoice.objects.filter(invoice_number__icontains=query)
 
     if request.method == 'POST':
-        form = ConfirmPaymentForm(request.POST)
-        if form.is_valid():
-            invoice_number_query = form.cleaned_data['invoice_number']
+        invoice_id = request.POST.get('invoice_id')
+        if invoice_id:
             try:
-                invoices = Invoice.objects.filter(invoice_number__icontains=invoice_number_query)
-                if invoices.exists():
-                    invoice = invoices.first() # Take the first matching invoice
-                    if 'confirm_payment' in request.POST:
-                        invoice.mark_as_paid(payment_method='Manual Confirmation', payment_reference=invoice_number_query)
-                        messages.success(request, f"Payment for invoice {invoice.invoice_number} has been confirmed.")
-                        return redirect('accounts:confirm_payment')
-                else:
-                    messages.error(request, "No invoice found with that invoice number.")
+                invoice = Invoice.objects.get(id=invoice_id)
+                invoice.mark_as_paid(payment_method='Manual Confirmation', payment_reference=f"Manual confirmation by {request.user.get_full_name()}")
+                messages.success(request, f"Payment for invoice {invoice.invoice_number} has been confirmed.")
+                # Redirect to the same search results
+                return redirect(request.get_full_path())
+            except Invoice.DoesNotExist:
+                messages.error(request, "Invalid invoice selected for payment confirmation.")
             except Exception as e:
                 messages.error(request, f"An error occurred: {e}")
-                logger.error(f"Error in confirm_payment: {e}")
+                logger.error(f"Error in confirm_payment POST: {e}")
 
     context = {
         'form': form,
-        'invoice': invoice,
+        'invoices': invoices,
         'title': 'Confirm Payment'
     }
     return render(request, 'accounts/confirm_payment.html', context)

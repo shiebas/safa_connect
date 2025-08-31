@@ -5,15 +5,14 @@
 {% block content %}
 <div class="container mt-5">
     <h1>{{ title }}</h1>
-    <p>Enter a payment reference to find and confirm the payment.</p>
+    <p>Enter an invoice number to find and confirm a payment.</p>
 
-    <form method="post" class="mb-4">
-        {% csrf_token %}
+    <form method="get" class="mb-4">
         <div class="row">
             <div class="col-md-8">
-                {{ form.payment_reference.label_tag }}
-                {{ form.payment_reference }}
-                <div class="form-text">{{ form.payment_reference.help_text }}</div>
+                {{ form.invoice_number.label_tag }}
+                {{ form.invoice_number }}
+                <div class="form-text">{{ form.invoice_number.help_text }}</div>
             </div>
             <div class="col-md-4 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary">Search</button>
@@ -21,30 +20,34 @@
         </div>
     </form>
 
-    {% if invoice %}
-    <div class="card">
-        <div class="card-header">
-            <h3>Invoice Details</h3>
-        </div>
-        <div class="card-body">
-            <p><strong>Invoice Number:</strong> {{ invoice.invoice_number }}</p>
-            <p><strong>Member:</strong> {{ invoice.member.get_full_name }}</p>
-            <p><strong>Amount:</strong> R{{ invoice.total_amount }}</p>
-            <p><strong>Status:</strong> <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'PENDING' %}warning{% else %}secondary{% endif %}">{{ invoice.get_status_display }}</span></p>
-            <p><strong>Issue Date:</strong> {{ invoice.issue_date }}</p>
-            <p><strong>Due Date:</strong> {{ invoice.due_date }}</p>
+    {% if invoices %}
+        <h2>Search Results</h2>
+        {% for invoice in invoices %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>Invoice #{{ invoice.invoice_number }}</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>Member:</strong> {{ invoice.member.get_full_name }}</p>
+                    <p><strong>Amount:</strong> R{{ invoice.total_amount }}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'PENDING' %}warning{% else %}secondary{% endif %}">{{ invoice.get_status_display }}</span></p>
+                    <p><strong>Issue Date:</strong> {{ invoice.issue_date }}</p>
+                    <p><strong>Due Date:</strong> {{ invoice.due_date }}</p>
 
-            {% if invoice.status != 'PAID' %}
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="payment_reference" value="{{ form.payment_reference.value|default_if_none:'' }}">
-                <button type="submit" name="confirm_payment" class="btn btn-success">Confirm Payment</button>
-            </form>
-            {% else %}
-            <p class="text-success">This invoice has already been paid.</p>
-            {% endif %}
-        </div>
-    </div>
+                    {% if invoice.status != 'PAID' %}
+                    <form method="post" action="{{ request.get_full_path }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="invoice_id" value="{{ invoice.id }}">
+                        <button type="submit" name="confirm_payment" class="btn btn-success">Confirm Payment</button>
+                    </form>
+                    {% else %}
+                    <p class="text-success">This invoice has already been paid.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% elif request.GET.invoice_number %}
+        <p>No invoices found matching your search criteria.</p>
     {% endif %}
 
 </div>
