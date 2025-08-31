@@ -15,7 +15,7 @@ from datetime import date
 from geography.models import (Association, Club, ClubStatus, Country,
                               LocalFootballAssociation, NationalFederation,
                               Province, Region)
-from membership.models import Invoice, Member, RegistrationWorkflow, InvoiceItem, SAFASeasonConfig, SAFAFeeStructure
+from membership.models import Invoice, Member, RegistrationWorkflow, InvoiceItem
 from supporters.models import SupporterProfile
 
 from .decorators import role_required
@@ -420,7 +420,6 @@ def health_check(request):
 
 @login_required
 def member_approvals_list(request):
-    print(request.POST)
     logger.debug(f"member_approvals_list called. GET params: {request.GET}")
     member_id = request.GET.get('member_id')
     
@@ -489,16 +488,12 @@ def member_approvals_list(request):
 
         elif 'reject' in request.POST:
             rejection_reason = request.POST.get('rejection_reason', 'No reason provided.')
-            logger.debug(f"Before rejection: Member status={member.status}, User membership_status={user.membership_status}")
-
             user.membership_status = 'REJECTED'
             user.save()
-            logger.debug(f"After user.save(): User membership_status={user.membership_status}")
 
             member.status = 'REJECTED'
             member.rejection_reason = rejection_reason
             member.save()
-            logger.debug(f"After member.save(): Member status={member.status}")
 
             # Optionally, you could move the workflow back or to a 'REJECTED' state
             try:
@@ -839,7 +834,7 @@ def national_admin_dashboard(request):
     pending_clubs = Club.objects.filter(status='INACTIVE')
 
     # Correctly fetch members awaiting approval from the workflow
-    workflows = RegistrationWorkflow.objects.filter(completion_percentage=100).exclude(member__status='REJECTED').exclude(member__user__membership_status='REJECTED').select_related('member__user', 'member__current_club')
+    workflows = RegistrationWorkflow.objects.filter(completion_percentage=100).select_related('member__user', 'member__current_club')
     pending_members = [wf.member for wf in workflows]
 
     # All Members list
@@ -848,9 +843,6 @@ def national_admin_dashboard(request):
     member_page_number = request.GET.get('member_page', 1)
     members_page = member_paginator.get_page(member_page_number)
 
-    # Fetch SAFA Season Configs and Fee Structures
-    safa_season_configs = SAFASeasonConfig.objects.all().order_by('-season_year')
-    safa_fee_structures = SAFAFeeStructure.objects.all().order_by('season_config__season_year', 'entity_type')
 
     context = {
         'org_data': org_data,
@@ -864,8 +856,6 @@ def national_admin_dashboard(request):
         'pending_clubs': pending_clubs,
         'members_page': members_page,
         'pending_members': pending_members,
-        'safa_season_configs': safa_season_configs,
-        'safa_fee_structures': safa_fee_structures,
     }
     return render(request, 'accounts/national_admin_dashboard.html', context)
 
@@ -1331,15 +1321,13 @@ def confirm_payment(request):
         if form.is_valid():
             payment_reference = form.cleaned_data['payment_reference']
             try:
-                invoice = Invoice.objects.get(Q(payment_reference=payment_reference) | Q(invoice_number__icontains=payment_reference))
+                invoice = Invoice.objects.get(payment_reference=payment_reference)
                 if 'confirm_payment' in request.POST:
                     invoice.mark_as_paid(payment_method='Manual Confirmation', payment_reference=payment_reference)
                     messages.success(request, f"Payment for invoice {invoice.invoice_number} has been confirmed.")
                     return redirect('accounts:confirm_payment')
             except Invoice.DoesNotExist:
                 messages.error(request, "No invoice found with that payment reference.")
-            except Invoice.MultipleObjectsReturned:
-                messages.error(request, "Multiple invoices found with that reference. Please be more specific.")
             except Exception as e:
                 messages.error(request, f"An error occurred: {e}")
                 logger.error(f"Error in confirm_payment: {e}")
