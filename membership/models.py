@@ -1576,21 +1576,35 @@ class Invoice(TimeStampedModel):
         super().save(*args, **kwargs)
 
     def generate_invoice_number(self):
-        """Generate unique invoice number"""
-        year = self.season_config.season_year if self.season_config else timezone.now().year
-        import random
-        import string
-
-        if self.invoice_type == 'ORGANIZATION_MEMBERSHIP':
-            prefix = f"ORG{year}"
-        else:
+        """Generate unique invoice number in MEM-YYYYMMDD/safa_id-XX format"""
+        today_str = timezone.now().strftime("%Y%m%d")
+        
+        # Ensure the invoice is associated with a member to get safa_id
+        if not self.member or not self.member.safa_id:
+            # Fallback to a generic unique number if member or safa_id is missing
+            year = self.season_config.season_year if self.season_config else timezone.now().year
+            import random
+            import string
             prefix = f"MEM{year}"
+            while True:
+                suffix = ''.join(random.choices(string.digits, k=6))
+                number = f"{prefix}{suffix}"
+                if not Invoice.objects.filter(invoice_number=number).exists():
+                    return number
 
+        base_invoice_number = f"MEM-{today_str}/{self.member.safa_id}"
+        
+        # Check for existing invoices with the same base number and add a counter
+        counter = 0
         while True:
-            suffix = ''.join(random.choices(string.digits, k=6))
-            number = f"{prefix}{suffix}"
-            if not Invoice.objects.filter(invoice_number=number).exists():
-                return number
+            if counter == 0:
+                invoice_number = base_invoice_number
+            else:
+                invoice_number = f"{base_invoice_number}-{counter:02d}" # Add -01, -02 etc.
+
+            if not Invoice.objects.filter(invoice_number=invoice_number).exists():
+                return invoice_number
+            counter += 1
 
     @property
     def is_overdue(self):
