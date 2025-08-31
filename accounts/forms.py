@@ -409,11 +409,7 @@ class RegistrationForm(forms.ModelForm):
             else: # For ADMIN roles
                 self.fields['club'].required = False
                 self.fields['association'].required = False
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         if user and user.role == 'CLUB_ADMIN':
             self.fields['province'].disabled = True
             self.fields['region'].disabled = True
@@ -660,31 +656,19 @@ class UpdateProfilePhotoForm(forms.ModelForm):
 
 class AdvancedMemberSearchForm(forms.Form):
     """Advanced search form for members with multiple criteria"""
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Basic search fields
     search_query = forms.CharField(
         max_length=100,
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-<<<<<<< HEAD
             'placeholder': 'Search by name, email, or SAFA ID...', 
-=======
-            'placeholder': 'Search by name, email, or SAFA ID...',
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
             'autocomplete': 'off'
         }),
         label='Search'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Role filter
     role = forms.ChoiceField(
         choices=[('', 'All Roles')] + list(ROLES),
@@ -692,11 +676,7 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Role'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Status filter
     membership_status = forms.ChoiceField(
         choices=[
@@ -711,11 +691,7 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Membership Status'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Geographic filters
     province = forms.ModelChoiceField(
         queryset=Province.objects.all(),
@@ -724,11 +700,7 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Province'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     region = forms.ModelChoiceField(
         queryset=Region.objects.none(),
         required=False,
@@ -736,11 +708,7 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Region'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     local_federation = forms.ModelChoiceField(
         queryset=LocalFootballAssociation.objects.none(),
         required=False,
@@ -748,11 +716,7 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Local Football Association'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     club = forms.ModelChoiceField(
         queryset=Club.objects.none(),
         required=False,
@@ -760,11 +724,7 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Club'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     association = forms.ModelChoiceField(
         queryset=Association.objects.all(),
         required=False,
@@ -772,11 +732,7 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Association'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Date range filters
     registration_date_from = forms.DateField(
         required=False,
@@ -786,11 +742,7 @@ class AdvancedMemberSearchForm(forms.Form):
         }),
         label='Registered From'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     registration_date_to = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={
@@ -799,11 +751,7 @@ class AdvancedMemberSearchForm(forms.Form):
         }),
         label='Registered To'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Age range filters
     age_from = forms.IntegerField(
         required=False,
@@ -815,11 +763,7 @@ class AdvancedMemberSearchForm(forms.Form):
         }),
         label='Age From'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     age_to = forms.IntegerField(
         required=False,
         min_value=0,
@@ -830,11 +774,7 @@ class AdvancedMemberSearchForm(forms.Form):
         }),
         label='Age To'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Additional filters
     gender = forms.ChoiceField(
         choices=[('', 'All Genders'), ('M', 'Male'), ('F', 'Female')],
@@ -842,39 +782,23 @@ class AdvancedMemberSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Gender'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     has_safa_id = forms.BooleanField(
         required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label='Has SAFA ID'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     popi_consent = forms.BooleanField(
         required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label='POPI Consent Given'
     )
-<<<<<<< HEAD
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-=======
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Filter geographic fields based on user\'s role and permissions
         if self.user:
             if self.user.role == 'ADMIN_PROVINCE' and self.user.province:
@@ -892,19 +816,11 @@ class AdvancedMemberSearchForm(forms.Form):
             elif self.user.role == 'CLUB_ADMIN' and self.user.club:
                 self.fields['club'].queryset = Club.objects.filter(id=self.user.club.id)
                 self.fields['club'].initial = self.user.club
-<<<<<<< HEAD
     
     def filter_queryset(self, queryset):
         """Apply filters to the queryset"""
         cleaned_data = self.cleaned_data
         
-=======
-
-    def filter_queryset(self, queryset):
-        """Apply filters to the queryset"""
-        cleaned_data = self.cleaned_data
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Text search
         search_query = cleaned_data.get('search_query')
         if search_query:
@@ -915,34 +831,21 @@ class AdvancedMemberSearchForm(forms.Form):
                 Q(safa_id__icontains=search_query) |
                 Q(id_number__icontains=search_query)
             )
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Role filter
         role = cleaned_data.get('role')
         if role:
             queryset = queryset.filter(role=role)
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Status filter
         membership_status = cleaned_data.get('membership_status')
         if membership_status:
             queryset = queryset.filter(membership_status=membership_status)
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Geographic filters
         province = cleaned_data.get('province')
         if province:
             queryset = queryset.filter(province=province)
-<<<<<<< HEAD
         
         region = cleaned_data.get('region')
         if region:
@@ -960,49 +863,21 @@ class AdvancedMemberSearchForm(forms.Form):
         if association:
             queryset = queryset.filter(association=association)
         
-=======
-
-        region = cleaned_data.get('region')
-        if region:
-            queryset = queryset.filter(region=region)
-
-        local_federation = cleaned_data.get('local_federation')
-        if local_federation:
-            queryset = queryset.filter(local_federation=local_federation)
-
-        club = cleaned_data.get('club')
-        if club:
-            queryset = queryset.filter(club=club)
-
-        association = cleaned_data.get('association')
-        if association:
-            queryset = queryset.filter(association=association)
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Date range filters
         reg_from = cleaned_data.get('registration_date_from')
         if reg_from:
             queryset = queryset.filter(date_joined__gte=reg_from)
-<<<<<<< HEAD
         
         reg_to = cleaned_data.get('registration_date_to')
         if reg_to:
             queryset = queryset.filter(date_joined__lte=reg_to)
         
-=======
-
-        reg_to = cleaned_data.get('registration_date_to')
-        if reg_to:
-            queryset = queryset.filter(date_joined__lte=reg_to)
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Age filters
         age_from = cleaned_data.get('age_from')
         age_to = cleaned_data.get('age_to')
         if age_from or age_to:
             from datetime import date
             today = date.today()
-<<<<<<< HEAD
             
             if age_from:
                 birth_year_max = today.year - age_from
@@ -1012,53 +887,26 @@ class AdvancedMemberSearchForm(forms.Form):
                 birth_year_min = today.year - age_to
                 queryset = queryset.filter(date_of_birth__year__gte=birth_year_min)
         
-=======
-
-            if age_from:
-                birth_year_max = today.year - age_from
-                queryset = queryset.filter(date_of_birth__year__lte=birth_year_max)
-
-            if age_to:
-                birth_year_min = today.year - age_to
-                queryset = queryset.filter(date_of_birth__year__gte=birth_year_min)
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Gender filter
         gender = cleaned_data.get('gender')
         if gender:
             queryset = queryset.filter(gender=gender)
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # SAFA ID filter
         has_safa_id = cleaned_data.get('has_safa_id')
         if has_safa_id:
             queryset = queryset.filter(safa_id__isnull=False).exclude(safa_id='')
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # POPI consent filter
         popi_consent = cleaned_data.get('popi_consent')
         if popi_consent:
             queryset = queryset.filter(popi_act_consent=True)
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         return queryset
 
 class QuickMemberLookupForm(forms.Form):
     """Quick lookup form for finding members"""
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     lookup_type = forms.ChoiceField(
         choices=[
             ('safa_id', 'SAFA ID'),
@@ -1069,11 +917,7 @@ class QuickMemberLookupForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Search By'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     search_value = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={
@@ -1083,26 +927,15 @@ class QuickMemberLookupForm(forms.Form):
         }),
         label='Search Value'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     def clean_search_value(self):
         """Validate search value based on lookup type"""
         lookup_type = self.cleaned_data.get('lookup_type')
         search_value = self.cleaned_data.get('search_value', '').strip()
-<<<<<<< HEAD
         
         if not search_value:
             raise forms.ValidationError('Search value is required.')
         
-=======
-
-        if not search_value:
-            raise forms.ValidationError('Search value is required.')
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         if lookup_type == 'safa_id':
             if len(search_value) != 5:
                 raise forms.ValidationError('SAFA ID must be exactly 5 characters.')
@@ -1112,30 +945,17 @@ class QuickMemberLookupForm(forms.Form):
         elif lookup_type == 'email':
             if '@' not in search_value:
                 raise forms.ValidationError('Please enter a valid email address.')
-<<<<<<< HEAD
         
         return search_value
     
-=======
-
-        return search_value
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     def find_members(self):
         """Find members based on search criteria"""
         if not self.is_valid():
             return CustomUser.objects.none()
-<<<<<<< HEAD
         
         lookup_type = self.cleaned_data['lookup_type']
         search_value = self.cleaned_data['search_value']
         
-=======
-
-        lookup_type = self.cleaned_data['lookup_type']
-        search_value = self.cleaned_data['search_value']
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         if lookup_type == 'safa_id':
             return CustomUser.objects.filter(safa_id__iexact=search_value)
         elif lookup_type == 'id_number':
@@ -1149,21 +969,13 @@ class QuickMemberLookupForm(forms.Form):
                 Q(first_name__icontains=search_value.split()[0] if ' ' in search_value else search_value) |
                 Q(last_name__icontains=search_value.split()[-1] if ' ' in search_value else search_value)
             )
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         return CustomUser.objects.none()
 
 
 class ModernContactForm(forms.Form):
     """Modern contact form for support requests"""
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     INQUIRY_TYPES = [
         ('general', 'General Inquiry'),
         ('registration', 'Registration Issue'),
@@ -1175,22 +987,14 @@ class ModernContactForm(forms.Form):
         ('official', 'Official Registration'),
         ('other', 'Other')
     ]
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     PRIORITY_LEVELS = [
         ('low', 'Low - General question'),
         ('normal', 'Normal - Standard request'),
         ('high', 'High - Urgent issue'),
         ('critical', 'Critical - System blocking')
     ]
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Contact details
     name = forms.CharField(
         max_length=100,
@@ -1200,11 +1004,7 @@ class ModernContactForm(forms.Form):
         }),
         label='Full Name'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
@@ -1212,11 +1012,7 @@ class ModernContactForm(forms.Form):
         }),
         label='Email Address'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     phone = forms.CharField(
         max_length=20,
         required=False,
@@ -1226,11 +1022,7 @@ class ModernContactForm(forms.Form):
         }),
         label='Phone Number'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # SAFA details
     safa_id = forms.CharField(
         max_length=5,
@@ -1241,33 +1033,21 @@ class ModernContactForm(forms.Form):
         }),
         label='SAFA ID'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Inquiry details
     inquiry_type = forms.ChoiceField(
         choices=INQUIRY_TYPES,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Inquiry Type'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     priority = forms.ChoiceField(
         choices=PRIORITY_LEVELS,
         initial='normal',
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Priority Level'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     subject = forms.CharField(
         max_length=200,
         widget=forms.TextInput(attrs={
@@ -1276,11 +1056,7 @@ class ModernContactForm(forms.Form):
         }),
         label='Subject'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     message = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
@@ -1289,11 +1065,7 @@ class ModernContactForm(forms.Form):
         }),
         label='Message'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # File attachment
     attachment = forms.FileField(
         required=False,
@@ -1304,54 +1076,33 @@ class ModernContactForm(forms.Form):
         label='Attachment',
         help_text='Optional: Attach relevant documents (PDF, images, Word docs)'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Agreement
     data_processing_consent = forms.BooleanField(
         required=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label='I consent to my data being processed to respond to this inquiry'
     )
-<<<<<<< HEAD
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-=======
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         # Pre-populate fields for logged-in users
         if self.user and self.user.is_authenticated:
             self.fields['name'].initial = self.user.get_full_name()
             self.fields['email'].initial = self.user.email
             if hasattr(self.user, 'safa_id') and self.user.safa_id:
                 self.fields['safa_id'].initial = self.user.safa_id
-<<<<<<< HEAD
     
     def clean_attachment(self):
         """Validate file attachment"""
         attachment = self.cleaned_data.get('attachment')
         
-=======
-
-    def clean_attachment(self):
-        """Validate file attachment"""
-        attachment = self.cleaned_data.get('attachment')
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         if attachment:
             # Check file size (max 5MB)
             if attachment.size > 5 * 1024 * 1024:
                 raise forms.ValidationError('File size must not exceed 5MB.')
-<<<<<<< HEAD
             
             # Check file type
             allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg',
@@ -1360,26 +1111,12 @@ class ModernContactForm(forms.Form):
             if attachment.content_type not in allowed_types:
                 raise forms.ValidationError('File type not allowed. Please upload PDF, image, or Word document.')
         
-=======
-
-            # Check file type
-            allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg',
-                           'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-
-            if attachment.content_type not in allowed_types:
-                raise forms.ValidationError('File type not allowed. Please upload PDF, image, or Word document.')
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         return attachment
 
 
 class BulkActionForm(forms.Form):
     """Form for performing bulk actions on members"""
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     BULK_ACTIONS = [
         ('', 'Select Action...'),
         ('approve', 'Approve Selected Members'),
@@ -1392,11 +1129,7 @@ class BulkActionForm(forms.Form):
         ('generate_cards', 'Generate Digital Cards'),
         ('send_reminders', 'Send Payment Reminders')
     ]
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     STATUS_UPDATES = [
         ('', 'Select New Status...'),
         ('PENDING', 'Pending Payment'),
@@ -1405,11 +1138,7 @@ class BulkActionForm(forms.Form):
         ('EXPIRED', 'Membership Expired'),
         ('SUSPENDED', 'Membership Suspended')
     ]
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     action = forms.ChoiceField(
         choices=BULK_ACTIONS,
         widget=forms.Select(attrs={
@@ -1418,11 +1147,7 @@ class BulkActionForm(forms.Form):
         }),
         label='Bulk Action'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # For status updates
     new_status = forms.ChoiceField(
         choices=STATUS_UPDATES,
@@ -1430,11 +1155,7 @@ class BulkActionForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='New Status'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # For email sending
     email_subject = forms.CharField(
         max_length=200,
@@ -1445,11 +1166,7 @@ class BulkActionForm(forms.Form):
         }),
         label='Email Subject'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     email_message = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={
@@ -1459,22 +1176,14 @@ class BulkActionForm(forms.Form):
         }),
         label='Email Message'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Confirmation
     confirm_action = forms.BooleanField(
         required=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label='I confirm this bulk action'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Notes for action
     action_notes = forms.CharField(
         required=False,
@@ -1485,56 +1194,32 @@ class BulkActionForm(forms.Form):
         }),
         label='Action Notes'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     def clean(self):
         """Validate form based on selected action"""
         cleaned_data = super().clean()
         action = cleaned_data.get('action')
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         if action == 'update_status':
             new_status = cleaned_data.get('new_status')
             if not new_status:
                 raise forms.ValidationError('New status is required for status update action.')
-<<<<<<< HEAD
         
         elif action == 'send_email':
             email_subject = cleaned_data.get('email_subject')
             email_message = cleaned_data.get('email_message')
             
-=======
-
-        elif action == 'send_email':
-            email_subject = cleaned_data.get('email_subject')
-            email_message = cleaned_data.get('email_message')
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
             if not email_subject:
                 raise forms.ValidationError('Email subject is required for email action.')
             if not email_message:
                 raise forms.ValidationError('Email message is required for email action.')
-<<<<<<< HEAD
         
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         return cleaned_data
 
 
 class StatisticsForm(forms.Form):
     """Form for generating quick statistics"""
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     STAT_TYPES = [
         ('overview', 'General Overview'),
         ('registrations', 'Registration Statistics'),
@@ -1544,11 +1229,7 @@ class StatisticsForm(forms.Form):
         ('activity', 'Recent Activity'),
         ('compliance', 'Compliance Status')
     ]
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     TIME_PERIODS = [
         ('today', 'Today'),
         ('week', 'This Week'),
@@ -1558,21 +1239,13 @@ class StatisticsForm(forms.Form):
         ('all', 'All Time'),
         ('custom', 'Custom Range')
     ]
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     stat_type = forms.ChoiceField(
         choices=STAT_TYPES,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Statistics Type'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     time_period = forms.ChoiceField(
         choices=TIME_PERIODS,
         initial='month',
@@ -1582,11 +1255,7 @@ class StatisticsForm(forms.Form):
         }),
         label='Time Period'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Custom date range
     date_from = forms.DateField(
         required=False,
@@ -1596,11 +1265,7 @@ class StatisticsForm(forms.Form):
         }),
         label='From Date'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     date_to = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={
@@ -1609,11 +1274,7 @@ class StatisticsForm(forms.Form):
         }),
         label='To Date'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     # Filters
     role_filter = forms.ChoiceField(
         choices=[('', 'All Roles')] + list(ROLES),
@@ -1621,11 +1282,7 @@ class StatisticsForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Filter by Role'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     status_filter = forms.ChoiceField(
         choices=[
             ('', 'All Statuses'),
@@ -1638,27 +1295,18 @@ class StatisticsForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Filter by Status'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     include_charts = forms.BooleanField(
         required=False,
         initial=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label='Include Charts'
     )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
     def clean(self):
         """Validate custom date range"""
         cleaned_data = super().clean()
         time_period = cleaned_data.get('time_period')
-<<<<<<< HEAD
         
         if time_period == 'custom':
             date_from = cleaned_data.get('date_from')
@@ -1670,24 +1318,10 @@ class StatisticsForm(forms.Form):
             if date_from > date_to:
                 raise forms.ValidationError('Start date must be before end date.')
             
-=======
-
-        if time_period == 'custom':
-            date_from = cleaned_data.get('date_from')
-            date_to = cleaned_data.get('date_to')
-
-            if not date_from or not date_to:
-                raise forms.ValidationError('Both start and end dates are required for custom range.')
-
-            if date_from > date_to:
-                raise forms.ValidationError('Start date must be before end date.')
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
             # Check if date range is reasonable (not more than 5 years)
             from datetime import timedelta
             if date_to - date_from > timedelta(days=1825):  # 5 years
                 raise forms.ValidationError('Date range cannot exceed 5 years.')
-<<<<<<< HEAD
         
         return cleaned_data
     
@@ -1701,21 +1335,6 @@ class StatisticsForm(forms.Form):
         from datetime import date, timedelta
         today = date.today()
         
-=======
-
-        return cleaned_data
-
-    def get_date_range(self):
-        """Get the actual date range based on selected period"""
-        time_period = self.cleaned_data.get('time_period')
-
-        if time_period == 'custom':
-            return self.cleaned_data.get('date_from'), self.cleaned_data.get('date_to')
-
-        from datetime import date, timedelta
-        today = date.today()
-
->>>>>>> 4a534c585452be22d8670bd96574cbdebf597224
         if time_period == 'today':
             return today, today
         elif time_period == 'week':
