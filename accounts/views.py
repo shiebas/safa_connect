@@ -1319,15 +1319,17 @@ def confirm_payment(request):
     if request.method == 'POST':
         form = ConfirmPaymentForm(request.POST)
         if form.is_valid():
-            payment_reference = form.cleaned_data['payment_reference']
+            invoice_number_query = form.cleaned_data['invoice_number']
             try:
-                invoice = Invoice.objects.get(payment_reference=payment_reference)
-                if 'confirm_payment' in request.POST:
-                    invoice.mark_as_paid(payment_method='Manual Confirmation', payment_reference=payment_reference)
-                    messages.success(request, f"Payment for invoice {invoice.invoice_number} has been confirmed.")
-                    return redirect('accounts:confirm_payment')
-            except Invoice.DoesNotExist:
-                messages.error(request, "No invoice found with that payment reference.")
+                invoices = Invoice.objects.filter(invoice_number__icontains=invoice_number_query)
+                if invoices.exists():
+                    invoice = invoices.first() # Take the first matching invoice
+                    if 'confirm_payment' in request.POST:
+                        invoice.mark_as_paid(payment_method='Manual Confirmation', payment_reference=invoice_number_query)
+                        messages.success(request, f"Payment for invoice {invoice.invoice_number} has been confirmed.")
+                        return redirect('accounts:confirm_payment')
+                else:
+                    messages.error(request, "No invoice found with that invoice number.")
             except Exception as e:
                 messages.error(request, f"An error occurred: {e}")
                 logger.error(f"Error in confirm_payment: {e}")

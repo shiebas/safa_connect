@@ -1397,10 +1397,10 @@ class EditPlayerForm(forms.ModelForm):
 
 
 class ConfirmPaymentForm(forms.Form):
-    payment_reference = forms.CharField(
-        label="Payment Reference",
+    invoice_number = forms.CharField(
+        label="Invoice Number",
         max_length=100,
-        help_text="Enter the payment reference (e.g., MEMXXXXXXXXX/WH12Q) to find the invoice.",
+        help_text="Enter the invoice number (e.g., MEMYYYYMMDD/SAFAID-XX) to find the invoice.",
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
 
