@@ -1113,21 +1113,16 @@ def club_admin_add_person(request):
                 registration_method='CLUB'
             )
             
-            messages.success(request, f"{form.cleaned_data.get('role').capitalize()} '{user.get_full_name()}' was added successfully. A temporary password has been set.")
+            # Check if email was generated and add appropriate message
+            success_message = f"{form.cleaned_data.get('role').capitalize()} '{user.get_full_name()}' was added successfully. A temporary password has been set."
+            if not form.cleaned_data.get('has_email', True):
+                success_message += f" An email address ({user.email}) has been automatically generated for this member."
+            
+            messages.success(request, success_message)
             return redirect('accounts:club_admin_dashboard')
     else:
-        # Pre-fill the form with the admin's club info
-        initial_data = {}
-        if request.user.club:
-            initial_data['club'] = request.user.club
-            if request.user.club.localfootballassociation:
-                initial_data['lfa'] = request.user.club.localfootballassociation
-                if request.user.club.localfootballassociation.region:
-                    initial_data['region'] = request.user.club.localfootballassociation.region
-                    if request.user.club.localfootballassociation.region.province:
-                        initial_data['province'] = request.user.club.localfootballassociation.region.province
-
-        form = RegistrationForm(initial=initial_data, user=request.user, limit_role_choices=True)
+        # Form automatically handles pre-population and disabling of geographic fields for club admins
+        form = RegistrationForm(user=request.user, limit_role_choices=True)
 
     context = {
         'form': form,

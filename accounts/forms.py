@@ -267,7 +267,12 @@ class NationalAdminRegistrationForm(forms.ModelForm):
 
 class RegistrationForm(forms.ModelForm):
 
-
+    has_email = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Does the person have an email address?",
+        help_text="For juniors or members without email, uncheck this and we'll generate one."
+    )
     role = forms.ChoiceField(
         choices=ROLES,
         required=True,
@@ -297,6 +302,7 @@ class RegistrationForm(forms.ModelForm):
     province = forms.ModelChoiceField(
         queryset=Province.objects.all(),
         required=False,
+        empty_label="Select Province",
     )
     region = forms.ModelChoiceField(
         queryset=Region.objects.none(),
@@ -337,6 +343,9 @@ class RegistrationForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         limit_role_choices = kwargs.pop('limit_role_choices', False)
         super().__init__(*args, **kwargs)
+
+        # Make email not required initially - it will be validated in clean_email based on has_email
+        self.fields['email'].required = False
 
         if limit_role_choices:
             self.fields['role'].choices = REGISTRATION_ROLES # Use the limited choices
@@ -410,11 +419,36 @@ class RegistrationForm(forms.ModelForm):
                 self.fields['club'].required = False
                 self.fields['association'].required = False
         
+        # Handle club admin context - pre-populate and disable geographic fields
         if user and user.role == 'CLUB_ADMIN':
+            # Pre-populate with admin's geographic data
+            if user.club:
+                self.fields['club'].queryset = Club.objects.filter(id=user.club.id)
+                self.fields['club'].initial = user.club
+                
+                if user.club.localfootballassociation:
+                    self.fields['lfa'].queryset = LocalFootballAssociation.objects.filter(id=user.club.localfootballassociation.id)
+                    self.fields['lfa'].initial = user.club.localfootballassociation
+                    
+                    if user.club.localfootballassociation.region:
+                        self.fields['region'].queryset = Region.objects.filter(id=user.club.localfootballassociation.region.id)
+                        self.fields['region'].initial = user.club.localfootballassociation.region
+                        
+                        if user.club.localfootballassociation.region.province:
+                            self.fields['province'].queryset = Province.objects.filter(id=user.club.localfootballassociation.region.province.id)
+                            self.fields['province'].initial = user.club.localfootballassociation.region.province
+            
+            # Disable geographic fields so they cannot be changed
             self.fields['province'].disabled = True
             self.fields['region'].disabled = True
             self.fields['lfa'].disabled = True
             self.fields['club'].disabled = True
+            
+            # Add styling to show these are read-only
+            self.fields['province'].widget.attrs.update({'class': 'form-control', 'readonly': True, 'style': 'background-color: #f8f9fa; cursor: not-allowed;'})
+            self.fields['region'].widget.attrs.update({'class': 'form-control', 'readonly': True, 'style': 'background-color: #f8f9fa; cursor: not-allowed;'})
+            self.fields['lfa'].widget.attrs.update({'class': 'form-control', 'readonly': True, 'style': 'background-color: #f8f9fa; cursor: not-allowed;'})
+            self.fields['club'].widget.attrs.update({'class': 'form-control', 'readonly': True, 'style': 'background-color: #f8f9fa; cursor: not-allowed;'})
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -423,6 +457,7 @@ class RegistrationForm(forms.ModelForm):
             'previous_safa_id',
             'first_name',
             'last_name',
+            'has_email',
             'email',
             'id_document_type',
             Div(
@@ -496,9 +531,43 @@ class RegistrationForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
+        # Don't validate email here - we'll handle it in clean() method
+        # Just check for duplicate if email is provided
         if email and CustomUser.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("A user with this email address already exists. Please use a different email or log in.")
+        
         return email
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        has_email = cleaned_data.get('has_email', True)
+        email = cleaned_data.get('email')
+        first_name = cleaned_data.get('first_name')
+        last_name = cleaned_data.get('last_name')
+        role = cleaned_data.get('role')
+        
+        # Validate email requirement
+        if has_email and not email:
+            self.add_error('email', "Email address is required when 'has email' is checked.")
+        
+        # Generate email if user doesn't have one
+        if not has_email and first_name and last_name:
+            # Import the email generation function
+            from .utils import generate_unique_member_email
+            
+            # Generate email based on role
+            if role == 'PLAYER':
+                email_type = 'player'
+            elif role == 'OFFICIAL':
+                email_type = 'official'
+            else:
+                email_type = 'member'
+            
+            # Generate the unique email
+            generated_email = generate_unique_member_email(first_name, last_name, email_type)
+            cleaned_data['email'] = generated_email
+        
+        return cleaned_data
 
     def clean_password2(self):
         password = self.cleaned_data.get("password")

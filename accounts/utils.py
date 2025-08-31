@@ -6,6 +6,40 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from datetime import date # Moved this import to the top
 
+def generate_unique_member_email(first_name, last_name, email_type='member'):
+    """
+    Generate a unique member email in the format membertype.firstname.lastname@safaconnect.co.za
+    
+    Args:
+        first_name (str): Member's first name
+        last_name (str): Member's last name
+        email_type (str): Type of email (player, official, member)
+        
+    Returns:
+        str: Unique email address
+    """
+    from .models import CustomUser
+    
+    # Clean and normalize names
+    first_name_clean = ''.join(e for e in first_name.strip().lower() if e.isalnum())
+    last_name_clean = ''.join(e for e in last_name.strip().lower() if e.isalnum())
+    
+    # Create email base
+    email_base = f"{email_type}.{first_name_clean}.{last_name_clean}"
+    email_domain = "safaconnect.co.za"
+    
+    # Find a unique email
+    counter = 1
+    email = f"{email_base}@{email_domain}"
+    
+    # Check if email exists, if so add a number and increment until unique
+    while CustomUser.objects.filter(email__iexact=email).exists():
+        email = f"{email_base}{counter}@{email_domain}"
+        counter += 1
+    
+    return email
+
+
 def generate_unique_safa_id():
     """Generate a unique SAFA ID that is not in CustomUser or Member model"""
     from .models import CustomUser
