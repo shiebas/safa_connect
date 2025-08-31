@@ -13,6 +13,7 @@ import os
 from .models import DigitalCard, PhysicalCard
 from .google_wallet import GoogleWalletManager
 from rest_framework import viewsets
+import csv
 from .serializers import DigitalCardSerializer
 
 User = get_user_model()
@@ -310,6 +311,34 @@ def system_dashboard(request):
     }
     
     return render(request, 'membership_cards/dashboard.html', context)
+
+@login_required
+def export_cards_csv(request):
+    """Export all digital card data to a CSV file."""
+    if not request.user.is_staff:
+        return HttpResponse("Unauthorized", status=401)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="safa_digital_cards_{timezone.now().strftime("%Y%m%d")}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Full Name', 'SAFA ID', 'Card Number', 'Status', 
+        'Expires Date', 'QR Code Data'
+    ])
+
+    cards = DigitalCard.objects.select_related('user').all()
+    for card in cards:
+        writer.writerow([
+            card.user.get_full_name(),
+            card.user.safa_id,
+            card.card_number,
+            card.get_status_display(),
+            card.expires_date,
+            card.qr_code_data,
+        ])
+
+    return response
 
 class DigitalCardViewSet(viewsets.ModelViewSet):
     queryset = DigitalCard.objects.all()

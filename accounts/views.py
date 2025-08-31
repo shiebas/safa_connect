@@ -19,10 +19,11 @@ from membership.models import Invoice, Member, RegistrationWorkflow, InvoiceItem
 from supporters.models import SupporterProfile
 
 from .decorators import role_required
-from .forms import (AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
-                    ClubAdminRegistrationForm, ModernContactForm, ProfileForm,
-                    RejectMemberForm, RegistrationForm, SettingsForm,
-                    UpdateProfilePhotoForm, EditPlayerForm)
+from .forms import (
+    AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
+    ClubAdminRegistrationForm, ModernContactForm, ProfileForm,
+    RejectMemberForm, RegistrationForm, SettingsForm,
+    UpdateProfilePhotoForm, EditPlayerForm, ConfirmPaymentForm)
 from geography.forms import (
     ProvinceComplianceForm,
     RegionComplianceForm,
@@ -30,7 +31,8 @@ from geography.forms import (
     AssociationComplianceForm,
     ClubComplianceForm,
 )
-from .models import (CustomUser, Notification, OrganizationType, Position,
+from .models import (
+    CustomUser, Notification, OrganizationType, Position,
                    UserRole)
 import qrcode
 import base64
@@ -90,29 +92,36 @@ def user_registration(request):
                 country = Country.objects.get(name='South Africa')
                 national_federation = NationalFederation.objects.create(name='SAFA', country=country)
 
-            member = Member.objects.create(
-                user=user,
-                safa_id=user.safa_id,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                email=user.email,
-                role=user.role,
-                status='PENDING',
-                date_of_birth=user.date_of_birth,
-                gender=user.gender,
-                id_number=user.id_number,
-                passport_number=user.passport_number,
-                street_address=user.street_address,
-                suburb=user.suburb,
-                city=user.city,
-                state=user.state,
-                postal_code=user.postal_code,
-                national_federation=national_federation,
-                province=form.cleaned_data.get('province'),
-                region=form.cleaned_data.get('region'),
-                lfa=form.cleaned_data.get('lfa'),
-                current_club=form.cleaned_data.get('club')
-            )
+            member_data = {
+                'user': user,
+                'safa_id': user.safa_id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'role': user.role,
+                'status': 'PENDING',
+                'date_of_birth': user.date_of_birth,
+                'gender': user.gender,
+                'id_number': user.id_number,
+                'passport_number': user.passport_number,
+                'street_address': user.street_address,
+                'suburb': user.suburb,
+                'city': user.city,
+                'state': user.state,
+                'postal_code': user.postal_code,
+                'national_federation': national_federation,
+            }
+
+            if user.role != 'SUPPORTER':
+                member_data.update({
+                    'province': form.cleaned_data.get('province'),
+                    'region': form.cleaned_data.get('region'),
+                    'lfa': form.cleaned_data.get('lfa'),
+                    'current_club': form.cleaned_data.get('club'),
+                })
+
+            member = Member.objects.create(**member_data)
+
             association = form.cleaned_data.get('association')
             if association:
                 member.associations.add(association)
@@ -130,7 +139,8 @@ def user_registration(request):
             user.save()
 
             # Create SupporterProfile
-            SupporterProfile.objects.get_or_create(user=user, defaults={'safa_id': user.safa_id})
+            if user.role == 'SUPPORTER':
+                SupporterProfile.objects.get_or_create(user=user, defaults={'safa_id': user.safa_id})
 
             # Login the user
             login(request, user)
@@ -213,21 +223,17 @@ def get_national_admin_stats():
     # This should return a dictionary of stats for the national admin
     return {}
 
-
 def get_financial_stats():
     # This should return a dictionary of financial stats
     return {}
-
 
 def get_regional_admin_stats(user):
     # This should return a dictionary of stats for the regional admin
     return {}
 
-
 def get_club_stats(club):
     # This should return a dictionary of stats for the club admin
     return {}
-
 
 def get_association_stats(association):
     # This should return a dictionary of stats for the association admin
@@ -414,16 +420,39 @@ def health_check(request):
 
 @login_required
 def member_approvals_list(request):
-    # Get members whose workflow is at the SAFA_APPROVAL stage
-    workflows = RegistrationWorkflow.objects.filter(current_step='SAFA_APPROVAL').select_related('member__user')
+    logger.debug(f"member_approvals_list called. GET params: {request.GET}")
+    member_id = request.GET.get('member_id')
+    
+    # Initial queryset before any member_id filtering
+    workflows_initial = RegistrationWorkflow.objects.filter(current_step='SAFA_APPROVAL').select_related('member__user')
+    logger.debug(f"Workflows in SAFA_APPROVAL (initial count): {workflows_initial.count()}")
+    for wf in workflows_initial:
+        logger.debug(f"Initial Workflow: Member ID={wf.member.id}, User Email={wf.member.user.email}, Current Step={wf.current_step}")
+
+    workflows = workflows_initial # Start with the initial queryset
+
+    if member_id:
+        logger.debug(f"Member ID from GET: {member_id}")
+        try:
+            member_id = int(member_id)
+            workflows = workflows.filter(member__id=member_id)
+            logger.debug(f"Workflows after filtering by member_id {member_id} (count): {workflows.count()}")
+        except ValueError:
+            messages.error(request, "Invalid member ID provided.")
+            logger.error(f"Invalid member ID provided: {member_id}")
+            return redirect('accounts:member_approvals_list')
 
     # In a real-world scenario, you would filter this based on the admin's jurisdiction
     # For now, we assume a national admin can see all.
     if not request.user.is_superuser and request.user.role != 'ADMIN_NATIONAL':
         messages.error(request, "You do not have permission to view this page.")
+        logger.warning(f"User {request.user.email} attempted to access member_approvals_list without permission.")
         return redirect('accounts:modern_home')
 
     members_to_approve = [wf.member for wf in workflows]
+    logger.debug(f"Members to approve (final count): {len(members_to_approve)}")
+    for member in members_to_approve:
+        logger.debug(f"Final Member in list: ID={member.id}, Email={member.user.email}, Status={member.status}")
 
     if request.method == 'POST':
         member_id = request.POST.get('member_id')
@@ -805,7 +834,7 @@ def national_admin_dashboard(request):
     pending_clubs = Club.objects.filter(status='INACTIVE')
 
     # Correctly fetch members awaiting approval from the workflow
-    workflows = RegistrationWorkflow.objects.filter(current_step='SAFA_APPROVAL').select_related('member__user', 'member__current_club')
+    workflows = RegistrationWorkflow.objects.filter(completion_percentage=100).select_related('member__user', 'member__current_club')
     pending_members = [wf.member for wf in workflows]
 
     # All Members list
@@ -911,8 +940,8 @@ def lfa_admin_dashboard(request):
     pending_members = []
     if lfa:
         workflows = RegistrationWorkflow.objects.filter(
-            current_step='SAFA_APPROVAL',
-            member__lfa=lfa
+            member__lfa=lfa,
+            completion_percentage=100
         ).select_related('member__user', 'member__current_club')
         pending_members = [wf.member for wf in workflows]
 
@@ -945,8 +974,8 @@ def club_admin_dashboard(request):
     pending_members = []
     if club:
         workflows = RegistrationWorkflow.objects.filter(
-            current_step='SAFA_APPROVAL',
-            member__current_club=club
+            member__current_club=club,
+            completion_percentage=100
         ).select_related('member__user', 'member__current_club')
         pending_members = [wf.member for wf in workflows]
 
@@ -969,8 +998,8 @@ def association_admin_dashboard(request):
     pending_members = []
     if association:
         workflows = RegistrationWorkflow.objects.filter(
-            current_step='SAFA_APPROVAL',
-            member__associations=association
+            member__associations=association,
+            completion_percentage=100
         ).select_related('member__user', 'member__current_club')
         pending_members = [wf.member for wf in workflows]
 
@@ -990,6 +1019,7 @@ def edit_player(request, player_id):
         form = EditPlayerForm(request.POST, instance=player)
         if form.is_valid():
             form.save()
+            logger.debug(f"Adding success message for player update: {player.get_full_name()}")
             messages.success(request, f'Player {player.get_full_name()} updated successfully.')
 
             # Redirect back to the original page, or a default if 'next' is not provided
@@ -1239,9 +1269,6 @@ def check_email(request):
 
 
 
-
-
-
 @login_required
 def invoice_detail(request, invoice_uuid):
     invoice = get_object_or_404(Invoice, uuid=invoice_uuid)
@@ -1282,3 +1309,32 @@ def ajax_extract_id_data(request):
         })
     except (ValueError, IndexError):
         return JsonResponse({'error': 'Invalid date or gender in ID number'}, status=400)
+
+@login_required
+@role_required(allowed_roles=['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'SUPERUSER'])
+def confirm_payment(request):
+    form = ConfirmPaymentForm()
+    invoice = None
+
+    if request.method == 'POST':
+        form = ConfirmPaymentForm(request.POST)
+        if form.is_valid():
+            payment_reference = form.cleaned_data['payment_reference']
+            try:
+                invoice = Invoice.objects.get(payment_reference=payment_reference)
+                if 'confirm_payment' in request.POST:
+                    invoice.mark_as_paid(payment_method='Manual Confirmation', payment_reference=payment_reference)
+                    messages.success(request, f"Payment for invoice {invoice.invoice_number} has been confirmed.")
+                    return redirect('accounts:confirm_payment')
+            except Invoice.DoesNotExist:
+                messages.error(request, "No invoice found with that payment reference.")
+            except Exception as e:
+                messages.error(request, f"An error occurred: {e}")
+                logger.error(f"Error in confirm_payment: {e}")
+
+    context = {
+        'form': form,
+        'invoice': invoice,
+        'title': 'Confirm Payment'
+    }
+    return render(request, 'accounts/confirm_payment.html', context)

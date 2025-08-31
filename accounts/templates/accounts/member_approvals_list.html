@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+<script>console.log('member_approvals_list.html loaded');</script>
 <div class="container mt-4">
     <h2>Members Pending Approval</h2>
     <hr>
@@ -49,12 +50,7 @@
                                     Reject
                                 </button>
 
-<div class="container mt-4">
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-{% endif %}
+
 
                                 <!-- Reject Modal -->
                                 <div class="modal fade" id="rejectModal-{{ member.id }}" tabindex="-1" aria-labelledby="rejectModalLabel-{{ member.id }}" aria-hidden="true">
@@ -94,4 +90,14 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = document.querySelectorAll('.alert');
+    console.log('Number of messages found:', messages.length);
+    messages.forEach((message, index) => {
+        console.log(`Message ${index + 1}:`, message.innerText.trim());
+    });
+});
+</script>
 {% endblock %}

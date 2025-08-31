@@ -30,6 +30,9 @@ urlpatterns = [
     
     # Card verification
     path('verify/<str:safa_id>/', card_verification, name='card_verification'),
+
+    # Data Export
+    path('export/csv/', views.export_cards_csv, name='export_cards_csv'),
     
     # Legacy URLs (kept for backward compatibility)
     path('qr-code/', views.card_qr_code, name='qr_code'),

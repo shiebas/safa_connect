@@ -74,6 +74,15 @@ class DigitalCard(models.Model):
         help_text='Generated QR code image with logo'
     )
     
+    # Add template field
+    template = models.ForeignKey(
+        'PhysicalCardTemplate',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text='Card design template to use instead of the default.'
+    )
+
     class Meta:
         verbose_name = 'Digital Card'
         verbose_name_plural = 'Digital Cards'
@@ -362,10 +371,6 @@ class PhysicalCard(models.Model):
         # Set card number from digital card if exists
         if not self.card_number and hasattr(self.user, 'digital_card'):
             self.card_number = self.user.digital_card.card_number
-        
-        # Set shipping address from user preference if not set
-        if not self.shipping_address and self.user.physical_card_delivery_address:
-            self.shipping_address = self.user.physical_card_delivery_address
         
         super().save(*args, **kwargs)
 

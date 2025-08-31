@@ -193,9 +193,9 @@ class Member(TimeStampedModel):
     current_club = models.ForeignKey(
         'geography.Club',  # String reference to avoid circular imports
         on_delete=models.SET_NULL,
-        null=True, blank=False,  # Club selection is mandatory
+        null=True, blank=True,  # Club selection is NOT mandatory
         related_name='current_members',
-        help_text=_("Current club this member belongs to (MANDATORY)")
+        help_text=_("Current club this member belongs to")
     )
 
     # Approval tracking
@@ -1162,26 +1162,30 @@ class RegistrationWorkflow(TimeStampedModel):
         """Update workflow progress based on completed steps"""
         steps = [
             self.personal_info_status,
-            self.club_selection_status,
             self.document_upload_status,
             self.payment_status,
-            self.club_approval_status,
             self.safa_approval_status,
         ]
 
+        if self.member.role != 'SUPPORTER':
+            steps.extend([
+                self.club_selection_status,
+                self.club_approval_status,
+            ])
+
         completed_steps = sum(1 for status in steps if status == 'COMPLETED')
-        self.completion_percentage = int((completed_steps / len(steps)) * 100)
+        self.completion_percentage = int((completed_steps / len(steps)) * 100) if len(steps) > 0 else 0
 
         # Update current step
         if self.personal_info_status != 'COMPLETED':
             self.current_step = 'PERSONAL_INFO'
-        elif self.club_selection_status != 'COMPLETED':
+        elif self.member.role != 'SUPPORTER' and self.club_selection_status != 'COMPLETED':
             self.current_step = 'CLUB_SELECTION'
         elif self.document_upload_status != 'COMPLETED':
             self.current_step = 'DOCUMENT_UPLOAD'
         elif self.payment_status != 'COMPLETED':
             self.current_step = 'PAYMENT'
-        elif self.club_approval_status != 'COMPLETED':
+        elif self.member.role != 'SUPPORTER' and self.club_approval_status != 'COMPLETED':
             self.current_step = 'CLUB_APPROVAL'
         elif self.safa_approval_status != 'COMPLETED':
             self.current_step = 'SAFA_APPROVAL'

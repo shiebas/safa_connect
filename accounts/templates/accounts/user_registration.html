@@ -230,9 +230,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (clubField) clubField.required = false;
                 const associationSelect = document.getElementById('id_association');
                 if (associationSelect) associationSelect.required = true;
+            } else if (this.value === 'SUPPORTER') {
+                hideField(clubContainer);
+                hideField(associationContainer);
+                const locationContainer = document.getElementById('headingThree').parentNode;
+                if (locationContainer) {
+                    hideField(locationContainer);
+                }
             } else {
                 hideField(clubContainer);
                 hideField(associationContainer);
+                const locationContainer = document.getElementById('headingThree').parentNode;
+                if (locationContainer) {
+                    showField(locationContainer);
+                }
             }
         });
     }

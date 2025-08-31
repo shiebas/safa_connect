@@ -393,6 +393,12 @@ class RegistrationForm(forms.ModelForm):
                     self.fields['association'].required = True
                 else:
                     self.fields['association'].required = False
+            elif role == 'SUPPORTER':
+                self.fields['province'].widget = forms.HiddenInput()
+                self.fields['region'].widget = forms.HiddenInput()
+                self.fields['lfa'].widget = forms.HiddenInput()
+                self.fields['club'].widget = forms.HiddenInput()
+                self.fields['association'].widget = forms.HiddenInput()
             else: # For ADMIN roles
                 self.fields['club'].required = False
                 self.fields['association'].required = False
@@ -1382,6 +1388,14 @@ class EditPlayerForm(forms.ModelForm):
             self.fields['guardian_phone'].required = True
             self.fields['parental_consent'].required = True
 
+
+class ConfirmPaymentForm(forms.Form):
+    payment_reference = forms.CharField(
+        label="Payment Reference",
+        max_length=100,
+        help_text="Enter the payment reference (e.g., MEMXXXXXXXXX/WH12Q) to find the invoice.",
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
 
 class ClubAdminRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, label="Password")

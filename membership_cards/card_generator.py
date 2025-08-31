@@ -75,7 +75,10 @@ class SAFACardGenerator:
     
     def generate_card_image(self, member, output_format='PNG'):
         """
-        Generate a digital membership card image for a member
+        Generate a digital membership card image for a member.
+        This method now checks for a custom template on the member's digital card.
+        If a template is found, it uses the template's design and layout.
+        Otherwise, it falls back to the default hardcoded design.
         
         Args:
             member: Member instance
@@ -84,20 +87,31 @@ class SAFACardGenerator:
         Returns:
             PIL Image
         """
-        # Load template image
-        if not os.path.exists(self.template_path):
-            raise FileNotFoundError(f"Card template not found: {self.template_path}")
+        card_template = None
+        if hasattr(member, 'digital_card') and member.digital_card and member.digital_card.template:
+            card_template = member.digital_card.template
+
+        # Determine template path and dimensions
+        if card_template and hasattr(card_template.card_front_image, 'path'):
+            template_path = card_template.card_front_image.path
+            card_width = card_template.card_width
+            card_height = card_template.card_height
+        else:
+            template_path = self.template_path
+            card_width = self.CARD_WIDTH_PX
+            card_height = self.CARD_HEIGHT_PX
+
+        if not os.path.exists(template_path):
+            raise FileNotFoundError(f"Card template not found: {template_path}")
+
+        # Open and resize template
+        template_image = Image.open(template_path)
+        template_image = template_image.resize((card_width, card_height), Image.Resampling.LANCZOS)
         
-        # Open and resize template to exact card dimensions
-        template = Image.open(self.template_path)
-        template = template.resize((self.CARD_WIDTH_PX, self.CARD_HEIGHT_PX), Image.Resampling.LANCZOS)
+        if template_image.mode != 'RGBA':
+            template_image = template_image.convert('RGBA')
         
-        # Convert to RGBA for transparency support
-        if template.mode != 'RGBA':
-            template = template.convert('RGBA')
-        
-        # Create drawing context
-        draw = ImageDraw.Draw(template)
+        draw = ImageDraw.Draw(template_image)
         
         # Load fonts
         try:
@@ -107,96 +121,68 @@ class SAFACardGenerator:
             else:
                 font_regular = ImageFont.load_default()
                 font_small = ImageFont.load_default()
-                
             if self.font_paths['bold']:
                 font_bold = ImageFont.truetype(self.font_paths['bold'], 32)
             else:
                 font_bold = font_regular
         except Exception as e:
             logger.warning(f"Font loading failed: {e}. Using default fonts.")
-            # Fallback to default fonts
-            font_regular = ImageFont.load_default()
-            font_small = ImageFont.load_default()
-            font_bold = ImageFont.load_default()
-        
-        # Member data - ONLY show member information, no template text
+            font_regular, font_small, font_bold = ImageFont.load_default(), ImageFont.load_default(), ImageFont.load_default()
+
+        # --- Member Data ---
         full_name = member.get_full_name().upper()
         safa_id = member.safa_id or "Not Assigned"
-        
-        # Generate 16-digit Luhn code for the card
         luhn_code = self.generate_luhn_code(member)
-        
-        # Calculate expiry date (1 year from now)
         expiry_date = (datetime.now() + timedelta(days=365)).strftime("%m/%y")
         
-        # Text colors for dark background
-        text_color = (255, 255, 255, 255)  # White text
-        gold_color = (255, 215, 0, 255)    # Gold for SAFA ID
-        
-        # Simple, clean positioning that works on any dark template
-        # Member Name (prominent, top area)
-        name_x = 60
-        name_y = self.CARD_HEIGHT_PX - 180
-        
-        # Handle long names by splitting
-        if len(full_name) > 18:
-            words = full_name.split()
-            if len(words) > 1:
-                mid = len(words) // 2
-                line1 = ' '.join(words[:mid])
-                line2 = ' '.join(words[mid:])
-                draw.text((name_x, name_y), line1, font=font_bold, fill=text_color)
-                draw.text((name_x, name_y + 32), line2, font=font_bold, fill=text_color)
-            else:
-                draw.text((name_x, name_y), full_name[:18], font=font_bold, fill=text_color)
+        text_color = (255, 255, 255, 255)
+        gold_color = (255, 215, 0, 255)
+
+        # --- Positioning ---
+        if card_template:
+            name_pos = (card_template.name_position_x, card_template.name_position_y)
+            # For other fields, we can either add them to the model or use default relative positioning
+            id_pos = (name_pos[0], name_pos[1] + 40)
+            card_pos = (name_pos[0], name_pos[1] + 80)
+            expiry_pos = (card_width - 150, card_height - 50)
+            qr_pos = (card_template.qr_position_x, card_template.qr_position_y)
         else:
-            draw.text((name_x, name_y), full_name, font=font_bold, fill=text_color)
-        
-        # SAFA ID (below name, gold color)
-        id_x = 60
-        id_y = self.CARD_HEIGHT_PX - 130
-        draw.text((id_x, id_y), safa_id, font=font_regular, fill=gold_color)
-        
-        # 16-digit card number (credit card style)
-        card_x = 60
-        card_y = self.CARD_HEIGHT_PX - 90
+            # Fallback to default positioning
+            name_pos = (60, card_height - 180)
+            id_pos = (60, card_height - 130)
+            card_pos = (60, card_height - 90)
+            expiry_pos = (card_width - 120, card_height - 50)
+            qr_pos = (card_width - 62, 20)
+
+        # --- Drawing Text ---
+        draw.text(name_pos, full_name, font=font_bold, fill=text_color)
+        draw.text(id_pos, safa_id, font=font_regular, fill=gold_color)
         formatted_luhn = f"{luhn_code[:4]} {luhn_code[4:8]} {luhn_code[8:12]} {luhn_code[12:16]}"
-        draw.text((card_x, card_y), formatted_luhn, font=font_regular, fill=text_color)
+        draw.text(card_pos, formatted_luhn, font=font_regular, fill=text_color)
+        draw.text((expiry_pos[0], expiry_pos[1] - 18), "VALID THRU", font=font_small, fill=text_color)
+        draw.text(expiry_pos, expiry_date, font=font_regular, fill=text_color)
         
-        # Expiry Date (bottom right corner)
-        expiry_x = self.CARD_WIDTH_PX - 120
-        expiry_y = self.CARD_HEIGHT_PX - 50
-        draw.text((expiry_x, expiry_y - 18), "VALID THRU", font=font_small, fill=text_color)
-        draw.text((expiry_x, expiry_y), expiry_date, font=font_regular, fill=text_color)
-        
-        # Generate compact QR Code (top right corner)
+        # --- QR Code ---
         qr_data = f"SAFA:{safa_id}:{luhn_code}:{expiry_date}"
         qr = qrcode.QRCode(version=1, box_size=2, border=1)
         qr.add_data(qr_data)
         qr.make(fit=True)
-        
-        qr_img = qr.make_image(fill_color="black", back_color="white")
-        qr_size = 40  # Small QR code
-        qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.LANCZOS)
-        
-        # Position QR code in top right corner
-        qr_x = self.CARD_WIDTH_PX - qr_size - 20
-        qr_y = 20
+        qr_img = qr.make_image(fill_color="black", back_color="white").resize((40, 40), Image.Resampling.LANCZOS)
         
         # Add white background for QR code visibility
-        qr_bg = Image.new('RGBA', (qr_size + 4, qr_size + 4), (255, 255, 255, 255))
-        template.paste(qr_bg, (qr_x - 2, qr_y - 2))
-        template.paste(qr_img, (qr_x, qr_y))
-        
-        return template
-    
+        qr_bg = Image.new('RGBA', (44, 44), (255, 255, 255, 255))
+        template_image.paste(qr_bg, (qr_pos[0] - 2, qr_pos[1] - 2))
+        template_image.paste(qr_img, qr_pos)
+
+        return template_image
+
     def generate_mobile_card(self, member):
         """Generate mobile-optimized card (lower resolution for web display)"""
         card = self.generate_card_image(member)
         
         # Resize for mobile display (maintain aspect ratio)
         mobile_width = 400
-        mobile_height = int((mobile_width * self.CARD_HEIGHT_PX) / self.CARD_WIDTH_PX)
+        mobile_height = int((mobile_width * card.height) / card.width)
         mobile_card = card.resize((mobile_width, mobile_height), Image.Resampling.LANCZOS)
         
         # Save to BytesIO for web response
@@ -342,89 +328,6 @@ class SAFACardGenerator:
         # Fallback (should never happen)
         return partial_number + "0"
     
-    def analyze_template_safe_areas(self, template_image):
-        """
-        Analyze the template to find safe areas for text placement
-        This helps avoid placing text over important design elements
-        """
-        # Convert to grayscale to analyze brightness
-        gray = template_image.convert('L')
-        width, height = gray.size
-        
-        # Sample key areas to find dark regions suitable for white text
-        safe_areas = []
-        
-        # Define potential text regions (left, top, right, bottom)
-        regions = [
-            (40, height - 200, 400, height - 50),  # Bottom left area
-            (width - 400, height - 200, width - 40, height - 50),  # Bottom right
-            (40, 100, 400, 250),  # Middle left
-            (width - 400, 100, width - 40, 250),  # Middle right
-        ]
-        
-        for region in regions:
-            left, top, right, bottom = region
-            # Ensure bounds are within image
-            left = max(0, min(left, width))
-            top = max(0, min(top, height))
-            right = max(0, min(right, width))
-            bottom = max(0, min(bottom, height))
-            
-            if right > left and bottom > top:
-                # Sample pixels in this region to check average brightness
-                sample_count = 0
-                brightness_sum = 0
-                
-                # Sample every 10th pixel to check brightness
-                for y in range(top, bottom, 10):
-                    for x in range(left, right, 10):
-                        if x < width and y < height:
-                            pixel = gray.getpixel((x, y))
-                            brightness_sum += pixel
-                            sample_count += 1
-                
-                avg_brightness = brightness_sum / sample_count if sample_count > 0 else 255
-                
-                safe_areas.append({
-                    'region': (left, top, right, bottom),
-                    'brightness': avg_brightness,
-                    'suitable_for_text': avg_brightness < 100  # Dark enough for white text
-                })
-        
-        return safe_areas
-    
-    def get_optimal_text_positions(self, template_image):
-        """Get optimal text positions based on template analysis"""
-        try:
-            safe_areas = self.analyze_template_safe_areas(template_image)
-            
-            # Find the best area for main text (largest suitable area)
-            suitable_areas = [area for area in safe_areas if area['suitable_for_text']]
-            
-            if suitable_areas:
-                # Use the darkest area for best contrast
-                best_area = min(suitable_areas, key=lambda x: x['brightness'])
-                left, top, right, bottom = best_area['region']
-                
-                return {
-                    'name_pos': (left + 10, bottom - 120),
-                    'id_pos': (left + 10, bottom - 80),
-                    'card_pos': (left + 10, bottom - 50),
-                    'expiry_pos': (right - 120, bottom - 30),
-                    'qr_pos': (self.CARD_WIDTH_PX - 60, 15)
-                }
-        except Exception as e:
-            logger.warning(f"Template analysis failed: {e}")
-        
-        # Fallback to conservative positioning
-        return {
-            'name_pos': (50, self.CARD_HEIGHT_PX - 160),
-            'id_pos': (50, self.CARD_HEIGHT_PX - 120),
-            'card_pos': (50, self.CARD_HEIGHT_PX - 80),
-            'expiry_pos': (self.CARD_WIDTH_PX - 140, self.CARD_HEIGHT_PX - 40),
-            'qr_pos': (self.CARD_WIDTH_PX - 60, 15)
-        }
-    
 # Legacy support for existing code
 def generate_physical_card_image(physical_card):
     """Legacy function - wrapper for new card generator"""
@@ -436,9 +339,16 @@ def generate_physical_card_image(physical_card):
         raise ValueError("No member associated with this physical card")
 
 def generate_print_ready_pdf(physical_cards):
-    """Legacy function - generate print-ready PDF with multiple cards"""
-    generator = SAFACardGenerator()
+    """Generate print-ready PDF with multiple cards"""
     
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.units import inch
+    except ImportError:
+        raise ImportError("reportlab is required for PDF generation. Install with: pip install reportlab")
+    
+    generator = SAFACardGenerator()
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     
@@ -466,83 +376,10 @@ def generate_print_ready_pdf(physical_cards):
                 continue
                 
             # Generate card image using new generator
+            # This will automatically use the template on the digital_card if it exists
             card_img = generator.generate_card_image(member)
             
-            # Save to temporary file
-            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
-                temp_path = temp_file.name
-                card_img.save(temp_path, 'PNG', dpi=(300, 300))
-            
-            try:
-                # Calculate position
-                row = card_count // cards_per_row
-                col = card_count % cards_per_row
-                
-                if row >= cards_per_col:
-                    p.showPage()  # New page
-                    row = 0
-                    card_count = 0
-                    col = card_count % cards_per_row
-                
-                x = x_positions[col]
-                y = y_positions[row]
-                
-                # Add to PDF
-                p.drawImage(temp_path, x, y, width=card_width, height=card_height)
-                card_count += 1
-                
-            finally:
-                # Clean up temp file
-                try:
-                    os.remove(temp_path)
-                except:
-                    pass
-            
-        except Exception as e:
-            logger.error(f"Error generating card for {physical_card.card_number}: {str(e)}")
-            continue
-    
-    p.save()
-    buffer.seek(0)
-    return buffer.getvalue()
-
-def generate_print_ready_pdf(physical_cards):
-    """Generate print-ready PDF with multiple cards"""
-    
-    try:
-        from reportlab.pdfgen import canvas
-        from reportlab.lib.pagesizes import letter
-        from reportlab.lib.units import inch
-    except ImportError:
-        raise ImportError("reportlab is required for PDF generation. Install with: pip install reportlab")
-    
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    
-    # Card dimensions in inches (standard credit card size)
-    card_width = 3.375 * inch
-    card_height = 2.125 * inch
-    margin = 0.5 * inch
-    
-    cards_per_row = 2
-    cards_per_col = 4
-    
-    x_positions = [margin, margin + card_width + 0.25*inch]
-    y_positions = [
-        letter[1] - margin - card_height,
-        letter[1] - margin - 2*card_height - 0.25*inch,
-        letter[1] - margin - 3*card_height - 0.5*inch,
-        letter[1] - margin - 4*card_height - 0.75*inch
-    ]
-    
-    card_count = 0
-    for physical_card in physical_cards:
-        try:
-            # Generate card image
-            card_img = generate_physical_card_image(physical_card)
-            
             # Use Django's temp directory instead of /tmp
-            import tempfile
             with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
                 temp_path = temp_file.name
                 card_img.save(temp_path, 'PNG', dpi=(300, 300))
@@ -573,8 +410,6 @@ def generate_print_ready_pdf(physical_cards):
             
         except Exception as e:
             # Log error but continue with other cards
-            import logging
-            logger = logging.getLogger(__name__)
             logger.error(f"Error generating card for {physical_card.card_number}: {str(e)}")
             continue
     

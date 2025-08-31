@@ -19,7 +19,7 @@ class DigitalCardAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Card Information', {
-            'fields': ('user', 'card_number', 'card_uuid', 'card_type')
+            'fields': ('user', 'template', 'card_number', 'card_uuid', 'card_type')
         }),
         ('Status', {
             'fields': ('status', 'expires_date')

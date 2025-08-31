@@ -38,6 +38,7 @@ urlpatterns = [
     path('member-approvals/<int:member_id>/reject/', views.reject_member, name='reject_member'),
     path('advanced-search/', views.advanced_search, name='advanced_search'),
     path('statistics/', views.statistics, name='statistics'),
+    path('confirm-payment/', views.confirm_payment, name='confirm_payment'),
 
     # API views (placeholders)
     path('api/members/eligible-clubs/', views.eligible_clubs_api, name='eligible_clubs_api'),
