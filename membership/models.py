@@ -497,7 +497,11 @@ class Member(TimeStampedModel):
                 # Handle cases where profile or official_position doesn't exist
                 pass
             return 'OFFICIAL_GENERAL'
-        return 'PLAYER_SENIOR'  # Default fallback
+        elif self.role == 'SUPPORTER': # Added this block
+            return 'SUPPORTER'
+        elif self.role == 'MEMBER': # Added this block for generic members
+            return 'MEMBER_GENERAL'
+        return 'PLAYER_SENIOR'  # Default fallback (should ideally not be reached for valid roles)
 
     def validate_club_geography(self):
         """Ensure selected club is within member's geographic area"""
@@ -1526,9 +1530,15 @@ class Invoice(TimeStampedModel):
         total_amount_decimal = Decimal(self.total_amount) if not isinstance(self.total_amount, Decimal) else self.total_amount
         return f"INV-{self.invoice_number} - {entity_name} - R{total_amount_decimal}"
 
+    def generate_payment_reference(self):
+        """Generate a unique payment reference"""
+        return f"SAFA-{self.invoice_number}-{get_random_string(6)}"
+
     def save(self, *args, **kwargs):
         if not self.invoice_number:
             self.invoice_number = self.generate_invoice_number()
+        if not self.payment_reference:
+            self.payment_reference = self.generate_payment_reference()
 
         # Calculate totals
         # Determine if VAT needs to be reverse-calculated
@@ -1581,6 +1591,10 @@ class Invoice(TimeStampedModel):
         import random
         import string
 
+        safa_id_suffix = ""
+        if self.member and self.member.safa_id:
+            safa_id_suffix = f"/{self.member.safa_id}"
+
         if self.invoice_type == 'ORGANIZATION_MEMBERSHIP':
             prefix = f"ORG{year}"
         else:
@@ -1588,7 +1602,7 @@ class Invoice(TimeStampedModel):
 
         while True:
             suffix = ''.join(random.choices(string.digits, k=6))
-            number = f"{prefix}{suffix}"
+            number = f"{prefix}{suffix}{safa_id_suffix}"
             if not Invoice.objects.filter(invoice_number=number).exists():
                 return number
 

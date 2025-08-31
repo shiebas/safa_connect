@@ -82,6 +82,7 @@
                                 </div>
                                 <div class="mb-3 d-none" id="sa_id_container">
                                     {{ form.id_number|as_crispy_field }}
+                                    <div id="id-number-feedback" class="invalid-feedback"></div>
                                 </div>
                                 <div class="mb-3 d-none" id="passport_container">
                                     {{ form.passport_number|as_crispy_field }}
@@ -112,6 +113,7 @@
                                 <div class="mb-3">
                                     <label for="id_province" class="form-label">Province</label>
                                     <select name="province" class="form-select" id="id_province">
+                                        <option value="">Select Province</option> <!-- Add this line -->
                                         {% for choice in form.province.field.queryset %}
                                             <option value="{{ choice.pk }}" {% if form.province.value == choice.pk %}selected{% endif %}>{{ choice.name }}</option>
                                         {% endfor %}
@@ -278,10 +280,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle SA ID Number Extraction
     if (idNumberField) {
-        idNumberField.addEventListener('blur', function() {
+        idNumberField.addEventListener('input', function() { // Changed from 'blur' to 'input'
             const idNumber = this.value;
-            console.log('ID Number field blurred, value:', idNumber);
-            if (idNumber.length === 13 && /^\\d+$/.test(idNumber)) {
+            const idFeedback = document.getElementById('id-number-feedback');
+            idNumberField.classList.remove('is-invalid', 'is-valid');
+            idFeedback.textContent = '';
+
+            if (idNumber.length === 13 && /^\d+$/.test(idNumber)) {
                 console.log('Fetching ID data for:', idNumber);
                 fetch(`/local-accounts/ajax/extract-id-data/?id_number=${idNumber}`)
                     .then(response => {
@@ -297,19 +302,34 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (dobField) dobField.value = data.date_of_birth;
                             if (genderField) genderField.value = data.gender;
                             
-                            idNumberField.classList.remove('is-invalid');
                             idNumberField.classList.add('is-valid');
+                            idFeedback.textContent = 'ID data extracted successfully.';
+                            idFeedback.classList.remove('invalid-feedback');
+                            idFeedback.classList.add('valid-feedback');
                         } else if (data.error) {
                             idNumberField.classList.add('is-invalid');
+                            idFeedback.textContent = data.error;
+                            idFeedback.classList.remove('valid-feedback');
+                            idFeedback.classList.add('invalid-feedback');
                             console.error('ID Extraction Error:', data.error);
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching ID data:', error);
                         idNumberField.classList.add('is-invalid');
+                        idFeedback.textContent = 'Error extracting ID data. Please check the number.';
+                        idFeedback.classList.remove('valid-feedback');
+                        idFeedback.classList.add('invalid-feedback');
                     });
-            } else if (idNumber.length > 0) {
+            } else if (idNumber.length > 0 && idNumber.length !== 13) {
                 idNumberField.classList.add('is-invalid');
+                idFeedback.textContent = 'ID number must be exactly 13 digits.';
+                idFeedback.classList.remove('valid-feedback');
+                idFeedback.classList.add('invalid-feedback');
+            } else if (idNumber.length === 0) {
+                // Clear fields if ID number is empty
+                if (dobField) dobField.value = '';
+                if (genderField) genderField.value = '';
             }
         });
     }

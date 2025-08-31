@@ -49,6 +49,7 @@ ROLES = (
     ('MEMBER', _('Member')),
     ('PLAYER', _('Player')),
     ('OFFICIAL', _('Official')),
+    ('SUPPORTER', _('Supporter')),
     ('ADMIN_NATIONAL', _('National Federation Admin')),
     ('ADMIN_NATIONAL_ACCOUNTS', _('National Accounts Administrator')),
     ('ADMIN_PROVINCE', _('Provincial Administrator')),
@@ -61,6 +62,7 @@ ROLES = (
 REGISTRATION_ROLES = (
     ('PLAYER', _('Player')),
     ('OFFICIAL', _('Official')),
+    ('SUPPORTER', _('Supporter')),
 )
 
 # Add new employment status choices
@@ -211,6 +213,7 @@ class CustomUser(AbstractUser):
         ('INACTIVE', 'Inactive'),
         ('SUSPENDED', 'Suspended'),
         ('EXPIRED', 'Expired'),
+        ('REJECTED', 'Rejected'),
     ))
     membership_activated_date = models.DateField(null=True, blank=True)
     registration_date = models.DateField(auto_now_add=True)
