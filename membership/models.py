@@ -22,6 +22,7 @@ MEMBER_ROLES = [
     ('PLAYER', _('Player')),
     ('OFFICIAL', _('Official')),
     ('ADMIN', _('Administrator')),
+    ('SUPPORTER', _('Supporter')),
 ]
 
 MEMBERSHIP_STATUS = [
