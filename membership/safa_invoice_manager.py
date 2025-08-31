@@ -115,11 +115,20 @@ class SAFAInvoiceManager:
         
         annual_amount = fee_structure.annual_fee
         
-        # Temporarily disable pro-rata calculation as per user request
-        pro_rata_amount = annual_amount
-        months_remaining = 12 # Not strictly needed if pro-rata is off, but for consistency
-        period_description = "Full Season"
-        is_pro_rata_active = False # New variable to control pro-rata logic
+        # Calculate pro-rata if applicable
+        if fee_structure.is_pro_rata:
+            pro_rata_amount, months_remaining, period_description = cls.calculate_pro_rata_amount(
+                annual_amount, registration_date, season_config
+            )
+
+            # Check minimum fee
+            if fee_structure.minimum_fee and pro_rata_amount < fee_structure.minimum_fee:
+                pro_rata_amount = fee_structure.minimum_fee
+                period_description = f"Minimum fee applied"
+        else:
+            pro_rata_amount = annual_amount
+            months_remaining = 12
+            period_description = "Full Season"
 
         # Create invoice
         with transaction.atomic():
@@ -132,23 +141,24 @@ class SAFAInvoiceManager:
                 vat_rate=season_config.vat_rate,
                 invoice_type='REGISTRATION',
                 payment_terms=season_config.payment_due_days,
-                is_pro_rata=is_pro_rata_active, # Use the new variable
-                pro_rata_months=None, # Set to None if pro-rata is off
+                is_pro_rata=fee_structure.is_pro_rata and months_remaining < 12,
+                pro_rata_months=months_remaining if fee_structure.is_pro_rata else None,
                 issued_by=getattr(member, 'registering_admin', None)
             )
             
             # Create invoice item
             description = f"SAFA {entity_type.replace('_', ' ').title()} Registration - {season_config.season_year}"
-            # Remove pro-rata description part
+            if fee_structure.is_pro_rata and months_remaining < 12:
+                description += f" ({period_description})"
             
             InvoiceItem.objects.create(
                 invoice=invoice,
                 description=description,
                 quantity=Decimal('1.00'),
                 unit_price=pro_rata_amount,
-                is_pro_rata=is_pro_rata_active, # Use the new variable
-                original_amount=None, # Set to None if pro-rata is off
-                pro_rata_period=None # Set to None if pro-rata is off
+                is_pro_rata=fee_structure.is_pro_rata and months_remaining < 12,
+                original_amount=annual_amount if fee_structure.is_pro_rata and months_remaining < 12 else None,
+                pro_rata_period=period_description if fee_structure.is_pro_rata and months_remaining < 12 else None
             )
         
         return invoice

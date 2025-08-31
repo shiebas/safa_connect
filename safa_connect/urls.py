@@ -32,7 +32,6 @@ urlpatterns = [
     path('store/', include('merchandise.urls', namespace='merchandise')),
     path('pwa/', include('pwa.urls', namespace='pwa')),
     path('legal/', include('legal.urls', namespace='legal')),
-    path('parking/', include('parking.urls', namespace='parking')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),  # Add home page instead
 ]
 
