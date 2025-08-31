@@ -115,7 +115,7 @@
             </div>
         </div>
         <button type="submit" class="btn btn-primary mt-4">Save Changes</button>
-        <a href="{% url 'accounts:club_admin_dashboard' %}" class="btn btn-secondary mt-4">Cancel</a>
+        <a href="{{ next }}" class="btn btn-secondary mt-4">Cancel</a>
     </form>
 </div>
 {% endblock %}
