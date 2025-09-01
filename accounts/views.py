@@ -1124,99 +1124,8 @@ def club_admin_add_person(request):
                 registration_method='CLUB'
             )
             
-            # Create SAFA membership invoice with special handling for club admin registrations
-            invoice_created = False
-            invoice_error = None
-            try:
-                # Get active season configuration
-                active_season = SAFASeasonConfig.get_active_season()
-                if active_season:
-                    # Determine entity type based on role and age
-                    role = form.cleaned_data.get('role')
-                    entity_type = 'PLAYER_SENIOR'  # Default
-                    
-                    if role == 'PLAYER':
-                        # Calculate age to determine junior vs senior
-                        if user.date_of_birth:
-                            age = (timezone.now().date() - user.date_of_birth).days // 365
-                            entity_type = 'PLAYER_JUNIOR' if age < 18 else 'PLAYER_SENIOR'
-                    elif role == 'OFFICIAL':
-                        # For officials, we default to GENERAL unless specific position info available
-                        entity_type = 'OFFICIAL_GENERAL'
-                    
-                    # Get fee structure for the entity type
-                    fee_structure = SAFAFeeStructure.get_fee_for_entity(entity_type, active_season.season_year)
-                    
-                    if fee_structure:
-                        # Calculate actual fee (with pro-rata if applicable)
-                        annual_amount = fee_structure.annual_fee
-                        registration_date = timezone.now().date()
-                        
-                        if fee_structure.is_pro_rata:
-                            # Simple pro-rata calculation
-                            # In a full implementation, you'd use the SAFAInvoiceManager
-                            from decimal import Decimal, ROUND_HALF_UP
-                            months_in_season = 12  # Simplified
-                            months_remaining = max(1, months_in_season - (registration_date.month - active_season.season_start_date.month))
-                            pro_rata_amount = (annual_amount * Decimal(months_remaining) / Decimal(months_in_season)).quantize(
-                                Decimal('0.01'), rounding=ROUND_HALF_UP
-                            )
-                            if fee_structure.minimum_fee and pro_rata_amount < fee_structure.minimum_fee:
-                                pro_rata_amount = fee_structure.minimum_fee
-                            fee_amount = pro_rata_amount
-                        else:
-                            fee_amount = annual_amount
-                        
-                        # MODIFIED: Special handling for club admin registrations
-                        # Invoice goes to SAFA account with 'Confirm Payment' status
-                        invoice_status = 'PENDING'  # Default status
-                        invoice_notes = f"Registration invoice for {member.get_full_name()} - {entity_type.replace('_', ' ').title()}"
-
-                        # Check if this is a club admin registration
-                        if request.user.role == 'CLUB_ADMIN':
-                            invoice_status = 'PENDING_REVIEW'  # Set to PENDING_REVIEW directly
-                            invoice_notes += " - Registered by Club Admin. Payment to be confirmed by SAFA."
-
-                        # Create invoice
-                        invoice = Invoice.objects.create(
-                            member=member,
-                            season_config=active_season,
-                            invoice_type='MEMBER_REGISTRATION',
-                            subtotal=fee_amount,
-                            status=invoice_status,
-                            notes=invoice_notes,
-                            issued_by=request.user,
-                            payment_method='BANK_TRANSFER' # Set a default payment method
-                        )
-
-                        # Create invoice item
-                        InvoiceItem.objects.create(
-                            invoice=invoice,
-                            description=f"SAFA {entity_type.replace('_', ' ').title()} Registration Fee - {active_season.season_year}",
-                            quantity=1,
-                            amount=fee_amount
-                        )
-
-                        # ADDED: Special handling for club admin registrations
-                        if request.user.role == 'CLUB_ADMIN':
-                            # No need to change status again, it's already PENDING_REVIEW
-                            # invoice.status = 'PENDING_REVIEW' # This line is now redundant
-                            # invoice.payment_method = 'CONFIRM_PAYMENT'  # Special flag for SAFA confirmation
-                            invoice.notes += " - Awaiting SAFA payment confirmation."
-                            invoice.save()
-                        
-                        invoice_created = True
-                        logger.info(f"Created invoice {invoice.invoice_number} for member {member.get_full_name()}")
-                    else:
-                        invoice_error = f"No fee structure found for {entity_type} in season {active_season.season_year}"
-                        logger.warning(invoice_error)
-                else:
-                    invoice_error = "No active SAFA season found"
-                    logger.warning(invoice_error)
-                    
-            except Exception as e:
-                invoice_error = f"Error creating invoice: {str(e)}"
-                logger.error(f"Invoice creation failed for member {member.get_full_name()}: {e}")
+            # Create invoice using the same method as regular registration
+            invoice = Invoice.create_member_invoice(member)
             
             # Prepare success message
             success_message = f"{form.cleaned_data.get('role').capitalize()} '{user.get_full_name()}' was added successfully. A temporary password has been set."
@@ -1224,10 +1133,8 @@ def club_admin_add_person(request):
             if not form.cleaned_data.get('has_email', True):
                 success_message += f" An email address ({user.email}) has been automatically generated for this member."
             
-            if invoice_created:
+            if invoice:
                 success_message += f" A SAFA membership invoice has been created and must be paid before the member can participate."
-            elif invoice_error:
-                success_message += f" Note: {invoice_error}"
             
             messages.success(request, success_message)
             return redirect('accounts:club_admin_dashboard')
