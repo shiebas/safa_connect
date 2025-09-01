@@ -1494,6 +1494,12 @@ class Invoice(TimeStampedModel):
     # Payment details
     payment_method = models.CharField(_("Payment Method"), max_length=50, blank=True)
     payment_reference = models.CharField(_("Payment Reference"), max_length=100, blank=True)
+    proof_of_payment = models.FileField(
+        _("Proof of Payment"),
+        upload_to='payment_proofs/%Y/%m/',
+        null=True, blank=True,
+        help_text=_("Upload proof of payment document or receipt")
+    )
 
     # Administrative
     issued_by = models.ForeignKey(
