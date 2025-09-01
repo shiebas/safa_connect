@@ -162,64 +162,113 @@ def send_support_request_email(support_request):
 def extract_sa_id_dob_gender(id_number):
     """
     Extract date of birth and gender from SA ID number and validate it.
-    Includes Luhn algorithm check and basic date validation.
+    Includes Luhn algorithm check and comprehensive date validation.
+    
+    Args:
+        id_number (str): 13-digit South African ID number
+        
+    Returns:
+        tuple: (date_of_birth, gender) or (None, None) if invalid
+        
+    Rules:
+    - ID format: YYMMDD G SSSS C A Z
+    - YY: Year (00-99)
+    - MM: Month (01-12)
+    - DD: Day (01-31)
+    - G: Gender (0-4 = Female, 5-9 = Male)
+    - SSSS: Sequence number (0000-9999)
+    - C: Citizenship (0 = SA Citizen, 1 = Permanent Resident)
+    - A: Race (0-9, historical)
+    - Z: Check digit (Luhn algorithm)
     """
-    if not id_number or not id_number.isdigit() or len(id_number) != 13:
+    if not id_number or not isinstance(id_number, str):
+        return None, None
+    
+    # Remove any spaces or hyphens
+    id_number = id_number.replace(' ', '').replace('-', '')
+    
+    # Basic format validation
+    if not id_number.isdigit() or len(id_number) != 13:
         return None, None
 
-    # Luhn algorithm check
-    def luhn_check(id_num):
-        s = 0
-        for i, digit in enumerate(reversed(id_num)):
-            d = int(digit)
-            if i % 2 == 1:
-                d *= 2
-            if d > 9:
-                d -= 9
-            s += d
-        return s % 10 == 0
+    # South African ID validation algorithm
+    def validate_sa_id(id_num):
+        """Validate check digit using South African ID algorithm"""
+        if len(id_num) != 13:
+            return False
+            
+        # Weights: 1,2,1,2,1,2,1,2,1,2,1,2
+        weights = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+        total = 0
+        
+        for i in range(12):
+            digit = int(id_num[i])
+            weight = weights[i]
+            result = digit * weight
+            if result >= 10:
+                result = (result // 10) + (result % 10)  # Sum the digits
+            total += result
+        
+        check_digit = (10 - (total % 10)) % 10
+        return check_digit == int(id_num[12])
 
-    if not luhn_check(id_number):
+    if not validate_sa_id(id_number):
         return None, None
 
     try:
+        # Extract date components
         year_digits = int(id_number[:2])
         month = int(id_number[2:4])
         day = int(id_number[4:6])
 
-        current_year_full = timezone.now().year
-        current_year_short = current_year_full % 100
+        # Determine century (current year logic)
+        current_year = timezone.now().year
+        current_year_short = current_year % 100
         
+        # If year digits are <= current year's last two digits, assume 2000s
+        # Otherwise assume 1900s (for people born in 1900s)
         if year_digits <= current_year_short:
             full_year = 2000 + year_digits
         else:
             full_year = 1900 + year_digits
 
-        # Attempt to create date object, will raise ValueError for invalid dates
+        # Validate date components
+        if month < 1 or month > 12:
+            return None, None
+            
+        if day < 1 or day > 31:
+            return None, None
+
+        # Create date object (will raise ValueError for invalid dates like Feb 30)
         dob = date(full_year, month, day)
 
-        # Basic date validation: ensure date is not in the future
-        if dob > timezone.now().date():
+        # Additional date validations
+        today = timezone.now().date()
+        
+        # Date should not be in the future
+        if dob > today:
             return None, None
         
-        # Basic age check (e.g., not older than 120 years)
-        # Using timedelta for age calculation
-        age_in_days = (timezone.now().date() - dob).days
-        if age_in_days < 0 or age_in_days / 365.25 > 120: # Also check for negative age (future date)
+        # Age should be reasonable (not older than 120 years)
+        age_in_days = (today - dob).days
+        if age_in_days < 0 or age_in_days > 43800:  # ~120 years
             return None, None
 
-        gender_digit = int(id_number[6:10])
-        gender = 'M' if gender_digit >= 5000 else 'F'
+        # Extract gender (7th digit: 0-4 = Female, 5-9 = Male)
+        gender_digit = int(id_number[6])
+        if gender_digit < 0 or gender_digit > 9:
+            return None, None
+            
+        gender = 'F' if gender_digit < 5 else 'M'
 
         return dob, gender
 
-    except ValueError: # Catches invalid date components (e.g., month 13, day 32)
+    except (ValueError, IndexError):
+        # ValueError: Invalid date components (e.g., month 13, day 32)
+        # IndexError: String slicing issues (shouldn't happen with len check)
         return None, None
-    except IndexError: # Catches if id_number slicing goes out of bounds (should be caught by initial len check, but good for robustness)
-        return None, None
-    except Exception as e: # Catch any other unexpected errors
-        # Log the error for debugging purposes in a real application
-        # print(f"Error logging user activity: {e}")
+    except Exception:
+        # Catch any other unexpected errors
         return None, None
 
 def log_user_activity(user, action, details=""):
