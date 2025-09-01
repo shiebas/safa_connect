@@ -212,7 +212,8 @@
 <script src="{% static 'js/sa_id_validation.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded and parsed.');
+    try {
+        console.log('DOM fully loaded and parsed.');
 
     // --- FIELD SELECTORS ---
     const roleField = document.getElementById('id_role');
@@ -247,49 +248,74 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- UTILITY FUNCTIONS ---
-    const showField = (el) => el.classList.remove('d-none');
-    const hideField = (el) => el.classList.add('d-none');
+    const showField = (el) => {
+        try {
+            if (el && el.classList) {
+                el.classList.remove('d-none');
+            } else {
+                console.warn('showField: Invalid element provided:', el);
+            }
+        } catch (error) {
+            console.error('Error in showField:', error);
+        }
+    };
+    
+    const hideField = (el) => {
+        try {
+            if (el && el.classList) {
+                el.classList.add('d-none');
+            } else {
+                console.warn('hideField: Invalid element provided:', el);
+            }
+        } catch (error) {
+            console.error('Error in hideField:', error);
+        }
+    };
 
     // --- EVENT HANDLERS ---
 
     // Handle Role Change
     if (roleField) {
         roleField.addEventListener('change', function() {
-            console.log('Role field changed to:', this.value);
-            const role = this.value;
-            const associationSelect = document.getElementById('id_association');
+            try {
+                console.log('Role field changed to:', this.value);
+                const role = this.value;
+                const associationSelect = document.getElementById('id_association');
 
-            // Default state
-            hideField(clubContainer);
-            hideField(associationContainer);
-            if (clubField) clubField.required = false;
-            if (associationSelect) associationSelect.required = false;
+                // Default state
+                hideField(clubContainer);
+                hideField(associationContainer);
+                if (clubField) clubField.required = false;
+                if (associationSelect) associationSelect.required = false;
 
-            if (role === 'PLAYER') {
-                showField(clubContainer);
-                if (clubField) clubField.required = true;
-            } else if (role === 'OFFICIAL') {
-                showField(clubContainer);
-                showField(associationContainer);
-                // Make association required for officials, club is optional
-                if (associationSelect) associationSelect.required = true;
-            } else if (role === 'CLUB_ADMIN') {
-                showField(clubContainer);
-                if (clubField) clubField.required = true;
-            } else if (role === 'ASSOCIATION_ADMIN') {
-                showField(associationContainer);
-                if (associationSelect) associationSelect.required = true;
-            } else if (role === 'SUPPORTER') {
-                const locationContainer = document.getElementById('headingThree').parentNode;
-                if (locationContainer) {
-                    hideField(locationContainer);
+                if (role === 'PLAYER') {
+                    showField(clubContainer);
+                    if (clubField) clubField.required = true;
+                } else if (role === 'OFFICIAL') {
+                    showField(clubContainer);
+                    showField(associationContainer);
+                    // Make association required for officials, club is optional
+                    if (associationSelect) associationSelect.required = true;
+                } else if (role === 'CLUB_ADMIN') {
+                    showField(clubContainer);
+                    if (clubField) clubField.required = true;
+                } else if (role === 'ASSOCIATION_ADMIN') {
+                    showField(associationContainer);
+                    if (associationSelect) associationSelect.required = true;
+                } else if (role === 'SUPPORTER') {
+                    const locationContainer = document.getElementById('headingThree').parentNode;
+                    if (locationContainer) {
+                        hideField(locationContainer);
+                    }
+                } else {
+                    // For other roles like LFA, Region, Province admins, show location but not necessarily club/association
+                    const locationContainer = document.getElementById('headingThree').parentNode;
+                    if (locationContainer) {
+                        showField(locationContainer);
+                    }
                 }
-            } else {
-                // For other roles like LFA, Region, Province admins, show location but not necessarily club/association
-                const locationContainer = document.getElementById('headingThree').parentNode;
-                if (locationContainer) {
-                    showField(locationContainer);
-                }
+            } catch (error) {
+                console.error('Error in role change handler:', error);
             }
         });
     }
@@ -297,11 +323,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Existing Member Checkbox
     if (isExistingMemberField) {
         isExistingMemberField.addEventListener('change', function() {
-            console.log('isExistingMemberField changed, checked:', this.checked);
-            if (this.checked) {
-                showField(previousSafaIdContainer);
-            } else {
-                hideField(previousSafaIdContainer);
+            try {
+                console.log('isExistingMemberField changed, checked:', this.checked);
+                if (this.checked) {
+                    showField(previousSafaIdContainer);
+                } else {
+                    hideField(previousSafaIdContainer);
+                }
+            } catch (error) {
+                console.error('Error in existing member checkbox handler:', error);
             }
         });
     }
@@ -309,26 +339,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Has Email Checkbox
     if (hasEmailField) {
         hasEmailField.addEventListener('change', function() {
-            console.log('hasEmailField changed, checked:', this.checked);
-            if (this.checked) {
-                // User has email - show email field and hide notice
-                if (emailField) {
-                    emailField.style.opacity = '1';
-                    emailField.disabled = false;
-                    emailField.required = true;
-                    emailField.parentElement.style.pointerEvents = 'auto';
+            try {
+                console.log('hasEmailField changed, checked:', this.checked);
+                if (this.checked) {
+                    // User has email - show email field and hide notice
+                    if (emailField) {
+                        emailField.style.opacity = '1';
+                        emailField.disabled = false;
+                        emailField.required = true;
+                        emailField.parentElement.style.pointerEvents = 'auto';
+                    }
+                    hideField(generatedEmailNotice);
+                } else {
+                    // User doesn't have email - grey out email field and show notice
+                    if (emailField) {
+                        emailField.style.opacity = '0.5';
+                        emailField.disabled = true;
+                        emailField.required = false;
+                        emailField.value = ''; // Clear any entered value
+                        emailField.parentElement.style.pointerEvents = 'none';
+                    }
+                    showField(generatedEmailNotice);
                 }
-                hideField(generatedEmailNotice);
-            } else {
-                // User doesn't have email - grey out email field and show notice
-                if (emailField) {
-                    emailField.style.opacity = '0.5';
-                    emailField.disabled = true;
-                    emailField.required = false;
-                    emailField.value = ''; // Clear any entered value
-                    emailField.parentElement.style.pointerEvents = 'none';
-                }
-                showField(generatedEmailNotice);
+            } catch (error) {
+                console.error('Error in has email checkbox handler:', error);
             }
         });
 
@@ -339,104 +373,132 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Document Type Change
     if (idDocumentTypeField) {
         idDocumentTypeField.addEventListener('change', function() {
-            console.log('idDocumentTypeField changed to:', this.value);
-            
-            // Get all relevant fields
-            const idNumberField = document.getElementById('id_id_number');
-            const passportNumberField = document.getElementById('id_passport_number');
-            const dobField = document.getElementById('id_date_of_birth');
-            const genderField = document.getElementById('id_gender');
-            const idValidationMessage = document.getElementById('id-validation-message');
-            
-            if (this.value === 'ID') {
-                // Clear passport number when switching to ID
-                if (passportNumberField) passportNumberField.value = '';
+            try {
+                console.log('idDocumentTypeField changed to:', this.value);
                 
-                showField(saIdContainer);
-                hideField(passportContainer);
-                hideField(manualDobGenderContainer);
+                // Get all relevant fields
+                const idNumberField = document.getElementById('id_id_number');
+                const passportNumberField = document.getElementById('id_passport_number');
+                const dobField = document.getElementById('id_date_of_birth');
+                const genderField = document.getElementById('id_gender');
+                const idValidationMessage = document.getElementById('id-validation-message');
                 
-                // Clear any validation messages
-                if (idValidationMessage) {
-                    idValidationMessage.textContent = '';
-                    idValidationMessage.classList.remove('text-success', 'text-danger');
+                // Validate that required containers exist
+                if (!saIdContainer || !passportContainer || !manualDobGenderContainer) {
+                    console.error('Required containers not found:', { saIdContainer, passportContainer, manualDobGenderContainer });
+                    return;
                 }
                 
-                // Set up ID validation when ID field becomes visible
-                console.log('About to set up ID validation...');
-                setTimeout(() => {
-                    console.log('Setting up ID validation for visible field');
-                    setupIDValidation();
-                }, 100);
-                
-            } else if (this.value === 'PP') {
-                // Clear ID number when switching to passport
-                if (idNumberField) {
-                    idNumberField.value = '';
-                    idNumberField.classList.remove('is-valid', 'is-invalid');
+                if (this.value === 'ID') {
+                    // Clear passport number when switching to ID
+                    if (passportNumberField) passportNumberField.value = '';
+                    
+                    showField(saIdContainer);
+                    hideField(passportContainer);
+                    hideField(manualDobGenderContainer);
+                    
+                    // Clear any validation messages
+                    if (idValidationMessage) {
+                        idValidationMessage.textContent = '';
+                        idValidationMessage.classList.remove('text-success', 'text-danger');
+                    }
+                    
+                    // Set up ID validation when ID field becomes visible
+                    console.log('About to set up ID validation...');
+                    setTimeout(() => {
+                        try {
+                            console.log('Setting up ID validation for visible field');
+                            setupIDValidation();
+                        } catch (error) {
+                            console.error('Error setting up ID validation:', error);
+                        }
+                    }, 100);
+                    
+                } else if (this.value === 'PP') {
+                    // Clear ID number when switching to passport
+                    if (idNumberField) {
+                        idNumberField.value = '';
+                        idNumberField.classList.remove('is-valid', 'is-invalid');
+                    }
+                    
+                    // Clear validation message
+                    if (idValidationMessage) {
+                        idValidationMessage.textContent = '';
+                        idValidationMessage.classList.remove('text-success', 'text-danger');
+                    }
+                    
+                    hideField(saIdContainer);
+                    showField(passportContainer);
+                    showField(manualDobGenderContainer);
+                    
+                    // Clear and enable DOB and gender fields for manual entry
+                    if (dobField) {
+                        dobField.value = '';
+                        dobField.readOnly = false;
+                        dobField.disabled = false;
+                        dobField.style.backgroundColor = '';
+                        dobField.style.cursor = '';
+                        dobField.title = '';
+                    }
+                    if (genderField) {
+                        genderField.value = '';
+                        genderField.disabled = false;
+                        genderField.style.backgroundColor = '';
+                        genderField.style.cursor = '';
+                        genderField.title = '';
+                    }
                 }
-                
-                // Clear validation message
-                if (idValidationMessage) {
-                    idValidationMessage.textContent = '';
-                    idValidationMessage.classList.remove('text-success', 'text-danger');
-                }
-                
-                hideField(saIdContainer);
-                showField(passportContainer);
-                showField(manualDobGenderContainer);
-                
-                // Clear and enable DOB and gender fields for manual entry
-                if (dobField) {
-                    dobField.value = '';
-                    dobField.readOnly = false;
-                    dobField.disabled = false;
-                    dobField.style.backgroundColor = '';
-                    dobField.style.cursor = '';
-                    dobField.title = '';
-                }
-                if (genderField) {
-                    genderField.value = '';
-                    genderField.disabled = false;
-                    genderField.style.backgroundColor = '';
-                    genderField.style.cursor = '';
-                    genderField.title = '';
-                }
+            } catch (error) {
+                console.error('Error in document type change handler:', error);
             }
         });
     }
     
     // Simple ID validation setup (same as working admin_add_referee)
     function setupIDValidation() {
-        console.log('setupIDValidation function called');
-        const idNumberField = document.getElementById('id_id_number');
-        const idValidationMessage = document.getElementById('id-validation-message');
-        const dobField = document.getElementById('id_date_of_birth');
-        const genderField = document.getElementById('id_gender');
-        const manualDobGenderContainer = document.getElementById('manual_dob_gender_container');
-        
-        console.log('ID validation elements found:', {
-            idNumberField: idNumberField,
-            idValidationMessage: idValidationMessage,
-            dobField: dobField,
-            genderField: genderField,
-            manualDobGenderContainer: manualDobGenderContainer
-        });
-
-        function validateIDNumber() {
-            console.log('validateIDNumber function called');
-            const idNumber = idNumberField.value;
-            console.log('ID Number value:', idNumber);
+        try {
+            console.log('setupIDValidation function called');
+            const idNumberField = document.getElementById('id_id_number');
+            const idValidationMessage = document.getElementById('id-validation-message');
+            const dobField = document.getElementById('id_date_of_birth');
+            const genderField = document.getElementById('id_gender');
+            const manualDobGenderContainer = document.getElementById('manual_dob_gender_container');
             
-            if (typeof validateSAIDNumber !== 'function') {
-                console.error('validateSAIDNumber function not found!');
+            // Validate that required elements exist
+            if (!idNumberField || !idValidationMessage || !dobField || !genderField || !manualDobGenderContainer) {
+                console.error('Required validation elements not found:', {
+                    idNumberField: !!idNumberField,
+                    idValidationMessage: !!idValidationMessage,
+                    dobField: !!dobField,
+                    genderField: !!genderField,
+                    manualDobGenderContainer: !!manualDobGenderContainer
+                });
                 return;
             }
             
-            const validationResult = validateSAIDNumber(idNumber);
-            console.log('Validation result:', validationResult);
+            console.log('ID validation elements found:', {
+                idNumberField: idNumberField,
+                idValidationMessage: idValidationMessage,
+                dobField: dobField,
+                genderField: genderField,
+                manualDobGenderContainer: manualDobGenderContainer
+            });
 
-            if (validationResult.isValid) {
+            function validateIDNumber() {
+                try {
+                    console.log('validateIDNumber function called');
+                    const idNumber = idNumberField.value;
+                    console.log('ID Number value:', idNumber);
+                    
+                    if (typeof validateSAIDNumber !== 'function') {
+                        console.error('validateSAIDNumber function not found!');
+                        return;
+                    }
+                    
+                    const validationResult = validateSAIDNumber(idNumber);
+                    console.log('Validation result:', validationResult);
+
+                    if (validationResult.isValid) {
                 // Show success message
                 idValidationMessage.textContent = '';
                 idValidationMessage.classList.remove('text-danger');
@@ -503,11 +565,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 idNumberField.classList.remove('is-valid');
                 idNumberField.classList.add('is-invalid');
             }
-        }
+                } catch (error) {
+                    console.error('Error in validateIDNumber:', error);
+                    // Show generic error message
+                    if (idValidationMessage) {
+                        idValidationMessage.textContent = 'Error validating ID number. Please try again.';
+                        idValidationMessage.classList.remove('text-success');
+                        idValidationMessage.classList.add('text-danger');
+                    }
+                }
+            }
 
-        // Add event listener for ID number field
-        if (idNumberField) {
-            idNumberField.addEventListener('input', validateIDNumber);
+            // Add event listener for ID number field
+            if (idNumberField) {
+                idNumberField.addEventListener('input', validateIDNumber);
+            }
+        } catch (error) {
+            console.error('Error in setupIDValidation:', error);
         }
     }
 
@@ -549,65 +623,81 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (provinceField) {
         provinceField.addEventListener('change', function() {
-            const provinceId = this.value;
-            console.log('Province field changed, ID:', provinceId);
-            if (provinceId && regionField) {
-                updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
-            } else if (regionField) {
-                console.log('Province ID empty, resetting Region dropdown.');
-                regionField.innerHTML = '<option value="">Select Province First</option>';
-            }
-            if (lfaField) {
-                console.log('Resetting LFA dropdown.');
-                lfaField.innerHTML = '<option value="">Select Region First</option>';
-            }
-            if (clubField) {
-                console.log('Resetting Club dropdown.');
-                clubField.innerHTML = '<option value="">Select LFA First</option>';
+            try {
+                const provinceId = this.value;
+                console.log('Province field changed, ID:', provinceId);
+                if (provinceId && regionField) {
+                    updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
+                } else if (regionField) {
+                    console.log('Province ID empty, resetting Region dropdown.');
+                    regionField.innerHTML = '<option value="">Select Province First</option>';
+                }
+                if (lfaField) {
+                    console.log('Resetting LFA dropdown.');
+                    lfaField.innerHTML = '<option value="">Select Region First</option>';
+                }
+                if (clubField) {
+                    console.log('Resetting Club dropdown.');
+                    clubField.innerHTML = '<option value="">Select LFA First</option>';
+                }
+            } catch (error) {
+                console.error('Error in province change handler:', error);
             }
         });
     }
 
     if (regionField) {
         regionField.addEventListener('change', function() {
-            const regionId = this.value;
-            console.log('Region field changed, ID:', regionId);
-            if (regionId && lfaField) {
-                updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
-            } else if (lfaField) {
-                console.log('Region ID empty, resetting LFA dropdown.');
-                lfaField.innerHTML = '<option value="">Select Region First</option>';
-            }
-            if (clubField) {
-                console.log('Resetting Club dropdown.');
-                clubField.innerHTML = '<option value="">Select LFA First</option>';
+            try {
+                const regionId = this.value;
+                console.log('Region field changed, ID:', regionId);
+                if (regionId && lfaField) {
+                    updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
+                } else if (lfaField) {
+                    console.log('Region ID empty, resetting LFA dropdown.');
+                    lfaField.innerHTML = '<option value="">Select Region First</option>';
+                }
+                if (clubField) {
+                    console.log('Resetting Club dropdown.');
+                    clubField.innerHTML = '<option value="">Select LFA First</option>';
+                }
+            } catch (error) {
+                console.error('Error in region change handler:', error);
             }
         });
     }
 
     if (lfaField) {
         lfaField.addEventListener('change', function() {
-            const lfaId = this.value;
-            console.log('LFA field changed, ID:', lfaId);
-            if (lfaId && clubField) {
-                updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
-            } else if (clubField) {
-                console.log('LFA ID empty, resetting Club dropdown.');
-                clubField.innerHTML = '<option value="">Select LFA First</option>';
+            try {
+                const lfaId = this.value;
+                console.log('LFA field changed, ID:', lfaId);
+                if (lfaId && clubField) {
+                    updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
+                } else if (clubField) {
+                    console.log('LFA ID empty, resetting Club dropdown.');
+                    clubField.innerHTML = '<option value="">Select LFA First</option>';
+                }
+            } catch (error) {
+                console.error('Error in LFA change handler:', error);
             }
         });
     }
 
     // --- INITIALIZATION ---
-    console.log('Dispatching initial change events...');
-    if (roleField) roleField.dispatchEvent(new Event('change'));
-    if (idDocumentTypeField) idDocumentTypeField.dispatchEvent(new Event('change'));
-    if (isExistingMemberField) isExistingMemberField.dispatchEvent(new Event('change'));
+    try {
+        console.log('Dispatching initial change events...');
+        if (roleField) roleField.dispatchEvent(new Event('change'));
+        if (idDocumentTypeField) idDocumentTypeField.dispatchEvent(new Event('change'));
+        if (isExistingMemberField) isExistingMemberField.dispatchEvent(new Event('change'));
 
-    // Trigger initial load for province if a value is already selected (e.g., on form error re-render)
-    if (provinceField && provinceField.value) {
-        console.log('Initial province value detected, triggering change event.');
-        provinceField.dispatchEvent(new Event('change'));
+        // Trigger initial load for province if a value is already selected (e.g., on form error re-render)
+        if (provinceField && provinceField.value) {
+            console.log('Initial province value detected, triggering change event.');
+            provinceField.dispatchEvent(new Event('change'));
+        }
+    } catch (error) {
+        console.error('Error during initialization:', error);
     }
 
     // --- POPI ACT CONSENT ---
@@ -620,8 +710,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add event listener to the checkbox
         popiConsentField.addEventListener('change', function() {
-            submitButton.disabled = !this.checked;
+            try {
+                submitButton.disabled = !this.checked;
+            } catch (error) {
+                console.error('Error in POPI consent handler:', error);
+            }
         });
+    }
+    } catch (error) {
+        console.error('Error in main registration script:', error);
     }
 });
 </script>

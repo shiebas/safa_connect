@@ -195,7 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const total = oddSum + evenSum;
             const checkDigit = (10 - (total % 10)) % 10;
 
-.
             if (checkDigit === parseInt(idNumber.charAt(12))) {
                 result.isValid = true;
             } else {
