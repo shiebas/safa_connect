@@ -4,7 +4,7 @@ from django.utils import timezone
 from datetime import timedelta, date
 from decimal import Decimal, ROUND_HALF_UP
 from django.contrib.contenttypes.models import ContentType
-from .models import Invoice, InvoiceItem, InvoicePayment, InvoiceInstallment
+from .models import Invoice, InvoiceItem, Member
 from .config_models import SAFASeasonConfig, SAFAFeeStructure, SAFAPaymentPlan
 from geography.models import Association, Province, Region, LocalFootballAssociation, Club
 
@@ -79,32 +79,37 @@ class SAFAInvoiceManager:
         # Check if invoice already exists for this season
         existing_invoice = Invoice.objects.filter(
             season_config=season_config,
-            player=member if isinstance(member, Player) else None,
-            official=member if isinstance(member, Official) else None,
+            member=member,
             invoice_type='REGISTRATION'
         ).first()
         
         if existing_invoice:
             return existing_invoice
         
-        # Determine entity type for fee lookup
-        if isinstance(member, Player):
-            age = (registration_date - member.date_of_birth).days // 365
-            entity_type = 'PLAYER_JUNIOR' if age < 18 else 'PLAYER_SENIOR'
-        elif isinstance(member, Official):
-            position_title = member.position.title.lower() if member.position else ""
-            if 'referee' in position_title:
-                entity_type = 'OFFICIAL_REFEREE'
-            elif 'coach' in position_title:
-                entity_type = 'OFFICIAL_COACH'
-            elif 'secretary' in position_title:
-                entity_type = 'OFFICIAL_SECRETARY'
-            elif 'treasurer' in position_title:
-                entity_type = 'OFFICIAL_TREASURER'
-            elif 'committee' in position_title:
-                entity_type = 'OFFICIAL_COMMITTEE'
+        # Determine entity type for fee lookup based on member role
+        role = getattr(member, 'role', 'PLAYER')
+        if role == 'PLAYER':
+            # Calculate age to determine junior vs senior
+            if hasattr(member, 'date_of_birth') and member.date_of_birth:
+                age = (registration_date - member.date_of_birth).days // 365
+                entity_type = 'PLAYER_JUNIOR' if age < 18 else 'PLAYER_SENIOR'
             else:
-                entity_type = 'OFFICIAL_GENERAL'
+                entity_type = 'PLAYER_SENIOR'  # Default to senior if no DOB
+        elif role == 'OFFICIAL':
+            # For officials, we default to GENERAL
+            entity_type = 'OFFICIAL_GENERAL'
+        elif role == 'COACH':
+            entity_type = 'COACH_GENERAL'
+        elif role == 'CLUB_ADMIN':
+            entity_type = 'ADMIN_CLUB'
+        elif role == 'ASSOCIATION_ADMIN':
+            entity_type = 'ADMIN_ASSOCIATION'
+        elif role == 'ADMIN_LOCAL_FED':
+            entity_type = 'ADMIN_LFA'
+        elif role == 'ADMIN_REGION':
+            entity_type = 'ADMIN_REGION'
+        elif role == 'ADMIN_PROVINCE':
+            entity_type = 'ADMIN_PROVINCE'
         else:
             entity_type = 'PLAYER_SENIOR'  # Default
         
@@ -134,9 +139,7 @@ class SAFAInvoiceManager:
         with transaction.atomic():
             invoice = Invoice.objects.create(
                 season_config=season_config,
-                player=member if isinstance(member, Player) else None,
-                official=member if isinstance(member, Official) else None,
-                club=getattr(member, 'club', None),
+                member=member,
                 subtotal=pro_rata_amount,
                 vat_rate=season_config.vat_rate,
                 invoice_type='REGISTRATION',
@@ -410,20 +413,12 @@ class SAFAInvoiceManager:
                 except Exception as e:
                     print(f"Failed to create invoice for club {club}: {e}")
             
-            # Generate for all active players
-            for player in Player.objects.filter(status='ACTIVE'):
+            # Generate for all active members
+            for member in Member.objects.filter(status='ACTIVE'):
                 try:
-                    invoice = cls.create_member_invoice(player, season_config=season_config)
+                    invoice = cls.create_member_invoice(member, season_config=season_config)
                     renewal_count += 1
                 except Exception as e:
-                    print(f"Failed to create invoice for player {player}: {e}")
-            
-            # Generate for all active officials
-            for official in Official.objects.filter(status='ACTIVE'):
-                try:
-                    invoice = cls.create_member_invoice(official, season_config=season_config)
-                    renewal_count += 1
-                except Exception as e:
-                    print(f"Failed to create invoice for official {official}: {e}")
+                    print(f"Failed to create invoice for member {member}: {e}")
         
         return renewal_count, season_config

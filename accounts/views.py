@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
@@ -24,7 +25,7 @@ from .forms import (
     AdvancedMemberSearchForm, ClubAdminAddPlayerForm,
     ClubAdminRegistrationForm, ModernContactForm, ProfileForm,
     RejectMemberForm, RegistrationForm, SettingsForm,
-    UpdateProfilePhotoForm, EditPlayerForm, ConfirmPaymentForm)
+    UpdateProfilePhotoForm, EditPlayerForm, ConfirmPaymentForm, ProofOfPaymentForm)
 from geography.forms import (
     ProvinceComplianceForm,
     RegionComplianceForm,
@@ -1459,3 +1460,12 @@ def reject_invoice_payment(request, invoice_uuid):
         logger.error(f"Error rejecting invoice {invoice.invoice_number}: {e}")
 
     return redirect('accounts:national_admin_payment_review')
+
+
+def custom_logout(request):
+    """
+    Custom logout view that ensures users are redirected to the correct login page
+    """
+    logout(request)
+    messages.success(request, "You have been successfully logged out.")
+    return redirect('accounts:login')
