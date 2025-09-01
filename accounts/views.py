@@ -760,7 +760,15 @@ def senior_membership_dashboard(request):
 
 @login_required
 def club_invoices(request):
+    club = request.user.club # Assuming club admin has a 'club' attribute
     invoices = []
+    if club:
+        # Get invoices for members belonging to this club
+        invoices = Invoice.objects.filter(
+            Q(member__current_club=club) | Q(organization=club), # Invoices for members or the club itself
+            status__in=['PENDING', 'PARTIALLY_PAID', 'OVERDUE', 'PENDING_REVIEW'] # Only show relevant statuses
+        ).order_by('-issue_date')
+
     context = {
         'title': 'Club Invoices',
         'invoices': invoices,
@@ -898,6 +906,7 @@ def update_organization_status(request):
 
 
 @login_required
+@role_required(allowed_roles=['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'SUPERUSER'])
 def national_finance_dashboard(request):
     return render(request, 'accounts/national_finance_dashboard.html')
 
@@ -1162,12 +1171,12 @@ def club_admin_add_person(request):
                         # Invoice goes to SAFA account with 'Confirm Payment' status
                         invoice_status = 'PENDING'  # Default status
                         invoice_notes = f"Registration invoice for {member.get_full_name()} - {entity_type.replace('_', ' ').title()}"
-                        
+
                         # Check if this is a club admin registration
                         if request.user.role == 'CLUB_ADMIN':
-                            invoice_status = 'PENDING'  # Will be marked as 'CONFIRM_PAYMENT' later
+                            invoice_status = 'PENDING_REVIEW'  # Set to PENDING_REVIEW directly
                             invoice_notes += " - Registered by Club Admin. Payment to be confirmed by SAFA."
-                        
+
                         # Create invoice
                         invoice = Invoice.objects.create(
                             member=member,
@@ -1176,9 +1185,10 @@ def club_admin_add_person(request):
                             subtotal=fee_amount,
                             status=invoice_status,
                             notes=invoice_notes,
-                            issued_by=request.user
+                            issued_by=request.user,
+                            payment_method='BANK_TRANSFER' # Set a default payment method
                         )
-                        
+
                         # Create invoice item
                         InvoiceItem.objects.create(
                             invoice=invoice,
@@ -1186,12 +1196,12 @@ def club_admin_add_person(request):
                             quantity=1,
                             amount=fee_amount
                         )
-                        
+
                         # ADDED: Special handling for club admin registrations
                         if request.user.role == 'CLUB_ADMIN':
-                            # Mark invoice as requiring payment confirmation rather than direct payment
-                            invoice.status = 'PENDING'
-                            invoice.payment_method = 'CONFIRM_PAYMENT'  # Special flag for SAFA confirmation
+                            # No need to change status again, it's already PENDING_REVIEW
+                            # invoice.status = 'PENDING_REVIEW' # This line is now redundant
+                            # invoice.payment_method = 'CONFIRM_PAYMENT'  # Special flag for SAFA confirmation
                             invoice.notes += " - Awaiting SAFA payment confirmation."
                             invoice.save()
                         
@@ -1438,3 +1448,107 @@ def confirm_payment(request):
         'title': 'Confirm Payment'
     }
     return render(request, 'accounts/confirm_payment.html', context)
+
+
+@login_required
+def submit_proof_of_payment(request, invoice_uuid):
+    invoice = get_object_or_404(Invoice, uuid=invoice_uuid)
+
+    # Security check: Only the member who owns the invoice or a club admin
+    # associated with the member's club can submit proof of payment.
+    # National admins will have a separate approval flow.
+    if not (request.user == invoice.member.user or \
+            (request.user.role == 'CLUB_ADMIN' and request.user.club == invoice.member.current_club)):
+        messages.error(request, "You do not have permission to submit proof of payment for this invoice.")
+        return redirect('accounts:my_invoices') # Or appropriate redirect
+
+    if request.method == 'POST':
+        form = ProofOfPaymentForm(request.POST, request.FILES, initial={'invoice_uuid': invoice.uuid})
+        if form.is_valid():
+            # Update invoice fields
+            invoice.proof_of_payment = form.cleaned_data['proof_of_payment']
+            invoice.payment_method = form.cleaned_data['payment_method']
+            invoice.payment_reference = form.cleaned_data['payment_reference']
+            invoice.payment_submitted_by = request.user
+            invoice.payment_submission_date = timezone.now()
+            invoice.status = 'PENDING_REVIEW' # Set new status
+            invoice.save()
+
+            messages.success(request, f"Proof of payment for Invoice {invoice.invoice_number} submitted successfully. Awaiting National Admin review.")
+            return redirect('accounts:invoice_detail', invoice_uuid=invoice.uuid)
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+    else:
+        form = ProofOfPaymentForm(initial={'invoice_uuid': invoice.uuid})
+
+    context = {
+        'invoice': invoice,
+        'form': form,
+        'title': 'Submit Proof of Payment'
+    }
+    return render(request, 'accounts/submit_proof_of_payment.html', context)
+
+
+@login_required
+@role_required(allowed_roles=['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'SUPERUSER'])
+def national_admin_payment_review(request):
+    # Filter invoices that are PENDING_REVIEW
+    invoices = Invoice.objects.filter(status='PENDING_REVIEW').order_by('-payment_submission_date')
+
+    context = {
+        'invoices': invoices,
+        'title': 'Payment Review (National Admin)'
+    }
+    return render(request, 'accounts/national_admin_payment_review.html', context)
+
+
+@login_required
+@role_required(allowed_roles=['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'SUPERUSER'])
+@require_POST
+def approve_invoice_payment(request, invoice_uuid):
+    invoice = get_object_or_404(Invoice, uuid=invoice_uuid)
+
+    if invoice.status != 'PENDING_REVIEW':
+        messages.error(request, "Invoice is not in 'Pending Review' status.")
+        return redirect('accounts:national_admin_payment_review')
+
+    try:
+        # Mark as paid using the existing method
+        invoice.mark_as_paid(
+            payment_method=invoice.payment_method, # Use the method submitted by club admin
+            payment_reference=f"Approved by {request.user.get_full_name()} - {invoice.payment_reference}"
+        )
+        messages.success(request, f"Payment for Invoice {invoice.invoice_number} approved successfully.")
+    except Exception as e:
+        messages.error(request, f"Error approving payment for Invoice {invoice.invoice_number}: {e}")
+        logger.error(f"Error approving invoice {invoice.invoice_number}: {e}")
+
+    return redirect('accounts:national_admin_payment_review')
+
+
+@login_required
+@role_required(allowed_roles=['ADMIN_NATIONAL', 'ADMIN_NATIONAL_ACCOUNTS', 'SUPERUSER'])
+@require_POST
+def reject_invoice_payment(request, invoice_uuid):
+    invoice = get_object_or_404(Invoice, uuid=invoice_uuid)
+    rejection_reason = request.POST.get('rejection_reason', 'No reason provided.')
+
+    if invoice.status != 'PENDING_REVIEW':
+        messages.error(request, "Invoice is not in 'Pending Review' status.")
+        return redirect('accounts:national_admin_payment_review')
+
+    try:
+        # Revert status to PENDING and clear proof of payment
+        invoice.status = 'PENDING'
+        invoice.proof_of_payment = None # Clear the uploaded proof
+        invoice.payment_submitted_by = None
+        invoice.payment_submission_date = None
+        invoice.notes += f"\nPayment rejected by {request.user.get_full_name()} on {timezone.now().date()}: {rejection_reason}"
+        invoice.save()
+
+        messages.warning(request, f"Payment for Invoice {invoice.invoice_number} rejected. Reason: {rejection_reason}")
+    except Exception as e:
+        messages.error(request, f"Error rejecting payment for Invoice {invoice.invoice_number}: {e}")
+        logger.error(f"Error rejecting invoice {invoice.invoice_number}: {e}")
+
+    return redirect('accounts:national_admin_payment_review')

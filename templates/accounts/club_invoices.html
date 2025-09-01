@@ -1,33 +1,67 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block content %}
-<div class="container">
-    <h1>{{ title }}</h1>
-    <p>This is a placeholder page for club invoices. A list of invoices will be displayed here.</p>
+<div class="container mt-4">
+    <h1 class="mb-4">{{ title }}</h1>
 
     {% if invoices %}
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Invoice #</th>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for invoice in invoices %}
-            <tr>
-                <td>{{ invoice.invoice_number }}</td>
-                <td>{{ invoice.issue_date }}</td>
-                <td>R {{ invoice.amount }}</td>
-                <td>{{ invoice.status }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Your Club's Invoices</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Billed To</th>
+                            <th>Issue Date</th>
+                            <th>Due Date</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td>{{ invoice.invoice_number }}</td>
+                            <td>
+                                {% if invoice.member %}
+                                    {{ invoice.member.get_full_name }}
+                                {% elif invoice.organization %}
+                                    {{ invoice.organization.name }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>{{ invoice.issue_date|date:"d M Y" }}</td>
+                            <td>{{ invoice.due_date|date:"d M Y" }}</td>
+                            <td>R {{ invoice.total_amount|intcomma }}</td>
+                            <td>
+                                <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'PENDING_REVIEW' %}info{% elif invoice.status == 'PENDING' or invoice.status == 'PARTIALLY_PAID' %}warning text-dark{% elif invoice.status == 'OVERDUE' %}danger{% else %}secondary{% endif %}">
+                                    {{ invoice.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'accounts:invoice_detail' invoice.uuid %}" class="btn btn-sm btn-outline-primary">View</a>
+                                {% if invoice.status == 'PENDING' or invoice.status == 'PARTIALLY_PAID' %}
+                                <a href="{% url 'accounts:submit_proof_of_payment' invoice.uuid %}" class="btn btn-sm btn-success ms-1">Submit Proof</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     {% else %}
-    <p>No invoices to display.</p>
+    <div class="alert alert-info" role="alert">
+        No invoices to display for your club.
+    </div>
     {% endif %}
 </div>
 {% endblock %}

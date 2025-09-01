@@ -1390,6 +1390,7 @@ class Invoice(TimeStampedModel):
     INVOICE_STATUS = [
         ('DRAFT', _('Draft')),
         ('PENDING', _('Pending Payment')),
+        ('PENDING_REVIEW', _('Pending Review (Proof Submitted)')), # New status
         ('PAID', _('Fully Paid')),
         ('OVERDUE', _('Overdue')),
         ('CANCELLED', _('Cancelled')),
@@ -1492,13 +1493,37 @@ class Invoice(TimeStampedModel):
     payment_date = models.DateTimeField(_("Payment Date"), null=True, blank=True)
 
     # Payment details
-    payment_method = models.CharField(_("Payment Method"), max_length=50, blank=True)
+    PAYMENT_METHODS = [
+        ('EFT', _('Electronic Funds Transfer')),
+        ('CASH', _('Cash')),
+        ('CARD', _('Credit/Debit Card')),
+        ('CHEQUE', _('Cheque')),
+        ('ONLINE', _('Online Payment')),
+        ('MOBILE', _('Mobile Payment')),
+        ('OTHER', _('Other')),
+        ('BANK_TRANSFER', _('Bank Transfer')),
+    ]
+
+    payment_method = models.CharField(_("Payment Method"), max_length=50, blank=True, choices=PAYMENT_METHODS)
     payment_reference = models.CharField(_("Payment Reference"), max_length=100, blank=True)
     proof_of_payment = models.FileField(
         _("Proof of Payment"),
         upload_to='payment_proofs/%Y/%m/',
         null=True, blank=True,
         help_text=_("Upload proof of payment document or receipt")
+    )
+
+    payment_submitted_by = models.ForeignKey( # New field
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='submitted_invoice_payments',
+        help_text=_("User who submitted the proof of payment")
+    )
+    payment_submission_date = models.DateTimeField( # New field
+        _("Payment Submission Date"),
+        null=True, blank=True,
+        help_text=_("Date and time when proof of payment was submitted")
     )
 
     # Administrative

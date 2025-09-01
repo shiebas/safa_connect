@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ title }}</h1>
+
+    {% if invoices %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Invoices Awaiting Review</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Member/Organization</th>
+                            <th>Amount</th>
+                            <th>Submitted By</th>
+                            <th>Submission Date</th>
+                            <th>Proof of Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td>{{ invoice.invoice_number }}</td>
+                            <td>
+                                {% if invoice.member %}
+                                    {{ invoice.member.get_full_name }}
+                                {% elif invoice.organization %}
+                                    {{ invoice.organization.name }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>R{{ invoice.total_amount|intcomma }}</td>
+                            <td>{{ invoice.payment_submitted_by.get_full_name }}</td>
+                            <td>{{ invoice.payment_submission_date|date:"d M Y H:i" }}</td>
+                            <td>
+                                {% if invoice.proof_of_payment %}
+                                <a href="{{ invoice.proof_of_payment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    View Proof
+                                </a>
+                                {% else %}
+                                    No Proof
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="{% url 'accounts:approve_invoice_payment' invoice.uuid %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                                <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#rejectModal{{ invoice.uuid }}">Reject</button>
+
+                                <!-- Reject Modal -->
+                                <div class="modal fade" id="rejectModal{{ invoice.uuid }}" tabindex="-1" aria-labelledby="rejectModalLabel{{ invoice.uuid }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form action="{% url 'accounts:reject_invoice_payment' invoice.uuid %}" method="post">
+                                                {% csrf_token %}
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="rejectModalLabel{{ invoice.uuid }}">Reject Invoice {{ invoice.invoice_number }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="rejectionReason{{ invoice.uuid }}" class="form-label">Reason for Rejection:</label>
+                                                        <textarea class="form-control" id="rejectionReason{{ invoice.uuid }}" name="rejection_reason" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-danger">Reject Payment</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No invoices currently require payment review.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

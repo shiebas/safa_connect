@@ -11,7 +11,7 @@ from crispy_forms.layout import Layout, Fieldset, Div, Field, HTML, ButtonHolder
 from .models import CustomUser, EMPLOYMENT_STATUS, Position, OrganizationType, ROLES, REGISTRATION_ROLES
 from geography.models import Province, Region, LocalFootballAssociation, Club, NationalFederation, Association, Country
 from django.db.models import Q
-from membership.models import Member
+from membership.models import Member, Invoice
 from geography.models import Country, Province, Region, LocalFootballAssociation, Club
 from .utils import extract_sa_id_dob_gender
 from membership.safa_config_models import SAFASeasonConfig
@@ -1472,6 +1472,36 @@ class ConfirmPaymentForm(forms.Form):
         help_text="Enter the invoice number (e.g., MEMYYYYMMDD/SAFAID-XX) to find the invoice.",
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
+
+
+class ProofOfPaymentForm(forms.Form):
+    invoice_uuid = forms.UUIDField(widget=forms.HiddenInput())
+    proof_of_payment = forms.FileField(
+        label="Upload Proof of Payment",
+        required=True,
+        help_text="Upload a clear image or PDF of the payment receipt/proof."
+    )
+    payment_method = forms.ChoiceField(
+        choices=Invoice.PAYMENT_METHODS,
+        label="Payment Method",
+        required=True
+    )
+    payment_reference = forms.CharField(
+        label="Payment Reference",
+        max_length=100,
+        required=False,
+        help_text="Enter the bank reference or transaction ID."
+    )
+
+    def clean_proof_of_payment(self):
+        proof = self.cleaned_data.get('proof_of_payment')
+        if proof:
+            # Basic file type and size validation
+            if not proof.content_type in ['image/jpeg', 'image/png', 'application/pdf']:
+                raise forms.ValidationError("Only JPEG, PNG, and PDF files are allowed.")
+            if proof.size > 5 * 1024 * 1024: # 5 MB
+                raise forms.ValidationError("File size cannot exceed 5 MB.")
+        return proof
 
 class ClubAdminRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, label="Password")
