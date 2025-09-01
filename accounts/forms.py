@@ -579,6 +579,12 @@ class RegistrationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+
+        # Explicitly set date_of_birth and gender from cleaned_data
+        # This ensures values from clean_id_number or direct form input are used
+        user.date_of_birth = self.cleaned_data.get('date_of_birth')
+        user.gender = self.cleaned_data.get('gender')
+
         if commit:
             user.save()
         return user

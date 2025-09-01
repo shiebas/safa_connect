@@ -101,8 +101,8 @@ def user_registration(request):
                 'email': user.email,
                 'role': user.role,
                 'status': 'PENDING',
-                'date_of_birth': user.date_of_birth,
-                'gender': user.gender,
+                'date_of_birth': form.cleaned_data['date_of_birth'], # Use cleaned_data directly
+                'gender': form.cleaned_data['gender'],               # Use cleaned_data directly
                 'id_number': user.id_number,
                 'passport_number': user.passport_number,
                 'street_address': user.street_address,
