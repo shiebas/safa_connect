@@ -37,23 +37,45 @@ $(document).ready(function() {
         const selectedType = docTypeField.val();
         console.log("Document type changed to:", selectedType);
         
-        // Clear fields
+        // Get field references
         const idNumberField = $('#id_id_number');
-        dobField.val('');
-        genderField.val('');
-        idNumberField.val('');
+        const passportNumberField = $('#id_passport_number');
         
         if (selectedType === 'ID' || selectedType === 'BC') {
+            // Clear passport number when switching to ID
+            if (passportNumberField) passportNumberField.val('');
+            
+            // Clear DOB and gender fields
+            dobField.val('');
+            genderField.val('');
+            
             idNumberContainer.show();
             dobField.prop('disabled', true);
             genderField.prop('disabled', true);
             console.log("ID/BC selected - showing ID field");
         } else {
-            idNumberContainer.hide();
+            // Clear ID number when switching to passport
+            idNumberField.val('');
+            
+            // Clear and enable DOB and gender fields for manual entry
+            dobField.val('');
+            genderField.val('');
             dobField.prop('disabled', false);
             genderField.prop('disabled', false);
-            // For passports, set ID number to null/empty to avoid uniqueness issues
-            idNumberField.val('');
+            
+            // Reset styling for manual entry
+            dobField.css({
+                'backgroundColor': '',
+                'cursor': '',
+                'title': ''
+            });
+            genderField.css({
+                'backgroundColor': '',
+                'cursor': '',
+                'title': ''
+            });
+            
+            idNumberContainer.hide();
             console.log("Non-ID/BC selected - hiding ID field, clearing ID number");
         }
         

@@ -340,10 +340,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (idDocumentTypeField) {
         idDocumentTypeField.addEventListener('change', function() {
             console.log('idDocumentTypeField changed to:', this.value);
+            
+            // Get all relevant fields
+            const idNumberField = document.getElementById('id_id_number');
+            const passportNumberField = document.getElementById('id_passport_number');
+            const dobField = document.getElementById('id_date_of_birth');
+            const genderField = document.getElementById('id_gender');
+            const idValidationMessage = document.getElementById('id-validation-message');
+            
             if (this.value === 'ID') {
+                // Clear passport number when switching to ID
+                if (passportNumberField) passportNumberField.value = '';
+                
                 showField(saIdContainer);
                 hideField(passportContainer);
                 hideField(manualDobGenderContainer);
+                
+                // Clear any validation messages
+                if (idValidationMessage) {
+                    idValidationMessage.textContent = '';
+                    idValidationMessage.classList.remove('text-success', 'text-danger');
+                }
                 
                 // Set up ID validation when ID field becomes visible
                 console.log('About to set up ID validation...');
@@ -353,9 +370,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 100);
                 
             } else if (this.value === 'PP') {
+                // Clear ID number when switching to passport
+                if (idNumberField) {
+                    idNumberField.value = '';
+                    idNumberField.classList.remove('is-valid', 'is-invalid');
+                }
+                
+                // Clear validation message
+                if (idValidationMessage) {
+                    idValidationMessage.textContent = '';
+                    idValidationMessage.classList.remove('text-success', 'text-danger');
+                }
+                
                 hideField(saIdContainer);
                 showField(passportContainer);
                 showField(manualDobGenderContainer);
+                
+                // Clear and enable DOB and gender fields for manual entry
+                if (dobField) {
+                    dobField.value = '';
+                    dobField.readOnly = false;
+                    dobField.disabled = false;
+                    dobField.style.backgroundColor = '';
+                    dobField.style.cursor = '';
+                    dobField.title = '';
+                }
+                if (genderField) {
+                    genderField.value = '';
+                    genderField.disabled = false;
+                    genderField.style.backgroundColor = '';
+                    genderField.style.cursor = '';
+                    genderField.title = '';
+                }
             }
         });
     }

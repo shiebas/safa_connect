@@ -190,6 +190,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const docType = docTypeSelect.value;
         console.log('Document type changed to:', docType);
 
+        // Get all input fields
+        const idInput = document.querySelector('input[name="id_number"]');
+        const passportInput = document.querySelector('input[name="passport_number"]');
+        const driverLicenseInput = document.querySelector('input[name="driver_license_number"]');
+        const otherDocInput = document.querySelector('input[name="id_number_other"]');
+
+        // Clear all fields first
+        [idInput, passportInput, driverLicenseInput, otherDocInput].forEach(input => {
+            if (input) input.value = '';
+        });
+
         // Hide all fields
         [idNumberField, passportField, driverLicenseField, otherDocumentField].forEach(field => {
             if (field) field.style.display = 'none';

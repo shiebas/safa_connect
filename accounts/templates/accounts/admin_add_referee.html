@@ -439,16 +439,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleDocumentFields() {
         const selectedType = docTypeField.value;
+        
+        // Get field references
+        const idNumberField = document.getElementById('id_id_number');
+        const passportNumberField = document.getElementById('id_passport_number');
+        const dobField = document.getElementById('id_date_of_birth');
+        const genderField = document.getElementById('id_gender');
+        
         if (selectedType === 'ID') {
+            // Clear passport number when switching to ID
+            if (passportNumberField) passportNumberField.value = '';
+            
             if (saIdField) saIdField.style.display = 'block';
             if (passportField) passportField.style.display = 'none';
             if (dobRow) dobRow.style.display = 'none';
             if (dobField) dobField.readOnly = true;
         } else if (selectedType === 'PP') {
+            // Clear ID number when switching to passport
+            if (idNumberField) idNumberField.value = '';
+            
+            // Clear and enable DOB and gender fields for manual entry
+            if (dobField) {
+                dobField.value = '';
+                dobField.readOnly = false;
+                dobField.style.backgroundColor = '';
+                dobField.style.cursor = '';
+                dobField.title = '';
+            }
+            if (genderField) {
+                genderField.value = '';
+                genderField.disabled = false;
+                genderField.style.backgroundColor = '';
+                genderField.style.cursor = '';
+                genderField.title = '';
+            }
+            
             if (saIdField) saIdField.style.display = 'none';
             if (passportField) passportField.style.display = 'block';
             if (dobRow) dobRow.style.display = 'flex';
-            if (dobField) dobField.readOnly = false;
         } else {
             if (saIdField) saIdField.style.display = 'none';
             if (passportField) passportField.style.display = 'none';

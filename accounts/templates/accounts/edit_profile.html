@@ -125,18 +125,43 @@ try {
 
         function toggleDocumentFields() {
             const selectedType = docTypeField.value;
+            
+            // Get field references
+            const idNumberField = document.getElementById('id_id_number');
+            const passportNumberField = document.getElementById('id_passport_number');
+            
             if (selectedType === 'ID') {
+                // Clear passport number when switching to ID
+                if (passportNumberField) passportNumberField.value = '';
+                
                 if (saIdContainer) saIdContainer.style.display = 'block';
                 if (passportContainer) passportContainer.style.display = 'none';
                 if (dobGenderContainer) dobGenderContainer.style.display = 'none';
                 if (dobField) dobField.readOnly = true;
                 if (genderField) genderField.readOnly = true;
             } else if (selectedType === 'PP') {
+                // Clear ID number when switching to passport
+                if (idNumberField) idNumberField.value = '';
+                
+                // Clear and enable DOB and gender fields for manual entry
+                if (dobField) {
+                    dobField.value = '';
+                    dobField.readOnly = false;
+                    dobField.style.backgroundColor = '';
+                    dobField.style.cursor = '';
+                    dobField.title = '';
+                }
+                if (genderField) {
+                    genderField.value = '';
+                    genderField.disabled = false;
+                    genderField.style.backgroundColor = '';
+                    genderField.style.cursor = '';
+                    genderField.title = '';
+                }
+                
                 if (saIdContainer) saIdContainer.style.display = 'none';
                 if (passportContainer) passportContainer.style.display = 'block';
                 if (dobGenderContainer) dobGenderContainer.style.display = 'flex';
-                if (dobField) dobField.readOnly = false;
-                if (genderField) genderField.readOnly = false;
             } else { // Default or unexpected value
                 if (saIdContainer) saIdContainer.style.display = 'none';
                 if (passportContainer) passportContainer.style.display = 'none';

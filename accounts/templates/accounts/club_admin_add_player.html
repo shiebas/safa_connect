@@ -205,6 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Manual entry for DOB and gender with foreign passport
             dobField.disabled = false;
             genderField.disabled = false;
+            // Clear DOB and gender fields when switching to passport
+            dobField.value = '';
+            genderField.value = '';
+            // Reset styling for manual entry
+            dobField.style.backgroundColor = '';
+            dobField.style.cursor = '';
+            dobField.title = '';
+            genderField.style.backgroundColor = '';
+            genderField.style.cursor = '';
+            genderField.title = '';
             // Show DOB and gender fields for passport (manual entry required)
             document.getElementById('div_id_date_of_birth').style.display = 'block';
             document.getElementById('div_id_gender').style.display = 'block';

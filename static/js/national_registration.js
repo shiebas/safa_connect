@@ -110,11 +110,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function toggleIdFields() {
+        // Get field references
+        const idNumberField = document.getElementById('id_id_number');
+        const passportNumberField = document.getElementById('id_passport_number');
+        const dobField = document.getElementById('id_date_of_birth');
+        const genderField = document.getElementById('id_gender');
+        
         if (idDocumentType.value === 'ID') {
+            // Clear passport number when switching to ID
+            if (passportNumberField) passportNumberField.value = '';
+            
             saIdContainer.style.display = 'block';
             passportContainer.style.display = 'none';
             dobGenderManualRow.style.display = 'none';
         } else if (idDocumentType.value === 'PP') {
+            // Clear ID number when switching to passport
+            if (idNumberField) idNumberField.value = '';
+            
+            // Clear and enable DOB and gender fields for manual entry
+            if (dobField) {
+                dobField.value = '';
+                dobField.readOnly = false;
+                dobField.disabled = false;
+                dobField.style.backgroundColor = '';
+                dobField.style.cursor = '';
+                dobField.title = '';
+            }
+            if (genderField) {
+                genderField.value = '';
+                genderField.disabled = false;
+                genderField.style.backgroundColor = '';
+                genderField.style.cursor = '';
+                genderField.title = '';
+            }
+            
             saIdContainer.style.display = 'none';
             passportContainer.style.display = 'block';
             dobGenderManualRow.style.display = 'block';
