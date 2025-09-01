@@ -246,6 +246,15 @@ document.addEventListener('DOMContentLoaded', function() {
         dobField,
         genderField
     });
+    
+    // Store initial values of disabled fields to prevent changes
+    const disabledFieldValues = {};
+    [provinceField, regionField, lfaField, clubField].forEach(field => {
+        if (field && field.disabled) {
+            disabledFieldValues[field.id] = field.value;
+            console.log('Storing initial value for disabled field:', field.id, '=', field.value);
+        }
+    });
 
     // --- UTILITY FUNCTIONS ---
     const showField = (el) => {
@@ -595,6 +604,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Check if the target element is disabled - if so, don't allow updates
+        if (targetElement.disabled) {
+            console.log('Target element is disabled, skipping update:', targetElement.id);
+            return;
+        }
+        
         targetElement.innerHTML = `<option value="">Loading...</option>`;
         targetElement.disabled = true;
 
@@ -622,66 +637,81 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (provinceField) {
-        provinceField.addEventListener('change', function() {
-            try {
-                const provinceId = this.value;
-                console.log('Province field changed, ID:', provinceId);
-                if (provinceId && regionField) {
-                    updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
-                } else if (regionField) {
-                    console.log('Province ID empty, resetting Region dropdown.');
-                    regionField.innerHTML = '<option value="">Select Province First</option>';
+        // Only add event listener if the field is not disabled
+        if (!provinceField.disabled) {
+            provinceField.addEventListener('change', function() {
+                try {
+                    const provinceId = this.value;
+                    console.log('Province field changed, ID:', provinceId);
+                    if (provinceId && regionField && !regionField.disabled) {
+                        updateDropdown(`/local-accounts/api/regions-for-province/${provinceId}/`, regionField, 'Select Region');
+                    } else if (regionField && !regionField.disabled) {
+                        console.log('Province ID empty, resetting Region dropdown.');
+                        regionField.innerHTML = '<option value="">Select Province First</option>';
+                    }
+                    if (lfaField && !lfaField.disabled) {
+                        console.log('Resetting LFA dropdown.');
+                        lfaField.innerHTML = '<option value="">Select Region First</option>';
+                    }
+                    if (clubField && !clubField.disabled) {
+                        console.log('Resetting Club dropdown.');
+                        clubField.innerHTML = '<option value="">Select LFA First</option>';
+                    }
+                } catch (error) {
+                    console.error('Error in province change handler:', error);
                 }
-                if (lfaField) {
-                    console.log('Resetting LFA dropdown.');
-                    lfaField.innerHTML = '<option value="">Select Region First</option>';
-                }
-                if (clubField) {
-                    console.log('Resetting Club dropdown.');
-                    clubField.innerHTML = '<option value="">Select LFA First</option>';
-                }
-            } catch (error) {
-                console.error('Error in province change handler:', error);
-            }
-        });
+            });
+        } else {
+            console.log('Province field is disabled, skipping event listener');
+        }
     }
 
     if (regionField) {
-        regionField.addEventListener('change', function() {
-            try {
-                const regionId = this.value;
-                console.log('Region field changed, ID:', regionId);
-                if (regionId && lfaField) {
-                    updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
-                } else if (lfaField) {
-                    console.log('Region ID empty, resetting LFA dropdown.');
-                    lfaField.innerHTML = '<option value="">Select Region First</option>';
+        // Only add event listener if the field is not disabled
+        if (!regionField.disabled) {
+            regionField.addEventListener('change', function() {
+                try {
+                    const regionId = this.value;
+                    console.log('Region field changed, ID:', regionId);
+                    if (regionId && lfaField && !lfaField.disabled) {
+                        updateDropdown(`/local-accounts/api/lfas-for-region/${regionId}/`, lfaField, 'Select LFA');
+                    } else if (lfaField && !lfaField.disabled) {
+                        console.log('Region ID empty, resetting LFA dropdown.');
+                        lfaField.innerHTML = '<option value="">Select Region First</option>';
+                    }
+                    if (clubField && !clubField.disabled) {
+                        console.log('Resetting Club dropdown.');
+                        clubField.innerHTML = '<option value="">Select LFA First</option>';
+                    }
+                } catch (error) {
+                    console.error('Error in region change handler:', error);
                 }
-                if (clubField) {
-                    console.log('Resetting Club dropdown.');
-                    clubField.innerHTML = '<option value="">Select LFA First</option>';
-                }
-            } catch (error) {
-                console.error('Error in region change handler:', error);
-            }
-        });
+            });
+        } else {
+            console.log('Region field is disabled, skipping event listener');
+        }
     }
 
     if (lfaField) {
-        lfaField.addEventListener('change', function() {
-            try {
-                const lfaId = this.value;
-                console.log('LFA field changed, ID:', lfaId);
-                if (lfaId && clubField) {
-                    updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
-                } else if (clubField) {
-                    console.log('LFA ID empty, resetting Club dropdown.');
-                    clubField.innerHTML = '<option value="">Select LFA First</option>';
+        // Only add event listener if the field is not disabled
+        if (!lfaField.disabled) {
+            lfaField.addEventListener('change', function() {
+                try {
+                    const lfaId = this.value;
+                    console.log('LFA field changed, ID:', lfaId);
+                    if (lfaId && clubField && !clubField.disabled) {
+                        updateDropdown(`/local-accounts/api/clubs-for-lfa/${lfaId}/`, clubField, 'Select Club');
+                    } else if (clubField && !clubField.disabled) {
+                        console.log('LFA ID empty, resetting Club dropdown.');
+                        clubField.innerHTML = '<option value="">Select LFA First</option>';
+                    }
+                } catch (error) {
+                    console.error('Error in LFA change handler:', error);
                 }
-            } catch (error) {
-                console.error('Error in LFA change handler:', error);
-            }
-        });
+            });
+        } else {
+            console.log('LFA field is disabled, skipping event listener');
+        }
     }
 
     // --- INITIALIZATION ---
@@ -692,10 +722,59 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isExistingMemberField) isExistingMemberField.dispatchEvent(new Event('change'));
 
         // Trigger initial load for province if a value is already selected (e.g., on form error re-render)
-        if (provinceField && provinceField.value) {
+        if (provinceField && provinceField.value && !provinceField.disabled) {
             console.log('Initial province value detected, triggering change event.');
             provinceField.dispatchEvent(new Event('change'));
         }
+        
+            // Add protection against programmatic changes to disabled fields
+    const disabledFields = [provinceField, regionField, lfaField, clubField].filter(field => field && field.disabled);
+    disabledFields.forEach(field => {
+        console.log('Adding protection to disabled field:', field.id);
+        
+        // Store the original value
+        const originalValue = field.value;
+        
+        // Prevent any value changes to disabled fields
+        field.addEventListener('change', function(e) {
+            if (this.disabled) {
+                console.log('Preventing change to disabled field:', this.id);
+                // Restore the original value
+                this.value = originalValue;
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+        
+        // Prevent any input to disabled fields
+        field.addEventListener('input', function(e) {
+            if (this.disabled) {
+                console.log('Preventing input to disabled field:', this.id);
+                // Restore the original value
+                this.value = originalValue;
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+        
+        // Also prevent any programmatic value changes
+        Object.defineProperty(field, 'value', {
+            set: function(newValue) {
+                if (this.disabled) {
+                    console.log('Preventing programmatic value change to disabled field:', this.id);
+                    return; // Don't allow the value to be changed
+                }
+                // Use the original setter if not disabled
+                Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(this, newValue);
+            },
+            get: function() {
+                return Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').get.call(this);
+            }
+        });
+    });
+        
     } catch (error) {
         console.error('Error during initialization:', error);
     }
@@ -717,6 +796,47 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // --- FORM SUBMISSION PROTECTION ---
+    const registrationForm = document.getElementById('registrationForm');
+    if (registrationForm) {
+        registrationForm.addEventListener('submit', function(e) {
+            try {
+                // Ensure disabled fields maintain their original values
+                Object.keys(disabledFieldValues).forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field && field.disabled) {
+                        const originalValue = disabledFieldValues[fieldId];
+                        if (field.value !== originalValue) {
+                            console.log('Restoring original value for disabled field:', fieldId, 'from', field.value, 'to', originalValue);
+                            field.value = originalValue;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error in form submission protection:', error);
+            }
+        });
+    }
+    
+    // --- PERIODIC PROTECTION CHECK ---
+    // Set up a periodic check to ensure disabled fields maintain their values
+    setInterval(function() {
+        try {
+            Object.keys(disabledFieldValues).forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field && field.disabled) {
+                    const originalValue = disabledFieldValues[fieldId];
+                    if (field.value !== originalValue) {
+                        console.log('Periodic check: Restoring original value for disabled field:', fieldId, 'from', field.value, 'to', originalValue);
+                        field.value = originalValue;
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error in periodic protection check:', error);
+        }
+    }, 1000); // Check every second
     } catch (error) {
         console.error('Error in main registration script:', error);
     }
