@@ -1533,3 +1533,66 @@ class ClubAdminRegistrationForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if not isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs.update({'class': 'form-control'})
+
+
+class UserManagementForm(forms.ModelForm):
+    """Form for superusers to manage user accounts"""
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            'email', 'first_name', 'last_name', 'role',
+            'is_active', 'is_staff', 'is_superuser', 'date_joined',
+            'last_login', 'phone_number', 'province', 'region', 'local_federation', 'club'
+        ]
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_staff': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_superuser': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'date_joined': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'last_login': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'province': forms.Select(attrs={'class': 'form-select'}),
+            'region': forms.Select(attrs={'class': 'form-select'}),
+            'local_federation': forms.Select(attrs={'class': 'form-select'}),
+            'club': forms.Select(attrs={'class': 'form-select'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Make some fields read-only for security
+        self.fields['date_joined'].widget.attrs['readonly'] = True
+        self.fields['last_login'].widget.attrs['readonly'] = True
+        
+        # Add help text
+        self.fields['email'].help_text = 'Primary contact email for the user'
+        self.fields['role'].help_text = 'User role determines permissions and access levels'
+        self.fields['is_active'].help_text = 'Inactive users cannot log in to the system'
+        self.fields['is_staff'].help_text = 'Staff users can access admin interface'
+        self.fields['is_superuser'].help_text = 'Superusers have all permissions'
+    
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if self.instance.pk:  # Editing existing user
+            if CustomUser.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
+                raise ValidationError('Email already exists.')
+        else:  # Creating new user
+            if CustomUser.objects.filter(email=email).exists():
+                raise ValidationError('Email already exists.')
+        return email
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        
+        # Ensure superusers are also staff
+        if user.is_superuser:
+            user.is_staff = True
+        
+        if commit:
+            user.save()
+        return user

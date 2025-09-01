@@ -173,7 +173,7 @@
                     <div class="row no-print">
                         <div class="col-md-12">
                             <div class="d-flex justify-content-between">
-                                <a href="javascript:window.print();" class="btn btn-outline-primary">
+                                <a href="javascript:printInvoice();" class="btn btn-outline-primary">
                                     <i class="fas fa-print me-2"></i>{% trans "Print Invoice" %}
                                 </a>
                                 
@@ -202,13 +202,39 @@
 
 {% endblock %}
 
+{% block extra_js %}
+<script>
+function printInvoice() {
+    // Hide all elements that shouldn't be printed
+    const elementsToHide = document.querySelectorAll('.no-print, .navbar-safa, .footer-safa, .alert, .messages, .message, .btn, .badge');
+    const originalDisplay = [];
+    
+    // Store original display values and hide elements
+    elementsToHide.forEach(el => {
+        originalDisplay.push(el.style.display);
+        el.style.display = 'none';
+    });
+    
+    // Print the page
+    window.print();
+    
+    // Restore original display values after printing
+    setTimeout(() => {
+        elementsToHide.forEach((el, index) => {
+            el.style.display = originalDisplay[index];
+        });
+    }, 100);
+}
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     @media print {
         body {
             font-size: 12pt;
         }
-        .no-print, .navbar-safa, .footer-safa {
+        .no-print, .navbar-safa, .footer-safa, .alert, .messages, .message {
             display: none !important;
         }
         .container.invoice-printable-area {
@@ -230,6 +256,22 @@
         }
         a[href]:after {
             content: none !important;
+        }
+        /* Ensure invoice fits on fewer pages */
+        .invoice-printable-area {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* Optimize spacing for print */
+        .mb-4, .my-4 {
+            margin-bottom: 0.5rem !important;
+        }
+        .p-4 {
+            padding: 0.5rem !important;
+        }
+        /* Hide unnecessary elements during print */
+        .btn, .badge, .alert {
+            display: none !important;
         }
     }
 </style>

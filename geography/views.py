@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
@@ -764,15 +765,87 @@ def get_lfas(request):
     return JsonResponse([], safe=False)
 
 # Alternative API endpoints with path parameters
+@csrf_exempt
 def regions_by_province(request, province_id):
     """Get regions for a specific province by ID"""
-    regions = Region.objects.filter(province_id=province_id).values('id', 'name')
-    return JsonResponse(list(regions), safe=False)
+    try:
+        print(f"DEBUG: regions_by_province called with province_id: {province_id}")
+        print(f"DEBUG: Request method: {request.method}")
+        print(f"DEBUG: Request path: {request.path}")
+        
+        province = get_object_or_404(Province, pk=province_id)
+        print(f"DEBUG: Found province: {province.name}")
+        
+        regions = Region.objects.filter(
+            province=province
+        ).values('id', 'name').order_by('name')
+        
+        print(f"DEBUG: Found {regions.count()} regions")
+        regions_list = list(regions)
+        print(f"DEBUG: Regions data: {regions_list}")
+        
+        return JsonResponse(regions_list, safe=False)
+    except Exception as e:
+        print(f"DEBUG: Error in regions_by_province: {str(e)}")
+        import traceback
+        print(f"DEBUG: Traceback: {traceback.format_exc()}")
+        return JsonResponse({'error': str(e)}, status=400)
 
+@csrf_exempt
 def lfas_by_region(request, region_id):
     """Get LFAs for a specific region by ID"""
-    lfas = LocalFootballAssociation.objects.filter(region_id=region_id).values('id', 'name')
-    return JsonResponse(list(lfas), safe=False)
+    try:
+        region = get_object_or_404(Region, pk=region_id)
+        lfas = LocalFootballAssociation.objects.filter(
+            region=region
+        ).values('id', 'name').order_by('name')
+        return JsonResponse(list(lfas), safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+def clubs_by_lfa(request, lfa_id):
+    """Get clubs for a specific LFA by ID"""
+    try:
+        lfa = get_object_or_404(LocalFootballAssociation, pk=lfa_id)
+        clubs = Club.objects.filter(
+            localfootballassociation=lfa
+        ).values('id', 'name').order_by('name')
+        return JsonResponse(list(clubs), safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+# Debug view to test data
+@csrf_exempt
+def debug_geography_data(request):
+    """Debug view to check geography data"""
+    try:
+        provinces = Province.objects.all().count()
+        regions = Region.objects.all().count()
+        lfas = LocalFootballAssociation.objects.all().count()
+        clubs = Club.objects.all().count()
+        
+        # Get a sample province with regions
+        sample_province = Province.objects.first()
+        if sample_province:
+            sample_regions = Region.objects.filter(province=sample_province).count()
+            sample_province_name = sample_province.name
+        else:
+            sample_regions = 0
+            sample_province_name = "None"
+        
+        debug_data = {
+            'total_provinces': provinces,
+            'total_regions': regions,
+            'total_lfas': lfas,
+            'total_clubs': clubs,
+            'sample_province': sample_province_name,
+            'sample_province_regions': sample_regions
+        }
+        
+        return JsonResponse(debug_data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 # For API compatibility, add these as aliases
 api_regions = get_regions

@@ -4,7 +4,10 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from safa_connect.dashboard_views import superuser_dashboard
+from safa_connect.dashboard_views import (
+    superuser_dashboard, user_management, edit_user, 
+    delete_user, toggle_user_status
+)
 from accounts.views import custom_admin_logout
 
 # Update admin site title, header, and index title
@@ -20,6 +23,10 @@ handler403 = 'accounts.views.custom_403_view'
 urlpatterns = [
     path('admin/logout/', custom_admin_logout, name='admin_logout'),
     path('admin/dashboard/', superuser_dashboard, name='superuser_dashboard'),
+    path('admin/users/', user_management, name='user_management'),
+    path('admin/users/<int:user_id>/edit/', edit_user, name='edit_user'),
+    path('admin/users/<int:user_id>/delete/', delete_user, name='delete_user'),
+    path('admin/users/<int:user_id>/toggle-status/', toggle_user_status, name='toggle_user_status'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('local-accounts/', include('accounts.urls')),

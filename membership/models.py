@@ -1730,11 +1730,21 @@ class Invoice(TimeStampedModel):
                     member=member,
                     invoice_type='MEMBER_REGISTRATION',
                     total_amount=fee_amount,
-                    subtotal=None,
+                    subtotal=fee_amount,
                     season_config=member.current_season,
                     status='PENDING',
                     payment_method='Cash or EFT'
                 )
+                
+                # Create invoice item
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    description=f"SAFA {member.get_role_display()} Registration Fee - {member.current_season.season_year if member.current_season else '2025'}",
+                    amount=fee_amount,
+                    quantity=1,
+                    total_price=fee_amount
+                )
+                
                 return invoice
         except Exception as e:
             print(f"Error creating invoice: {e}")

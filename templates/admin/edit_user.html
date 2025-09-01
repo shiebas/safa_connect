@@ -1,0 +1,672 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit User - {{ user.get_full_name }} - SAFA Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Admin Dashboard Theme - Clean and Professional */
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    background-color: #f8f9fa;
+}
+
+/* Preserve footer styling */
+footer {
+    background-color: #343a40 !important;
+    color: #ffffff !important;
+}
+
+footer a {
+    color: #ffffff !important;
+}
+
+footer .text-muted {
+    color: #adb5bd !important;
+}
+
+/* Card styling - Clean and professional */
+.card {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem;
+}
+
+.card-body {
+    background-color: #ffffff;
+    padding: 1.5rem;
+}
+
+/* Form styling */
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875rem;
+}
+
+/* Section headers */
+.text-primary {
+    color: #0d6efd !important;
+}
+
+h6.text-primary {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: #ffffff;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* Header styling */
+.h3 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-person-gear text-primary me-2"></i>{{ title }}
+                    </h1>
+                    <p class="text-muted mb-0">Edit user account details and permissions</p>
+                </div>
+                <div>
+                    <a href="{% url 'user_management' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Users
+                    </a>
+                </div>
+            </div>
+
+            <!-- User Info Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle text-info me-2"></i>User Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F d, Y H:i" }}</p>
+                            <p><strong>Last Login:</strong> {{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Current Role:</strong> <span class="badge bg-primary">{{ user.get_role_display|default:"N/A" }}</span></p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </p>
+                            <p><strong>Permissions:</strong> 
+                                {% if user.is_superuser %}
+                                    <span class="badge bg-danger">Superuser</span>
+                                {% elif user.is_staff %}
+                                    <span class="badge bg-warning">Staff</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Regular User</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Form -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square text-success me-2"></i>Edit User Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">Basic Information</h6>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        Email <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.help_text %}
+                                        <div class="form-text">{{ form.email.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.first_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.last_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.phone_number.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Role and Permissions -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">Role & Permissions</h6>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.role.id_for_label }}" class="form-label">User Role</label>
+                                    {{ form.role }}
+                                    {% if form.role.help_text %}
+                                        <div class="form-text">{{ form.role.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.role.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.role.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.is_active.id_for_label }}" class="form-label">Account Status</label>
+                                    <div class="form-check">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            Active Account
+                                        </label>
+                                    </div>
+                                    {% if form.is_active.help_text %}
+                                        <div class="form-text">{{ form.is_active.help_text }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.is_staff.id_for_label }}" class="form-label">Staff Access</label>
+                                    <div class="form-check">
+                                        {{ form.is_staff }}
+                                        <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                                            Can access admin interface
+                                        </label>
+                                    </div>
+                                    {% if form.is_staff.help_text %}
+                                        <div class="form-text">{{ form.is_staff.help_text }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.is_superuser.id_for_label }}" class="form-label">Superuser</label>
+                                    <div class="form-check">
+                                        {{ form.is_superuser }}
+                                        <label class="form-check-label" for="{{ form.is_superuser.id_for_label }}">
+                                            Has all permissions
+                                        </label>
+                                    </div>
+                                    {% if form.is_superuser.help_text %}
+                                        <div class="form-text">{{ form.is_superuser.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Geographic Information -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">Geographic Information</h6>
+                                
+                                <!-- Test Button -->
+                                <div class="text-center mb-3">
+                                    <button type="button" class="btn btn-sm btn-info" onclick="testDropdowns()">
+                                        Test Dropdowns
+                                    </button>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="{{ form.province.id_for_label }}" class="form-label">Province</label>
+                                            {{ form.province }}
+                                            {% if form.province.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.province.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="{{ form.region.id_for_label }}" class="form-label">Region</label>
+                                            {{ form.region }}
+                                            {% if form.region.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.region.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="{{ form.local_federation.id_for_label }}" class="form-label">Local Federation</label>
+                                            {{ form.local_federation }}
+                                            {% if form.local_federation.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.local_federation.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="{{ form.club.id_for_label }}" class="form-label">Club</label>
+                                            {{ form.club }}
+                                            {% if form.club.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.club.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Information (Read-only) -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">System Information (Read-only)</h6>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.date_joined.id_for_label }}" class="form-label">Date Joined</label>
+                                            {{ form.date_joined }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.last_login.id_for_label }}" class="form-label">Last Login</label>
+                                            {{ form.last_login }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'user_management' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle me-2"></i>Cancel
+                                    </a>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle me-2"></i>Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up dropdown listeners...');
+    
+    // Get form field IDs
+    const provinceField = document.getElementById('{{ form.province.id_for_label }}');
+    const regionField = document.getElementById('{{ form.region.id_for_label }}');
+    const localFederationField = document.getElementById('{{ form.local_federation.id_for_label }}');
+    const clubField = document.getElementById('{{ form.club.id_for_label }}');
+    
+    console.log('Province field:', provinceField);
+    console.log('Region field:', regionField);
+    console.log('Local Federation field:', localFederationField);
+    console.log('Club field:', clubField);
+    
+    // Auto-update region options when province changes
+    if (provinceField) {
+        provinceField.addEventListener('change', function() {
+            console.log('Province changed to:', this.value);
+            const provinceId = this.value;
+            
+            // Clear dependent fields
+            if (regionField) {
+                regionField.innerHTML = '<option value="">Select Region</option>';
+            }
+            if (localFederationField) {
+                localFederationField.innerHTML = '<option value="">Select Local Federation</option>';
+            }
+            if (clubField) {
+                clubField.innerHTML = '<option value="">Select Club</option>';
+            }
+            
+            if (provinceId) {
+                // Fetch regions for selected province
+                fetch(`/geography/api/regions_by_province/${provinceId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Regions data:', data);
+                        if (regionField) {
+                            data.forEach(region => {
+                                const option = document.createElement('option');
+                                option.value = region.id;
+                                option.textContent = region.name;
+                                regionField.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching regions:', error);
+                        if (regionField) {
+                            regionField.innerHTML = '<option value="">Error loading regions</option>';
+                        }
+                    });
+            }
+        });
+    }
+    
+    // Auto-update Local Federation options when region changes
+    if (regionField) {
+        regionField.addEventListener('change', function() {
+            console.log('Region changed to:', this.value);
+            const regionId = this.value;
+            
+            // Clear dependent fields
+            if (localFederationField) {
+                localFederationField.innerHTML = '<option value="">Select Local Federation</option>';
+            }
+            if (clubField) {
+                clubField.innerHTML = '<option value="">Select Club</option>';
+            }
+            
+            if (regionId) {
+                // Fetch Local Federations for selected region
+                fetch(`/geography/api/lfas_by_region/${regionId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Local Federations data:', data);
+                        if (localFederationField) {
+                            data.forEach(lfa => {
+                                const option = document.createElement('option');
+                                option.value = lfa.id;
+                                option.textContent = lfa.name;
+                                localFederationField.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching local federations:', error);
+                        if (localFederationField) {
+                            localFederationField.innerHTML = '<option value="">Error loading LFAs</option>';
+                        }
+                    });
+            }
+        });
+    }
+    
+    // Auto-update club options when Local Federation changes
+    if (localFederationField) {
+        localFederationField.addEventListener('change', function() {
+            console.log('Local Federation changed to:', this.value);
+            const localFederationId = this.value;
+            
+            // Clear dependent fields
+            if (clubField) {
+                clubField.innerHTML = '<option value="">Select Club</option>';
+            }
+            
+            if (localFederationId) {
+                // Fetch clubs for selected Local Federation
+                fetch(`/geography/api/clubs_by_lfa/${localFederationId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Clubs data:', data);
+                        if (clubField) {
+                            data.forEach(club => {
+                                const option = document.createElement('option');
+                                option.value = club.id;
+                                option.textContent = club.name;
+                                clubField.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching clubs:', error);
+                        if (clubField) {
+                            clubField.innerHTML = '<option value="">Error loading clubs</option>';
+                        }
+                    });
+            }
+        });
+    }
+});
+
+// Test function for debugging
+function testDropdowns() {
+    console.log('Testing dropdowns...');
+    
+    const provinceField = document.getElementById('{{ form.province.id_for_label }}');
+    const regionField = document.getElementById('{{ form.region.id_for_label }}');
+    const localFederationField = document.getElementById('{{ form.local_federation.id_for_label }}');
+    const clubField = document.getElementById('{{ form.club.id_for_label }}');
+    
+    console.log('Province field found:', !!provinceField);
+    console.log('Region field found:', !!regionField);
+    console.log('Local Federation field found:', !!localFederationField);
+    console.log('Club field found:', !!clubField);
+    
+    if (provinceField) {
+        console.log('Province field value:', provinceField.value);
+        console.log('Province field options:', provinceField.options.length);
+    }
+    
+    // Test API endpoints
+    console.log('Testing API endpoints...');
+    
+    // Test the new global API endpoints
+    if (provinceField && provinceField.value) {
+        console.log('Testing regions API with province:', provinceField.value);
+        fetch(`/geography/api/regions_by_province/${provinceField.value}/`)
+            .then(response => {
+                console.log('Regions API response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Regions API data:', data);
+            })
+            .catch(error => {
+                console.error('Regions API error:', error);
+            });
+    }
+    
+    // Test LFAs API
+    fetch('/geography/api/lfas/')
+        .then(response => {
+            console.log('LFAs API response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('LFAs API data:', data);
+        })
+        .catch(error => {
+            console.error('LFAs API error:', error);
+        });
+    
+    // Test clubs API
+    fetch('/geography/api/clubs/')
+        .then(response => {
+            console.log('Clubs API response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Clubs API data:', data);
+        })
+        .catch(error => {
+            console.error('Clubs API error:', error);
+        });
+    
+    alert('Check browser console for dropdown debug info and API test results');
+}
+</script>
+{% endblock %}

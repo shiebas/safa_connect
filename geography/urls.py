@@ -7,7 +7,6 @@ app_name = 'geography'
 
 urlpatterns = [
     path('management/', GeographyManagementView.as_view(), name='geography_management'),
-    path('api/', include(urls_api)),
     path('admin/', views.geography_admin, name='geography_admin'),
     path('advanced/', views.advanced_home, name='advance_home'),
     # Geography home and optimized list views (main navigation)
@@ -25,6 +24,14 @@ urlpatterns = [
     path('provinces/<int:pk>/', views.province_detail, name='province-detail'),
     path('regions/<int:pk>/', views.region_detail, name='region-detail'),
     path('lfas/<int:pk>/', views.lfa_detail, name='lfa-detail'),
+    # Global API endpoints for cascading dropdowns (consistent across system) - MUST BE FIRST
+    path('api/regions_by_province/<int:province_id>/', views.regions_by_province, name='api_regions_by_province'),
+    path('api/lfas_by_region/<int:region_id>/', views.lfas_by_region, name='api_lfas_by_region'),
+    path('api/clubs_by_lfa/<int:lfa_id>/', views.clubs_by_lfa, name='api_clubs_by_lfa'),
+    
+    # Debug endpoint
+    path('api/debug/', views.debug_geography_data, name='debug_geography_data'),
+    
     # Add back the hierarchical navigation URLs that templates expect
     path('provinces/<int:province_id>/regions/', views.province_regions, name='province_regions'),
     path('regions/<int:region_id>/lfas/', views.region_lfas, name='region_lfas'),
@@ -102,6 +109,10 @@ urlpatterns = [
     path('api/lfas/', views.api_lfas, name='api_lfas'),
     # DRF router: all API endpoints are only available under /api/
     # path('api/', include(router.urls)),
+    
+    # DRF API endpoints (separate from custom cascading dropdown APIs)
+    path('drf-api/', include(urls_api)),
+    
     path('clubs/register/', views.register_club, name='register-club'),
     path('club/compliance/', views.club_compliance_update, name='club_compliance_update'),
     path('club/logo/', views.edit_club_logo, name='edit_club_logo'),

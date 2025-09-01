@@ -1,0 +1,744 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management - SAFA Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Hidden CSRF token for AJAX calls -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-people text-primary me-2"></i>User Management
+                    </h1>
+                    <p class="text-muted mb-0">Manage all system users from one interface</p>
+                </div>
+                <div>
+                    <a href="{% url 'superuser_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search Users</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search_query }}" placeholder="Name or email...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-select" id="role" name="role">
+                                <option value="">All Roles</option>
+                                {% for role in roles %}
+                                <option value="{{ role }}" {% if role_filter == role %}selected{% endif %}>
+                                    {{ role|title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">All Status</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search me-2"></i>Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ total_users }}</h3>
+                    <p class="mb-0">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ page_obj.object_list|length }}</h3>
+                    <p class="mb-0">Showing</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ page_obj.paginator.num_pages }}</h3>
+                    <p class="mb-0">Pages</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ page_obj.number }}</h3>
+                    <p class="mb-0">Current Page</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-table text-secondary me-2"></i>Users List
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary">{{ page_obj.object_list|length }} of {{ total_users }} users</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="exportToCSV()">
+                            <i class="bi bi-download me-1"></i>Export
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-hover mb-0 compact-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 50px;">ID</th>
+                                    <th style="width: 120px;">Name</th>
+                                    <th style="width: 150px;">Email</th>
+                                    <th style="width: 100px;">Role</th>
+                                    <th style="width: 80px;">Status</th>
+                                    <th style="width: 90px;">Joined</th>
+                                    <th style="width: 90px;">Last Login</th>
+                                    <th style="width: 120px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in page_obj %}
+                                <tr>
+                                    <td class="text-center text-muted">{{ user.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-xs bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 10px;">
+                                                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold" style="font-size: 13px;">{{ user.get_full_name }}</div>
+                                                {% if user.is_superuser %}
+                                                <span class="badge bg-danger" style="font-size: 9px;">SU</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 140px;" title="{{ user.email }}">
+                                            {{ user.email }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary" style="font-size: 10px;">{{ user.get_role_display|default:"N/A" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}" style="font-size: 10px;">
+                                            {% if user.is_active %}A{% else %}I{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted" style="font-size: 12px;">{{ user.date_joined|date:"M d, Y" }}</td>
+                                    <td class="text-muted" style="font-size: 12px;">{{ user.last_login|date:"M d"|default:"Never" }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'edit_user' user.id %}" class="btn btn-sm btn-outline-primary action-btn" title="Edit User">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            {% if user.is_active %}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-warning action-btn" 
+                                                    onclick="toggleUserStatus({{ user.id }}, '{{ user.get_full_name|escapejs }}')" 
+                                                    title="Deactivate User">
+                                                <i class="bi bi-pause"></i>
+                                            </button>
+                                            {% else %}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-success action-btn" 
+                                                    onclick="toggleUserStatus({{ user.id }}, '{{ user.get_full_name|escapejs }}')" 
+                                                    title="Activate User">
+                                                <i class="bi bi-play"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if not user.is_superuser or user.id != request.user.id %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger action-btn" 
+                                                    onclick="deleteUser({{ user.id }}, '{{ user.get_full_name }}')" 
+                                                    title="Delete User">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Users pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted"></i>
+                        <h4 class="mt-3">No Users Found</h4>
+                        <p class="text-muted">Try adjusting your search criteria or filters.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">Confirm User Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteUserName"></strong>?</p>
+                <p class="text-danger"><small>This action cannot be undone. All user data will be permanently removed.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Toggle Confirmation Modal -->
+<div class="modal fade" id="toggleStatusModal" tabindex="-1" aria-labelledby="toggleStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="toggleStatusModalLabel">Confirm Status Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to change the status for <strong id="toggleStatusUserName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmToggleBtn">Change Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style type="text/css">
+/* Admin Dashboard Theme - Clean and Professional */
+body {
+    background-color: #f8f9fa;
+}
+
+.container-fluid {
+    background-color: #f8f9fa;
+}
+
+/* Preserve footer styling */
+footer {
+    background-color: #343a40 !important;
+    color: #ffffff !important;
+}
+
+footer a {
+    color: #ffffff !important;
+}
+
+footer .text-muted {
+    color: #adb5bd !important;
+}
+
+/* Card styling - Clean and professional */
+.card {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem;
+}
+
+.card-body {
+    background-color: #ffffff;
+    padding: 1.5rem;
+}
+
+/* Compact Excel-like table styling */
+.compact-table {
+    font-size: 12px;
+    line-height: 1.2;
+    background-color: #ffffff;
+}
+
+.compact-table th {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 10px 6px;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #ffffff !important;
+    color: #495057 !important;
+    border-top: none;
+}
+
+.compact-table td {
+    padding: 8px 6px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #ffffff;
+}
+
+.compact-table tbody tr:hover {
+    background-color: #f8f9fa !important;
+}
+
+.compact-table tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+.compact-table tbody tr:nth-child(even):hover {
+    background-color: #f1f3f4 !important;
+}
+
+/* Action buttons - Enhanced visibility and styling */
+.action-buttons {
+    display: flex !important;
+    gap: 6px;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+.action-btn {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    border-radius: 6px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    border: 2px solid !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    scale: 1.05;
+}
+
+/* Button colors */
+.btn-outline-primary {
+    color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-warning {
+    color: #ffc107 !important;
+    border-color: #ffc107 !important;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107 !important;
+    color: #000000 !important;
+}
+
+.btn-outline-success {
+    color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754 !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-danger {
+    color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+/* Avatar styling */
+.avatar-xs {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+}
+
+/* Badge styling */
+.badge {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+    border-radius: 12px !important;
+}
+
+/* Table responsive */
+.table-responsive {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+/* Compact pagination */
+.pagination .page-link {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-color: #e9ecef;
+    color: #495057;
+}
+
+.pagination .page-link:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Search form compact */
+.form-control, .form-select {
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Statistics cards */
+.card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card-body h3 {
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.card-body p {
+    font-size: 0.875rem;
+    margin-bottom: 0;
+    opacity: 0.9;
+}
+
+/* Hover effects */
+.table tbody tr:hover {
+    cursor: pointer;
+}
+
+/* Text truncation */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Header styling */
+.h3 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Export button */
+.btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: #ffffff;
+}
+
+/* Modal styling */
+.modal-content {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentUserId = null;
+let currentUserName = null;
+
+function deleteUser(userId, userName) {
+    console.log('deleteUser called with:', userId, userName);
+    currentUserId = userId;
+    currentUserName = userName;
+    document.getElementById('deleteUserName').textContent = userName;
+    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+}
+
+function toggleUserStatus(userId, userName) {
+    console.log('toggleUserStatus called with:', userId, userName);
+    currentUserId = userId;
+    currentUserName = userName;
+    document.getElementById('toggleStatusUserName').textContent = userName;
+    new bootstrap.Modal(document.getElementById('toggleStatusModal')).show();
+}
+
+// Confirm delete
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (currentUserId) {
+        fetch(`/admin/users/${currentUserId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showAlert('success', data.message);
+                // Reload page after a short delay
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', data.error);
+            }
+        })
+        .catch(error => {
+            showAlert('danger', 'An error occurred while deleting the user.');
+        });
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('deleteUserModal')).hide();
+    }
+});
+
+// Confirm status toggle
+document.getElementById('confirmToggleBtn').addEventListener('click', function() {
+    if (currentUserId) {
+        fetch(`/admin/users/${currentUserId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showAlert('success', data.message);
+                // Reload page after a short delay
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', data.error);
+            }
+        })
+        .catch(error => {
+            showAlert('danger', 'An error occurred while changing user status.');
+        });
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('toggleStatusModal')).hide();
+    }
+});
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+
+// CSV Export functionality
+function exportToCSV() {
+    const table = document.querySelector('.compact-table');
+    const rows = table.querySelectorAll('tbody tr');
+    
+    let csv = 'ID,Name,Email,Role,Status,Joined,Last Login\n';
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = [];
+        
+        // ID
+        rowData.push(cells[0].textContent.trim());
+        
+        // Name (without avatar)
+        const nameCell = cells[1];
+        const nameText = nameCell.querySelector('.fw-bold')?.textContent.trim() || '';
+        rowData.push(nameText);
+        
+        // Email
+        rowData.push(cells[2].textContent.trim());
+        
+        // Role
+        const roleBadge = cells[3].querySelector('.badge');
+        rowData.push(roleBadge ? roleBadge.textContent.trim() : 'N/A');
+        
+        // Status
+        const statusBadge = cells[4].querySelector('.badge');
+        rowData.push(statusBadge ? (statusBadge.textContent.trim() === 'A' ? 'Active' : 'Inactive') : 'N/A');
+        
+        // Joined
+        rowData.push(cells[5].textContent.trim());
+        
+        // Last Login
+        rowData.push(cells[6].textContent.trim());
+        
+        csv += rowData.map(field => `"${field}"`).join(',') + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showAlert('success', 'CSV export completed successfully!');
+}
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + E for export
+    if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        exportToCSV();
+    }
+    
+    // Ctrl/Cmd + F for search focus
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        document.getElementById('search').focus();
+    }
+});
+</script>
+{% endblock %}

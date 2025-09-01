@@ -592,6 +592,44 @@
             background-color: var(--danger);
             color: var(--white);
         }
+        
+        /* Print-specific styles */
+        @media print {
+            .no-print, .navbar-safa, .footer-safa, .alert, .messages, .message, .btn, .badge {
+                display: none !important;
+            }
+            body {
+                font-size: 12pt;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .card-body, .card-footer {
+                padding: 0.5rem !important;
+            }
+            .table th, .table td {
+                padding: 0.3rem !important;
+            }
+            a[href]:after {
+                content: none !important;
+            }
+            /* Optimize spacing for print */
+            .mb-4, .my-4, .mt-5, .mb-5 {
+                margin: 0.5rem 0 !important;
+            }
+            .p-4 {
+                padding: 0.5rem !important;
+            }
+        }
     </style>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -749,7 +787,7 @@
 
     <!-- Messages -->
     {% if messages %}
-        <div class="container mt-3">
+        <div class="container mt-3 no-print">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {% if message.tags == 'error' %}
