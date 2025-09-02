@@ -18,7 +18,7 @@ from geography.models import (Association, Club, ClubStatus, Country,
                               Province, Region)
 from membership.models import Invoice, Member, RegistrationWorkflow, InvoiceItem
 from membership.safa_config_models import SAFASeasonConfig, SAFAFeeStructure
-from supporters.models import SupporterProfile
+from supporters.models import SupporterProfile, SupporterPreferences
 
 from .decorators import role_required
 from .forms import (
@@ -161,9 +161,72 @@ def user_registration(request):
             
             user.save()
 
-            # Create SupporterProfile
-            if user.role == 'SUPPORTER':
-                SupporterProfile.objects.get_or_create(user=user, defaults={'safa_id': user.safa_id})
+            # Create SupporterProfile for ALL user types (Player, Official, Supporter)
+            # This enables future features like marketing preferences, location tracking, digital services
+            try:
+                # Try to create a very basic SupporterProfile first
+                print(f"🔍 DEBUG: Attempting to create SupporterProfile for user {user.email}")
+                
+                # Check if SupporterProfile already exists
+                existing_profile = SupporterProfile.objects.filter(user=user).first()
+                if existing_profile:
+                    print(f"✅ SupporterProfile already exists for user {user.email}")
+                    supporter_profile = existing_profile
+                    created = False
+                else:
+                    # Create with absolute minimum fields including safa_id
+                    supporter_profile = SupporterProfile.objects.create(
+                        user=user,
+                        safa_id=user.safa_id,  # Add the safa_id field
+                        membership_type='PREMIUM' if user.role == 'SUPPORTER' else 'FAMILY_BASIC'
+                    )
+                    created = True
+                    print(f"✅ SupporterProfile created successfully for user {user.email}")
+                    print(f"✅ SupporterProfile safa_id: {supporter_profile.safa_id}")
+                
+                if created:
+                    print(f"✅ SupporterProfile created successfully for user {user.email}")
+                    # Now update with additional fields if creation was successful
+                    try:
+                        if user.club or form.cleaned_data.get('club'):
+                            supporter_profile.favorite_club = user.club if user.club else form.cleaned_data.get('club')
+                        
+                        if user.id_number:
+                            supporter_profile.id_number = user.id_number
+                            
+                        if form.cleaned_data.get('date_of_birth'):
+                            supporter_profile.date_of_birth = form.cleaned_data.get('date_of_birth')
+                        
+                        # Build address string safely
+                        address_parts = []
+                        if user.street_address:
+                            address_parts.append(user.street_address)
+                        if user.suburb:
+                            address_parts.append(user.suburb)
+                        if user.city:
+                            address_parts.append(user.city)
+                        if user.state:
+                            address_parts.append(user.state)
+                        
+                        if address_parts:
+                            supporter_profile.address = ', '.join(address_parts)
+                        
+                        supporter_profile.save()
+                        print(f"✅ SupporterProfile updated with additional fields for user {user.email}")
+                        
+                    except Exception as update_error:
+                        print(f"⚠️ Warning: SupporterProfile update failed for user {user.email}: {str(update_error)}")
+                        # Profile exists, just not fully populated - that's okay
+                        
+                else:
+                    print(f"✅ SupporterProfile already exists for user {user.email}")
+                    
+            except Exception as e:
+                print(f"⚠️ Warning: SupporterProfile creation failed for user {user.email}: {str(e)}")
+                print(f"⚠️ Error details: {type(e).__name__}: {str(e)}")
+                print(f"⚠️ Note: SupporterProfile can be created manually later via admin panel")
+                # Continue with registration - don't let SupporterProfile failure stop the process
+                # The SupporterProfile can be created later if needed
 
             # Login the user
             login(request, user)
@@ -178,15 +241,22 @@ def user_registration(request):
             workflow.save()
 
             # Create invoice using the simple calculation method for self-registrations
+            print(f"🔍 DEBUG: About to create invoice for member {member.safa_id}")
+            print(f"🔍 DEBUG: Member role: {member.role}")
+            print(f"🔍 DEBUG: Member current_season: {member.current_season}")
+            
             try:
                 invoice = Invoice.create_simple_member_invoice(member)
                 if invoice:
+                    print(f"✅ Invoice created successfully: {invoice.invoice_number}")
                     messages.success(request, 'Registration successful! Please complete payment to proceed.')
                     return redirect('membership:invoice_detail', uuid=invoice.uuid)
                 else:
+                    print(f"❌ Invoice creation returned None for member {member.safa_id}")
                     messages.error(request, 'Registration successful but invoice creation failed. Please contact support.')
                     return redirect('accounts:modern_home')
             except Exception as e:
+                print(f"❌ Exception during invoice creation for member {member.safa_id}: {str(e)}")
                 messages.error(request, f'Registration successful but invoice creation failed: {str(e)}. Please contact support.')
                 return redirect('accounts:modern_home')
 
@@ -336,9 +406,40 @@ def profile(request):
     except Member.DoesNotExist:
         member = None
 
+    # Generate QR code for the profile
+    try:
+        # Information to be encoded in the QR code
+        profile_url = request.build_absolute_uri(reverse('accounts:profile'))
+        qr_data = f"SAFA Member: {request.user.get_full_name()}\nSAFA ID: {request.user.safa_id}\nProfile: {profile_url}"
+        
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=6,
+            border=2,
+        )
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save QR code to a BytesIO buffer and encode it in base64
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        
+        qr_code_generated = True
+    except Exception as e:
+        print(f"⚠️ Warning: QR code generation failed: {str(e)}")
+        qr_code_base64 = None
+        qr_code_generated = False
+
     context = {
         'user': request.user,
         'member': member,
+        'qr_code': qr_code_base64,
+        'qr_code_generated': qr_code_generated,
     }
     return render(request, 'accounts/profile.html', context)
 
@@ -1286,6 +1387,8 @@ def regional_admin_dashboard(request):
     ).order_by('-created')
     
     context = {
+        'dashboard_title': 'Regional Admin Dashboard',
+        'dashboard_subtitle': f'Manage {user_region.name if user_region else "your region"}',
         'user_region': user_region,
         'pending_lfas': pending_lfas,
         'lfas': all_lfas,
@@ -1352,6 +1455,8 @@ def lfa_admin_dashboard(request):
     ).order_by('-created')
     
     context = {
+        'dashboard_title': 'LFA Admin Dashboard',
+        'dashboard_subtitle': f'Manage {lfa.name if lfa else "your LFA"}',
         'lfa': lfa,
         'pending_clubs': pending_clubs,
         'clubs': all_clubs,
@@ -1365,6 +1470,12 @@ def lfa_admin_dashboard(request):
 @login_required
 def club_admin_dashboard(request):
     club = request.user.club
+    
+    # Check if user has a club associated
+    if not club:
+        messages.error(request, "You are not currently associated with any Club. Please contact your administrator to set up your club association.")
+        return redirect('accounts:profile')
+    
     players = CustomUser.objects.filter(club=club)
 
     # Player breakdown
@@ -1381,12 +1492,11 @@ def club_admin_dashboard(request):
 
     # Pending Approvals for this Club
     pending_members = []
-    if club:
-        workflows = RegistrationWorkflow.objects.filter(
-            member__current_club=club,
-            completion_percentage=100
-        ).select_related('member__user', 'member__current_club')
-        pending_members = [wf.member for wf in workflows]
+    workflows = RegistrationWorkflow.objects.filter(
+        member__current_club=club,
+        completion_percentage=100
+    ).select_related('member__user', 'member__current_club')
+    pending_members = [wf.member for wf in workflows]
 
     # Get organization invoices for this club
     from django.contrib.contenttypes.models import ContentType
@@ -1399,13 +1509,19 @@ def club_admin_dashboard(request):
     ).order_by('-created')
     
     context = {
+        'dashboard_title': 'Club Admin Dashboard',
+        'dashboard_subtitle': f'Manage {club.name if club else "Club"}',
         'club': club,
+        'user_club': club,  # Add this for template compatibility
         'players': players,
+        'members': players,  # Add this for template compatibility
+        'recent_members': players[:5],  # Add this for template compatibility
         'juniors': juniors,
         'seniors': seniors,
         'male_players': male_players,
         'female_players': female_players,
         'pending_members': pending_members,
+        'active_members': players.filter(membership_status='ACTIVE'),  # Fixed: use membership_status not status
         'organization_invoices': organization_invoices,
     }
     return render(request, 'accounts/club_admin_dashboard.html', context)
@@ -1424,6 +1540,8 @@ def association_admin_dashboard(request):
         pending_members = [wf.member for wf in workflows]
 
     context = {
+        'dashboard_title': 'Association Admin Dashboard',
+        'dashboard_subtitle': f'Manage {association.name if association else "Association"}',
         'association': association,
         'pending_members': pending_members,
     }

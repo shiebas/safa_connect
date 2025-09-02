@@ -1,57 +1,123 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin_dashboard.html" %}
 {% load static %}
 
 {% block title %}LFA Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">LFA Administrator Dashboard for {{ lfa.name }}</h2>
-    
-    <!-- Debug Information (remove in production) -->
-    {% if user.is_superuser %}
-    <div class="alert alert-info mb-4">
-        <h6><i class="fas fa-bug me-2"></i>Debug Information (Superuser Only)</h6>
-        <p><strong>Total Clubs:</strong> {{ clubs|length }}</p>
-        <p><strong>Pending Clubs:</strong> {{ pending_clubs|length }}</p>
-        <p><strong>LFA Status:</strong> {{ lfa.status }}</p>
-        <p><strong>LFA Compliant:</strong> {{ lfa.is_compliant }}</p>
-        {% if clubs %}
-        <p><strong>Sample Club Data:</strong></p>
-        <ul>
-            {% for club in clubs|slice:":3" %}
-            <li>{{ club.name }} - Status: {{ club.status }} - Compliant: {{ club.is_compliant }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+{% block quick_actions %}
+<div class="row g-3">
+    <div class="col-6 col-md-6">
+        <a href="#" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <img src="{% static 'safa_logo_clear.png' %}" alt="SAFA Logo" class="img-fluid mb-2" style="max-height: 48px;">
+            <span class="small">Manage Clubs</span>
+        </a>
     </div>
-    {% endif %}
+    <div class="col-6 col-md-6">
+        <a href="#" class="btn btn-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-users fa-2x mb-2"></i>
+            <span class="small">View Members</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="#" class="btn btn-info w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-file-invoice fa-2x mb-2"></i>
+            <span class="small">View Invoices</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="{% url 'accounts:lfa_compliance_view' %}" class="btn btn-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-shield-alt fa-2x mb-2"></i>
+            <span class="small">LFA Compliance</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="#" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-id-card fa-2x mb-2"></i>
+            <span class="small">Print Membership Cards</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="#" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-user-check fa-2x mb-2"></i>
+            <span class="small">Member Approvals</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <a href="#" class="btn btn-primary">Manage Clubs</a>
-                    <a href="#" class="btn btn-secondary">View Members</a>
-                    <a href="{% url 'accounts:lfa_compliance_view' %}" class="btn btn-warning">LFA Compliance</a>
-                </div>
-            </div>
+{% block dashboard_content %}
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ clubs|length }}</div>
+            <div class="stats-label">Clubs</div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">LFA Summary</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Total Clubs:</strong> {{ clubs|length }}</p>
-                    <p><strong>Pending Approval:</strong> {{ pending_clubs|length }}</p>
-                    <p><strong>Total Members:</strong> {{ members|length }}</p>
-                </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ members|length }}</div>
+            <div class="stats-label">Members</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ pending_clubs|length }}</div>
+            <div class="stats-label">Pending Clubs</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">6</div>
+            <div class="stats-label">Quick Actions</div>
+        </div>
+    </div>
+</div>
+
+<!-- LFA Information -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">
+            <i class="fas fa-info-circle me-2 text-info"></i>
+            LFA Information
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>LFA:</strong> {{ lfa.name }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="badge status-badge status-{{ lfa.status|lower }}">
+                        {{ lfa.get_status_display }}
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Clubs:</strong> {{ clubs|length }}</p>
+                <p><strong>Members:</strong> {{ members|length }}</p>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Debug Information (remove in production) -->
+{% if user.is_superuser %}
+<div class="alert alert-info mb-4">
+    <h6><i class="fas fa-bug me-2"></i>Debug Information (Superuser Only)</h6>
+    <p><strong>Total Clubs:</strong> {{ clubs|length }}</p>
+    <p><strong>Pending Clubs:</strong> {{ pending_clubs|length }}</p>
+    <p><strong>LFA Status:</strong> {{ lfa.status }}</p>
+    <p><strong>LFA Compliant:</strong> {{ lfa.is_compliant }}</p>
+    {% if clubs %}
+    <p><strong>Sample Club Data:</strong></p>
+    <ul>
+        {% for club in clubs|slice:":3" %}
+        <li>{{ club.name }} - Status: {{ club.status }} - Compliant: {{ club.is_compliant }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endif %}
 
     <div class="card shadow-sm mb-4">
         <div class="card-header">
@@ -447,6 +513,8 @@
         </div>
     </div>
 </div>
+
+{% endblock %}
 
 <!-- Hidden form for club approval -->
 <form id="clubApprovalForm" method="post" action="{% url 'accounts:approve_club' %}" style="display: none;">

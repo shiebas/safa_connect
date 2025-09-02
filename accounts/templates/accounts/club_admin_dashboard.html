@@ -236,8 +236,8 @@
                         <td>{{ member.email }}</td>
                         <td>{{ member.age }}</td>
                         <td>
-                            <span class="badge status-badge status-{{ member.status|lower }}">
-                                {{ member.get_status_display }}
+                            <span class="badge status-badge status-{{ member.membership_status|lower }}">
+                                {{ member.get_membership_status_display }}
                             </span>
                         </td>
                         <td>{{ member.created|date:"M d, Y" }}</td>
@@ -287,8 +287,8 @@
                         <td>{{ member.age }}</td>
                         <td>{{ member.get_role_display }}</td>
                         <td>
-                            <span class="badge status-badge status-{{ member.status|lower }}">
-                                {{ member.get_status_display }}
+                            <span class="badge status-badge status-{{ member.membership_status|lower }}">
+                                {{ member.get_membership_status_display }}
                             </span>
                         </td>
                         <td class="text-center">

@@ -95,6 +95,41 @@
         border-color: #dee2e6;
     }
     
+    .qr-code-section {
+        text-align: center;
+        padding: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .qr-code-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .qr-code-container {
+        display: inline-block;
+        padding: 10px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .qr-code-container:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .qr-code-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
     .safa-id-badge {
         background: linear-gradient(135deg, #006633 0%, #008844 100%);
         color: white;
@@ -184,6 +219,17 @@
                         </div>
                         <h4 class="mb-2">{{ user.get_full_name }}</h4>
                         <p class="text-muted mb-3">{{ user.get_role_display }}</p>
+                        
+                        <!-- QR Code Section -->
+                        {% if qr_code_generated and qr_code %}
+                        <div class="qr-code-section mb-3">
+                            <h6 class="text-muted mb-2">Profile QR Code</h6>
+                            <div class="qr-code-container">
+                                <img src="data:image/png;base64,{{ qr_code }}" alt="Profile QR Code" class="qr-code-image">
+                            </div>
+                            <small class="text-muted d-block mt-2">Scan to view profile</small>
+                        </div>
+                        {% endif %}
                         
                         <!-- Upload Photo Button -->
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#photoModal">
