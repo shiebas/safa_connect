@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .invoice-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .invoice-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .invoice-header {
+        background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+        color: white;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-paid { background: #d1e7dd; color: #0f5132; }
+    .status-overdue { background: #f8d7da; color: #721c24; }
+    .status-pending_review { background: #cce5ff; color: #004085; }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .province-info {
+        background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+        color: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">
+                    <i class="fas fa-file-invoice-dollar me-3"></i>
+                    Province Invoices
+                </h1>
+                <a href="{% url 'accounts:provincial_admin_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+            
+            <!-- Province Info -->
+            <div class="province-info">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            {{ province.name }}
+                        </h4>
+                        <p class="mb-0 opacity-75">
+                            <i class="fas fa-building me-2"></i>
+                            Province Administration
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <h5 class="mb-1">Total Invoices</h5>
+                        <span class="h3">{{ invoices.count }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="filter-section">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="season_year" class="form-label">Season</label>
+                        <select name="season_year" id="season_year" class="form-select">
+                            <option value="">All Seasons</option>
+                            {% for season in seasons %}
+                                <option value="{{ season.season_year }}" {% if season.season_year|stringformat:"s" == current_season %}selected{% endif %}>
+                                    {{ season.season_year }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="PENDING" {% if current_status == 'PENDING' %}selected{% endif %}>Pending</option>
+                            <option value="PAID" {% if current_status == 'PAID' %}selected{% endif %}>Paid</option>
+                            <option value="OVERDUE" {% if current_status == 'OVERDUE' %}selected{% endif %}>Overdue</option>
+                            <option value="PENDING_REVIEW" {% if current_status == 'PENDING_REVIEW' %}selected{% endif %}>Pending Review</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter me-2"></i>Filter
+                        </button>
+                        <a href="{% url 'accounts:province_admin_invoices' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Invoices List -->
+            <div class="row">
+                <div class="col-12">
+                    {% if invoices %}
+                        <div class="row">
+                            {% for invoice in invoices %}
+                                <div class="col-lg-6 mb-4">
+                                    <div class="card invoice-card">
+                                        <div class="card-header invoice-header">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-file-invoice me-2"></i>
+                                                    {{ invoice.invoice_number }}
+                                                </h5>
+                                                <span class="status-badge status-{{ invoice.status|lower }}">
+                                                    {{ invoice.get_status_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-6">
+                                                    <strong>Type:</strong><br>
+                                                    <span class="text-muted">{{ invoice.get_invoice_type_display }}</span>
+                                                </div>
+                                                <div class="col-sm-6 text-end">
+                                                    <strong>Amount:</strong><br>
+                                                    <span class="h5 text-primary">R{{ invoice.total_amount }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-sm-6">
+                                                    <strong>Season:</strong><br>
+                                                    <span>{{ invoice.season_config.season_year }}</span>
+                                                </div>
+                                                <div class="col-sm-6 text-end">
+                                                    <strong>Due Date:</strong><br>
+                                                    <span>{{ invoice.due_date|date:"M d, Y"|default:"Not set" }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-sm-6">
+                                                    <strong>Issue Date:</strong><br>
+                                                    <span>{{ invoice.issue_date|date:"M d, Y" }}</span>
+                                                </div>
+                                                <div class="col-sm-6 text-end">
+                                                    <strong>Outstanding:</strong><br>
+                                                    <span class="text-danger fw-bold">R{{ invoice.outstanding_amount }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <a href="{% url 'accounts:invoice_detail' invoice_uuid=invoice.uuid %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-eye me-2"></i>View Details
+                                                </a>
+                                                {% if invoice.status == 'PENDING' %}
+                                                    <a href="{% url 'accounts:submit_proof_of_payment' invoice_uuid=invoice.uuid %}" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-upload me-2"></i>Submit Payment
+                                                    </a>
+                                                {% elif invoice.status == 'PENDING_REVIEW' %}
+                                                    <span class="text-info">
+                                                        <i class="fas fa-clock me-2"></i>Payment Under Review
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No invoices found</h4>
+                            <p class="text-muted">Try adjusting your filters or check back later.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

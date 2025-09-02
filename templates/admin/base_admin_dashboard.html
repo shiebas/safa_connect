@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ dashboard_title|default:"Admin Dashboard" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 1rem 1rem;
+    }
+    
+    .quick-action-btn {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        min-height: 120px;
+        text-decoration: none;
+        border: 2px solid transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .quick-action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        text-decoration: none;
+    }
+    
+    .quick-action-btn i {
+        transition: all 0.3s ease;
+        margin-bottom: 0.5rem;
+    }
+    
+    .quick-action-btn:hover i {
+        transform: scale(1.1);
+    }
+    
+    .quick-action-btn span {
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: white;
+    }
+    
+    .btn-outline-success:hover {
+        background-color: var(--bs-success);
+        border-color: var(--bs-success);
+        color: white;
+    }
+    
+    .btn-outline-warning:hover {
+        background-color: var(--bs-warning);
+        border-color: var(--bs-warning);
+        color: white;
+    }
+    
+    .btn-outline-info:hover {
+        background-color: var(--bs-info);
+        border-color: var(--bs-info);
+        color: white;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid #e9ecef;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #006633;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        color: #6c757d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.875rem;
+    }
+    
+    .content-card {
+        background: white;
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .content-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .content-card .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 1rem 1rem 0 0;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        border-color: #dee2e6;
+    }
+    
+    .table td {
+        border-color: #e9ecef;
+        vertical-align: middle;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn {
+        font-weight: 600;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Custom Status Badge Styling */
+    .status-badge {
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-active {
+        background-color: #198754 !important;
+        color: white !important;
+        border: 2px solid #146c43;
+    }
+    
+    .status-inactive {
+        background-color: #6c757d !important;
+        color: white !important;
+        border: 2px solid #495057;
+    }
+    
+    .status-suspended {
+        background-color: #fd7e14 !important;
+        color: white !important;
+        border: 2px solid #e55a00;
+    }
+    
+    .status-dissolved {
+        background-color: #dc3545 !important;
+        color: white !important;
+        border: 2px solid #b02a37;
+    }
+    
+    /* Membership Status Badge Styling */
+    .status-pending {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+        border: 2px solid #e0a800;
+    }
+    
+    .status-active {
+        background-color: #198754 !important;
+        color: white !important;
+        border: 2px solid #146c43;
+    }
+    
+    .status-inactive {
+        background-color: #6c757d !important;
+        color: white !important;
+        border: 2px solid #495057;
+    }
+    
+    .status-suspended {
+        background-color: #fd7e14 !important;
+        color: white !important;
+        border: 2px solid #e55a00;
+    }
+    
+    .status-rejected {
+        background-color: #dc3545 !important;
+        color: white !important;
+        border: 2px solid #b02a37;
+    }
+    
+    .status-transferred {
+        background-color: #6f42c1 !important;
+        color: white !important;
+        border: 2px solid #5a32a3;
+    }
+    
+    /* Organization Table Styling */
+    .org-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+    }
+    
+    .org-row {
+        transition: all 0.2s ease;
+    }
+    
+    .org-row:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        padding: 1rem 0.75rem;
+    }
+    
+    .table td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0.375rem;
+        margin: 0 2px;
+    }
+    
+    .btn-group .btn:first-child {
+        margin-left: 0;
+    }
+    
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+    
+    /* Filter Section Styling */
+    #pendingFilters {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .form-label.small {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Pagination Styling */
+    .pagination .page-link {
+        border-radius: 0.375rem;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+        color: #495057;
+        font-weight: 500;
+    }
+    
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+        color: #212529;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #006633;
+        border-color: #006633;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">{{ dashboard_title|default:"Admin Dashboard" }}</h1>
+                <p class="mb-0 opacity-75">{{ dashboard_subtitle|default:"Manage your organization and members" }}</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                {% if user_province %}
+                    <div class="stats-card text-white" style="background: linear-gradient(135deg, #198754 0%, #146c43 100%);">
+                        <div class="stats-number">{{ user_province.name }}</div>
+                        <div class="stats-label">Province</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Quick Actions Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% block quick_actions %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards Section -->
+    {% if stats_cards %}
+    <div class="row mb-4">
+        {% for card in stats_cards %}
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ card.number }}</div>
+                <div class="stats-label">{{ card.label }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Section -->
+    <div class="row">
+        <div class="col-12">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

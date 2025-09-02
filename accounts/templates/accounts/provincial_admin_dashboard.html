@@ -1,63 +1,268 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin_dashboard.html" %}
 {% load static %}
 
 {% block title %}Provincial Admin Dashboard{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Provincial Administrator Dashboard</h2>
+{% block quick_actions %}
+<div class="row g-3">
+    <div class="col-6 col-md-6">
+        <a href="#" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-map fa-2x mb-2"></i>
+            <span class="small">Manage Regions</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="#" class="btn btn-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-users fa-2x mb-2"></i>
+            <span class="small">View Members</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="{% url 'accounts:province_admin_invoices' %}" class="btn btn-info w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-file-invoice fa-2x mb-2"></i>
+            <span class="small">View Invoices</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="{% url 'accounts:region_compliance_view' %}" class="btn btn-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-shield-alt fa-2x mb-2"></i>
+            <span class="small">Region Compliance</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="{% url 'accounts:member_cards_admin' %}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-id-card fa-2x mb-2"></i>
+            <span class="small">Print Membership Cards</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-6">
+        <a href="{% url 'accounts:member_approvals_list' %}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-user-check fa-2x mb-2"></i>
+            <span class="small">Member Approvals</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <a href="#" class="btn btn-primary">Manage Regions</a>
-                    <a href="#" class="btn btn-secondary">View Members</a>
-                    <a href="{% url 'accounts:region_compliance_view' %}" class="btn btn-warning">Region Compliance</a>
-                </div>
-            </div>
+{% block dashboard_content %}
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ regions|length }}</div>
+            <div class="stats-label">Regions</div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Provincial Summary</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Province:</strong> {{ user_province.name }}</p>
-                    <p><strong>Total Regions:</strong> {{ regions.count }}</p>
-                    <p><strong>Total Members:</strong> 0</p>
-                </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ members|length }}</div>
+            <div class="stats-label">Members</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">6</div>
+            <div class="stats-label">Quick Actions</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">1</div>
+            <div class="stats-label">Compliance</div>
+        </div>
+    </div>
+</div>
+
+<!-- Province Information -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">
+            <i class="fas fa-info-circle me-2 text-info"></i>
+            Province Information
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Province:</strong> {{ user_province.name }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="badge status-badge status-{{ user_province.status|lower }}">
+                        {{ user_province.get_status_display }}
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Regions:</strong> {{ regions|length }}</p>
+                <p><strong>Members:</strong> {{ members|length }}</p>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Regions in {{ user_province.name }}</h5>
-                </div>
-                <div class="card-body">
-                    {% if regions %}
-                    <ul class="list-group">
-                        {% for region in regions %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ region.name }}
-                            <span class="badge bg-primary rounded-pill">{{ region.localfootballassociation_set.count }} LFAs</span>
-                            <a href="{% url 'geography:region-update' pk=region.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
-                        </li>
-                        {% endfor %}
-                    </ul>
+<!-- Province Compliance Update -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">
+            <i class="fas fa-clipboard-check me-2 text-warning"></i>
+            Province Compliance Management
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 col-md-8">
+                <p class="mb-2"><strong>Current Compliance Status:</strong> 
+                    {% if user_province.is_compliant %}
+                        <span class="badge bg-success text-white">
+                            <i class="fas fa-check-circle me-1"></i>Compliant
+                        </span>
                     {% else %}
-                    <p>No regions associated with this province.</p>
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Non-Compliant
+                        </span>
                     {% endif %}
-                </div>
+                </p>
+                <p class="text-muted small mb-3">
+                    To become compliant, you need to upload all required documents and meet compliance criteria.
+                    Click the button below to update your compliance information.
+                </p>
+            </div>
+            <div class="col-12 col-md-4 text-md-end text-center">
+                <a href="{% url 'accounts:province_compliance_view' %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-edit me-2"></i>Update Compliance
+                </a>
             </div>
         </div>
     </div>
+</div>
 
+
+
+<!-- All Regions -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">
+            <i class="fas fa-map me-2 text-primary"></i>
+            All Regions
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Status</th>
+                        <th>Compliance</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for region in regions %}
+                    <tr>
+                        <td>{{ region.name }}</td>
+                        <td>{{ region.code|default:"N/A" }}</td>
+                        <td>
+                            <span class="badge status-badge status-{{ region.status|lower }}">
+                                {{ region.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if region.is_compliant %}
+                                <span class="badge bg-success text-white">
+                                    <i class="fas fa-check-circle me-1"></i>Compliant
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Non-Compliant
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if region.status == 'INACTIVE' and region.is_compliant %}
+                                <form method="post" action="{% url 'accounts:approve_region' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="region_id" value="{{ region.id }}">
+                                    <input type="hidden" name="new_status" value="ACTIVE">
+                                    <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this region?')">
+                                        <i class="fas fa-check me-1"></i>Approve
+                                    </button>
+                                </form>
+                            {% elif region.status == 'ACTIVE' %}
+                                <span class="badge bg-success text-white">
+                                    <i class="fas fa-check me-1"></i>Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary text-white">
+                                    <i class="fas fa-info-circle me-1"></i>View Only
+                                </span>
+                            {% endif %}
+                            <br>
+                            <small class="text-muted">
+                                <a href="{% url 'accounts:region_compliance_view' %}" class="text-decoration-none">
+                                    <i class="fas fa-edit me-1"></i>Update Compliance
+                                </a>
+                            </small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No regions found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Members -->
+<div class="content-card">
+    <div class="card-header">
+        <h6 class="mb-0">
+            <i class="fas fa-users me-2 text-success"></i>
+            Members
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Age</th>
+                        <th>Organization</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr>
+                        <td>{{ member.user.get_full_name }}</td>
+                        <td>{{ member.user.email }}</td>
+                        <td>{{ member.age|default:"N/A" }}</td>
+                        <td>{{ member.current_club.name|default:"N/A" }}</td>
+                        <td>
+                            <span class="badge status-badge status-{{ member.membership_status|lower }}">
+                                {{ member.get_membership_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'accounts:edit_player' member.user.id %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No members found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

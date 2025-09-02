@@ -53,8 +53,8 @@
                     <tbody>
                         {% for member in pending_members %}
                         <tr id="member-row-{{ member.id }}">
-                            <td>{{ member.get_full_name }}</td>
-                            <td>{{ member.email|default:"N/A" }}</td>
+                            <td>{{ member.user.get_full_name }}</td>
+                            <td>{{ member.user.email|default:"N/A" }}</td>
                             <td>{{ member.get_role_display }}</td>
                             <td>{{ member.current_club.name|default:"N/A" }}</td>
                             <td>{{ member.created|date:"Y-m-d" }}</td>
@@ -81,7 +81,7 @@
                                           {% csrf_token %}
                                           <input type="hidden" name="member_id" value="{{ member.id }}">
                                           <div class="modal-header">
-                                            <h5 class="modal-title" id="rejectModalLabel-{{ member.id }}">Reject Member: {{ member.get_full_name }}</h5>
+                                            <h5 class="modal-title" id="rejectModalLabel-{{ member.id }}">Reject Member: {{ member.user.get_full_name }}</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                           </div>
                                           <div class="modal-body">
@@ -107,6 +107,42 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- LFA Compliance Update -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-clipboard-check me-2 text-warning"></i>
+                LFA Compliance Management
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <p><strong>Current Compliance Status:</strong> 
+                        {% if lfa.is_compliant %}
+                            <span class="badge bg-success text-white">
+                                <i class="fas fa-check-circle me-1"></i>Compliant
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Non-Compliant
+                            </span>
+                        {% endif %}
+                    </p>
+                    <p class="text-muted small">
+                        To become compliant, you need to upload all required documents and meet compliance criteria.
+                        Click the button below to update your compliance information.
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'accounts:lfa_compliance_view' %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Update Compliance
+                    </a>
+                </div>
             </div>
         </div>
     </div>

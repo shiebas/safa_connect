@@ -1,6 +1,6 @@
 # geography/models.py
 from django.contrib.auth.models import AbstractUser
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -344,6 +344,9 @@ class Province(TimeStampedModel, ModelWithLogo):
         verbose_name=_('Compliance Verified Date')
     )
     
+    # Generic relation for invoices
+    invoices = GenericRelation('membership.Invoice', content_type_field='content_type', object_id_field='object_id')
+    
     class Meta:
         verbose_name = _('Province')
         verbose_name_plural = _('Provinces')
@@ -422,6 +425,9 @@ class Region(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
 
     def get_model_name(self):
         return "Region"
+    
+    # Generic relation for invoices
+    invoices = GenericRelation('membership.Invoice', content_type_field='content_type', object_id_field='object_id')
 
 class Association(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     """Represents a regional football association (e.g., SAFA Cape Town)"""
@@ -570,6 +576,9 @@ class LocalFootballAssociation(TimeStampedModel, ModelWithLogo, SAFAIdentifiable
 
     def get_model_name(self):
         return "LFA"
+    
+    # Generic relation for invoices
+    invoices = GenericRelation('membership.Invoice', content_type_field='content_type', object_id_field='object_id')
 
 class ClubTier(models.TextChoices):
     PREMIER = 'PREMIER', _('Premier')
@@ -711,6 +720,12 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     
     def __str__(self):
         return self.name
+    
+    def get_model_name(self):
+        return "Club"
+    
+    # Generic relation for invoices
+    invoices = GenericRelation('membership.Invoice', content_type_field='content_type', object_id_field='object_id')
     
     def save(self, *args, **kwargs):
         """Ensure province and region match LFA"""

@@ -112,8 +112,8 @@
                     <thead>
                         <tr>
                             <th>{% trans "Invoice #" %}</th>
-                            <th>{% trans "Player" %}</th>
-                            <th>{% trans "Club" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Entity" %}</th>
                             <th>{% trans "Issue Date" %}</th>
                             <th>{% trans "Due Date" %}</th>
                             <th>{% trans "Amount" %}</th>
@@ -125,11 +125,33 @@
                         {% for invoice in invoices %}
                         <tr>
                             <td>{{ invoice.invoice_number }}</td>
-                            <td>{{ invoice.player.get_full_name }}</td>
-                            <td>{{ invoice.club.name }}</td>
-                            <td>{{ invoice.issue_date|date:"d M Y" }}</td>
-                            <td>{{ invoice.due_date|date:"d M Y" }}</td>
-                            <td>R {{ invoice.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if invoice.invoice_type == 'MEMBER_REGISTRATION' %}
+                                    <span class="badge bg-info">Member</span>
+                                {% elif invoice.invoice_type == 'ORGANIZATION_MEMBERSHIP' %}
+                                    <span class="badge bg-primary">Organization</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ invoice.get_invoice_type_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if invoice.member %}
+                                    <div class="d-flex flex-column">
+                                        <strong>{{ invoice.member.user.get_full_name }}</strong>
+                                        <small class="text-muted">{{ invoice.member.current_club.name|default:"No Club" }}</small>
+                                    </div>
+                                {% elif invoice.organization %}
+                                    <div class="d-flex flex-column">
+                                        <strong>{{ invoice.organization.name }}</strong>
+                                        <small class="text-muted">{{ invoice.organization.get_model_name|title }}</small>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ invoice.created_at|date:"d M Y" }}</td>
+                            <td>{{ invoice.due_date|date:"d M Y"|default:"N/A" }}</td>
+                            <td>R {{ invoice.total_amount|floatformat:2 }}</td>
                             <td>
                                 {% if invoice.status == 'PAID' %}
                                     <span class="badge bg-success">{% trans "Paid" %}</span>

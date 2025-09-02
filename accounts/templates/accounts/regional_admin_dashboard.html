@@ -27,14 +27,50 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Region:</strong> {{ user_region.name }}</p>
-                    <p><strong>Total LFAs:</strong> {{ lfas.count }}</p>
+                    <p><strong>Total LFAs:</strong> {{ lfas|length }}</p>
                     <p><strong>Total Members:</strong> 0</p>
                 </div>
             </div>
+            </div>
+</div>
+
+<!-- Region Compliance Update -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-clipboard-check me-2 text-warning"></i>
+            Region Compliance Management
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <p><strong>Current Compliance Status:</strong> 
+                    {% if user_region.is_compliant %}
+                        <span class="badge bg-success text-white">
+                            <i class="fas fa-check-circle me-1"></i>Compliant
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Non-Compliant
+                        </span>
+                    {% endif %}
+                </p>
+                <p class="text-muted small">
+                    To become compliant, you need to upload all required documents and meet compliance criteria.
+                    Click the button below to update your compliance information.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'accounts:region_compliance_view' %}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Update Compliance
+                </a>
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="row mb-4">
+<div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
@@ -46,7 +82,7 @@
                         {% for lfa in lfas %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             {{ lfa.name }}
-                            <span class="badge bg-primary rounded-pill">{{ lfa.clubs.count }} Clubs</span>
+                            <span class="badge bg-primary rounded-pill">{{ lfa.clubs.all|length }} Clubs</span>
                             <a href="{% url 'geography:lfa-update' pk=lfa.id %}" class="btn btn-info btn-sm ms-2">Edit</a>
                         </li>
                         {% endfor %}

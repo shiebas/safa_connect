@@ -446,8 +446,14 @@ class ProvinceCreateView(LoginRequiredMixin, CreateView):
     model = Province
     form_class = ProvinceForm
     template_name = 'geography/province_form.html'
-    success_url = reverse_lazy('geography:province-list')
-
+    
+    def get_success_url(self):
+        # Redirect back to provincial admin dashboard if user came from there
+        if self.request.user.role == 'ADMIN_PROVINCE':
+            return reverse_lazy('accounts:provincial_admin_dashboard')
+        # Default fallback to province list
+        return reverse_lazy('geography:province-list')
+    
     def form_valid(self, form):
         messages.success(self.request, 'Province created successfully.')
         return super().form_valid(form)
@@ -457,10 +463,28 @@ class ProvinceUpdateView(LoginRequiredMixin, UpdateView):
     model = Province
     form_class = ProvinceForm
     template_name = 'geography/province_form.html'
-    success_url = reverse_lazy('geography:province-list')
-
+    
+    def get_success_url(self):
+        # Debug logging
+        print(f"DEBUG: ProvinceUpdateView get_success_url called for user: {self.request.user.email}")
+        print(f"DEBUG: User role: {self.request.user.role}")
+        print(f"DEBUG: Is ADMIN_PROVINCE: {self.request.user.role == 'ADMIN_PROVINCE'}")
+        
+        # Redirect back to provincial admin dashboard if user came from there
+        if self.request.user.role == 'ADMIN_PROVINCE':
+            print(f"DEBUG: Redirecting to provincial admin dashboard")
+            return reverse_lazy('accounts:provincial_admin_dashboard')
+        # Default fallback to province list
+        print(f"DEBUG: Redirecting to province list")
+        return reverse_lazy('geography:province-list')
+    
     def form_valid(self, form):
         messages.success(self.request, 'Province updated successfully.')
+        # Force redirect for provincial admins
+        if self.request.user.role == 'ADMIN_PROVINCE':
+            print(f"DEBUG: Force redirect in form_valid to provincial admin dashboard")
+            from django.shortcuts import redirect
+            return redirect('accounts:provincial_admin_dashboard')
         return super().form_valid(form)
 
 @login_decorator
@@ -534,7 +558,13 @@ class RegionCreateView(LoginRequiredMixin, CreateView):
     model = Region
     form_class = RegionForm
     template_name = 'geography/region_form.html'
-    success_url = reverse_lazy('geography:region-list')
+    
+    def get_success_url(self):
+        # Redirect back to provincial admin dashboard if user came from there
+        if self.request.user.role == 'ADMIN_PROVINCE':
+            return reverse_lazy('accounts:provincial_admin_dashboard')
+        # Default fallback to region list
+        return reverse_lazy('geography:region-list')
     
     def form_valid(self, form):
         messages.success(self.request, 'Region created successfully.')
@@ -545,13 +575,28 @@ class RegionUpdateView(LoginRequiredMixin, UpdateView):
     model = Region
     form_class = RegionForm
     template_name = 'geography/region_form.html'
-    success_url = reverse_lazy('geography:region-list')
+    
+    def get_success_url(self):
+        # Debug logging
+        print(f"DEBUG: get_success_url called for user: {self.request.user.email}")
+        print(f"DEBUG: User role: {self.request.user.role}")
+        print(f"DEBUG: Is ADMIN_PROVINCE: {self.request.user.role == 'ADMIN_PROVINCE'}")
+        
+        # Redirect back to provincial admin dashboard if user came from there
+        if self.request.user.role == 'ADMIN_PROVINCE':
+            print(f"DEBUG: Redirecting to provincial admin dashboard")
+            return reverse_lazy('accounts:provincial_admin_dashboard')
+        # Default fallback to region list
+        print(f"DEBUG: Redirecting to region list")
+        return reverse_lazy('geography:region-list')
     
     def form_valid(self, form):
         messages.success(self.request, 'Region updated successfully.')
-        print("Form is valid. Redirecting to:", self.success_url)
-        print("Request path:", self.request.path)
-        print("Request method:", self.request.method)
+        # Force redirect for provincial admins
+        if self.request.user.role == 'ADMIN_PROVINCE':
+            print(f"DEBUG: Force redirect in form_valid to provincial admin dashboard")
+            from django.shortcuts import redirect
+            return redirect('accounts:provincial_admin_dashboard')
         return super().form_valid(form)
 
 class RegionDetailView(LoginRequiredMixin, DetailView):

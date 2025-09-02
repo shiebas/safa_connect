@@ -5,7 +5,114 @@
 {% block title %}SAFA Member Registration{% endblock %}
 
 {% block content %}
-<!-- Age Verification Modal -->
+<!-- Modal CSS temporarily disabled -->
+<!--
+<style>
+/* Ensure age verification modal stays visible */
+#ageVerificationModal {
+    z-index: 9999 !important;
+}
+
+#ageVerificationModal.show {
+    display: block !important;
+}
+
+#ageVerificationModal .modal-dialog {
+    z-index: 10000 !important;
+}
+
+/* Force modal visibility */
+#ageVerificationModal.fade.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+#ageVerificationModal .modal-backdrop {
+    z-index: 9998 !important;
+}
+
+/* Prevent modal from being hidden */
+#ageVerificationModal {
+    pointer-events: auto !important;
+}
+
+#ageVerificationModal.show {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Override any Bootstrap hiding */
+.modal.fade.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* Ensure backdrop stays visible */
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+    display: block !important;
+}
+
+/* Debug styles */
+.modal-debug {
+    border: 3px solid red !important;
+    small>/* Ensure age verification modal stays visible */
+#ageVerificationModal {
+    z-index: 9999 !important;
+}
+
+#ageVerificationModal.show {
+    display: block !important;
+}
+
+#ageVerificationModal .modal-dialog {
+    z-index: 10000 !important;
+}
+
+/* Force modal visibility */
+#ageVerificationModal.fade.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+#ageVerificationModal .modal-backdrop {
+    z-index: 9998 !important;
+}
+
+/* Prevent modal from being hidden */
+#ageVerificationModal {
+    pointer-events: auto !important;
+}
+
+#ageVerificationModal.show {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Override any Bootstrap hiding */
+.modal.fade.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* Ensure backdrop stays visible */
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+    display: block !important;
+}
+
+/* Debug styles */
+.modal-debug {
+    border: 3px solid red !important;
+    background-color: rgba(255, 0, 0, 0.2) !important;
+}
+</style>
+-->
+
+{% if not is_club_admin_registration %}
+<!-- Debug: Public registration detected, age verification modal temporarily disabled -->
+<!-- 
+Age Verification Modal - TEMPORARILY DISABLED
 <div class="modal fade" id="ageVerificationModal" tabindex="-1" aria-labelledby="ageVerificationModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -26,7 +133,7 @@
                             <i class="fas fa-check me-2"></i>Yes, I am 18+
                         </button>
                     </div>
-                    <div class="col-6">
+                    <div class="div class="col-6">
                         <button type="button" class="btn btn-secondary btn-lg w-100" id="noUnder18">
                             <i class="fas fa-times me-2"></i>No, I am under 18
                         </button>
@@ -37,7 +144,7 @@
     </div>
 </div>
 
-<!-- Thank You Modal for Under 18 -->
+Thank You Modal for Under 18 - TEMPORARILY DISABLED
 <div class="modal fade" id="thankYouModal" tabindex="-1" aria-labelledby="thankYouModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -64,11 +171,22 @@
         </div>
     </div>
 </div>
+-->
+{% else %}
+<!-- Debug: Club admin registration detected, skipping age verification modal -->
+{% endif %}
 
-<div class="container my-5" id="registrationContainer" style="display: none;">
+<div class="container my-5" id="registrationContainer" {% if is_club_admin_registration %}style="display: block;" data-is-club-admin="true"{% else %}style="display: block;" data-is-club-admin="false"{% endif %}>
     <div class="row justify-content-center">
         <div class="col-lg-9">
             <h1 class="mb-4 text-center">SAFA Member Registration</h1>
+            
+            <!-- Age requirement notice -->
+            <div class="alert alert-info text-center mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Age Requirement:</strong> You must be 18 years or older to register on SAFA Connect. 
+                If you are under 18, please contact your local club administrator for registration assistance.
+            </div>
 
             <form method="post" enctype="multipart/form-data" id="registrationForm" novalidate>
                 {% csrf_token %}
@@ -271,14 +389,14 @@
 {% block extra_js %}
 <!-- Include the SA ID validation script -->
 <script src="{% static 'js/sa_id_validation.js' %}"></script>
-<!-- Include the registration validation script -->
-<script src="{% static 'js/registration_validation.js' %}"></script>
+<!-- Include the registration validation script - TEMPORARILY DISABLED -->
+<!-- <script src="{% static 'js/registration_validation.js' %}?v=1.1"></script> -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     try {
         console.log('DOM fully loaded and parsed.');
 
-    // --- FIELD SELECTORS ---
+        // --- FIELD SELECTORS ---
     const roleField = document.getElementById('id_role');
     const isExistingMemberField = document.getElementById('id_is_existing_member');
     const previousSafaIdContainer = document.getElementById('previous_safa_id_container');
@@ -900,10 +1018,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error in periodic protection check:', error);
         }
     }, 1000); // Check every second
-    } catch (error) {
-        console.error('Error in main registration script:', error);
-    }
-});
+        } catch (error) {
+            console.error('Error in main registration script:', error);
+        }
+    });
 </script>
 
 

@@ -1,14 +1,14 @@
 {% extends "admin/base_admin_dashboard.html" %}
 {% load static %}
 
-{% block title %}Club Admin Dashboard{% endblock %}
+{% block title %}Region Admin Dashboard{% endblock %}
 
 {% block quick_actions %}
 <div class="row g-3">
     <div class="col-md-6">
-        <a href="{% url 'accounts:club_admin_add_person' %}" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-            <i class="fas fa-user-plus fa-2x mb-2"></i>
-            <span>Add Member</span>
+        <a href="#" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-building fa-2x mb-2"></i>
+            <span>Manage LFAs</span>
         </a>
     </div>
     <div class="col-md-6">
@@ -18,9 +18,9 @@
         </a>
     </div>
     <div class="col-md-6">
-        <a href="{% url 'accounts:club_compliance_view' %}" class="btn btn-info w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+        <a href="{% url 'accounts:lfa_compliance_view' %}" class="btn btn-info w-100 h-100 d-flex flex-column align-items-center justify-content-center">
             <i class="fas fa-shield-alt fa-2x mb-2"></i>
-            <span>Club Compliance</span>
+            <span>LFA Compliance</span>
         </a>
     </div>
     <div class="col-md-6">
@@ -49,20 +49,20 @@
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <div class="stats-card">
+            <div class="stats-number">{{ lfas.count }}</div>
+            <div class="stats-label">LFAs</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ clubs.count }}</div>
+            <div class="stats-label">Clubs</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
             <div class="stats-number">{{ members.count }}</div>
             <div class="stats-label">Members</div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="stats-card">
-            <div class="stats-number">{{ pending_members.count }}</div>
-            <div class="stats-label">Pending</div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="stats-card">
-            <div class="stats-number">{{ active_members.count }}</div>
-            <div class="stats-label">Active</div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -73,78 +73,40 @@
     </div>
 </div>
 
-<!-- Club Information -->
+<!-- Region Information -->
 <div class="content-card mb-4">
     <div class="card-header">
         <h5 class="mb-0">
             <i class="fas fa-info-circle me-2 text-info"></i>
-            Club Information
+            Region Information
         </h5>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <p><strong>Club:</strong> {{ user_club.name }}</p>
-                <p><strong>Code:</strong> {{ user_club.code|default:"N/A" }}</p>
+                <p><strong>Region:</strong> {{ user_region.name }}</p>
+                <p><strong>Province:</strong> {{ user_region.province.name }}</p>
                 <p><strong>Status:</strong> 
-                                                <span class="badge status-badge status-{{ user_club.status|lower }}">
-                                {{ user_club.get_status_display }}
+                                                <span class="badge status-badge status-{{ user_region.status|lower }}">
+                                {{ user_region.get_status_display }}
                             </span>
                 </p>
             </div>
             <div class="col-md-6">
-                <p><strong>Province:</strong> {{ user_club.province.name }}</p>
-                <p><strong>Region:</strong> {{ user_club.region.name }}</p>
-                <p><strong>LFA:</strong> {{ user_club.localfootballassociation.name }}</p>
+                <p><strong>LFAs:</strong> {{ lfas.count }}</p>
+                <p><strong>Clubs:</strong> {{ clubs.count }}</p>
+                <p><strong>Members:</strong> {{ members.count }}</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Members by Status -->
+<!-- Local Football Associations -->
 <div class="content-card mb-4">
     <div class="card-header">
         <h5 class="mb-0">
-            <i class="fas fa-users me-2 text-primary"></i>
-            Members by Status
-        </h5>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3 text-center">
-                <div class="stats-card">
-                    <div class="stats-number text-success">{{ active_members.count }}</div>
-                    <div class="stats-label">Active</div>
-                </div>
-            </div>
-            <div class="col-md-3 text-center">
-                <div class="stats-card">
-                    <div class="stats-number text-warning">{{ pending_members.count }}</div>
-                    <div class="stats-label">Pending</div>
-                </div>
-            </div>
-            <div class="col-md-3 text-center">
-                <div class="stats-card">
-                    <div class="stats-number text-danger">{{ suspended_members.count }}</div>
-                    <div class="stats-label">Suspended</div>
-                </div>
-            </div>
-            <div class="col-md-3 text-center">
-                <div class="stats-card">
-                    <div class="stats-number text-secondary">{{ inactive_members.count }}</div>
-                    <div class="stats-label">Inactive</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Members -->
-<div class="content-card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-user-clock me-2 text-success"></i>
-            Recent Members
+            <i class="fas fa-building me-2 text-primary"></i>
+            Local Football Associations
         </h5>
     </div>
     <div class="card-body">
@@ -152,35 +114,33 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Age</th>
+                        <th>Name</th>
+                        <th>Acronym</th>
                         <th>Status</th>
-                        <th>Registration Date</th>
+                        <th>Clubs</th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for member in recent_members %}
+                    {% for lfa in lfas %}
                     <tr>
-                        <td>{{ member.get_full_name }}</td>
-                        <td>{{ member.email }}</td>
-                        <td>{{ member.age }}</td>
+                        <td>{{ lfa.name }}</td>
+                        <td>{{ lfa.acronym|default:"N/A" }}</td>
                         <td>
-                            <span class="badge status-badge status-{{ member.status|lower }}">
-                                {{ member.get_status_display }}
+                            <span class="badge status-badge status-{{ lfa.status|lower }}">
+                                {{ lfa.get_status_display }}
                             </span>
                         </td>
-                        <td>{{ member.created|date:"M d, Y" }}</td>
+                        <td>{{ lfa.clubs.count|default:0 }}</td>
                         <td class="text-center">
-                            <a href="{% url 'accounts:edit_player' member.id %}" class="btn btn-primary btn-sm">
+                            <a href="#" class="btn btn-primary btn-sm">
                                 <i class="fas fa-edit me-1"></i>Edit
                             </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No recent members found.</td>
+                        <td colspan="5" class="text-center text-muted">No LFAs found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -189,12 +149,60 @@
     </div>
 </div>
 
-<!-- All Members -->
+<!-- Clubs -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-futbol me-2 text-success"></i>
+            Clubs
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Status</th>
+                        <th>Members</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for club in clubs %}
+                    <tr>
+                        <td>{{ club.name }}</td>
+                        <td>{{ club.code|default:"N/A" }}</td>
+                        <td>
+                            <span class="badge status-badge status-{{ club.status|lower }}">
+                                {{ club.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ club.members.count|default:0 }}</td>
+                        <td class="text-center">
+                            <a href="#" class="btn btn-primary btn-sm">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No clubs found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Members -->
 <div class="content-card">
     <div class="card-header">
         <h5 class="mb-0">
             <i class="fas fa-users me-2 text-warning"></i>
-            All Members
+            Members
         </h5>
     </div>
     <div class="card-body">
@@ -205,7 +213,7 @@
                         <th>Full Name</th>
                         <th>Email</th>
                         <th>Age</th>
-                        <th>Role</th>
+                        <th>Organization</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -216,7 +224,7 @@
                         <td>{{ member.get_full_name }}</td>
                         <td>{{ member.email }}</td>
                         <td>{{ member.age }}</td>
-                        <td>{{ member.get_role_display }}</td>
+                        <td>{{ member.organization_name|default:"N/A" }}</td>
                         <td>
                             <span class="badge status-badge status-{{ member.status|lower }}">
                                 {{ member.get_status_display }}

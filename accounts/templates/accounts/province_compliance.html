@@ -1,14 +1,362 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Province Compliance{% endblock %}
+{% block title %}Province Compliance - {{ province.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compliance-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+    }
+    
+    .compliance-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .form-section {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h5 {
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .file-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .file-upload-area:hover {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+    
+    .file-upload-area.has-file {
+        border-color: #198754;
+        background-color: #d1e7dd;
+    }
+    
+    .compliance-status {
+        background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+        color: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .compliance-status.non-compliant {
+        background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.3);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>{{ province.name }} - Compliance</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-    </form>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            {% if not province %}
+                <!-- Error State -->
+                <div class="card compliance-card">
+                    <div class="card-body p-4 text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h3>No Province Associated</h3>
+                        <p class="text-muted">
+                            You are not currently associated with any province. 
+                            Please contact your administrator to set up your province association.
+                        </p>
+                        <a href="{% url 'accounts:modern_home' %}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>
+                            Return to Home
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Header Card -->
+                <div class="card compliance-card mb-4">
+                    <div class="card-body compliance-header p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h1 class="mb-0">
+                                        <i class="fas fa-shield-alt me-3"></i>
+                                        {{ province.name }} - Compliance Management
+                                    </h1>
+                                </div>
+                                <p class="mb-0 opacity-75">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    Province: {{ province.name }} | 
+                                    <i class="fas fa-flag me-2"></i>
+                                    National Federation: {{ province.national_federation.name|default:"Not specified" }}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="compliance-status {% if province.is_compliant %}compliant{% else %}non-compliant{% endif %}">
+                                    <h5 class="mb-2">
+                                        <i class="fas {% if province.is_compliant %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
+                                        {% if province.is_compliant %}Compliant{% else %}Non-Compliant{% endif %}
+                                    </h5>
+                                    <small class="opacity-75">
+                                        {% if province.compliance_verified_date %}
+                                            Verified: {{ province.compliance_verified_date|date:"d M Y" }}
+                                        {% else %}
+                                            Not yet verified
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance Form -->
+                <div class="card compliance-card">
+                    <div class="card-body p-4">
+                        <form method="post" enctype="multipart/form-data" id="complianceForm">
+                            {% csrf_token %}
+                            
+                            <!-- Error Messages -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Please correct the following errors:</strong>
+                                    {% for error in form.non_field_errors %}
+                                        <p class="mb-0">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <!-- Document Upload Section -->
+                            <div class="form-section">
+                                <h5>
+                                    <i class="fas fa-file-upload me-2 text-primary"></i>
+                                    Required Compliance Documents
+                                </h5>
+                                <p class="text-muted mb-4">
+                                    Upload the required compliance documents for {{ province.name }}. All documents must be current and valid.
+                                </p>
+                                
+                                <div class="row">
+                                    <!-- Constitution Document -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="file-upload-area {% if province.constitution_document %}has-file{% endif %}">
+                                            <i class="fas fa-file-pdf fa-3x text-primary mb-3"></i>
+                                            <h6>Constitution Document</h6>
+                                            <p class="text-muted small mb-3">
+                                                Upload the province's constitution (PDF, DOC, etc.)
+                                            </p>
+                                            <div class="mb-3">
+                                                {{ form.constitution_document }}
+                                            </div>
+                                            {% if province.constitution_document %}
+                                                <div class="alert alert-success small">
+                                                    <i class="fas fa-check me-2"></i>
+                                                    Current: {{ province.constitution_document.name|slice:"25:" }}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.constitution_document.errors %}
+                                                <div class="alert alert-danger small">
+                                                    {{ form.constitution_document.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Minutes of AGM -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="file-upload-area {% if province.minutes_of_agm_document %}has-file{% endif %}">
+                                            <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
+                                            <h6>Minutes of AGM</h6>
+                                            <p class="text-muted small mb-3">
+                                                Upload the minutes of the last Annual General Meeting
+                                            </p>
+                                            <div class="mb-3">
+                                                {{ form.minutes_of_agm_document }}
+                                            </div>
+                                            {% if province.minutes_of_agm_document %}
+                                                <div class="alert alert-success small">
+                                                    <i class="fas fa-check me-2"></i>
+                                                    Current: {{ province.minutes_of_agm_document.name|slice:"25:" }}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.minutes_of_agm_document.errors %}
+                                                <div class="alert alert-danger small">
+                                                    {{ form.minutes_of_agm_document.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Financial Statements -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="file-upload-area {% if province.financial_statements_document %}has-file{% endif %}">
+                                            <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                                            <h6>Financial Statements</h6>
+                                            <p class="text-muted small mb-3">
+                                                Upload the latest financial statements
+                                            </p>
+                                            <div class="mb-3">
+                                                {{ form.financial_statements_document }}
+                                            </div>
+                                            {% if province.financial_statements_document %}
+                                                <div class="alert alert-success small">
+                                                    <i class="fas fa-check me-2"></i>
+                                                    Current: {{ province.financial_statements_document.name|slice:"25:" }}
+                                                </div>
+                                            {% endif %}
+                                            {% if form.financial_statements_document.errors %}
+                                                <div class="alert alert-danger small">
+                                                    {{ form.financial_statements_document.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Compliance Status -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="form-section h-100">
+                                            <h6>
+                                                <i class="fas fa-shield-check me-2 text-success"></i>
+                                                Compliance Verification
+                                            </h6>
+                                            <div class="form-check form-switch">
+                                                {{ form.is_compliant }}
+                                                <label class="form-check-label" for="{{ form.is_compliant.id_for_label }}">
+                                                    Mark as Compliant
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">
+                                                Check this box when all compliance requirements are met and verified.
+                                            </small>
+                                            {% if form.is_compliant.errors %}
+                                                <div class="alert alert-danger small mt-2">
+                                                    {{ form.is_compliant.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'geography:province-list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Back to Provinces
+                                </a>
+                                <button type="submit" class="btn btn-save">
+                                    <i class="fas fa-save me-2"></i>
+                                    Save Compliance Status
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Compliance Information -->
+                <div class="card compliance-card mt-4">
+                    <div class="card-body p-4">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle me-2 text-info"></i>
+                            Compliance Requirements
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Required Documents:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i>Constitution Document</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Minutes of AGM</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Financial Statements</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Compliance Criteria:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-info text-info me-2"></i>All documents must be current</li>
+                                    <li><i class="fas fa-info text-info me-2"></i>Documents must be in approved formats</li>
+                                    <li><i class="fas fa-info text-info me-2"></i>Financial statements must be audited</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload visual feedback
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const uploadArea = this.closest('.file-upload-area');
+            if (this.files.length > 0) {
+                uploadArea.classList.add('has-file');
+            } else {
+                uploadArea.classList.remove('has-file');
+            }
+        });
+    });
+    
+    // Form submission confirmation
+    const form = document.getElementById('complianceForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+            submitBtn.disabled = true;
+        });
+    }
+});
+</script>
 {% endblock %}

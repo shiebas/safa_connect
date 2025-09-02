@@ -79,25 +79,21 @@ urlpatterns = [
     path('associations/<int:pk>/edit/', views.AssociationUpdateView.as_view(), name='association-update'),
     path('associations/<int:pk>/delete/', views.AssociationDeleteView.as_view(), name='association-delete'),
     # Province
-    path('provinces/', views.ProvinceListView.as_view(), name='province-list'),
     path('provinces/add/', views.ProvinceCreateView.as_view(), name='province-create'),
     path('provinces/<int:pk>/', views.ProvinceDetailView.as_view(), name='province-detail'),
     path('provinces/<int:pk>/edit/', views.ProvinceUpdateView.as_view(), name='province-update'),
     path('provinces/<int:pk>/delete/', views.ProvinceDeleteView.as_view(), name='province-delete'),
     # Region
-    path('regions/', views.RegionListView.as_view(), name='region-list'),
     path('regions/add/', views.RegionCreateView.as_view(), name='region-create'),
     path('regions/<int:pk>/', views.RegionDetailView.as_view(), name='region-detail'),
     path('regions/<int:pk>/edit/', views.RegionUpdateView.as_view(), name='region-update'),
     path('regions/<int:pk>/delete/', views.RegionDeleteView.as_view(), name='region-delete'),
     # Club
-    path('clubs/', views.ClubListView.as_view(), name='club-list'),
     path('clubs/add/', views.ClubCreateView.as_view(), name='club-create'),
     path('clubs/<int:pk>/', views.ClubDetailView.as_view(), name='club-detail'),
     path('clubs/<int:pk>/edit/', views.ClubUpdateView.as_view(), name='club-update'),
     path('clubs/<int:pk>/delete/', views.ClubDeleteView.as_view(), name='club-delete'),
     # LocalFootballAssociation
-    path('localfootballassociations/', views.LocalFootballAssociationListView.as_view(), name='localfootballassociation-list'),
     path('localfootballassociations/add/', views.LocalFootballAssociationCreateView.as_view(), name='localfootballassociation-create'),
     path('localfootballassociations/<int:pk>/', views.LocalFootballAssociationDetailView.as_view(), name='localfootballassociation-detail'),
     path('localfootballassociations/<int:pk>/edit/', views.LocalFootballAssociationUpdateView.as_view(), name='localfootballassociation-update'),

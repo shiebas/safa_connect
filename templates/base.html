@@ -706,8 +706,13 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{% url 'accounts:member_approvals_list' %}">
-                                        <i class="fas fa-user-check me-2"></i>Member Approvals
+                                        <i class="fas fa-user-check me-2"></i>Membership Approval
                                     </a></li>
+                                    {% if user.role == 'ADMIN_NATIONAL' %}
+                                        <li><a class="dropdown-item" href="{% url 'accounts:national_admin_invoices' %}">
+                                            <i class="fas fa-file-invoice-dollar me-2"></i>Organization Invoices
+                                        </a></li>
+                                    {% endif %}
                                     <li><a class="dropdown-item" href="{% url 'accounts:advanced_search' %}">
                                         <i class="fas fa-search me-2"></i>Advanced Search
                                     </a></li>
@@ -718,11 +723,11 @@
                                         <i class="fas fa-id-card me-2"></i>Member Cards
                                     </a></li>
                                     {% if user.is_superuser %}
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="/admin/">
-                                            <i class="fas fa-database me-2"></i>Django Admin
-                                        </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="fas fa-cog me-2"></i>Django Admin
+                                    </a></li>
                                     {% endif %}
+
                                 </ul>
                             </li>
                         {% endif %}
@@ -739,9 +744,13 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle me-1"></i>
-                                {{ user.get_full_name|default:user.email|truncatechars:20 }}
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                {% else %}
+                                    <i class="fas fa-user-circle me-1"></i>
+                                {% endif %}
+                                <span>{{ user.get_full_name|default:user.email|truncatechars:20 }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">

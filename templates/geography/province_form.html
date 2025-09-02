@@ -9,9 +9,6 @@
         <div class="col">
             <h2>{{ form.instance.pk|yesno:'Edit,Add' }} Province</h2>
         </div>
-        <div class="col-auto">
-            <a href="{% url 'geography:province-list' %}" class="btn btn-secondary">Back to List</a>
-        </div>
     </div>
     
     <div class="row">
@@ -33,7 +30,7 @@
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.country|as_crispy_field }}
+                        {{ form.national_federation|as_crispy_field }}
                     </div>
                     
                     <div class="mb-3">
@@ -41,14 +38,39 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
-                        <input type="file" name="logo" class="form-control" id="{{ form.logo.id_for_label }}" accept="image/*">
-                        {% if form.instance.logo %}
-                            <div class="mt-2">
-                                <img src="{{ form.instance.logo.url }}" alt="{{ form.instance.name }} Logo" 
-                                     class="img-thumbnail" style="max-height: 100px;">
-                            </div>
-                        {% endif %}
+                        {{ form.logo|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.safa_id|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.fifa_id|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.constitution_document|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.minutes_of_agm_document|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.financial_statements_document|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.is_compliant|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.compliance_verified_date|as_crispy_field }}
                     </div>
                 </div>
                 <div class="card-footer">
@@ -65,13 +87,16 @@
                     <h4>Help</h4>
                 </div>
                 <div class="card-body">
-                    <p>Provinces are administrative divisions within a country.</p>
+                    <p>Provinces are administrative divisions within a national federation.</p>
                     <p><strong>Examples:</strong> Western Cape, Gauteng, KwaZulu-Natal</p>
                     <ul>
                         <li>Enter the official name of the province</li>
                         <li>Add a short code for easier reference</li>
-                        <li>Select the country this province belongs to</li>
-                        <li>Upload the provincial flag/logo if available</li>
+                        <li>Select the national federation this province belongs to</li>
+                        <li>Set the status (Active, Inactive, Suspended, Dissolved)</li>
+                        <li>Add SAFA ID and FIFA ID if available</li>
+                        <li>Upload the provincial logo if available</li>
+                        <li>Upload compliance documents as required</li>
                     </ul>
                 </div>
             </div>

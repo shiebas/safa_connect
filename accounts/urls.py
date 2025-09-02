@@ -62,6 +62,8 @@ urlpatterns = [
     path('national-admin/payment-review/', views.national_admin_payment_review, name='national_admin_payment_review'),
     path('national-admin/payment-review/<uuid:invoice_uuid>/approve/', views.approve_invoice_payment, name='approve_invoice_payment'),
     path('national-admin/payment-review/<uuid:invoice_uuid>/reject/', views.reject_invoice_payment, name='reject_invoice_payment'),
+    path('national-admin/invoices/', views.national_admin_invoices, name='national_admin_invoices'),
+    path('province-admin/invoices/', views.province_admin_invoices, name='province_admin_invoices'),
     path('registration-portal/', views.registration_portal, name='registration_portal'),
     path('update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),
     path('senior-membership-dashboard/', views.senior_membership_dashboard, name='senior_membership_dashboard'),
@@ -85,6 +87,11 @@ urlpatterns = [
     path('association-compliance/', views.association_compliance_view, name='association_compliance_view'),
     path('club-compliance/', views.club_compliance_view, name='club_compliance_view'),
     path('update-organization-status/', views.update_organization_status, name='update_organization_status'),
+    
+    # Hierarchical approval system
+    path('approve-region/', views.approve_region, name='approve_region'),
+    path('approve-lfa/', views.approve_lfa, name='approve_lfa'),
+    path('approve-club/', views.approve_club, name='approve_club'),
 
     # API endpoints for registration form
     path('api/organization-type-name/<int:org_type_id>/', views.get_organization_type_name, name='get_organization_type_name'),

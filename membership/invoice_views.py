@@ -103,7 +103,14 @@ class InvoiceListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         """Filter invoices based on query parameters"""
-        queryset = Invoice.objects.all().select_related('member__current_club')
+        # Get both member and organization invoices
+        queryset = Invoice.objects.all().select_related(
+            'member__user', 
+            'member__current_club',
+            'season_config'
+        ).prefetch_related(
+            'content_type'
+        )
         
         # Apply filters from GET parameters
         status = self.request.GET.get('status')
@@ -112,15 +119,19 @@ class InvoiceListView(LoginRequiredMixin, ListView):
             
         club_id = self.request.GET.get('club')
         if club_id:
-            queryset = queryset.filter(member__current_club_id=club_id)
+            # Filter by club for both member and organization invoices
+            queryset = queryset.filter(
+                Q(member__current_club_id=club_id) |  # Member invoices
+                Q(content_type__model='club', object_id=club_id)  # Organization invoices
+            )
             
         date_from = self.request.GET.get('date_from')
         if date_from:
-            queryset = queryset.filter(issue_date__gte=date_from)
+            queryset = queryset.filter(created_at__gte=date_from)
             
         date_to = self.request.GET.get('date_to')
         if date_to:
-            queryset = queryset.filter(issue_date__lte=date_to)
+            queryset = queryset.filter(created_at__lte=date_to)
             
         # Filter by user permissions
         user = self.request.user
@@ -136,13 +147,29 @@ class InvoiceListView(LoginRequiredMixin, ListView):
             member = user.member_profile
             if member.current_club:
                 if hasattr(member.current_club, 'club_admins') and member.current_club.club_admins.filter(pk=user.pk).exists():
-                    return queryset.filter(member__current_club=member.current_club)
+                    # Club admin can see invoices for their club
+                    return queryset.filter(
+                        Q(member__current_club=member.current_club) |  # Member invoices
+                        Q(content_type__model='club', object_id=member.current_club.id)  # Club organization invoices
+                    )
                 if hasattr(member.current_club, 'lfa') and member.current_club.lfa and hasattr(member.current_club.lfa, 'lfa_admins') and member.current_club.lfa.lfa_admins.filter(pk=user.pk).exists():
-                    return queryset.filter(member__current_club__lfa=member.current_club.lfa)
+                    # LFA admin can see invoices for their LFA
+                    return queryset.filter(
+                        Q(member__current_club__lfa=member.current_club.lfa) |  # Member invoices
+                        Q(content_type__model='localfootballassociation', object_id=member.current_club.lfa.id)  # LFA organization invoices
+                    )
                 if hasattr(member.current_club, 'region') and member.current_club.region and hasattr(member.current_club.region, 'region_admins') and member.current_club.region.region_admins.filter(pk=user.pk).exists():
-                    return queryset.filter(member__current_club__region=member.current_club.region)
+                    # Region admin can see invoices for their region
+                    return queryset.filter(
+                        Q(member__current_club__region=member.current_club.region) |  # Member invoices
+                        Q(content_type__model='region', object_id=member.current_club.region.id)  # Region organization invoices
+                    )
                 if hasattr(member.current_club, 'province') and member.current_club.province and hasattr(member.current_club.province, 'province_admins') and member.current_club.province.province_admins.filter(pk=user.pk).exists():
-                    return queryset.filter(member__current_club__province=member.current_club.province)
+                    # Province admin can see invoices for their province
+                    return queryset.filter(
+                        Q(member__current_club__province=member.current_club.province) |  # Member invoices
+                        Q(content_type__model='province', object_id=member.current_club.province.id)  # Province organization invoices
+                    )
 
         # Others can only see their own invoices
         return queryset.filter(member__user=user)

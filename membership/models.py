@@ -1867,6 +1867,101 @@ class Invoice(TimeStampedModel):
             print(f"Error creating simple invoice: {e}")
             raise
 
+    @classmethod
+    def create_organization_invoice(cls, organization, season_config, invoice_type='ORGANIZATION_MEMBERSHIP'):
+        """Create invoice for organization membership fees"""
+        try:
+            print(f"🔍 DEBUG: Creating organization invoice for {organization.name} ({organization.get_model_name()})")
+            
+            # Get fee structure for this organization type
+            fee_structure = SAFAFeeStructure.get_fee_for_entity(
+                entity_type=organization.get_model_name().upper(),
+                season_year=season_config.season_year
+            )
+            
+            if not fee_structure:
+                print(f"❌ No fee structure found for {organization.get_model_name()}")
+                return None
+            
+            fee_amount = fee_structure.annual_fee
+            vat_amount = fee_amount * season_config.vat_rate
+            total_amount = fee_amount + vat_amount
+            
+            print(f"🔍 DEBUG: Organization fee - Base: R{fee_amount}, VAT: R{vat_amount}, Total: R{total_amount}")
+            
+            # Create invoice
+            invoice = cls.objects.create(
+                invoice_type=invoice_type,
+                subtotal=fee_amount,
+                vat_amount=vat_amount,
+                total_amount=total_amount,
+                season_config=season_config,
+                status='PENDING',
+                content_type=ContentType.objects.get_for_model(organization),
+                object_id=organization.id,
+                due_date=season_config.organization_registration_end
+            )
+            
+            # Create invoice item
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=f"SAFA {organization.get_model_name()} Membership Fee - {season_config.season_year}",
+                unit_price=fee_amount,
+                quantity=1,
+                total_price=fee_amount,
+                amount=total_amount
+            )
+            
+            print(f"🔍 DEBUG: Created organization invoice {invoice.invoice_number} for {organization.name}")
+            return invoice
+            
+        except Exception as e:
+            print(f"Error creating organization invoice: {e}")
+            raise
+
+    @classmethod
+    def get_organization_invoices(cls, organization_type=None, season_year=None, status=None):
+        """Get invoices for organizations with optional filtering"""
+        queryset = cls.objects.filter(
+            invoice_type='ORGANIZATION_MEMBERSHIP'
+        ).exclude(
+            content_type__isnull=True,
+            object_id__isnull=True
+        )
+        
+        if organization_type:
+            queryset = queryset.filter(
+                content_type__model__iexact=organization_type.lower()
+            )
+        
+        if season_year:
+            queryset = queryset.filter(season_config__season_year=season_year)
+        
+        if status:
+            queryset = queryset.filter(status=status)
+        
+        return queryset.order_by('-issue_date')
+
+    @classmethod
+    def get_national_admin_invoices(cls, season_year=None):
+        """Get all organization invoices for national admin dashboard"""
+        return cls.get_organization_invoices(season_year=season_year)
+
+    @classmethod
+    def get_province_admin_invoices(cls, province, season_year=None):
+        """Get invoices for a specific province"""
+        return cls.objects.filter(
+            invoice_type='ORGANIZATION_MEMBERSHIP',
+            content_type__model='province',
+            object_id=province.id
+        ).filter(
+            season_config__season_year=season_year
+        ) if season_year else cls.objects.filter(
+            invoice_type='ORGANIZATION_MEMBERSHIP',
+            content_type__model='province',
+            object_id=province.id
+        )
+
 
 class InvoiceItem(models.Model):
     """Line items for invoices (membership fees, registrations, etc.)"""

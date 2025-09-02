@@ -3,74 +3,243 @@
 
 {% block title %}Profile - {{ user.get_full_name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .safa-watermark {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        z-index: -1;
+        pointer-events: none;
+    }
+    
+    .watermark-logo {
+        width: 400px;
+        height: 400px;
+        opacity: 0.03;
+        filter: grayscale(100%);
+    }
+    
+    .profile-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        padding: 1.5rem;
+    }
+    
+    .profile-picture-container {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+    
+    .profile-picture-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .profile-picture-section:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+    }
+    
+    .profile-picture {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid #f8f9fa;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .profile-picture:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .default-profile-picture {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid #e9ecef;
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .default-profile-picture:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        border-color: #dee2e6;
+    }
+    
+    .safa-id-badge {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 14px;
+        box-shadow: 0 6px 15px rgba(0, 102, 51, 0.25);
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    
+    .safa-id-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 102, 51, 0.35);
+    }
+    
+    .profile-info-row {
+        padding: 12px 0;
+        border-bottom: 1px solid #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+    
+    .profile-info-row:hover {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    
+    .profile-info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .card-body {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    }
+    
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        border-bottom: none;
+    }
+    
+    .modal-header .btn-close {
+        filter: invert(1);
+    }
+    
+    .modal-footer {
+        border-top: none;
+        padding: 1.5rem;
+    }
+    
+    .form-control:focus {
+        border-color: #006633;
+        box-shadow: 0 0 0 0.2rem rgba(0, 102, 51, 0.25);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<!-- SAFA Logo Watermark -->
+<div class="safa-watermark">
+    <img src="{% static 'images/safa_logo.png' %}" alt="SAFA Logo" class="watermark-logo">
+</div>
+
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-4">
             <!-- Profile Photo Section -->
-            <div class="card">
-                <div class="card-body text-center">
-                                        {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;">
-                    {% else %}
-                        <img src="{% static 'images/connecticon.png' %}" alt="Default Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;">
-                    {% endif %}
-                    <h4>{{ user.get_full_name }}</h4>
-                    <p class="text-muted">{{ user.get_role_display }}</p>
-                    
-                    <!-- Upload Photo Button -->
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#photoModal">
-                        {% if user.profile_picture %}Update Photo{% else %}Upload Photo{% endif %}
-                    </button>
+            <div class="card profile-card">
+                <div class="card-body text-center p-4">
+                    <div class="profile-picture-section">
+                        <div class="profile-picture-container">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile Photo" class="profile-picture">
+                            {% else %}
+                                <img src="{% static 'images/connecticon.png' %}" alt="Default Profile Photo" class="default-profile-picture">
+                            {% endif %}
+                        </div>
+                        <h4 class="mb-2">{{ user.get_full_name }}</h4>
+                        <p class="text-muted mb-3">{{ user.get_role_display }}</p>
+                        
+                        <!-- Upload Photo Button -->
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#photoModal">
+                            <i class="fas fa-camera me-2"></i>
+                            {% if user.profile_picture %}Update Photo{% else %}Upload Photo{% endif %}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-8">
             <!-- Profile Information -->
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-user-circle"></i> Profile Information</h5>
+            <div class="card profile-card">
+                <div class="card-header profile-header">
+                    <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i> Profile Information</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Email:</strong></div>
+                <div class="card-body p-4">
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Email:</strong></div>
                         <div class="col-sm-9">{{ user.email }}</div>
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Role:</strong></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Role:</strong></div>
                         <div class="col-sm-9">{{ user.get_role_display }}</div>
                     </div>
                     
                     {% if user.employment_status %}
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Employment Status:</strong></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Employment Status:</strong></div>
                         <div class="col-sm-9">{{ user.get_employment_status_display }}</div>
                     </div>
                     {% endif %}
                     
                     {% if user.position %}
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Position:</strong></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Position:</strong></div>
                         <div class="col-sm-9">{{ user.position }}</div>
                     </div>
                     {% endif %}
                     
                     {% if user.safa_id %}
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>SAFA ID:</strong></div>
-                        <div class="col-sm-9"><span class="badge bg-primary">{{ user.safa_id }}</span></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">SAFA ID:</strong></div>
+                        <div class="col-sm-9"><span class="safa-id-badge">{{ user.safa_id }}</span></div>
                     </div>
                     {% endif %}
                     
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Member Since:</strong></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Member Since:</strong></div>
                         <div class="col-sm-9">{{ user.date_joined|date:"F d, Y" }}</div>
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Account Status:</strong></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Account Status:</strong></div>
                         <div class="col-sm-9">
                             {% if user.is_active %}
                                 <span class="badge bg-success">Active</span>
@@ -80,25 +249,27 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Date of Birth:</strong></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Date of Birth:</strong></div>
                         <div class="col-sm-9">{{ user.date_of_birth|date:"F d, Y" }}</div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Age:</strong></div>
+                    <div class="row mb-3 align-items-center profile-info-row">
+                        <div class="col-sm-3"><strong class="text-muted">Age:</strong></div>
                         <div class="col-sm-9">{% if user.age %}{{ user.age }}{% else %}<span class="text-muted">Not set</span>{% endif %}</div>
                     </div>
-                    <div class="text-end mt-3"> {# Added this div for the button #}
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+                    <div class="text-end mt-4">
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
                     </div>
                 </div>
             </div>
             
             <!-- Organization Info -->
             {% if user.role != 'SUPPORTER' %}
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5><i class="fas fa-building"></i> Organization</h5>
+            <div class="card profile-card mt-4">
+                <div class="card-header profile-header">
+                    <h5 class="mb-0"><i class="fas fa-building me-2"></i> Organization</h5>
                 </div>
                 <div class="card-body">
                     {% with org=user.get_organization_info %}
@@ -132,9 +303,9 @@
             
             
             <!-- Compliance Status -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5><i class="fas fa-clipboard-check"></i> Compliance Status</h5>
+            <div class="card profile-card mt-4">
+                <div class="card-header profile-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i> Compliance Status</h5>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
@@ -210,27 +381,36 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Update Profile Photo</h5>
+                <h5 class="modal-title"><i class="fas fa-camera me-2"></i>Update Profile Photo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" enctype="multipart/form-data" action="{% url 'accounts:update_profile_photo' %}">
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="profile_picture" class="form-label">Choose Photo:</label>
-                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*" required>
-                        <div class="form-text">Supported formats: JPG, PNG, GIF. Max size: 5MB</div>
+                    <div class="mb-4">
+                        <label for="profile_picture" class="form-label fw-bold">
+                            <i class="fas fa-upload me-2 text-primary"></i>Choose Photo:
+                        </label>
+                        <input type="file" class="form-control form-control-lg" id="profile_picture" name="profile_picture" accept="image/*" required>
+                        <div class="form-text text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Supported formats: JPG, PNG, GIF. Max size: 5MB
+                        </div>
                     </div>
                     
                     <!-- Preview -->
-                    <div id="imagePreview" style="display: none;">
-                        <p><strong>Preview:</strong></p>
-                        <img id="preview" src="#" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
+                    <div id="imagePreview" style="display: none;" class="text-center">
+                        <p class="fw-bold mb-3"><i class="fas fa-eye me-2 text-success"></i>Preview:</p>
+                        <img id="preview" src="#" alt="Preview" class="img-fluid rounded shadow" style="max-height: 200px; border: 3px solid #e9ecef;">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Upload Photo</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload Photo
+                    </button>
                 </div>
             </form>
         </div>

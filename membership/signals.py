@@ -98,6 +98,57 @@ def update_club_quotas_for_member(member, deleted=False):
 # SEASON CONFIGURATION SIGNALS
 # ============================================================================
 
+@receiver(post_save, sender='geography.Province')
+@receiver(post_save, sender='geography.Region')
+@receiver(post_save, sender='geography.LocalFootballAssociation')
+@receiver(post_save, sender='geography.Club')
+def handle_organization_status_change(sender, instance, created, **kwargs):
+    """Handle organization status changes and create invoices when they become active"""
+    
+    # Only proceed if this is a status change to ACTIVE
+    if not created and 'status' in kwargs.get('update_fields', []):
+        if instance.status == 'ACTIVE':
+            print(f"✅ Organization {instance.name} ({instance.get_model_name()}) became ACTIVE")
+            
+            # Get the active season
+            try:
+                from .safa_config_models import SAFASeasonConfig
+                active_season = SAFASeasonConfig.get_active_season()
+                
+                if active_season:
+                    # Check if invoice already exists for this organization and season
+                    from .models import Invoice
+                    existing_invoice = Invoice.objects.filter(
+                        content_type__model=instance.get_model_name().lower(),
+                        object_id=instance.id,
+                        season_config=active_season,
+                        invoice_type='ORGANIZATION_MEMBERSHIP'
+                    ).first()
+                    
+                    if not existing_invoice:
+                        # Create organization invoice
+                        invoice = Invoice.create_organization_invoice(
+                            organization=instance,
+                            season_config=active_season
+                        )
+                        if invoice:
+                            print(f"✅ Created invoice {invoice.invoice_number} for {instance.name}")
+                        else:
+                            print(f"❌ Failed to create invoice for {instance.name}")
+                    else:
+                        print(f"ℹ️ Invoice already exists for {instance.name} in {active_season.season_year}")
+                else:
+                    print(f"⚠️ No active season found - cannot create invoice for {instance.name}")
+                    
+            except Exception as e:
+                print(f"❌ Error creating organization invoice: {str(e)}")
+        else:
+            print(f"ℹ️ Organization {instance.name} status changed to {instance.status}")
+
+# ============================================================================
+# INVOICE MANAGEMENT SIGNALS
+# ============================================================================
+
 @receiver(post_save, sender=SAFASeasonConfig)
 def handle_season_config_changes(sender, instance, created, **kwargs):
     """Handle season configuration creation and updates"""
