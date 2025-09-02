@@ -245,7 +245,8 @@ class CustomUser(AbstractUser):
     mother_body = models.ForeignKey('geography.MotherBody', on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.safa_id:
+        # Only generate SAFA ID if none is provided and this is a new user
+        if not self.safa_id and not self.pk:
             self.safa_id = self._generate_unique_safa_id()
         super().save(*args, **kwargs)
 

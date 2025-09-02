@@ -324,6 +324,7 @@ class RegistrationForm(forms.ModelForm):
     )
 
     popi_act_consent = forms.BooleanField(required=True, label="POPI Act Consent")
+    
     password = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
     extracted_dob = forms.DateField(required=False, widget=forms.HiddenInput())

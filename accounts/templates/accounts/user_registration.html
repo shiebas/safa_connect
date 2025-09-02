@@ -5,10 +5,70 @@
 {% block title %}SAFA Member Registration{% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<!-- Age Verification Modal -->
+<div class="modal fade" id="ageVerificationModal" tabindex="-1" aria-labelledby="ageVerificationModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="ageVerificationModalLabel">
+                    <i class="fas fa-user-check me-2"></i>Age Verification Required
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-question-circle fa-3x text-primary mb-3"></i>
+                    <h4>Are you 18 years or older?</h4>
+                    <p class="text-muted">You must be 18 or older to register on SAFA Connect</p>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-success btn-lg w-100" id="yesOver18">
+                            <i class="fas fa-check me-2"></i>Yes, I am 18+
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-secondary btn-lg w-100" id="noUnder18">
+                            <i class="fas fa-times me-2"></i>No, I am under 18
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thank You Modal for Under 18 -->
+<div class="modal fade" id="thankYouModal" tabindex="-1" aria-labelledby="thankYouModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="thankYouModalLabel">
+                    <i class="fas fa-heart me-2"></i>Thank You for Visiting SAFA Connect
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                    <h4>Registration Age Requirement</h4>
+                    <p class="text-muted">You must be 18 years or older to register directly on this website.</p>
+                    <p class="text-muted">If you are under 18 and would like to join SAFA, please contact your local club administrator who can assist you with registration.</p>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> Club administrators can register minors with proper parent/guardian consent through their admin interface.
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-home me-2"></i>Return to Home
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5" id="registrationContainer" style="display: none;">
     <div class="row justify-content-center">
         <div class="col-lg-9">
-                         <h1 class="mb-4 text-center">SAFA Member Registration </h1>
+            <h1 class="mb-4 text-center">SAFA Member Registration</h1>
 
             <form method="post" enctype="multipart/form-data" id="registrationForm" novalidate>
                 {% csrf_token %}
@@ -205,11 +265,14 @@
         </div>
     </div>
 </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <!-- Include the SA ID validation script -->
 <script src="{% static 'js/sa_id_validation.js' %}"></script>
+<!-- Include the registration validation script -->
+<script src="{% static 'js/registration_validation.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     try {

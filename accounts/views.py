@@ -86,6 +86,10 @@ def user_registration(request):
 
             # Create the CustomUser object first, but don't save if we might link to an existing member
             user = form.save(commit=False)
+            
+            # Set SAFA ID if provided for existing member
+            if is_existing and previous_safa_id:
+                user.safa_id = previous_safa_id
 
             # This is a new member registration
             user.save() # Ensure user is saved before creating member
@@ -94,9 +98,23 @@ def user_registration(request):
                 country = Country.objects.get(name='South Africa')
                 national_federation = NationalFederation.objects.create(name='SAFA', country=country)
 
+            # Get active season configuration
+            active_season = SAFASeasonConfig.get_active_season()
+            if not active_season:
+                messages.error(request, 'No active season configuration found. Please contact support.')
+                return redirect('accounts:user_registration')
+
+            # Handle SAFA ID - use previous_safa_id if provided, otherwise use generated one
+            safa_id_to_use = previous_safa_id if previous_safa_id and is_existing else user.safa_id
+            
+            # Ensure province is selected for traceable location
+            if user.role != 'SUPPORTER' and not form.cleaned_data.get('province'):
+                messages.error(request, 'Province selection is required for traceable location.')
+                return redirect('accounts:user_registration')
+
             member_data = {
                 'user': user,
-                'safa_id': user.safa_id,
+                'safa_id': safa_id_to_use,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
                 'email': user.email,
@@ -112,6 +130,8 @@ def user_registration(request):
                 'state': user.state,
                 'postal_code': user.postal_code,
                 'national_federation': national_federation,
+                'current_season': active_season,  # Set the current season
+                'registration_method': 'SELF'    # Mark as self-registration
             }
 
             if user.role != 'SUPPORTER':
@@ -138,6 +158,7 @@ def user_registration(request):
             user.club = member.current_club
             user.association = member.associations.first()
             user.popi_act_consent = form.cleaned_data.get('popi_act_consent', False)
+            
             user.save()
 
             # Create SupporterProfile
@@ -156,16 +177,17 @@ def user_registration(request):
             workflow.current_step = 'PAYMENT'
             workflow.save()
 
-            invoice = Invoice.create_member_invoice(member)
-
-            if invoice:
-                messages.success(request, 'Registration successful! Please complete payment to proceed.')
-                return redirect('membership:invoice_detail', uuid=invoice.uuid)
-            else:
-                workflow.payment_status = 'COMPLETED'
-                workflow.current_step = 'SAFA_APPROVAL'
-                workflow.save()
-                messages.success(request, 'Registration successful. Your application is pending approval.')
+            # Create invoice using the simple calculation method for self-registrations
+            try:
+                invoice = Invoice.create_simple_member_invoice(member)
+                if invoice:
+                    messages.success(request, 'Registration successful! Please complete payment to proceed.')
+                    return redirect('membership:invoice_detail', uuid=invoice.uuid)
+                else:
+                    messages.error(request, 'Registration successful but invoice creation failed. Please contact support.')
+                    return redirect('accounts:modern_home')
+            except Exception as e:
+                messages.error(request, f'Registration successful but invoice creation failed: {str(e)}. Please contact support.')
                 return redirect('accounts:modern_home')
 
     else:
@@ -1105,6 +1127,12 @@ def club_admin_add_person(request):
             
             user.save()
 
+            # Get active season configuration
+            active_season = SAFASeasonConfig.get_active_season()
+            if not active_season:
+                messages.error(request, 'No active season configuration found. Please contact support.')
+                return redirect('accounts:club_admin_add_person')
+
             # Create the corresponding Member record
             member = Member.objects.create(
                 user=user,
@@ -1122,11 +1150,19 @@ def club_admin_add_person(request):
                 province=user.province,
                 region=user.region,
                 lfa=user.local_federation,
-                registration_method='CLUB'
+                current_season=active_season,  # Set the current season
+                registration_method='CLUB'    # Mark as club registration
             )
             
-            # Create invoice using the same method as regular registration
-            invoice = Invoice.create_member_invoice(member)
+            # Create invoice immediately using simple calculation for club-admin-created members
+            try:
+                invoice = Invoice.create_simple_member_invoice(member)
+                if not invoice:
+                    messages.warning(request, f"{form.cleaned_data.get('role').capitalize()} '{user.get_full_name()}' was added successfully, but invoice creation failed. Please contact support.")
+                    return redirect('accounts:club_admin_dashboard')
+            except Exception as e:
+                messages.warning(request, f"{form.cleaned_data.get('role').capitalize()} '{user.get_full_name()}' was added successfully, but invoice creation failed: {str(e)}. Please contact support.")
+                return redirect('accounts:club_admin_dashboard')
             
             # Prepare success message
             success_message = f"{form.cleaned_data.get('role').capitalize()} '{user.get_full_name()}' was added successfully. A temporary password has been set."
@@ -1134,8 +1170,7 @@ def club_admin_add_person(request):
             if not form.cleaned_data.get('has_email', True):
                 success_message += f" An email address ({user.email}) has been automatically generated for this member."
             
-            if invoice:
-                success_message += f" A SAFA membership invoice has been created and must be paid before the member can participate."
+            success_message += f" A SAFA membership invoice has been created and must be paid before the member can participate."
             
             messages.success(request, success_message)
             return redirect('accounts:club_admin_dashboard')

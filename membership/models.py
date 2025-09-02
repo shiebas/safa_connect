@@ -340,7 +340,7 @@ class Member(TimeStampedModel):
         if not self.current_season_id:
             self.current_season = SAFASeasonConfig.get_active_season()
 
-        # Handle SAFA ID
+        # Handle SAFA ID - only generate if none provided
         if not self.safa_id:
             self.generate_safa_id()
         elif self.is_existing_member and not self.previous_safa_id:
@@ -602,7 +602,15 @@ class Member(TimeStampedModel):
 
         if not fee_structure:
             logger.warning(f"No SAFAFeeStructure found for entity_type: {entity_type} and season: {season_config.season_year}")
-            return Decimal('0.00')
+            # Return a default fee if no fee structure is found
+            if entity_type == 'PLAYER_JUNIOR':
+                return Decimal('100.00')
+            elif entity_type == 'PLAYER_SENIOR':
+                return Decimal('200.00')
+            elif 'OFFICIAL' in entity_type:
+                return Decimal('250.00')
+            else:
+                return Decimal('200.00')  # Default fee
 
         base_fee = fee_structure.annual_fee
         logger.info(f"Base fee for {entity_type}: {base_fee}")
@@ -626,6 +634,47 @@ class Member(TimeStampedModel):
                     logger.info("No remaining days for pro-rata calculation, returning base fee.")
 
         return base_fee
+
+    def calculate_simple_registration_fee(self, season_config=None):
+        """Calculate member's registration fee using the specific formula: Fee = Total / 1.15, VAT = Fee * 15%"""
+        import logging
+        logger = logging.getLogger(__name__)
+
+        if not season_config:
+            season_config = self.current_season or SAFASeasonConfig.get_active_season()
+        
+        if not season_config:
+            logger.warning("No active season found for fee calculation.")
+            return Decimal('0.00')
+
+        entity_type = self.get_entity_type_for_fees()
+        logger.info(f"Calculating simple fee for member {self.safa_id}, entity_type: {entity_type}, season: {season_config.season_year}")
+
+        fee_structure = SAFAFeeStructure.objects.filter(
+            season_config=season_config,
+            entity_type=entity_type
+        ).first()
+
+        if not fee_structure:
+            logger.warning(f"No SAFAFeeStructure found for entity_type: {entity_type} and season: {season_config.season_year}")
+            # Return a default fee if no fee structure is found
+            if entity_type == 'PLAYER_JUNIOR':
+                total_amount = Decimal('100.00')
+            elif entity_type == 'PLAYER_SENIOR':
+                total_amount = Decimal('200.00')
+            elif 'OFFICIAL' in entity_type:
+                total_amount = Decimal('250.00')
+            else:
+                total_amount = Decimal('200.00')  # Default fee
+        else:
+            total_amount = fee_structure.annual_fee
+
+        # Use the specific formula: Fee = Total / 1.15
+        fee_excluding_vat = total_amount / Decimal('1.15')  # R200 / 1.15 = R173.91
+        
+        logger.info(f"Simple fee calculation: Total={total_amount}, Fee (excl. VAT)={fee_excluding_vat}")
+        
+        return fee_excluding_vat
 
 
 class Transfer(TimeStampedModel):
@@ -1722,8 +1771,19 @@ class Invoice(TimeStampedModel):
     def create_member_invoice(cls, member):
         """Create invoice for member registration"""
         try:
+            print(f"🔍 DEBUG: Creating REGULAR invoice for member {member.safa_id} using COMPLEX calculation")
+            
+            # Ensure member has a current season
+            if not member.current_season:
+                member.current_season = SAFASeasonConfig.get_active_season()
+                if not member.current_season:
+                    print(f"❌ No active season found for member {member.safa_id}")
+                    return None
+                member.save()
+            
             # Determine fee based on user role
             fee_amount = member.calculate_registration_fee()
+            print(f"🔍 DEBUG: Complex calculation result: R{fee_amount}")
 
             if fee_amount > 0:
                 invoice = cls.objects.create(
@@ -1739,15 +1799,72 @@ class Invoice(TimeStampedModel):
                 # Create invoice item
                 InvoiceItem.objects.create(
                     invoice=invoice,
-                    description=f"SAFA {member.get_role_display()} Registration Fee - {member.current_season.season_year if member.current_season else '2025'}",
-                    amount=fee_amount,
+                    description=f"SAFA {member.get_role_display()} Registration Fee - {member.current_season.season_year} (Complex Calculation)",
+                    unit_price=fee_amount,
                     quantity=1,
-                    total_price=fee_amount
+                    total_price=fee_amount,
+                    amount=fee_amount
                 )
                 
+                print(f"🔍 DEBUG: Created REGULAR invoice {invoice.invoice_number} with amount R{fee_amount}")
                 return invoice
         except Exception as e:
             print(f"Error creating invoice: {e}")
+            raise
+
+    @classmethod
+    def create_simple_member_invoice(cls, member):
+        """Create invoice for member registration using the specific formula: Fee = Total / 1.15, VAT = Fee * 15%"""
+        try:
+            print(f"🔍 DEBUG: Creating SIMPLE invoice for member {member.safa_id} using YOUR FORMULA")
+            
+            # Ensure member has a current season
+            if not member.current_season:
+                member.current_season = SAFASeasonConfig.get_active_season()
+                if not member.current_season:
+                    print(f"❌ No active season found for member {member.safa_id}")
+                    return None
+                member.save()
+            
+            # Get the fee excluding VAT using the specific formula
+            fee_excluding_vat = member.calculate_simple_registration_fee()
+            print(f"🔍 DEBUG: Simple calculation - Fee (excl. VAT): R{fee_excluding_vat}")
+            
+            if fee_excluding_vat > 0:
+                # Calculate VAT amount: Fee * 15%
+                vat_amount = fee_excluding_vat * Decimal('0.15')
+                print(f"🔍 DEBUG: Simple calculation - VAT (15%): R{vat_amount}")
+                
+                # Total amount is the original annual fee (R200)
+                total_amount = fee_excluding_vat + vat_amount
+                print(f"🔍 DEBUG: Simple calculation - Total: R{total_amount}")
+                
+                # Create invoice with proper VAT breakdown
+                invoice = cls.objects.create(
+                    member=member,
+                    invoice_type='MEMBER_REGISTRATION',
+                    subtotal=fee_excluding_vat,  # R173.91 (excl. VAT)
+                    vat_amount=vat_amount,       # R26.09 (15% VAT)
+                    total_amount=total_amount,   # R200.00 (incl. VAT)
+                    season_config=member.current_season,
+                    status='PENDING',
+                    payment_method='Cash or EFT'
+                )
+                
+                # Create invoice item
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    description=f"SAFA {member.get_role_display()} Registration Fee - {member.current_season.season_year} (Simple Formula)",
+                    unit_price=fee_excluding_vat,  # Unit price excluding VAT
+                    quantity=1,
+                    total_price=fee_excluding_vat,  # Total price excluding VAT
+                    amount=total_amount  # Total amount including VAT
+                )
+                
+                print(f"🔍 DEBUG: Created SIMPLE invoice {invoice.invoice_number} with breakdown: Subtotal R{fee_excluding_vat}, VAT R{vat_amount}, Total R{total_amount}")
+                return invoice
+        except Exception as e:
+            print(f"Error creating simple invoice: {e}")
             raise
 
 
@@ -1759,9 +1876,10 @@ class InvoiceItem(models.Model):
         related_name='items'
     )
     description = models.CharField(_("Description"), max_length=255)
-    amount = models.DecimalField(_("Amount (Incl. VAT)"), max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    unit_price = models.DecimalField(_("Unit Price (Excl. VAT)"), max_digits=10, decimal_places=2, default=Decimal('0.00'))
     quantity = models.PositiveIntegerField(_("Quantity"), default=1)
-    total_price = models.DecimalField(_("Total Price"), max_digits=10, decimal_places=2, default=0)
+    total_price = models.DecimalField(_("Total Price (Excl. VAT)"), max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    amount = models.DecimalField(_("Amount (Incl. VAT)"), max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
     class Meta:
         verbose_name = _("Invoice Item")
@@ -1773,6 +1891,11 @@ class InvoiceItem(models.Model):
         return f"{self.description} - R{amount_decimal} x{self.quantity}"
 
     def save(self, *args, **kwargs):
-        # Auto-calculate total price
-        self.total_price = self.amount * self.quantity
+        # Auto-calculate total price (excl. VAT)
+        self.total_price = self.unit_price * self.quantity
         super().save(*args, **kwargs)
+    
+    @property
+    def sub_total(self):
+        """Property to provide sub_total for template compatibility"""
+        return self.total_price

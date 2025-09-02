@@ -38,14 +38,9 @@ def handle_member_creation(sender, instance, created, **kwargs):
         except Exception as e:
             print(f"❌ Failed to create workflow for {instance.get_full_name()}: {str(e)}")
         
-        # Create member invoice if season is active
-        try:
-            active_season = SAFASeasonConfig.get_active_season()
-            if active_season:
-                invoice = Invoice.create_member_invoice(instance, active_season)
-                print(f"✅ Created invoice {invoice.invoice_number} for {instance.get_full_name()}")
-        except Exception as e:
-            print(f"❌ Failed to create invoice for {instance.get_full_name()}: {str(e)}")
+        # Invoice creation is now handled directly in the views to prevent duplicates
+        # and ensure proper season configuration
+        print(f"✅ Member {instance.get_full_name()} created - invoice will be created by view")
     
     # Update club quotas whenever member is saved
     if instance.current_club and instance.current_season:
@@ -210,7 +205,11 @@ def handle_renewal_season_activation(season_config):
                 ).first()
                 
                 if not existing_invoice:
-                    Invoice.create_member_invoice(member, season_config)
+                    # Use simple calculation for club-admin-created members, complex for regular registrations
+                    if hasattr(member, 'registration_method') and member.registration_method == 'CLUB':
+                        Invoice.create_simple_member_invoice(member)
+                    else:
+                        Invoice.create_member_invoice(member, season_config)
                     invoice_count += 1
                     
             except Exception as e:
@@ -548,7 +547,11 @@ def generate_missing_invoices_for_season(season_config):
         
         for member in members_without_invoices:
             try:
-                Invoice.create_member_invoice(member, season_config)
+                # Use simple calculation for club-admin-created members, complex for regular registrations
+                if hasattr(member, 'registration_method') and member.registration_method == 'CLUB':
+                    Invoice.create_simple_member_invoice(member)
+                else:
+                    Invoice.create_member_invoice(member, season_config)
                 created_count += 1
             except Exception as e:
                 print(f"❌ Failed to create invoice for member {member.get_full_name()}: {str(e)}")
