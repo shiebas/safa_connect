@@ -101,6 +101,75 @@
     </div>
 </div>
 
+<!-- Organization Invoices -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-file-invoice me-2 text-info"></i>
+            Organization Invoices
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if organization_invoices %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in organization_invoices %}
+                        <tr>
+                            <td>
+                                <strong>{{ invoice.invoice_number }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary text-white">
+                                    {{ invoice.get_invoice_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>R{{ invoice.total_amount|floatformat:2 }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    Fee: R{{ invoice.subtotal|floatformat:2 }}<br>
+                                    VAT: R{{ invoice.vat_amount|floatformat:2 }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge status-badge status-{{ invoice.status|lower }}">
+                                    {{ invoice.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <small>{{ invoice.created|date:"M d, Y" }}</small>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'membership:invoice_detail' uuid=invoice.uuid %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-file-invoice fa-3x mb-3 text-muted"></i>
+                <p class="mb-2">No organization invoices found.</p>
+                <p class="small">Invoices will appear here when your club is approved or when fees are generated.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
 <!-- Members by Status -->
 <div class="content-card mb-4">
     <div class="card-header">

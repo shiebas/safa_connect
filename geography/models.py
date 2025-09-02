@@ -780,6 +780,11 @@ class Club(TimeStampedModel, ModelWithLogo, SAFAIdentifiableMixin):
     def qr_code(self):
         """Return QR code for club identification"""
         return self.generate_qr_code()
+    
+    @property
+    def lfa(self):
+        """Backward compatibility property for localfootballassociation"""
+        return self.localfootballassociation
 
 
 class GeographyUpdateLog(TimeStampedModel):

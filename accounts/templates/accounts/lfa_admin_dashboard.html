@@ -6,6 +6,25 @@
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">LFA Administrator Dashboard for {{ lfa.name }}</h2>
+    
+    <!-- Debug Information (remove in production) -->
+    {% if user.is_superuser %}
+    <div class="alert alert-info mb-4">
+        <h6><i class="fas fa-bug me-2"></i>Debug Information (Superuser Only)</h6>
+        <p><strong>Total Clubs:</strong> {{ clubs|length }}</p>
+        <p><strong>Pending Clubs:</strong> {{ pending_clubs|length }}</p>
+        <p><strong>LFA Status:</strong> {{ lfa.status }}</p>
+        <p><strong>LFA Compliant:</strong> {{ lfa.is_compliant }}</p>
+        {% if clubs %}
+        <p><strong>Sample Club Data:</strong></p>
+        <ul>
+            {% for club in clubs|slice:":3" %}
+            <li>{{ club.name }} - Status: {{ club.status }} - Compliant: {{ club.is_compliant }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <div class="row mb-4">
         <div class="col-md-8">
@@ -27,7 +46,8 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Total Clubs:</strong> {{ clubs|length }}</p>
-                    <p><strong>Total Members:</strong> 0</p> {# Placeholder for member count #}
+                    <p><strong>Pending Approval:</strong> {{ pending_clubs|length }}</p>
+                    <p><strong>Total Members:</strong> {{ members|length }}</p>
                 </div>
             </div>
         </div>
@@ -147,36 +167,327 @@
         </div>
     </div>
 
-    <div class="card">
+    <!-- Organization Invoices -->
+    <div class="card mb-4">
         <div class="card-header">
-            <h5 class="mb-0">Clubs in {{ lfa.name }}</h5>
+            <h5 class="mb-0">
+                <i class="fas fa-file-invoice me-2 text-info"></i>
+                Organization Invoices
+            </h5>
         </div>
         <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Club Name</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for club in clubs %}
-                    <tr>
-                        <td>{{ club.name }}</td>
-                        <td><span class="badge {% if club.status == 'ACTIVE' %}bg-success{% else %}bg-danger{% endif %}">{{ club.get_status_display }}</span></td>
-                        <td>
-                            <a href="#" class="btn btn-sm btn-info">View Details</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-center">No clubs found for this LFA.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% if organization_invoices %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in organization_invoices %}
+                            <tr>
+                                <td>
+                                    <strong>{{ invoice.invoice_number }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary text-white">
+                                        {{ invoice.get_invoice_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>R{{ invoice.total_amount|floatformat:2 }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        Fee: R{{ invoice.subtotal|floatformat:2 }}<br>
+                                        VAT: R{{ invoice.vat_amount|floatformat:2 }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ invoice.status|lower }}">
+                                        {{ invoice.get_status_display }}
+                                    </span>
+                                </td>
+                                                            <td>
+                                <small>{{ invoice.created|date:"M d, Y" }}</small>
+                            </td>
+                                <td class="text-center">
+                                    <a href="{% url 'membership:invoice_detail' uuid=invoice.uuid %}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-file-invoice fa-3x mb-3 text-muted"></i>
+                    <p class="mb-2">No organization invoices found.</p>
+                    <p class="small">Invoices will appear here when your LFA is approved or when fees are generated.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pending Club Approvals -->
+    {% if pending_clubs %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-clock me-2 text-warning"></i>
+                Clubs Pending Approval
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Club Name</th>
+                            <th>Compliance Status</th>
+                            <th>Registration Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for club in pending_clubs %}
+                        <tr>
+                            <td>
+                                <strong>{{ club.name }}</strong>
+                                {% if club.code %}
+                                    <br><small class="text-muted">Code: {{ club.code }}</small>
+                                {% endif %}
+                                {% if club.founding_date %}
+                                    <br><small class="text-muted">Founded: {{ club.founding_date|date:"Y" }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if club.is_compliant %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Compliant
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Non-Compliant
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>{{ club.created|date:"Y-m-d" }}</td>
+                            <td class="text-center">
+                                {% if club.is_compliant %}
+                                    <button type="button" class="btn btn-success btn-sm" onclick="approveClub({{ club.id }}, '{{ club.name }}')">
+                                        <i class="fas fa-check me-1"></i>Approve Club
+                                    </button>
+                                {% else %}
+                                    <span class="badge bg-secondary">Must be compliant first</span>
+                                {% endif %}
+                                <a href="#" class="btn btn-info btn-sm ms-2">View Details</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All Clubs Overview -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-building me-2 text-primary"></i>
+                All Clubs in {{ lfa.name }}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Club Name</th>
+                            <th>Status</th>
+                            <th>Compliance</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for club in clubs %}
+                        <tr>
+                            <td>
+                                <strong>{{ club.name }}</strong>
+                                {% if club.code %}
+                                    <br><small class="text-muted">Code: {{ club.code }}</small>
+                                {% endif %}
+                                {% if club.founding_date %}
+                                    <br><small class="text-muted">Founded: {{ club.founding_date|date:"Y" }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if club.status == 'ACTIVE' %}bg-success{% elif club.status == 'INACTIVE' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ club.get_status_display }}
+                                </span>
+                                <br><small class="text-muted">Raw: {{ club.status }}</small>
+                            </td>
+                            <td>
+                                {% if club.is_compliant %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Compliant
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Non-Compliant
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="#" class="btn btn-sm btn-info">View Details</a>
+                                {% if club.status == 'INACTIVE' and club.is_compliant %}
+                                    <button type="button" class="btn btn-success btn-sm ms-1" onclick="approveClub({{ club.id }}, '{{ club.name }}')">
+                                        <i class="fas fa-check me-1"></i>Approve
+                                    </button>
+                                {% elif club.status == 'INACTIVE' and not club.is_compliant %}
+                                    <span class="badge bg-warning">Must be compliant first</span>
+                                {% elif club.status == 'ACTIVE' %}
+                                    <span class="badge bg-success">Already Active</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No clubs found for this LFA.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Club Approval Modal -->
+<div class="modal fade" id="clubApprovalModal" tabindex="-1" aria-labelledby="clubApprovalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="clubApprovalModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Approve Club & Generate Invoice
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-question-circle text-warning fa-3x mb-3"></i>
+                    <h6>Are you sure you want to approve this club?</h6>
+                    <p class="text-muted mb-0">This action will:</p>
+                    <ul class="text-muted text-start mt-2">
+                        <li>Change the club status to <strong>ACTIVE</strong></li>
+                        <li><strong>💰 Generate an invoice for the club</strong></li>
+                        <li>Allow the club to register members</li>
+                    </ul>
+                </div>
+                
+                <!-- Invoice Generation Warning -->
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Invoice Will Be Generated!</strong><br>
+                    An invoice will be automatically created for this club using the same formula as member registration: 
+                    <strong>Fee = Total / 1.15, VAT = Fee × 15%</strong>
+                </div>
+                
+                <!-- Invoice Preview -->
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Invoice Preview</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted">Fee (excl. VAT)</small>
+                                <div class="fw-bold">R[Amount]</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">VAT (15%)</small>
+                                <div class="fw-bold">R[Amount]</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">Total</small>
+                                <div class="fw-bold">R[Amount]</div>
+                            </div>
+                        </div>
+                        <small class="text-muted">* Actual amounts based on current fee structure</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> This action cannot be undone. The club will be able to register members once activated.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-success" id="confirmClubApproval">
+                    <i class="fas fa-check me-1"></i>Yes, Approve & Generate Invoice
+                </button>
+                <button type="button" class="btn btn-success d-none" id="loadingClubApproval" disabled>
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Processing...
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for club approval -->
+<form id="clubApprovalForm" method="post" action="{% url 'accounts:approve_club' %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="club_id" id="clubIdInput">
+    <input type="hidden" name="new_status" value="ACTIVE">
+</form>
+
+<script>
+// Club approval modal handling
+let currentClubId = null;
+let currentClubName = '';
+
+function approveClub(clubId, clubName) {
+    currentClubId = clubId;
+    currentClubName = clubName;
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('clubApprovalModal'));
+    modal.show();
+}
+
+// Handle confirm button click
+document.getElementById('confirmClubApproval').addEventListener('click', function() {
+    // Show loading state
+    document.getElementById('confirmClubApproval').classList.add('d-none');
+    document.getElementById('loadingClubApproval').classList.remove('d-none');
+    
+    // Set the club ID in the hidden form
+    document.getElementById('clubIdInput').value = currentClubId;
+    
+    // Submit the form
+    document.getElementById('clubApprovalForm').submit();
+});
+
+// Reset modal state when modal is hidden
+document.getElementById('clubApprovalModal').addEventListener('hidden.bs.modal', function() {
+    // Reset loading state
+    document.getElementById('confirmClubApproval').classList.remove('d-none');
+    document.getElementById('loadingClubApproval').classList.add('d-none');
+});
+</script>
+
 {% endblock %}

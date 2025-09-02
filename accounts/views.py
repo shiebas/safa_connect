@@ -836,9 +836,12 @@ def national_admin_dashboard(request):
     # Financial Summary
     total_paid = Invoice.objects.filter(
         status='PAID').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    total_outstanding = Invoice.objects.filter(
-        status='PENDING'
-    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    
+    # Calculate outstanding amount - include PENDING, OVERDUE, and PARTIALLY_PAID invoices
+    outstanding_invoices = Invoice.objects.filter(
+        status__in=['PENDING', 'OVERDUE', 'PARTIALLY_PAID']
+    )
+    total_outstanding = outstanding_invoices.aggregate(Sum('outstanding_amount'))['outstanding_amount__sum'] or 0
 
     # Get all provinces for display
     all_provinces = Province.objects.all().order_by('name')
@@ -869,6 +872,8 @@ def national_admin_dashboard(request):
 
 
     context = {
+        'dashboard_title': 'National Admin Dashboard',
+        'dashboard_subtitle': 'Manage all provinces, regions, LFAs, and clubs',
         'total_paid': total_paid,
         'total_outstanding': total_outstanding,
         'pending_organizations': pending_organizations,
@@ -916,25 +921,14 @@ def update_organization_status(request):
         province.status = new_status
         province.save()
 
-        # Generate invoice for the province
+        # Generate invoice for the province using the same formula as user registration
         try:
             # Get active season
-            active_season = SAFASeasonConfig.objects.filter(is_active=True).first()
+            active_season = SAFASeasonConfig.get_active_season()
             if active_season:
-                # Get fee structure for provinces
-                fee_structure = SAFAFeeStructure.objects.filter(
-                    season=active_season,
-                    entity_type='PROVINCE'
-                ).first()
-                
-                if fee_structure:
-                    # Create invoice using the utility function
-                    from membership.signals import create_organization_invoice
-                    invoice = create_organization_invoice(
-                        organization=province,
-                        entity_type='PROVINCE',
-                        season_config=active_season
-                    )
+                # Create invoice using the same method as user registration
+                invoice = Invoice.create_simple_organization_invoice(province, active_season)
+                if invoice:
                     messages.success(
                         request,
                         f"Province {province.name} approved and invoice #{invoice.invoice_number} generated."
@@ -942,7 +936,7 @@ def update_organization_status(request):
                 else:
                     messages.warning(
                         request,
-                        f"Province {province.name} approved but no fee structure found for provinces."
+                        f"Province {province.name} approved but invoice generation failed."
                     )
             else:
                 messages.warning(
@@ -995,39 +989,22 @@ def approve_region(request):
         region.status = new_status
         region.save()
 
-        # Generate invoice for the region
+        # Generate invoice for the region using the same formula as user registration
         try:
             # Get active season
-            active_season = SAFASeasonConfig.objects.filter(is_active=True).first()
+            active_season = SAFASeasonConfig.get_active_season()
             if active_season:
-                # Get fee structure for regions
-                fee_structure = SAFAFeeStructure.objects.filter(
-                    season=active_season,
-                    entity_type='REGION'
-                ).first()
-                
-                if fee_structure:
-                    # Create invoice using the utility function
-                    from membership.signals import create_organization_invoice
-                    invoice = create_organization_invoice(
-                        organization=region,
-                        entity_type='REGION',
-                        season_config=active_season
+                # Create invoice using the same method as user registration
+                invoice = Invoice.create_simple_organization_invoice(region, active_season)
+                if invoice:
+                    messages.success(
+                        request,
+                        f"Region {region.name} approved and invoice #{invoice.invoice_number} generated."
                     )
-                    if invoice:
-                        messages.success(
-                            request,
-                            f"Region {region.name} approved and invoice #{invoice.invoice_number} generated."
-                        )
-                    else:
-                        messages.warning(
-                            request,
-                            f"Region {region.name} approved but invoice generation failed."
-                        )
                 else:
                     messages.warning(
                         request,
-                        f"Region {region.name} approved but no fee structure found for regions."
+                        f"Region {region.name} approved but invoice generation failed."
                     )
             else:
                 messages.warning(
@@ -1081,39 +1058,22 @@ def approve_lfa(request):
         lfa.status = new_status
         lfa.save()
 
-        # Generate invoice for the LFA
+        # Generate invoice for the LFA using the same formula as user registration
         try:
             # Get active season
-            active_season = SAFASeasonConfig.objects.filter(is_active=True).first()
+            active_season = SAFASeasonConfig.get_active_season()
             if active_season:
-                # Get fee structure for LFAs
-                fee_structure = SAFAFeeStructure.objects.filter(
-                    season=active_season,
-                    entity_type='LFA'
-                ).first()
-                
-                if fee_structure:
-                    # Create invoice using the utility function
-                    from membership.signals import create_organization_invoice
-                    invoice = create_organization_invoice(
-                        organization=lfa,
-                        entity_type='LFA',
-                        season_config=active_season
+                # Create invoice using the same method as user registration
+                invoice = Invoice.create_simple_organization_invoice(lfa, active_season)
+                if invoice:
+                    messages.success(
+                        request,
+                        f"LFA {lfa.name} approved and invoice #{invoice.invoice_number} generated."
                     )
-                    if invoice:
-                        messages.success(
-                            request,
-                            f"LFA {lfa.name} approved and invoice #{invoice.invoice_number} generated."
-                        )
-                    else:
-                        messages.warning(
-                            request,
-                            f"LFA {lfa.name} approved but invoice generation failed."
-                        )
                 else:
                     messages.warning(
                         request,
-                        f"LFA {lfa.name} approved but no fee structure found for LFAs."
+                        f"LFA {lfa.name} approved but invoice generation failed."
                     )
             else:
                 messages.warning(
@@ -1154,7 +1114,7 @@ def approve_club(request):
         club = get_object_or_404(Club, id=club_id)
         
         # Check if club belongs to the user's LFA
-        if club.lfa != request.user.local_federation:
+        if club.localfootballassociation != request.user.local_federation:
             messages.error(request, "You can only approve clubs within your LFA.")
             return redirect('accounts:lfa_admin_dashboard')
 
@@ -1167,39 +1127,22 @@ def approve_club(request):
         club.status = new_status
         club.save()
 
-        # Generate invoice for the club
+        # Generate invoice for the club using the same formula as user registration
         try:
             # Get active season
-            active_season = SAFASeasonConfig.objects.filter(is_active=True).first()
+            active_season = SAFASeasonConfig.get_active_season()
             if active_season:
-                # Get fee structure for clubs
-                fee_structure = SAFAFeeStructure.objects.filter(
-                    season=active_season,
-                    entity_type='CLUB'
-                ).first()
-                
-                if fee_structure:
-                    # Create invoice using the utility function
-                    from membership.signals import create_organization_invoice
-                    invoice = create_organization_invoice(
-                        organization=club,
-                        entity_type='CLUB',
-                        season_config=active_season
+                # Create invoice using the same method as user registration
+                invoice = Invoice.create_simple_organization_invoice(club, active_season)
+                if invoice:
+                    messages.success(
+                        request,
+                        f"Club {club.name} approved and invoice #{invoice.invoice_number} generated."
                     )
-                    if invoice:
-                        messages.success(
-                            request,
-                            f"Club {club.name} approved and invoice #{invoice.invoice_number} generated."
-                        )
-                    else:
-                        messages.warning(
-                            request,
-                            f"Club {club.name} approved but invoice generation failed."
-                        )
                 else:
                     messages.warning(
                         request,
-                        f"Club {club.name} approved but no fee structure found for clubs."
+                        f"Club {club.name} approved but invoice generation failed."
                     )
             else:
                 messages.warning(
@@ -1248,7 +1191,7 @@ def provincial_admin_dashboard(request):
     if user_province:
         try:
             # Get all members and filter by province in Python to avoid complex DB queries
-            all_members = Member.objects.select_related('user', 'current_club', 'current_club__lfa', 'current_club__lfa__region').all()
+            all_members = Member.objects.select_related('user', 'current_club', 'current_club__localfootballassociation', 'current_club__localfootballassociation__region').all()
             for member in all_members:
                 try:
                     if (member.current_club and 
@@ -1265,11 +1208,26 @@ def provincial_admin_dashboard(request):
             # If there's an error getting members, just use empty list
             members = []
     
+    # Get organization invoices for this province
+    from django.contrib.contenttypes.models import ContentType
+    from membership.models import Invoice
+    
+    province_content_type = ContentType.objects.get_for_model(user_province.__class__)
+    organization_invoices = Invoice.objects.filter(
+        content_type=province_content_type,
+        object_id=user_province.id
+    ).order_by('-created')
+    
+
+    
     context = {
+        'dashboard_title': 'Provincial Admin Dashboard',
+        'dashboard_subtitle': f'Manage {user_province.name if user_province else "your province"}',
         'user_province': user_province,
         'pending_regions': pending_regions,
         'regions': all_regions,
         'members': members,
+        'organization_invoices': organization_invoices,
     }
     return render(request, 'accounts/provincial_admin_dashboard.html', context)
 
@@ -1293,7 +1251,7 @@ def regional_admin_dashboard(request):
     
     # Get clubs in this region
     clubs = Club.objects.filter(
-        lfa__region=user_region
+        localfootballassociation__region=user_region
     ).order_by('name')
     
     # Get members in this region (simplified query with error handling)
@@ -1301,7 +1259,7 @@ def regional_admin_dashboard(request):
     if user_region:
         try:
             # Get all members and filter by region in Python to avoid complex DB queries
-            all_members = Member.objects.select_related('user', 'current_club', 'current_club__lfa').all()
+            all_members = Member.objects.select_related('user', 'current_club', 'current_club__localfootballassociation').all()
             for member in all_members:
                 try:
                     if (member.current_club and 
@@ -1317,12 +1275,23 @@ def regional_admin_dashboard(request):
             # If there's an error getting members, just use empty list
             members = []
 
+    # Get organization invoices for this region
+    from django.contrib.contenttypes.models import ContentType
+    from membership.models import Invoice
+    
+    region_content_type = ContentType.objects.get_for_model(user_region.__class__)
+    organization_invoices = Invoice.objects.filter(
+        content_type=region_content_type,
+        object_id=user_region.id
+    ).order_by('-created')
+    
     context = {
         'user_region': user_region,
         'pending_lfas': pending_lfas,
         'lfas': all_lfas,
         'clubs': clubs,
         'members': members,
+        'organization_invoices': organization_invoices,
     }
     return render(request, 'accounts/regional_admin_dashboard.html', context)
 
@@ -1372,12 +1341,23 @@ def lfa_admin_dashboard(request):
             # If there's an error getting members, just use empty list
             members = []
 
+    # Get organization invoices for this LFA
+    from django.contrib.contenttypes.models import ContentType
+    from membership.models import Invoice
+    
+    lfa_content_type = ContentType.objects.get_for_model(lfa.__class__)
+    organization_invoices = Invoice.objects.filter(
+        content_type=lfa_content_type,
+        object_id=lfa.id
+    ).order_by('-created')
+    
     context = {
         'lfa': lfa,
         'pending_clubs': pending_clubs,
         'clubs': all_clubs,
         'pending_members': pending_members,
         'members': members,
+        'organization_invoices': organization_invoices,
     }
     return render(request, 'accounts/lfa_admin_dashboard.html', context)
 
@@ -1408,6 +1388,16 @@ def club_admin_dashboard(request):
         ).select_related('member__user', 'member__current_club')
         pending_members = [wf.member for wf in workflows]
 
+    # Get organization invoices for this club
+    from django.contrib.contenttypes.models import ContentType
+    from membership.models import Invoice
+    
+    club_content_type = ContentType.objects.get_for_model(club.__class__)
+    organization_invoices = Invoice.objects.filter(
+        content_type=club_content_type,
+        object_id=club.id
+    ).order_by('-created')
+    
     context = {
         'club': club,
         'players': players,
@@ -1416,6 +1406,7 @@ def club_admin_dashboard(request):
         'male_players': male_players,
         'female_players': female_players,
         'pending_members': pending_members,
+        'organization_invoices': organization_invoices,
     }
     return render(request, 'accounts/club_admin_dashboard.html', context)
 
@@ -1605,7 +1596,7 @@ def province_compliance_view(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Province compliance updated successfully.')
-            return redirect('accounts:province_compliance_view')
+            return redirect('accounts:provincial_admin_dashboard')
     else:
         form = ProvinceComplianceForm(instance=province)
 
@@ -1628,7 +1619,7 @@ def region_compliance_view(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Region compliance updated successfully.')
-            return redirect('accounts:region_compliance_view')
+            return redirect('accounts:regional_admin_dashboard')
     else:
         form = RegionComplianceForm(instance=region)
 
@@ -1639,24 +1630,44 @@ def region_compliance_view(request):
     return render(request, 'accounts/region_compliance.html', context)
 
 
-@login_required
+@role_required(allowed_roles=['ADMIN_LOCAL_FED'])
 def lfa_compliance_view(request):
+    # Use the same pattern as region_compliance_view
+    print(f"🔍 DEBUG: Request method: {request.method}")
+    print(f"🔍 DEBUG: User authenticated: {request.user.is_authenticated}")
+    print(f"🔍 DEBUG: User: {request.user}")
+    print(f"🔍 DEBUG: User email: {getattr(request.user, 'email', 'No email')}")
+    
     lfa = request.user.local_federation
+    
+    # Debug logging
+    print(f"🔍 DEBUG: User: {request.user.email}")
+    print(f"🔍 DEBUG: User role: {request.user.role}")
+    print(f"🔍 DEBUG: User local_federation: {lfa}")
+    print(f"🔍 DEBUG: User local_federation type: {type(lfa)}")
+    
     if not lfa:
+        print(f"❌ DEBUG: User {request.user.email} has no local_federation")
         messages.error(request, "You are not associated with an LFA.")
         return redirect('accounts:modern_home')
+
+    print(f"✅ DEBUG: Found LFA: {lfa.name} (ID: {lfa.id})")
+    print(f"✅ DEBUG: LFA status: {lfa.status}")
+    print(f"✅ DEBUG: LFA compliant: {lfa.is_compliant}")
 
     if request.method == 'POST':
         form = LFAComplianceForm(request.POST, request.FILES, instance=lfa)
         if form.is_valid():
             form.save()
             messages.success(request, 'LFA compliance updated successfully.')
-            return redirect('accounts:lfa_compliance_view')
+            return redirect('accounts:lfa_admin_dashboard')
+        else:
+            print(f"❌ DEBUG: Form errors: {form.errors}")
     else:
         form = LFAComplianceForm(instance=lfa)
 
     context = {
-        'lfa': lfa,
+        'local_federation': lfa,  # Match what the template expects
         'form': form,
     }
     return render(request, 'accounts/lfa_compliance.html', context)
@@ -1697,7 +1708,7 @@ def club_compliance_view(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Club compliance updated successfully.')
-            return redirect('accounts:club_compliance_view')
+            return redirect('accounts:club_admin_dashboard')
     else:
         form = ClubComplianceForm(instance=club)
 

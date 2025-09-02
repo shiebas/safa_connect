@@ -14,6 +14,13 @@ from .models import (
     OrganizationSeasonRegistration
 )
 
+# Check if external models are available (for legacy/external system integration)
+try:
+    from geography.models import Club
+    EXTERNAL_MODELS_AVAILABLE = True
+except ImportError:
+    EXTERNAL_MODELS_AVAILABLE = False
+
 
 
 
@@ -410,75 +417,6 @@ def handle_invoice_status_updates(sender, instance, **kwargs):
 # ============================================================================
 
 if EXTERNAL_MODELS_AVAILABLE:
-    
-    @receiver(post_save, sender=Player)
-    def handle_player_creation(sender, instance, created, **kwargs):
-        """Create SAFA member record when Player is created"""
-        
-        if created:
-            try:
-                # Check if Member already exists for this player
-                if hasattr(instance, 'member_profile'):
-                    return
-                
-                # Create corresponding Member record
-                member = Member.objects.create(
-                    user=getattr(instance, 'user', None),
-                    first_name=instance.first_name,
-                    last_name=instance.last_name,
-                    email=instance.email,
-                    phone_number=getattr(instance, 'phone_number', ''),
-                    date_of_birth=instance.date_of_birth,
-                    gender=getattr(instance, 'gender', ''),
-                    id_number=getattr(instance, 'id_number', ''),
-                    role='PLAYER',
-                    status='PENDING',
-                    registration_method='ADMIN',
-                    current_season=SAFASeasonConfig.get_active_season(),
-                    current_club=getattr(instance, 'club', None),
-                )
-                
-                print(f"✅ Created SAFA member record for player: {instance.get_full_name()}")
-                
-            except Exception as e:
-                print(f"❌ Failed to create SAFA member for player {instance.get_full_name()}: {str(e)}")
-    
-    
-    @receiver(post_save, sender=Official)
-    def handle_official_creation(sender, instance, created, **kwargs):
-        """Create SAFA member record when Official is created"""
-        
-        if created:
-            try:
-                # Check if Member already exists for this official
-                if hasattr(instance, 'member_profile'):
-                    return
-                
-                # Create corresponding Member record
-                member = Member.objects.create(
-                    user=getattr(instance, 'user', None),
-                    first_name=instance.first_name,
-                    last_name=instance.last_name,
-                    email=instance.email,
-                    phone_number=getattr(instance, 'phone_number', ''),
-                    date_of_birth=getattr(instance, 'date_of_birth', None),
-                    gender=getattr(instance, 'gender', ''),
-                    id_number=getattr(instance, 'id_number', ''),
-                    role='OFFICIAL',
-                    status='PENDING',
-                    registration_method='ADMIN',
-                    current_season=SAFASeasonConfig.get_active_season(),
-                )
-                
-                # Set associations for officials
-                if hasattr(instance, 'primary_association'):
-                    member.associations.add(instance.primary_association)
-                
-                print(f"✅ Created SAFA member record for official: {instance.get_full_name()}")
-                
-            except Exception as e:
-                print(f"❌ Failed to create SAFA member for official {instance.get_full_name()}: {str(e)}")
-    
     
     @receiver(post_save, sender=Club)
     def handle_club_creation(sender, instance, created, **kwargs):

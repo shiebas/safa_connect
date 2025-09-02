@@ -1,6 +1,5 @@
 {% extends "admin/base_admin_dashboard.html" %}
 {% load static %}
-{% csrf_token %}
 
 {% block title %}National Admin Dashboard - UPDATED{% endblock %}
 
@@ -151,7 +150,7 @@
                         <td>
                             <div class="org-icon">
                                 {% if org.get_model_name == 'Province' %}
-                                    <i class="fas fa-map text-primary fa-lg"></i>
+                                    <img src="{% static 'safa_logo_clear.png' %}" alt="SAFA Logo" class="text-primary" style="max-height: 24px;">
                                 {% elif org.get_model_name == 'Region' %}
                                     <i class="fas fa-map-marker-alt text-info fa-lg"></i>
                                 {% elif org.get_model_name == 'LocalFootballAssociation' %}
@@ -270,7 +269,7 @@
 <div class="content-card mb-4">
     <div class="card-header">
         <h5 class="mb-0">
-            <i class="fas fa-map me-2 text-primary"></i>
+                                    <img src="{% static 'safa_logo_clear.png' %}" alt="SAFA Logo" class="me-2" style="max-height: 20px;">
             All Provinces Overview
         </h5>
     </div>
@@ -402,6 +401,113 @@
         </div>
     </div>
 </div>
+
+<!-- Province Approval Modal -->
+<div class="modal fade" id="provinceApprovalModal" tabindex="-1" aria-labelledby="provinceApprovalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="provinceApprovalModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Approve Province & Generate Invoice
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-question-circle text-warning fa-3x mb-3"></i>
+                    <h6>Are you sure you want to approve this province?</h6>
+                    <p class="text-muted mb-0">This action will:</p>
+                    <ul class="text-muted text-start mt-2">
+                        <li>Change the province status to <strong>ACTIVE</strong></li>
+                        <li><strong class="text-primary">Generate an invoice for the province</strong> 💰</li>
+                        <li>Allow the province to approve regions</li>
+                    </ul>
+                </div>
+                
+                <!-- Invoice Generation Alert -->
+                <div class="alert alert-warning border-warning">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-file-invoice fa-2x text-warning me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">
+                                <strong>Invoice Will Be Generated!</strong>
+                            </h6>
+                            <p class="mb-0 small">
+                                Upon approval, an invoice will be automatically created for this province. 
+                                The invoice will include the province membership fee with VAT calculation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invoice Preview -->
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white py-2">
+                        <h6 class="mb-0">
+                            <i class="fas fa-eye me-2"></i>
+                            Invoice Preview
+                        </h6>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="border-end">
+                                    <small class="text-muted d-block">Fee (excl. VAT)</small>
+                                    <strong class="text-primary">R[Fee Amount]</strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border-end">
+                                    <small class="text-muted d-block">VAT (15%)</small>
+                                    <strong class="text-success">R[VAT Amount]</strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div>
+                                    <small class="text-muted d-block">Total</small>
+                                    <strong class="text-dark">R[Total Amount]</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Actual amounts will be calculated based on current fee structure
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> This action cannot be undone. The province will be able to approve regions once activated.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-success" id="confirmProvinceApproval">
+                    <i class="fas fa-check me-1"></i>Yes, Approve & Generate Invoice
+                </button>
+                <button type="button" class="btn btn-success d-none" id="loadingProvinceApproval" disabled>
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Processing...
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for province approval -->
+<form id="provinceApprovalForm" method="post" action="{% url 'accounts:update_organization_status' %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="org_type" id="orgTypeInput">
+    <input type="hidden" name="org_id" id="orgIdInput">
+    <input type="hidden" name="new_status" value="ACTIVE">
+</form>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -450,53 +556,97 @@ document.addEventListener('DOMContentLoaded', function() {
             rows.forEach(row => tbody.appendChild(row));
         });
     }
+    
+    // Province approval modal handling
+    window.currentOrgType = '';
+    window.currentOrgId = '';
+    
+    // Handle confirm button click
+    document.getElementById('confirmProvinceApproval').addEventListener('click', function() {
+        if (window.currentOrgType !== 'province') {
+            showAlert('error', 'National Admin can only approve provinces.');
+            return;
+        }
+        
+        // Show loading state
+        document.getElementById('confirmProvinceApproval').classList.add('d-none');
+        document.getElementById('loadingProvinceApproval').classList.remove('d-none');
+        
+        // Submit the approval
+        submitProvinceApproval(window.currentOrgType, window.currentOrgId);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('provinceApprovalModal'));
+        modal.hide();
+    });
 });
 
-// Approve province function (National Admin can only approve provinces)
+// Approve province function with modal
 function approveOrganization(orgType, orgId) {
+    console.log('approveOrganization called with:', orgType, orgId);
+    
     if (orgType !== 'province') {
-        alert('National Admin can only approve provinces.');
+        showAlert('error', 'National Admin can only approve provinces.');
         return;
     }
     
-    if (confirm('Are you sure you want to approve this province? This will generate an invoice for the province.')) {
-        // Create a form to submit the approval
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{% url "accounts:update_organization_status" %}';
-        
-        // Add CSRF token
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrfmiddlewaretoken';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        
-        // Add organization type and ID
-        const orgTypeInput = document.createElement('input');
-        orgTypeInput.type = 'hidden';
-        orgTypeInput.name = 'org_type';
-        orgTypeInput.value = orgType;
-        form.appendChild(orgTypeInput);
-        
-        const orgIdInput = document.createElement('input');
-        orgIdInput.type = 'hidden';
-        orgIdInput.name = 'org_id';
-        orgIdInput.value = orgId;
-        form.appendChild(orgIdInput);
-        
-        // Add new status
-        const statusInput = document.createElement('input');
-        statusInput.type = 'hidden';
-        statusInput.name = 'new_status';
-        statusInput.value = 'ACTIVE';
-        form.appendChild(statusInput);
-        
-        // Submit the form
-        document.body.appendChild(form);
-        form.submit();
+    // Store current values for modal
+    window.currentOrgType = orgType;
+    window.currentOrgId = orgId;
+    
+    console.log('Stored values:', window.currentOrgType, window.currentOrgId);
+    
+    // Check if modal element exists
+    const modalElement = document.getElementById('provinceApprovalModal');
+    if (!modalElement) {
+        console.error('Modal element not found!');
+        showAlert('error', 'Modal not found. Please refresh the page.');
+        return;
     }
+    
+    console.log('Modal element found, creating Bootstrap modal...');
+    
+    try {
+        // Show the modal
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        console.log('Modal shown successfully');
+    } catch (error) {
+        console.error('Error showing modal:', error);
+        showAlert('error', 'Error showing modal: ' + error.message);
+    }
+}
+
+// Submit province approval
+function submitProvinceApproval(orgType, orgId) {
+    // Set the values in the hidden form
+    document.getElementById('orgTypeInput').value = orgType;
+    document.getElementById('orgIdInput').value = orgId;
+    
+    // Submit the form
+    document.getElementById('provinceApprovalForm').submit();
+}
+
+// Show alert function (you can replace this with your preferred alert system)
+function showAlert(type, message) {
+    // Create a Bootstrap alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
 }
 </script>
 {% endblock %}

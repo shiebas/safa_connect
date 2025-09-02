@@ -1583,6 +1583,12 @@ class Invoice(TimeStampedModel):
         null=True, blank=True
     )
     notes = models.TextField(_("Notes"), blank=True)
+    
+    # Invoice addressing
+    from_name = models.CharField(_("From"), max_length=200, default="SAFA Connect")
+    from_address = models.TextField(_("From Address"), blank=True)
+    to_name = models.CharField(_("To"), max_length=200, blank=True)
+    to_address = models.TextField(_("To Address"), blank=True)
 
     class Meta:
         verbose_name = _("Invoice")
@@ -1657,35 +1663,46 @@ class Invoice(TimeStampedModel):
         super().save(*args, **kwargs)
 
     def generate_invoice_number(self):
-        """Generate unique invoice number in MEM-YYYYMMDD/safa_id-XX format"""
+        """Generate unique invoice number in ORG-YYYYMMDD/type-XX format for organizations or MEM-YYYYMMDD/safa_id-XX for members"""
         today_str = timezone.now().strftime("%Y%m%d")
         
-        # Ensure the invoice is associated with a member to get safa_id
-        if not self.member or not self.member.safa_id:
-            # Fallback to a generic unique number if member or safa_id is missing
-            year = self.season_config.season_year if self.season_config else timezone.now().year
-            import random
-            import string
-            prefix = f"MEM{year}"
+        if self.member and self.member.safa_id:
+            # Member invoice - use existing format
+            base_invoice_number = f"MEM-{today_str}/{self.member.safa_id}"
+            
+            # Check for existing invoices with the same base number and add a counter
+            counter = 0
             while True:
-                suffix = ''.join(random.choices(string.digits, k=6))
-                number = f"{prefix}{suffix}"
-                if not Invoice.objects.filter(invoice_number=number).exists():
-                    return number
+                if counter == 0:
+                    invoice_number = base_invoice_number
+                else:
+                    invoice_number = f"{base_invoice_number}-{counter:02d}" # Add -01, -02 etc.
 
-        base_invoice_number = f"MEM-{today_str}/{self.member.safa_id}"
-        
-        # Check for existing invoices with the same base number and add a counter
-        counter = 0
-        while True:
-            if counter == 0:
-                invoice_number = base_invoice_number
-            else:
-                invoice_number = f"{base_invoice_number}-{counter:02d}" # Add -01, -02 etc.
+                if not Invoice.objects.filter(invoice_number=invoice_number).exists():
+                    return invoice_number
+                counter += 1
+        else:
+            # Organization invoice - use format: MEM-YYYYMMDD/safa_id or MEM-YYYYMMDD/ORG if no safa_id
+            try:
+                if self.organization and hasattr(self.organization, 'safa_id') and self.organization.safa_id:
+                    base_invoice_number = f"MEM-{today_str}/{self.organization.safa_id}"
+                else:
+                    base_invoice_number = f"MEM-{today_str}/ORG"
+            except:
+                # Fallback if organization access fails
+                base_invoice_number = f"MEM-{today_str}/ORG"
+            
+            # Check for existing invoices with the same base number and add a counter
+            counter = 0
+            while True:
+                if counter == 0:
+                    invoice_number = base_invoice_number
+                else:
+                    invoice_number = f"{base_invoice_number}-{counter:02d}" # Add -01, -02 etc.
 
-            if not Invoice.objects.filter(invoice_number=invoice_number).exists():
-                return invoice_number
-            counter += 1
+                if not Invoice.objects.filter(invoice_number=invoice_number).exists():
+                    return invoice_number
+                counter += 1
 
     @property
     def is_overdue(self):
@@ -1865,6 +1882,62 @@ class Invoice(TimeStampedModel):
                 return invoice
         except Exception as e:
             print(f"Error creating simple invoice: {e}")
+            raise
+
+    @classmethod
+    def create_simple_organization_invoice(cls, organization, season_config):
+        """Create invoice for organization registration using the same formula: Fee = Total / 1.15, VAT = Fee * 15%"""
+        try:
+            print(f"🔍 DEBUG: Creating SIMPLE organization invoice for {organization.name} using YOUR FORMULA")
+            
+            # Get fee structure for this organization type
+            fee_structure = SAFAFeeStructure.get_fee_for_entity(
+                entity_type=organization.get_model_name().upper(),
+                season_year=season_config.season_year
+            )
+            
+            if not fee_structure:
+                print(f"❌ No fee structure found for {organization.get_model_name()}")
+                return None
+            
+            # Use the same formula as member registration: Fee = Total / 1.15
+            total_amount = fee_structure.annual_fee  # e.g., R500
+            fee_excluding_vat = total_amount / Decimal('1.15')  # e.g., R434.78
+            vat_amount = fee_excluding_vat * Decimal('0.15')  # e.g., R65.22
+            
+            print(f"🔍 DEBUG: Simple organization calculation - Total: R{total_amount}, Fee (excl. VAT): R{fee_excluding_vat}, VAT (15%): R{vat_amount}")
+            
+            # Create invoice with proper VAT breakdown
+            invoice = cls.objects.create(
+                invoice_type='ORGANIZATION_MEMBERSHIP',
+                subtotal=fee_excluding_vat,  # Fee excluding VAT
+                vat_amount=vat_amount,       # VAT amount
+                total_amount=total_amount,   # Total amount including VAT
+                season_config=season_config,
+                status='PENDING',
+                content_type=ContentType.objects.get_for_model(organization),
+                object_id=organization.id,
+                due_date=season_config.organization_registration_end,
+                # Add missing fields for proper invoice display
+                payment_method='Cash or EFT',
+                # Set the To field with organization name
+                to_name=organization.name
+            )
+            
+            # Create invoice item
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=f"SAFA {organization.get_model_name()} Membership Fee - {organization.name} - {season_config.season_year} (Simple Formula)",
+                unit_price=fee_excluding_vat,  # Unit price excluding VAT
+                quantity=1,
+                total_price=fee_excluding_vat,  # Total price excluding VAT
+                amount=total_amount  # Total amount including VAT
+            )
+            
+            print(f"🔍 DEBUG: Created SIMPLE organization invoice {invoice.invoice_number} with breakdown: Subtotal R{fee_excluding_vat}, VAT R{vat_amount}, Total R{total_amount}")
+            return invoice
+        except Exception as e:
+            print(f"Error creating simple organization invoice: {e}")
             raise
 
     @classmethod
