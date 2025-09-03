@@ -90,6 +90,114 @@ def download_my_card(request, format_type='mobile'):
 
 
 @login_required
+def export_physical_card(request, layout='standard'):
+    """
+    Export physical card with enhanced layout options
+    
+    Args:
+        layout: 'standard', 'professional', 'compact', or 'single'
+    """
+    try:
+        member = Member.objects.get(email=request.user.email)
+        
+        if not member.safa_id:
+            messages.error(request, "Your SAFA ID has not been assigned yet.")
+            return redirect('membership_cards:my_card')
+        
+        # Create a mock physical card for single card export
+        from .models import PhysicalCard
+        mock_physical_card = PhysicalCard(
+            user=request.user,
+            card_number=member.safa_id,
+            print_status='READY'
+        )
+        
+        # Generate enhanced PDF with layout options
+        from .card_generator import generate_print_ready_pdf_enhanced
+        
+        try:
+            pdf_data = generate_print_ready_pdf_enhanced([mock_physical_card], layout=layout)
+            
+            response = HttpResponse(pdf_data, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="SAFA_Card_{member.safa_id}_{layout.title()}.pdf"'
+            
+            return response
+            
+        except ImportError:
+            # Fallback to basic PDF generation
+            generator = SAFACardGenerator()
+            card_data = generator.generate_print_card_pdf(member)
+            response = HttpResponse(card_data.read(), content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="SAFA_Card_{member.safa_id}_Print.pdf"'
+            return response
+        
+    except Member.DoesNotExist:
+        messages.error(request, "No membership record found.")
+        return redirect('membership_cards:my_card')
+    except Exception as e:
+        messages.error(request, f"Error generating physical card: {str(e)}")
+        return redirect('membership_cards:my_card')
+
+
+@login_required
+def physical_card_templates(request):
+    """Display available physical card templates and export options"""
+    try:
+        member = Member.objects.get(email=request.user.email)
+        
+        if not member.safa_id:
+            messages.error(request, "Your SAFA ID has not been assigned yet.")
+            return redirect('membership_cards:my_card')
+        
+        context = {
+            'member': member,
+            'templates': [
+                {
+                    'id': 'standard',
+                    'name': 'Standard Layout',
+                    'description': 'Classic 2x4 layout on letter paper (8 cards per page)',
+                    'cards_per_page': 8,
+                    'paper_size': 'Letter (8.5" x 11")',
+                    'features': ['Professional headers', 'Cutting guides', 'Card labels']
+                },
+                {
+                    'id': 'professional',
+                    'name': 'Professional Layout',
+                    'description': 'Compact 3x5 layout on A4 paper (15 cards per page)',
+                    'cards_per_page': 15,
+                    'paper_size': 'A4 (210mm x 297mm)',
+                    'features': ['High density layout', 'Professional headers', 'Cutting guides']
+                },
+                {
+                    'id': 'compact',
+                    'name': 'Compact Layout',
+                    'description': 'High density 3x6 layout on letter paper (18 cards per page)',
+                    'cards_per_page': 18,
+                    'paper_size': 'Letter (8.5" x 11")',
+                    'features': ['Maximum cards per page', 'Efficient printing', 'Cutting guides']
+                },
+                {
+                    'id': 'single',
+                    'name': 'Single Card',
+                    'description': 'Individual card export for personal printing',
+                    'cards_per_page': 1,
+                    'paper_size': 'Card size (85.6mm x 53.98mm)',
+                    'features': ['Exact card dimensions', 'No margins', 'Perfect for laminating']
+                }
+            ]
+        }
+        
+        return render(request, 'membership_cards/physical_card_templates.html', context)
+        
+    except Member.DoesNotExist:
+        messages.error(request, "No membership record found.")
+        return redirect('membership_cards:my_card')
+    except Exception as e:
+        messages.error(request, f"Error loading templates: {str(e)}")
+        return redirect('membership_cards:my_card')
+
+
+@login_required
 def card_preview_image(request):
     """Return card image for preview (AJAX endpoint)"""
     try:

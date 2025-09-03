@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .digital-coins-navbar {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 1rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .digital-coins-navbar .navbar-brand {
+        color: white;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+    
+    .digital-coins-navbar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .digital-coins-navbar .nav-link:hover {
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .digital-coins-navbar .nav-link.active {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+    }
+    
+    .digital-coins-container {
+        min-height: calc(100vh - 200px);
+    }
+    
+    .digital-coins-footer {
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        padding: 2rem 0;
+        margin-top: 3rem;
+        text-align: center;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Digital Coins Navigation -->
+<nav class="digital-coins-navbar">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="navbar-brand" href="{% url 'digital_coins:wallet' %}">
+                <i class="fas fa-coins me-2"></i>SAFA Digital Coins
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}" 
+                   href="{% url 'digital_coins:wallet' %}">
+                    <i class="fas fa-wallet me-1"></i>Wallet
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'transaction_history' %}active{% endif %}" 
+                   href="{% url 'digital_coins:transaction_history' %}">
+                    <i class="fas fa-history me-1"></i>History
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'send_coins' %}active{% endif %}" 
+                   href="{% url 'digital_coins:send_coins' %}">
+                    <i class="fas fa-paper-plane me-1"></i>Send
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'competitions' %}active{% endif %}" 
+                   href="{% url 'digital_coins:competitions' %}">
+                    <i class="fas fa-trophy me-1"></i>Competitions
+                </a>
+                <a class="nav-link" href="{% url 'accounts:profile' %}">
+                    <i class="fas fa-user me-1"></i>Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="digital-coins-container">
+    {% block digital_coins_content %}{% endblock %}
+</div>
+
+<!-- Footer -->
+<footer class="digital-coins-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>SAFA Digital Coins</h6>
+                <p class="mb-0">The future of football loyalty and rewards</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>Secure • 
+                    <i class="fas fa-bolt me-2"></i>Fast • 
+                    <i class="fas fa-globe me-2"></i>Global
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}

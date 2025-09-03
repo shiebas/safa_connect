@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Physical Card Templates - {{ member.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .template-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .template-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        color: white;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0, 102, 51, 0.3);
+    }
+    
+    .template-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .template-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .template-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .template-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #006633, #FFD700);
+    }
+    
+    .template-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        border-color: #006633;
+    }
+    
+    .template-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #006633;
+        margin-bottom: 1rem;
+    }
+    
+    .template-description {
+        color: #666;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+    
+    .template-specs {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .spec-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .spec-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .spec-value {
+        color: #006633;
+        font-weight: 500;
+    }
+    
+    .template-features {
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .feature-icon {
+        color: #28a745;
+        margin-right: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .export-button {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .btn-standard {
+        background: linear-gradient(135deg, #006633, #008844);
+        color: white;
+    }
+    
+    .btn-standard:hover {
+        background: linear-gradient(135deg, #004d26, #006633);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .btn-professional {
+        background: linear-gradient(135deg, #495057, #6c757d);
+        color: white;
+    }
+    
+    .btn-professional:hover {
+        background: linear-gradient(135deg, #343a40, #495057);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .btn-compact {
+        background: linear-gradient(135deg, #17a2b8, #20c997);
+        color: white;
+    }
+    
+    .btn-compact:hover {
+        background: linear-gradient(135deg, #138496, #17a2b8);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .btn-single {
+        background: linear-gradient(135deg, #dc3545, #fd7e14);
+        color: white;
+    }
+    
+    .btn-single:hover {
+        background: linear-gradient(135deg, #c82333, #e55a00);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .info-section {
+        background: #e3f2fd;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-left: 5px solid #2196f3;
+    }
+    
+    .info-section h3 {
+        color: #1976d2;
+        margin-bottom: 1rem;
+    }
+    
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .info-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #bbdefb;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .info-list .icon {
+        color: #2196f3;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .back-button {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .btn-back {
+        background: #6c757d;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    
+    .btn-back:hover {
+        background: #5a6268;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .templates-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .template-header h1 {
+            font-size: 2rem;
+        }
+        
+        .template-container {
+            padding: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="template-container">
+    <!-- Header -->
+    <div class="template-header">
+        <h1>Physical Card Templates</h1>
+        <p>Choose your preferred layout for printing and exporting your SAFA membership card</p>
+    </div>
+    
+    <!-- Information Section -->
+    <div class="info-section">
+        <h3><i class="fas fa-info-circle me-2"></i>Printing Instructions</h3>
+        <ul class="info-list">
+            <li><i class="fas fa-print icon"></i>Use high-quality card stock (300gsm or higher) for best results</li>
+            <li><i class="fas fa-cut icon"></i>Cutting guides are included for professional trimming</li>
+            <li><i class="fas fa-ruler icon"></i>Cards are sized to standard credit card dimensions (85.6mm × 53.98mm)</li>
+            <li><i class="fas fa-shield-alt icon"></i>Each card includes security features: QR code and Luhn validation number</li>
+            <li><i class="fas fa-calendar icon"></i>Cards are valid for one year from the date of generation</li>
+        </ul>
+    </div>
+    
+    <!-- Template Options -->
+    <div class="templates-grid">
+        {% for template in templates %}
+        <div class="template-card">
+            <div class="template-name">{{ template.name }}</div>
+            <div class="template-description">{{ template.description }}</div>
+            
+            <div class="template-specs">
+                <div class="spec-item">
+                    <span class="spec-label">Cards per page:</span>
+                    <span class="spec-value">{{ template.cards_per_page }}</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Paper size:</span>
+                    <span class="spec-value">{{ template.paper_size }}</span>
+                </div>
+            </div>
+            
+            <div class="template-features">
+                {% for feature in template.features %}
+                <div class="feature-item">
+                    <i class="fas fa-check feature-icon"></i>
+                    {{ feature }}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <a href="{% url 'membership_cards:export_physical_card' template.id %}" 
+               class="export-button btn-{{ template.id }}">
+                <i class="fas fa-download me-2"></i>
+                Export {{ template.name }}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Back Button -->
+    <div class="back-button">
+        <a href="{% url 'membership_cards:my_card' %}" class="btn-back">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to My Card
+        </a>
+    </div>
+</div>
+{% endblock %}
+

@@ -10,7 +10,7 @@ from .models import (
     Member, SAFASeasonConfig, SAFAFeeStructure, Transfer, 
     Invoice, InvoiceItem, MemberDocument, RegistrationWorkflow,
     MemberSeasonHistory, ClubMemberQuota, OrganizationSeasonRegistration,
-    MemberProfile
+    MemberProfile, MEMBERSHIP_STATUS, MEMBER_ROLES
 )
 from geography.models import Club, Province, Region, LocalFootballAssociation, Association
 
@@ -660,8 +660,8 @@ class MemberSearchSerializer(serializers.Serializer):
     """Serializer for member search parameters"""
     
     query = serializers.CharField(max_length=100, required=False)
-    status = serializers.ChoiceField(choices=Member.MEMBERSHIP_STATUS, required=False)
-    role = serializers.ChoiceField(choices=Member.MEMBER_ROLES, required=False)
+    status = serializers.ChoiceField(choices=MEMBERSHIP_STATUS, required=False)
+    role = serializers.ChoiceField(choices=MEMBER_ROLES, required=False)
     club = serializers.IntegerField(required=False)
     season = serializers.IntegerField(required=False)
     province = serializers.IntegerField(required=False)

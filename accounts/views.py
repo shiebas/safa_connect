@@ -410,7 +410,43 @@ def profile(request):
     try:
         # Information to be encoded in the QR code
         profile_url = request.build_absolute_uri(reverse('accounts:profile'))
-        qr_data = f"SAFA Member: {request.user.get_full_name()}\nSAFA ID: {request.user.safa_id}\nProfile: {profile_url}"
+        
+        # Get real-time membership status
+        membership_status = "ACTIVE"
+        suspension_info = ""
+        match_eligibility = "ELIGIBLE"
+        
+        try:
+            if member:
+                membership_status = member.status
+                
+                # Check for suspensions
+                if hasattr(member, 'suspensions') and member.suspensions.exists():
+                    latest_suspension = member.suspensions.filter(
+                        end_date__gte=timezone.now().date()
+                    ).order_by('-end_date').first()
+                    
+                    if latest_suspension:
+                        membership_status = "SUSPENDED"
+                        suspension_info = f"Suspended until {latest_suspension.end_date.strftime('%Y-%m-%d')}"
+                        match_eligibility = "NOT ELIGIBLE"
+                
+                # Check for other restrictions
+                if member.status != 'ACTIVE':
+                    match_eligibility = "NOT ELIGIBLE"
+                    
+        except Exception as e:
+            print(f"⚠️ Warning: Status check failed: {str(e)}")
+        
+        # Enhanced QR data with real-time status
+        qr_data = f"""SAFA MEMBER VERIFICATION
+Name: {request.user.get_full_name()}
+SAFA ID: {request.user.safa_id}
+Status: {membership_status}
+Match Eligibility: {match_eligibility}
+{suspension_info}
+Profile: {profile_url}
+Generated: {timezone.now().strftime('%Y-%m-%d %H:%M')}"""
         
         # Generate QR code
         qr = qrcode.QRCode(
@@ -445,16 +481,55 @@ def profile(request):
 
 
 @login_required
-def generate_digital_card(request):
+def generate_match_verification_qr(request):
+    """Generate a QR code specifically for match verification"""
     try:
         member = request.user.member_profile
     except Member.DoesNotExist:
-        messages.error(request, "You do not have a member profile to generate a card.")
+        messages.error(request, "You do not have a member profile to generate a verification QR code.")
         return redirect('accounts:profile')
 
-    # Information to be encoded in the QR code
-    profile_url = request.build_absolute_uri(reverse('accounts:profile'))
-    qr_data = f"SAFA Member: {member.get_full_name()}\nSAFA ID: {member.safa_id}\nProfile: {profile_url}"
+    # Get real-time match verification data
+    verification_data = {
+        'name': member.get_full_name(),
+        'safa_id': member.safa_id,
+        'role': member.role,
+        'membership_status': member.status,
+        'match_eligibility': 'ELIGIBLE',
+        'suspension_info': '',
+        'verification_timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'verification_id': f"VER-{member.safa_id}-{int(timezone.now().timestamp())}"
+    }
+    
+    # Check for active suspensions
+    try:
+        if hasattr(member, 'suspensions') and member.suspensions.exists():
+            latest_suspension = member.suspensions.filter(
+                end_date__gte=timezone.now().date()
+            ).order_by('-end_date').first()
+            
+            if latest_suspension:
+                verification_data['match_eligibility'] = 'SUSPENDED'
+                verification_data['suspension_info'] = f"Suspended until {latest_suspension.end_date.strftime('%Y-%m-%d')}"
+                verification_data['membership_status'] = 'SUSPENDED'
+    except Exception as e:
+        print(f"⚠️ Warning: Suspension check failed: {str(e)}")
+    
+    # Check other eligibility factors
+    if member.status != 'ACTIVE':
+        verification_data['match_eligibility'] = 'NOT ELIGIBLE'
+    
+    # Create match verification QR data
+    qr_data = f"""SAFA MATCH VERIFICATION
+ID: {verification_data['verification_id']}
+Name: {verification_data['name']}
+SAFA ID: {verification_data['safa_id']}
+Role: {verification_data['role']}
+Status: {verification_data['membership_status']}
+Match Eligible: {verification_data['match_eligibility']}
+{verification_data['suspension_info']}
+Verified: {verification_data['verification_timestamp']}
+Profile: {request.build_absolute_uri(reverse('accounts:profile'))}"""
 
     # Generate QR code
     qr = qrcode.QRCode(
@@ -477,8 +552,212 @@ def generate_digital_card(request):
         'member': member,
         'user': request.user,
         'qr_code': qr_code_base64,
+        'verification_data': verification_data,
     }
+    return render(request, 'accounts/match_verification_qr.html', context)
+
+@login_required
+def generate_digital_card(request):
+    """Generate an enhanced digital membership card with loyalty features"""
+    print(f"🔍 DEBUG: generate_digital_card called by user: {request.user.email}")
+    
+    try:
+        member = request.user.member_profile
+        print(f"✅ DEBUG: Found member profile: {member.get_full_name()}")
+    except Member.DoesNotExist:
+        print(f"❌ DEBUG: No member profile found for user: {request.user.email}")
+        messages.error(request, "You do not have a member profile to generate a card.")
+        return redirect('accounts:profile')
+    except Exception as e:
+        print(f"❌ DEBUG: Error getting member profile: {str(e)}")
+        messages.error(request, f"Error accessing member profile: {str(e)}")
+        return redirect('accounts:profile')
+
+    # Get current season and membership status
+    current_season = getattr(settings, 'CURRENT_SAFA_SEASON', '2025/26')
+    print(f"✅ DEBUG: Current season: {current_season}")
+    
+    # Enhanced membership status checking
+    membership_status = "ACTIVE"
+    match_eligibility = "ELIGIBLE"
+    suspension_info = ""
+    
+    try:
+        # Check for active suspensions
+        if hasattr(member, 'suspensions') and member.suspensions.exists():
+            latest_suspension = member.suspensions.filter(
+                end_date__gte=timezone.now().date()
+            ).order_by('-end_date').first()
+            
+            if latest_suspension:
+                membership_status = "SUSPENDED"
+                match_eligibility = "NOT ELIGIBLE"
+                suspension_info = f"Suspended until {latest_suspension.end_date.strftime('%Y-%m-%d')}"
+        
+        # Check other restrictions
+        if member.status != 'ACTIVE':
+            match_eligibility = "NOT ELIGIBLE"
+            
+    except Exception as e:
+        print(f"⚠️ Warning: Status check failed: {str(e)}")
+
+    # Get loyalty and achievement data
+    loyalty_data = get_loyalty_data(member)
+    print(f"✅ DEBUG: Loyalty data: {loyalty_data}")
+    
+    # Get match history
+    match_history = get_match_history(member)
+    print(f"✅ DEBUG: Match history: {match_history}")
+    
+    # Enhanced QR data for digital card
+    qr_data = f"""SAFA DIGITAL MEMBERSHIP CARD
+ID: {member.safa_id}
+Name: {member.get_full_name()}
+Role: {member.role}
+Status: {membership_status}
+Eligibility: {match_eligibility}
+Club: {member.current_club.name if hasattr(member, 'current_club') and member.current_club else 'N/A'}
+Season: {current_season}
+Points: {loyalty_data['points']}
+Level: {loyalty_data['level']}
+Matches: {match_history['total_matches']}
+{suspension_info}
+Profile: {request.build_absolute_uri(reverse('accounts:profile'))}
+Generated: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"""
+
+    print(f"✅ DEBUG: QR data generated, length: {len(qr_data)}")
+
+    # Generate enhanced QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=8,
+        border=4,
+    )
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # Save QR code to a BytesIO buffer and encode it in base64
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    print(f"✅ DEBUG: QR code generated, base64 length: {len(qr_code_base64)}")
+
+    # Enhanced context for the digital card
+    context = {
+        'member': member,
+        'user': request.user,
+        'qr_code': qr_code_base64,
+        'loyalty_data': loyalty_data,
+        'match_history': match_history,
+        'membership_status': membership_status,
+        'match_eligibility': match_eligibility,
+        'suspension_info': suspension_info,
+        'current_season': current_season,
+        'card_features': {
+            'qr_scan': True,
+            'nfc_enabled': False,  # Future enhancement
+            'offline_mode': True,
+            'biometric_ready': False,  # Future enhancement
+            'multi_language': ['EN', 'AF', 'ZU'],
+            'accessibility': True
+        }
+    }
+    
+    print(f"✅ DEBUG: Context prepared, rendering template...")
+    print(f"✅ DEBUG: Template path: accounts/digital_card.html")
+    
     return render(request, 'accounts/digital_card.html', context)
+
+def get_loyalty_data(member):
+    """Get loyalty points and level for member"""
+    try:
+        # This would integrate with your loyalty system
+        # For now, we'll create sample data
+        points = getattr(member, 'loyalty_points', 0) or 0
+        matches_played = getattr(member, 'matches_played', 0) or 0
+        
+        # Calculate level based on points/matches
+        if points >= 1000 or matches_played >= 50:
+            level = "PLATINUM"
+        elif points >= 500 or matches_played >= 25:
+            level = "GOLD"
+        elif points >= 200 or matches_played >= 10:
+            level = "SILVER"
+        else:
+            level = "BRONZE"
+            
+        return {
+            'points': points,
+            'level': level,
+            'matches_played': matches_played,
+            'next_milestone': get_next_milestone(points, matches_played),
+            'rewards_available': get_available_rewards(points, level)
+        }
+    except Exception as e:
+        print(f"⚠️ Warning: Loyalty data failed: {str(e)}")
+        return {
+            'points': 0,
+            'level': 'BRONZE',
+            'matches_played': 0,
+            'next_milestone': 'Play your first match',
+            'rewards_available': []
+        }
+
+def get_match_history(member):
+    """Get match participation history"""
+    try:
+        # This would integrate with your match system
+        # For now, we'll create sample data
+        total_matches = getattr(member, 'matches_played', 0) or 0
+        current_season_matches = getattr(member, 'current_season_matches', 0) or 0
+        
+        return {
+            'total_matches': total_matches,
+            'current_season_matches': current_season_matches,
+            'last_match_date': getattr(member, 'last_match_date', 'Never') or 'Never',
+            'favorite_position': getattr(member, 'favorite_position', 'N/A') or 'N/A'
+        }
+    except Exception as e:
+        print(f"⚠️ Warning: Match history failed: {str(e)}")
+        return {
+            'total_matches': 0,
+            'current_season_matches': 0,
+            'last_match_date': 'Never',
+            'favorite_position': 'N/A'
+        }
+
+def get_next_milestone(points, matches):
+    """Calculate next loyalty milestone"""
+    if matches == 0:
+        return "Play your first match"
+    elif matches < 10:
+        return f"Reach 10 matches ({10 - matches} more)"
+    elif matches < 25:
+        return f"Reach 25 matches ({25 - matches} more)"
+    elif matches < 50:
+        return f"Reach 50 matches ({50 - matches} more)"
+    elif matches < 100:
+        return f"Reach 100 matches ({100 - matches} more)"
+    else:
+        return "Legendary status achieved!"
+
+def get_available_rewards(points, level):
+    """Get available rewards for member level"""
+    rewards = []
+    
+    if level == "PLATINUM":
+        rewards = ["50% SAFA Store discount", "Priority tournament access", "VIP match tickets", "Exclusive merchandise"]
+    elif level == "GOLD":
+        rewards = ["25% SAFA Store discount", "Tournament priority", "Match ticket discounts", "Limited merchandise"]
+    elif level == "SILVER":
+        rewards = ["10% SAFA Store discount", "Tournament access", "Match ticket access"]
+    else:  # BRONZE
+        rewards = ["SAFA Store access", "Tournament access", "Match ticket access"]
+    
+    return rewards
 
 
 @login_required

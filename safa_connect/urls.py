@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
@@ -30,9 +30,15 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('local-accounts/', include('accounts.urls')),
+    
+    # Mobile App API endpoints
+    path('api/mobile/', include('accounts.api_urls', namespace='mobile_api')),
+    
     path('geography/', include(('geography.urls', 'geography'), namespace='geography')),
     path('membership/', include('membership.urls', namespace='membership')),
     path('membership-cards/', include('membership_cards.urls')),
+    path('cards/', RedirectView.as_view(url='/membership-cards/', permanent=False)),  # Redirect for convenience
+    path('digital-coins/', include('digital_coins.urls', namespace='digital_coins')),
     path('league-management/', include('league_management.urls')),
     path('supporters/', include('supporters.urls', namespace='supporters')),
     path('events/', include('events.urls', namespace='events')),

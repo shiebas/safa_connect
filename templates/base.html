@@ -133,6 +133,14 @@
         .navbar-brand:hover {
             color: var(--safa-gold) !important;
         }
+        
+        .navbar-brand img {
+            transition: var(--transition);
+        }
+        
+        .navbar-brand:hover img {
+            transform: scale(1.1);
+        }
 
         .nav-link {
             color: rgba(255, 255, 255, 0.9) !important;
@@ -769,6 +777,9 @@
                                 {% endif %}
                                 <li><a class="dropdown-item" href="{% url 'accounts:my_invoices' %}">
                                     <i class="fas fa-file-invoice me-2"></i>My Invoices
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:digital_card' %}">
+                                    <i class="fas fa-id-card me-2"></i>My Digital Card
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>

@@ -416,3 +416,204 @@ def generate_print_ready_pdf(physical_cards):
     p.save()
     buffer.seek(0)
     return buffer.getvalue()
+
+
+def generate_print_ready_pdf_enhanced(physical_cards, layout='standard', include_cutting_guides=True):
+    """
+    Generate enhanced print-ready PDF with multiple layout options
+    
+    Args:
+        physical_cards: List of PhysicalCard instances
+        layout: 'standard', 'professional', 'compact', or 'single'
+        include_cutting_guides: Whether to include cutting guides
+    """
+    
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.lib.units import inch, mm
+        from reportlab.lib.colors import black, white
+    except ImportError:
+        raise ImportError("reportlab is required for PDF generation. Install with: pip install reportlab")
+    
+    generator = SAFACardGenerator()
+    buffer = io.BytesIO()
+    
+    # Layout configurations
+    layouts = {
+        'standard': {
+            'page_size': letter,
+            'cards_per_row': 2,
+            'cards_per_col': 4,
+            'margin': 0.5 * inch,
+            'spacing': 0.25 * inch,
+            'card_width': 3.375 * inch,
+            'card_height': 2.125 * inch
+        },
+        'professional': {
+            'page_size': A4,
+            'cards_per_row': 3,
+            'cards_per_col': 5,
+            'margin': 10 * mm,
+            'spacing': 5 * mm,
+            'card_width': 85.6 * mm,
+            'card_height': 53.98 * mm
+        },
+        'compact': {
+            'page_size': letter,
+            'cards_per_row': 3,
+            'cards_per_col': 6,
+            'margin': 0.25 * inch,
+            'spacing': 0.125 * inch,
+            'card_width': 2.5 * inch,
+            'card_height': 1.6 * inch
+        },
+        'single': {
+            'page_size': (85.6 * mm, 53.98 * mm),
+            'cards_per_row': 1,
+            'cards_per_col': 1,
+            'margin': 0,
+            'spacing': 0,
+            'card_width': 85.6 * mm,
+            'card_height': 53.98 * mm,
+            'is_single': True  # Flag to identify single card layout
+        }
+    }
+    
+    config = layouts.get(layout, layouts['standard'])
+    p = canvas.Canvas(buffer, pagesize=config['page_size'])
+    
+    # Calculate positions - handle single card layout differently
+    if config.get('is_single'):
+        # For single card, position at (0, 0) since page size matches card size
+        x_positions = [0]
+        y_positions = [0]
+    else:
+        x_positions = []
+        y_positions = []
+        
+        for col in range(config['cards_per_row']):
+            x = config['margin'] + col * (config['card_width'] + config['spacing'])
+            x_positions.append(x)
+        
+        for row in range(config['cards_per_col']):
+            y = config['page_size'][1] - config['margin'] - (row + 1) * config['card_height'] - row * config['spacing']
+            y_positions.append(y)
+    
+    # Add header information
+    if not config.get('is_single'):
+        _add_print_header_enhanced(p, config, len(physical_cards))
+    
+    card_count = 0
+    page_count = 1
+    
+    for physical_card in physical_cards:
+        try:
+            member = physical_card.user.member if hasattr(physical_card.user, 'member') else None
+            if not member:
+                continue
+            
+            # Generate card image
+            card_img = generator.generate_card_image(member)
+            
+            # Save to temp file
+            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
+                temp_path = temp_file.name
+                card_img.save(temp_path, 'PNG', dpi=(300, 300))
+            
+            # Calculate position
+            row = card_count // config['cards_per_row']
+            col = card_count % config['cards_per_row']
+            
+            # Check if we need a new page (only for multi-card layouts)
+            if not config.get('is_single') and row >= config['cards_per_col']:
+                if include_cutting_guides:
+                    _add_cutting_guides_enhanced(p, config)
+                p.showPage()
+                page_count += 1
+                
+                # Add header to new page
+                _add_print_header_enhanced(p, config, len(physical_cards), page_count)
+                
+                row = 0
+                card_count = 0
+                col = card_count % config['cards_per_row']
+            
+            x = x_positions[col]
+            y = y_positions[row]
+            
+            # Add card to PDF
+            p.drawImage(temp_path, x, y, width=config['card_width'], height=config['card_height'])
+            
+            # Add card info label (only for multi-card layouts)
+            if not config.get('is_single'):
+                _add_card_label_enhanced(p, x, y, config, member)
+            
+            # Clean up temp file
+            try:
+                os.remove(temp_path)
+            except:
+                pass
+            
+            card_count += 1
+            
+        except Exception as e:
+            logger.error(f"Error generating card for {physical_card.card_number}: {str(e)}")
+            continue
+    
+    # Add cutting guides to last page (only for multi-card layouts)
+    if include_cutting_guides and not config.get('is_single'):
+        _add_cutting_guides_enhanced(p, config)
+    
+    p.save()
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+def _add_print_header_enhanced(canvas_obj, config, total_cards, page_num=1):
+    """Add professional header to print pages"""
+    canvas_obj.setFont("Helvetica-Bold", 16)
+    canvas_obj.drawString(config['margin'], config['page_size'][1] - 20, "SAFA Membership Cards")
+    
+    canvas_obj.setFont("Helvetica", 12)
+    canvas_obj.drawString(config['margin'], config['page_size'][1] - 35, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    canvas_obj.drawString(config['margin'], config['page_size'][1] - 50, f"Total Cards: {total_cards} | Page: {page_num}")
+    
+    # Add SAFA branding
+    canvas_obj.setFont("Helvetica-Bold", 10)
+    canvas_obj.drawString(config['page_size'][0] - config['margin'] - 100, config['page_size'][1] - 35, "SAFA")
+    canvas_obj.drawString(config['page_size'][0] - config['margin'] - 100, config['page_size'][1] - 50, "South African Football Association")
+
+
+def _add_card_label_enhanced(canvas_obj, x, y, config, member):
+    """Add small label below each card"""
+    canvas_obj.setFont("Helvetica", 8)
+    label_y = y - 15
+    
+    # Member name
+    name = member.get_full_name()[:20] + "..." if len(member.get_full_name()) > 20 else member.get_full_name()
+    canvas_obj.drawString(x, label_y, f"Name: {name}")
+    
+    # SAFA ID
+    canvas_obj.drawString(x, label_y - 10, f"ID: {member.safa_id}")
+
+
+def _add_cutting_guides_enhanced(canvas_obj, config):
+    """Add cutting guides for professional printing"""
+    # Use a light gray color for cutting guides
+    light_gray = (0.7, 0.7, 0.7)  # RGB values for light gray
+    canvas_obj.setStrokeColorRGB(*light_gray)
+    canvas_obj.setLineWidth(0.5)
+    
+    # Vertical cutting lines
+    for col in range(1, config['cards_per_row']):
+        x = config['margin'] + col * config['card_width'] + (col - 0.5) * config['spacing']
+        canvas_obj.line(x, config['margin'], x, config['page_size'][1] - config['margin'])
+    
+    # Horizontal cutting lines
+    for row in range(1, config['cards_per_col']):
+        y = config['page_size'][1] - config['margin'] - row * config['card_height'] - (row - 0.5) * config['spacing']
+        canvas_obj.line(config['margin'], y, config['page_size'][0] - config['margin'], y)
+    
+    # Reset stroke color to black
+    canvas_obj.setStrokeColorRGB(0, 0, 0)

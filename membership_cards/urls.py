@@ -4,7 +4,7 @@ from .card_views import (
     my_digital_card, download_my_card, card_preview_image,
     admin_card_management, admin_generate_card, admin_bulk_generate_cards,
     admin_card_preview, card_verification, admin_select_for_printing,
-    admin_generate_print_sheet
+    admin_generate_print_sheet, export_physical_card, physical_card_templates
 )
 from rest_framework import routers
 from .views import DigitalCardViewSet
@@ -19,6 +19,10 @@ urlpatterns = [
     path('my-card/', my_digital_card, name='my_card'),
     path('download/<str:format_type>/', download_my_card, name='download_my_card'),
     path('preview-image/', card_preview_image, name='card_preview_image'),
+    
+    # Physical card export
+    path('physical-templates/', physical_card_templates, name='physical_card_templates'),
+    path('export-physical/<str:layout>/', export_physical_card, name='export_physical_card'),
     
     # Admin management
     path('admin/', admin_card_management, name='admin_management'),

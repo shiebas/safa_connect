@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-ur9rs%j+b8ry!#ra_p799%(+vns-r$xf70350v$!&(t@bhyuc_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.ngrok-free.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['.ngrok-free.app', 'localhost', '127.0.0.1', '192.168.100.2', '0.0.0.0']
 
 SITE_ID = 1
 
@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'utils.apps.UtilsConfig',
     'pdf_processor.apps.PdfProcessorConfig',
     'membership_cards',
+    'digital_coins',  # SAFA Coin digital currency system
     
     'league_management',  # Competition management system
     # 'tools',  # REMOVED - functionality moved to other apps
@@ -224,6 +225,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 SAFA_DEFAULT_REGISTRATION_FEE = 200.00
 SAFA_ENABLE_AUTO_APPROVAL = False
 SAFA_REQUIRE_DOCUMENT_VALIDATION = True
+CURRENT_SAFA_SEASON = '2025/26'
 
 # Pagination Settings
 PAGINATE_BY = 10
@@ -273,3 +275,52 @@ LOGGING = {
         },
     }
 }
+
+# Django REST Framework Settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day'
+    },
+    # Remove versioning to fix the 404 error
+    # 'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
+    # 'DEFAULT_VERSION': 'v1',
+    # 'ALLOWED_VERSIONS': ['v1'],
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+}
+
+# CORS Settings for Mobile App
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React development
+    "http://localhost:19006",  # Expo development
+    "http://localhost:19000",  # Expo development
+    "http://localhost:19001",  # Expo development
+    "http://localhost:19002",  # Expo development
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]

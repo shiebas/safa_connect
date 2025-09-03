@@ -1,0 +1,601 @@
+{% extends 'digital_coins/base.html' %}
+{% load static %}
+
+{% block title %}Send SAFA Coins{% endblock %}
+
+{% block extra_css %}
+<style>
+    .send-coins-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .send-coins-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        background: white;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .send-coins-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .send-coins-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .send-coins-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .send-coins-body {
+        padding: 2rem;
+    }
+    
+    .wallet-info {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .wallet-balance {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+    
+    .wallet-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+    
+    .form-control.error {
+        border-color: #dc3545;
+    }
+    
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+    
+    .error-message.show {
+        display: block;
+    }
+    
+    .recipient-search {
+        position: relative;
+    }
+    
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+    }
+    
+    .search-results.show {
+        display: block;
+    }
+    
+    .search-result-item {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f1f3f4;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+    
+    .search-result-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    
+    .recipient-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .recipient-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1e3c72;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .recipient-details h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .recipient-details small {
+        color: #6c757d;
+    }
+    
+    .amount-input-group {
+        position: relative;
+    }
+    
+    .amount-prefix {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-weight: 600;
+        z-index: 2;
+    }
+    
+    .amount-input {
+        padding-left: 3rem;
+    }
+    
+    .amount-suggestions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+    
+    .amount-suggestion {
+        background: #e9ecef;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .amount-suggestion:hover {
+        background: #28a745;
+        color: white;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .btn-send {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+    
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-send:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 120px;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .fee-info {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #856404;
+    }
+    
+    .fee-info h6 {
+        margin: 0 0 0.5rem 0;
+        color: #856404;
+    }
+    
+    .fee-info p {
+        margin: 0;
+        font-size: 0.875rem;
+    }
+    
+    .success-message {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #155724;
+        text-align: center;
+        display: none;
+    }
+    
+    .success-message.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block digital_coins_content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="send-coins-container">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h3 mb-0 text-dark">
+                            <i class="fas fa-paper-plane text-success me-2"></i>
+                            Send SAFA Coins
+                        </h1>
+                        <p class="text-muted mb-0">Transfer coins to other SAFA members</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'digital_coins:wallet' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-wallet me-2"></i>Back to Wallet
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Send Coins Card -->
+                <div class="send-coins-card">
+                    <div class="send-coins-header">
+                        <h2 class="send-coins-title">
+                            <i class="fas fa-coins me-2"></i>Send Coins
+                        </h2>
+                        <p class="send-coins-subtitle">Share your SAFA Coins with other members</p>
+                    </div>
+                    
+                    <div class="send-coins-body">
+                        <!-- Success Message -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if message.tags == 'success' %}
+                                <div class="success-message show">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    {{ message }}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Wallet Info -->
+                        <div class="wallet-info">
+                            <div class="wallet-balance">{{ user.coin_wallet.balance }} SAFA Coins</div>
+                            <div class="wallet-label">Available Balance</div>
+                        </div>
+                        
+                        <!-- Send Form -->
+                        <form method="post" id="sendCoinsForm">
+                            {% csrf_token %}
+                            
+                            <!-- Recipient -->
+                            <div class="form-group">
+                                <label for="recipient" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Recipient
+                                </label>
+                                <div class="recipient-search">
+                                    <input type="text" 
+                                           id="recipient" 
+                                           name="recipient" 
+                                           class="form-control" 
+                                           placeholder="Search by name, email, or SAFA ID"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="search-results" id="searchResults"></div>
+                                </div>
+                                <div class="error-message" id="recipientError">Please select a valid recipient</div>
+                            </div>
+                            
+                            <!-- Amount -->
+                            <div class="form-group">
+                                <label for="amount" class="form-label">
+                                    <i class="fas fa-coins me-2"></i>Amount
+                                </label>
+                                <div class="amount-input-group">
+                                    <span class="amount-prefix">₿</span>
+                                    <input type="number" 
+                                           id="amount" 
+                                           name="amount" 
+                                           class="form-control amount-input" 
+                                           placeholder="0.00"
+                                           step="0.01"
+                                           min="0.01"
+                                           max="{{ user.coin_wallet.balance }}"
+                                           required>
+                                </div>
+                                <div class="error-message" id="amountError">Please enter a valid amount</div>
+                                
+                                <!-- Amount Suggestions -->
+                                <div class="amount-suggestions">
+                                    <button type="button" class="amount-suggestion" data-amount="5">5</button>
+                                    <button type="button" class="amount-suggestion" data-amount="10">10</button>
+                                    <button type="button" class="amount-suggestion" data-amount="25">25</button>
+                                    <button type="button" class="amount-suggestion" data-amount="50">50</button>
+                                    <button type="button" class="amount-suggestion" data-amount="100">100</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Message -->
+                            <div class="form-group">
+                                <label for="message" class="form-label">
+                                    <i class="fas fa-comment me-2"></i>Message (Optional)
+                                </label>
+                                <textarea id="message" 
+                                          name="message" 
+                                          class="form-control" 
+                                          rows="3"
+                                          placeholder="Add a personal message..."></textarea>
+                            </div>
+                            
+                            <!-- Fee Info -->
+                            <div class="fee-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>Transfer Information</h6>
+                                <p>Transfer fee: <strong>1 SAFA Coin</strong> per transaction</p>
+                                <p>Maximum transfer: <strong>{{ user.coin_wallet.balance|add:"-1" }} SAFA Coins</strong></p>
+                            </div>
+                            
+                            <!-- Form Actions -->
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-send" id="sendButton">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Coins
+                                </button>
+                                <a href="{% url 'digital_coins:wallet' %}" class="btn btn-cancel">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recipientInput = document.getElementById('recipient');
+    const searchResults = document.getElementById('searchResults');
+    const amountInput = document.getElementById('amount');
+    const sendButton = document.getElementById('sendButton');
+    const form = document.getElementById('sendCoinsForm');
+    
+    let selectedRecipient = null;
+    let searchTimeout = null;
+    
+    // Recipient search functionality
+    recipientInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        
+        if (query.length < 2) {
+            searchResults.classList.remove('show');
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchRecipients(query);
+        }, 300);
+    });
+    
+    // Amount suggestion buttons
+    document.querySelectorAll('.amount-suggestion').forEach(button => {
+        button.addEventListener('click', function() {
+            const amount = this.dataset.amount;
+            amountInput.value = amount;
+            validateForm();
+        });
+    });
+    
+    // Form validation
+    form.addEventListener('input', validateForm);
+    form.addEventListener('submit', handleSubmit);
+    
+    function searchRecipients(query) {
+        fetch(`/digital-coins/api/search-users/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.users && data.users.length > 0) {
+                    displaySearchResults(data.users);
+                } else {
+                    searchResults.innerHTML = '<div class="search-result-item">No users found</div>';
+                    searchResults.classList.add('show');
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="search-result-item">Search failed</div>';
+                searchResults.classList.add('show');
+            });
+    }
+    
+    function displaySearchResults(users) {
+        searchResults.innerHTML = '';
+        
+        users.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerHTML = `
+                <div class="recipient-info">
+                    <div class="recipient-avatar">
+                        ${user.first_name ? user.first_name.charAt(0).toUpperCase() : ''}${user.last_name ? user.last_name.charAt(0).toUpperCase() : ''}
+                    </div>
+                    <div class="recipient-details">
+                        <h6>${user.full_name}</h6>
+                        <small>${user.email} • SAFA ID: ${user.safa_id}</small>
+                    </div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => {
+                selectRecipient(user);
+            });
+            
+            searchResults.appendChild(item);
+        });
+        
+        searchResults.classList.add('show');
+    }
+    
+    function selectRecipient(user) {
+        selectedRecipient = user;
+        recipientInput.value = user.full_name;
+        searchResults.classList.remove('show');
+        
+        // Add hidden input for recipient ID
+        let hiddenInput = document.getElementById('recipient_id');
+        if (!hiddenInput) {
+            hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'recipient_id';
+            hiddenInput.id = 'recipient_id';
+            form.appendChild(hiddenInput);
+        }
+        hiddenInput.value = user.id;
+        
+        validateForm();
+    }
+    
+    function validateForm() {
+        let isValid = true;
+        
+        // Validate recipient
+        if (!selectedRecipient) {
+            document.getElementById('recipientError').classList.add('show');
+            recipientInput.classList.add('error');
+            isValid = false;
+        } else {
+            document.getElementById('recipientError').classList.remove('show');
+            recipientInput.classList.remove('error');
+        }
+        
+        // Validate amount
+        const amount = parseFloat(amountInput.value);
+        const maxAmount = {{ user.coin_wallet.balance|add:"-1" }};
+        
+        if (!amount || amount <= 0 || amount > maxAmount) {
+            document.getElementById('amountError').classList.add('show');
+            amountInput.classList.add('error');
+            isValid = false;
+        } else {
+            document.getElementById('amountError').classList.remove('show');
+            amountInput.classList.remove('error');
+        }
+        
+        // Update send button
+        sendButton.disabled = !isValid;
+        
+        return isValid;
+    }
+    
+    function handleSubmit(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+        
+        return true;
+    }
+    
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!recipientInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.remove('show');
+        }
+    });
+});
+</script>
+{% endblock %}

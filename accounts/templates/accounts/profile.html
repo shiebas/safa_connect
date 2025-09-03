@@ -236,6 +236,16 @@
                             <i class="fas fa-camera me-2"></i>
                             {% if user.profile_picture %}Update Photo{% else %}Upload Photo{% endif %}
                         </button>
+                        
+                        <!-- Match Verification QR Code Button -->
+                        {% if user.role != 'SUPPORTER' %}
+                        <div class="mt-3">
+                            <a href="{% url 'accounts:generate_match_verification_qr' %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-qrcode me-2"></i>Match Verification QR
+                            </a>
+                            <small class="text-muted d-block mt-1">Generate QR for match officials</small>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -3,7 +3,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views, views_admin_referees
 from .views import (
-    modern_home, profile, edit_profile, generate_digital_card
+    modern_home, profile, edit_profile, generate_digital_card, generate_match_verification_qr
 )
 
 app_name = 'accounts'
@@ -56,6 +56,7 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'), # Added this line
     path('my-card/', generate_digital_card, name='digital_card'),
+    path('match-verification-qr/', generate_match_verification_qr, name='generate_match_verification_qr'),
     path('my-invoices/', views.my_invoices, name='my_invoices'),
     path('invoice/<uuid:invoice_uuid>/', views.invoice_detail, name='invoice_detail'),
     path('invoice/<uuid:invoice_uuid>/submit-proof/', views.submit_proof_of_payment, name='submit_proof_of_payment'),

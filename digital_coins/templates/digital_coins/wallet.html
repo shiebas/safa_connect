@@ -1,0 +1,589 @@
+{% extends 'digital_coins/base.html' %}
+{% load static %}
+
+{% block title %}SAFA Coin Wallet - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wallet-container {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        border-radius: 25px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        position: relative;
+        min-height: 600px;
+        margin-bottom: 2rem;
+    }
+    
+    .wallet-header {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+    
+    .safa-logo {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1rem;
+        filter: brightness(0) invert(1);
+    }
+    
+    .coin-balance-display {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .coin-amount {
+        font-size: 4rem;
+        font-weight: bold;
+        color: #ffd700;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        margin-bottom: 0.5rem;
+    }
+    
+    .coin-symbol {
+        font-size: 2rem;
+        color: #ffd700;
+        margin-left: 0.5rem;
+    }
+    
+    .coin-label {
+        color: white;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .wallet-stats {
+        background: rgba(255, 255, 255, 0.95);
+        margin: 1rem;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        border: 2px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: #006633;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #006633;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .wallet-actions {
+        background: rgba(255, 255, 255, 0.95);
+        margin: 1rem;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-wallet {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        border: none;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 102, 51, 0.3);
+        text-decoration: none;
+        text-align: center;
+        display: inline-block;
+    }
+    
+    .btn-wallet:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 102, 51, 0.4);
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    }
+    
+    .btn-secondary:hover {
+        box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    
+    .btn-success:hover {
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: #212529;
+    }
+    
+    .btn-warning:hover {
+        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+        color: #212529;
+    }
+    
+    .recent-transactions {
+        background: rgba(255, 255, 255, 0.95);
+        margin: 1rem;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        border-left: 4px solid #006633;
+        transition: all 0.3s ease;
+    }
+    
+    .transaction-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .transaction-info {
+        flex: 1;
+    }
+    
+    .transaction-reason {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.25rem;
+    }
+    
+    .transaction-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .transaction-amount {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .amount-positive {
+        color: #28a745;
+    }
+    
+    .amount-negative {
+        color: #dc3545;
+    }
+    
+    .pending-rewards {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        margin: 1rem;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .reward-item {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .reward-info h6 {
+        margin: 0;
+        color: #212529;
+    }
+    
+    .reward-amount {
+        font-weight: bold;
+        color: #6f42c1;
+        font-size: 1.2rem;
+    }
+    
+    .active-competitions {
+        background: rgba(255, 255, 255, 0.95);
+        margin: 1rem;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .competition-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border: 2px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .competition-card:hover {
+        transform: translateY(-3px);
+        border-color: #006633;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .competition-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .competition-name {
+        font-weight: bold;
+        color: #212529;
+        font-size: 1.1rem;
+    }
+    
+    .competition-type {
+        background: #006633;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .competition-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .detail-item {
+        text-align: center;
+    }
+    
+    .detail-value {
+        font-weight: bold;
+        color: #006633;
+        font-size: 1.1rem;
+    }
+    
+    .detail-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+    
+    .no-data i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .wallet-container {
+            margin: 1rem;
+            border-radius: 20px;
+        }
+        
+        .wallet-header {
+            padding: 1.5rem;
+        }
+        
+        .coin-amount {
+            font-size: 3rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block digital_coins_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Main Wallet Container -->
+            <div class="wallet-container">
+                <!-- Wallet Header -->
+                <div class="wallet-header">
+                    <img src="{% static 'images/safa_logo.png' %}" alt="SAFA Logo" class="safa-logo">
+                    <h2 class="mb-2">SAFA Coin Wallet</h2>
+                    <p class="mb-0">Your digital currency for the SAFA ecosystem</p>
+                    
+                    <!-- Coin Balance Display -->
+                    <div class="coin-balance-display">
+                        <div class="coin-amount">
+                            {{ wallet.balance|floatformat:2 }}
+                            <span class="coin-symbol">🪙</span>
+                        </div>
+                        <div class="coin-label">SAFA Coins Available</div>
+                    </div>
+                </div>
+                
+                <!-- Wallet Statistics -->
+                <div class="wallet-stats">
+                    <h5 class="mb-3 text-center">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Wallet Statistics
+                    </h5>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ wallet.total_earned|floatformat:2 }}</div>
+                            <div class="stat-label">Total Earned</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-number">{{ wallet.total_spent|floatformat:2 }}</div>
+                            <div class="stat-label">Total Spent</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-number">{{ total_competitions }}</div>
+                            <div class="stat-label">Competitions Joined</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-number">{{ total_prizes_won|floatformat:2 }}</div>
+                            <div class="stat-label">Prizes Won</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wallet Actions -->
+                <div class="wallet-actions">
+                    <h5 class="mb-3 text-center">
+                        <i class="fas fa-cogs me-2"></i>
+                        Quick Actions
+                    </h5>
+                    
+                    <div class="action-buttons">
+                        <a href="{% url 'digital_coins:send_coins' %}" class="btn btn-wallet">
+                            <i class="fas fa-paper-plane me-2"></i>Send Coins
+                        </a>
+                        
+                        <a href="{% url 'digital_coins:receive_coins' %}" class="btn btn-wallet btn-secondary">
+                            <i class="fas fa-download me-2"></i>Receive History
+                        </a>
+                        
+                        <a href="{% url 'digital_coins:loyalty_conversion' %}" class="btn btn-wallet btn-success">
+                            <i class="fas fa-exchange-alt me-2"></i>Convert Loyalty
+                        </a>
+                        
+                        <a href="{% url 'digital_coins:competitions_list' %}" class="btn btn-wallet btn-warning">
+                            <i class="fas fa-trophy me-2"></i>Join Competitions
+                        </a>
+                        
+                        <a href="{% url 'digital_coins:transaction_history' %}" class="btn btn-wallet btn-secondary">
+                            <i class="fas fa-history me-2"></i>Transaction History
+                        </a>
+                        
+                        <a href="{% url 'digital_coins:claim_all_rewards' %}" class="btn btn-wallet btn-success">
+                            <i class="fas fa-gift me-2"></i>Claim All Rewards
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Recent Transactions -->
+                <div class="recent-transactions">
+                    <h5 class="mb-3 text-center">
+                        <i class="fas fa-clock me-2"></i>
+                        Recent Transactions
+                    </h5>
+                    
+                    {% if transactions %}
+                        {% for transaction in transactions %}
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-reason">{{ transaction.reason }}</div>
+                                <div class="transaction-time">{{ transaction.created_at|timesince }} ago</div>
+                            </div>
+                            <div class="transaction-amount {% if transaction.is_positive %}amount-positive{% else %}amount-negative{% endif %}">
+                                {% if transaction.is_positive %}+{% else %}-{% endif %}{{ transaction.amount|floatformat:2 }} 🪙
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="text-center mt-3">
+                            <a href="{% url 'digital_coins:transaction_history' %}" class="btn btn-wallet btn-secondary">
+                                View All Transactions
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="no-data">
+                            <i class="fas fa-receipt"></i>
+                            <h6>No transactions yet</h6>
+                            <p>Start earning coins by participating in activities!</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pending Rewards -->
+                {% if pending_rewards %}
+                <div class="pending-rewards">
+                    <h5 class="mb-3 text-center">
+                        <i class="fas fa-gift me-2"></i>
+                        Pending Rewards
+                    </h5>
+                    
+                    {% for reward in pending_rewards %}
+                    <div class="reward-item">
+                        <div class="reward-info">
+                            <h6 class="mb-1">{{ reward.reason }}</h6>
+                            <small class="text-muted">{{ reward.get_reward_type_display }}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="reward-amount me-3">{{ reward.amount|floatformat:2 }} 🪙</span>
+                            <a href="{% url 'digital_coins:claim_reward' reward.id %}" class="btn btn-wallet btn-success btn-sm">
+                                Claim
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Active Competitions -->
+                {% if active_competitions %}
+                <div class="active-competitions">
+                    <h5 class="mb-3 text-center">
+                        <i class="fas fa-trophy me-2"></i>
+                        Active Competitions
+                    </h5>
+                    
+                    {% for competition in active_competitions %}
+                    <div class="competition-card">
+                        <div class="competition-header">
+                            <div class="competition-name">{{ competition.name }}</div>
+                            <span class="competition-type">{{ competition.get_competition_type_display }}</span>
+                        </div>
+                        
+                        <p class="text-muted mb-3">{{ competition.description|truncatewords:20 }}</p>
+                        
+                        <div class="competition-details">
+                            <div class="detail-item">
+                                <div class="detail-value">{{ competition.entry_fee|floatformat:2 }}</div>
+                                <div class="detail-label">Entry Fee</div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <div class="detail-value">{{ competition.prize_pool|floatformat:2 }}</div>
+                                <div class="detail-label">Prize Pool</div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <div class="detail-value">{{ competition.current_participants }}</div>
+                                <div class="detail-label">Participants</div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <div class="detail-value">{{ competition.start_date|date:"M d" }}</div>
+                                <div class="detail-label">Start Date</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{% url 'digital_coins:competition_detail' competition.id %}" class="btn btn-wallet btn-warning">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Quick Stats Summary -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                How to Earn Coins
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                <li><strong>Daily Login:</strong> 5 coins per day</li>
+                                <li><strong>Match Participation:</strong> 10 coins per match</li>
+                                <li><strong>Loyalty Conversion:</strong> 10 points = 1 coin</li>
+                                <li><strong>Competition Wins:</strong> Various amounts</li>
+                                <li><strong>Referrals:</strong> 50 coins per new member</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-check-circle me-2"></i>
+                                What You Can Do
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                <li><strong>Join Competitions:</strong> Fantasy football, predictions</li>
+                                <li><strong>Send to Friends:</strong> Transfer coins to other members</li>
+                                <li><strong>Buy Premium Features:</strong> Advanced statistics, tools</li>
+                                <li><strong>Convert to Rewards:</strong> Merchandise, tournament access</li>
+                                <li><strong>Save & Invest:</strong> Build your coin portfolio</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

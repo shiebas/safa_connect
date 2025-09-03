@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Match Verification QR Code - {{ member.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    
+    .verification-header {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        color: white;
+        border-radius: 25px 25px 0 0;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .qr-code-section {
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        margin: 1rem;
+        border: 2px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .qr-code-container {
+        display: inline-block;
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        border: 3px solid #006633;
+    }
+    
+    .qr-code-container:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .qr-code-image {
+        width: 200px;
+        height: 200px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        display: inline-block;
+        margin: 5px;
+    }
+    
+    .status-eligible {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    
+    .status-suspended {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        color: white;
+    }
+    
+    .status-inactive {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+    
+    .verification-info {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .info-value {
+        font-weight: 500;
+        color: #212529;
+    }
+    
+    .verification-id {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+    
+    .timestamp {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+    
+    .print-button {
+        background: linear-gradient(135deg, #006633 0%, #008844 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 102, 51, 0.3);
+    }
+    
+    .print-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 102, 51, 0.4);
+        color: white;
+    }
+    
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        .verification-card {
+            box-shadow: none;
+            border: 2px solid #000;
+        }
+        
+        .qr-code-container {
+            border: 2px solid #000;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card verification-card">
+                <div class="verification-header">
+                    <h2 class="mb-2">
+                        <i class="fas fa-qrcode me-3"></i>
+                        SAFA Match Verification QR Code
+                    </h2>
+                    <p class="mb-0">Official verification for match officials and administrators</p>
+                </div>
+                
+                <div class="card-body p-0">
+                    <!-- QR Code Section -->
+                    <div class="qr-code-section">
+                        <h4 class="mb-3 text-primary">Scan to Verify Member Status</h4>
+                        <div class="qr-code-container">
+                            <img src="data:image/png;base64,{{ qr_code }}" alt="Match Verification QR Code" class="qr-code-image">
+                        </div>
+                        <p class="text-muted mt-3 mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Use any QR scanner app to verify member eligibility
+                        </p>
+                    </div>
+                    
+                    <!-- Verification Information -->
+                    <div class="verification-info">
+                        <h5 class="mb-3 text-center">
+                            <i class="fas fa-clipboard-check me-2"></i>
+                            Member Verification Details
+                        </h5>
+                        
+                        <div class="verification-id text-center mb-3">
+                            {{ verification_data.verification_id }}
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="info-label">Full Name:</span>
+                            <span class="info-value">{{ verification_data.name }}</span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="info-label">SAFA ID:</span>
+                            <span class="info-value">{{ verification_data.safa_id }}</span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="info-label">Role:</span>
+                            <span class="info-value">{{ verification_data.role|title }}</span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="info-label">Membership Status:</span>
+                            <span class="info-value">
+                                {% if verification_data.membership_status == 'ACTIVE' %}
+                                    <span class="status-badge status-eligible">ACTIVE</span>
+                                {% elif verification_data.membership_status == 'SUSPENDED' %}
+                                    <span class="status-badge status-suspended">SUSPENDED</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">{{ verification_data.membership_status }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="info-label">Match Eligibility:</span>
+                            <span class="info-value">
+                                {% if verification_data.match_eligibility == 'ELIGIBLE' %}
+                                    <span class="status-badge status-eligible">ELIGIBLE</span>
+                                {% elif verification_data.match_eligibility == 'SUSPENDED' %}
+                                    <span class="status-badge status-suspended">NOT ELIGIBLE</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">NOT ELIGIBLE</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if verification_data.suspension_info %}
+                        <div class="info-row">
+                            <span class="info-label">Suspension Details:</span>
+                            <span class="info-value text-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ verification_data.suspension_info }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="info-row">
+                            <span class="info-label">Verification Time:</span>
+                            <span class="info-value timestamp">{{ verification_data.verification_timestamp }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="text-center p-4 no-print">
+                        <button onclick="window.print()" class="btn print-button me-3">
+                            <i class="fas fa-print me-2"></i>Print Verification
+                        </button>
+                        
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instructions for Match Officials -->
+            <div class="card mt-4 no-print">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Instructions for Match Officials
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success me-2"></i>How to Use:</h6>
+                            <ol class="mb-0">
+                                <li>Scan the QR code with any mobile QR scanner app</li>
+                                <li>Verify the member's name and SAFA ID</li>
+                                <li>Check the match eligibility status</li>
+                                <li>Confirm the verification timestamp is recent</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-exclamation-triangle text-warning me-2"></i>Important Notes:</h6>
+                            <ul class="mb-0">
+                                <li>QR codes are generated in real-time</li>
+                                <li>Status reflects current membership conditions</li>
+                                <li>Always verify against official SAFA records</li>
+                                <li>Report any discrepancies immediately</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
