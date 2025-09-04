@@ -19,7 +19,7 @@ urlpatterns = [
     # ============================================================================
     # REWARDS SYSTEM
     # ============================================================================
-    path('claim/<uuid:reward_id>/', views.claim_reward, name='claim_reward'),
+    path('claim/<int:reward_id>/', views.claim_reward, name='claim_reward'),
     path('claim-all/', views.claim_all_rewards, name='claim_all_rewards'),
     
     # ============================================================================

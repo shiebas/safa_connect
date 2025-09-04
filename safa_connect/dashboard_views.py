@@ -34,18 +34,28 @@ def superuser_dashboard(request):
     online_users = CustomUser.objects.filter(id__in=user_ids).select_related('province', 'region')
 
     # ==== INVOICES & REVENUE METRICS ====
-    invoice_metrics = {
-        'total_invoices': Invoice.objects.count(),
-        'pending_invoices': Invoice.objects.filter(status='PENDING').count(),
-        'paid_invoices': Invoice.objects.filter(status='PAID').count(),
-        'total_revenue': Invoice.objects.filter(status='PAID').aggregate(
-            total=Sum('total_amount')
-        )['total'] or 0,
-        'recent_revenue_7days': Invoice.objects.filter(
-            status='PAID', 
-            payment_date__gte=last_7_days
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
-    }
+    try:
+        invoice_metrics = {
+            'total_invoices': Invoice.objects.count(),
+            'pending_invoices': Invoice.objects.filter(status='PENDING').count(),
+            'paid_invoices': Invoice.objects.filter(status='PAID').count(),
+            'total_revenue': Invoice.objects.filter(status='PAID').aggregate(
+                total=Sum('total_amount')
+            )['total'] or 0,
+            'recent_revenue_7days': Invoice.objects.filter(
+                status='PAID', 
+                payment_date__gte=last_7_days
+            ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        }
+    except Exception as e:
+        print(f"Error with invoice metrics: {e}")
+        invoice_metrics = {
+            'total_invoices': 0,
+            'pending_invoices': 0,
+            'paid_invoices': 0,
+            'total_revenue': 0,
+            'recent_revenue_7days': 0,
+        }
     
     # Invoice breakdown by type
     invoice_by_type = Invoice.objects.values('invoice_type').annotate(
@@ -54,13 +64,69 @@ def superuser_dashboard(request):
     ).order_by('-total_amount')
     
     # ==== MEMBERSHIP METRICS ====
-    membership_metrics = {
-        'total_members': Member.objects.count(),
-        'active_members': Member.objects.filter(status='ACTIVE').count(),
-        'total_players': Member.objects.filter(role='PLAYER').count(),
-        'total_clubs': Club.objects.count(),
-        'total_users': CustomUser.objects.count(),
-    }
+    try:
+        membership_metrics = {
+            'total_members': Member.objects.count(),
+            'active_members': Member.objects.filter(status='ACTIVE').count(),
+            'total_players': Member.objects.filter(role='PLAYER').count(),
+            'total_clubs': Club.objects.count(),
+            'total_users': CustomUser.objects.count(),
+        }
+    except Exception as e:
+        print(f"Error with membership metrics: {e}")
+        membership_metrics = {
+            'total_members': 0,
+            'active_members': 0,
+            'total_players': 0,
+            'total_clubs': 0,
+            'total_users': 0,
+        }
+    
+    # ==== LEAGUE MANAGEMENT METRICS ====
+    try:
+        from league_management.models import Competition, Match, TeamSheet
+        league_metrics = {
+            'total_competitions': Competition.objects.count(),
+            'active_competitions': Competition.objects.filter(is_active=True).count(),
+            'total_matches': Match.objects.count(),
+            'upcoming_matches': Match.objects.filter(status='scheduled').count(),
+            'total_team_sheets': TeamSheet.objects.count() if hasattr(TeamSheet.objects, 'count') else 0,
+            'submitted_team_sheets': TeamSheet.objects.filter(status='submitted').count() if hasattr(TeamSheet.objects, 'count') else 0,
+        }
+    except (ImportError, Exception) as e:
+        # Handle both import errors and database errors gracefully
+        league_metrics = {
+            'total_competitions': 0,
+            'active_competitions': 0,
+            'total_matches': 0,
+            'upcoming_matches': 0,
+            'total_team_sheets': 0,
+            'submitted_team_sheets': 0,
+        }
+    
+    # ==== DIGITAL COINS METRICS ====
+    try:
+        from digital_coins.models import SAFACoinWallet, SAFACoinTransaction
+        coins_metrics = {
+            'total_wallets': SAFACoinWallet.objects.count(),
+            'active_wallets': SAFACoinWallet.objects.filter(balance__gt=0).count(),
+            'total_transactions': SAFACoinTransaction.objects.count(),
+            'recent_transactions_7days': SAFACoinTransaction.objects.filter(
+                created_at__gte=last_7_days
+            ).count(),
+            'total_coin_volume': SAFACoinTransaction.objects.aggregate(
+                total=Sum('amount')
+            )['total'] or 0,
+        }
+    except (ImportError, Exception) as e:
+        # Handle both import errors and database errors gracefully
+        coins_metrics = {
+            'total_wallets': 0,
+            'active_wallets': 0,
+            'total_transactions': 0,
+            'recent_transactions_7days': 0,
+            'total_coin_volume': 0,
+        }
     
     # ==== RECENT ACTIVITY ====
     # Get recent activities across all modules
@@ -104,6 +170,8 @@ def superuser_dashboard(request):
         'online_users': online_users,
         'invoice_metrics': invoice_metrics,
         'membership_metrics': membership_metrics,
+        'league_metrics': league_metrics,
+        'coins_metrics': coins_metrics,
         'invoice_by_type': invoice_by_type,
         'recent_activities': recent_activities,
         'pending_approvals': pending_approvals,

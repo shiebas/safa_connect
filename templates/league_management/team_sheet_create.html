@@ -1,0 +1,471 @@
+{% extends "league_management/base.html" %}
+
+{% block title %}Team Sheet - {{ team.team.name }} vs {{ match.away_team.team.name }}{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                    <a href="{% url 'league_management:team_sheet_list' match.competition.id %}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back to Team Sheets
+                    </a>
+                    <div>
+                        <h1 class="page-title mb-0">Team Sheet</h1>
+                        <p class="page-subtitle">{{ team.team.name }} vs {{ match.away_team.team.name }}</p>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <span class="badge bg-primary fs-6">
+                                <i class="bi bi-calendar"></i> {{ match.match_date|date:"M d, Y" }}
+                            </span>
+                            <span class="badge bg-secondary fs-6">
+                                <i class="bi bi-clock"></i> {{ match.kickoff_time|time:"H:i" }}
+                            </span>
+                            {% if match.venue %}
+                            <span class="badge bg-info fs-6">
+                                <i class="bi bi-geo-alt"></i> {{ match.venue }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="saveAsTemplate()">
+                        <i class="bi bi-bookmark"></i> Save as Template
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="loadFromPrevious()">
+                        <i class="bi bi-arrow-clockwise"></i> Load Previous
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Sheet Form -->
+    <form method="post" id="teamSheetForm">
+        {% csrf_token %}
+        <input type="hidden" name="players_data" id="playersData">
+        
+        <div class="row">
+            <!-- Team Sheet Details -->
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-gear-fill"></i> Team Sheet Details
+                    </h3>
+                    
+                    <div class="mb-3">
+                        <label for="formation" class="form-label fw-bold">Formation</label>
+                        <select class="form-select" id="formation" name="formation">
+                            <option value="4-4-2" {% if team_sheet.formation == '4-4-2' %}selected{% endif %}>4-4-2</option>
+                            <option value="4-3-3" {% if team_sheet.formation == '4-3-3' %}selected{% endif %}>4-3-3</option>
+                            <option value="3-5-2" {% if team_sheet.formation == '3-5-2' %}selected{% endif %}>3-5-2</option>
+                            <option value="4-5-1" {% if team_sheet.formation == '4-5-1' %}selected{% endif %}>4-5-1</option>
+                            <option value="5-3-2" {% if team_sheet.formation == '5-3-2' %}selected{% endif %}>5-3-2</option>
+                            <option value="4-2-3-1" {% if team_sheet.formation == '4-2-3-1' %}selected{% endif %}>4-2-3-1</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="captain" class="form-label fw-bold">Captain</label>
+                        <input type="text" class="form-control" id="captain" name="captain" 
+                               value="{{ team_sheet.captain }}" placeholder="Captain name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="vice_captain" class="form-label fw-bold">Vice Captain</label>
+                        <input type="text" class="form-control" id="vice_captain" name="vice_captain" 
+                               value="{{ team_sheet.vice_captain }}" placeholder="Vice captain name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label fw-bold">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="4" 
+                                  placeholder="Team notes, tactics, etc.">{{ team_sheet.notes }}</textarea>
+                    </div>
+                    
+                    <!-- Templates -->
+                    {% if templates %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Load from Template</label>
+                        <div class="d-grid gap-2">
+                            {% for template in templates %}
+                            <a href="{% url 'league_management:team_sheet_from_template' match.id team.id template.id %}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-bookmark"></i> {{ template.name }} ({{ template.formation }})
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Player Selection -->
+            <div class="col-lg-8">
+                <div class="section-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-people-fill"></i> Player Selection
+                    </h3>
+                    
+                    <!-- Starting XI -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-primary mb-3">Starting XI</h5>
+                        <div id="startingXI" class="row g-2">
+                            <!-- Starting players will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Substitutes -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-secondary mb-3">Substitutes</h5>
+                        <div id="substitutes" class="row g-2">
+                            <!-- Substitutes will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Available Players -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-muted mb-3">Available Players</h5>
+                        <div class="row g-2">
+                            {% for player in available_players %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="player-card {% if not player.is_eligible %}player-ineligible{% endif %}" 
+                                     data-player='{"name": "{{ player.player_name }}", "jersey": {{ player.jersey_number }}, "position": "{{ player.position }}", "eligible": {{ player.is_eligible|yesno:"true,false" }}, "suspension_reason": "{{ player.suspension_reason }}"}'>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold">{{ player.player_name }}</div>
+                                            <small class="text-muted">#{{ player.jersey_number }} - {{ player.position }}</small>
+                                            {% if not player.is_eligible %}
+                                            <div class="text-danger small">
+                                                <i class="bi bi-exclamation-triangle"></i> {{ player.suspension_reason }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="player-actions">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addToStartingXI('{{ player.player_name }}', {{ player.jersey_number }}, '{{ player.position }}', {{ player.is_eligible|yesno:"true,false" }}, '{{ player.suspension_reason }}')">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addToSubstitutes('{{ player.player_name }}', {{ player.jersey_number }}, '{{ player.position }}', {{ player.is_eligible|yesno:"true,false" }}, '{{ player.suspension_reason }}')">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="section-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span class="text-muted">Status: </span>
+                            <span class="badge {% if team_sheet.status == 'submitted' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ team_sheet.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="action" value="save" class="btn btn-outline-primary">
+                                <i class="bi bi-save"></i> Save Draft
+                            </button>
+                            <button type="submit" name="action" value="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Submit Team Sheet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Save as Template Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Save as Template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'league_management:team_sheet_template_save' match.id team.id %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="template_name" class="form-label">Template Name</label>
+                            <input type="text" class="form-control" id="template_name" name="template_name" 
+                                   placeholder="e.g., Default Formation" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Template</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .player-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem;
+        background: white;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .player-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .player-ineligible {
+        background: #fef2f2;
+        border-color: #fecaca;
+        opacity: 0.7;
+    }
+    
+    .player-ineligible:hover {
+        border-color: #dc2626;
+    }
+    
+    .selected-player {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    
+    .selected-player .text-muted {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    .formation-display {
+        background: var(--light-bg);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .position-group {
+        margin-bottom: 0.5rem;
+    }
+    
+    .position-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-bottom: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedPlayers = {
+        starting: [],
+        substitutes: []
+    };
+    
+    // Load existing team sheet data
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for player in selected_players.values %}
+        selectedPlayers.starting.push({
+            name: "{{ player.player_name }}",
+            jersey: {{ player.jersey_number }},
+            position: "{{ player.position }}",
+            is_starting: {{ player.is_starting|yesno:"true,false" }},
+            is_captain: {{ player.is_captain|yesno:"true,false" }},
+            is_vice_captain: {{ player.is_vice_captain|yesno:"true,false" }},
+            is_eligible: {{ player.is_eligible|yesno:"true,false" }},
+            suspension_reason: "{{ player.suspension_reason }}"
+        });
+        {% endfor %}
+        
+        updatePlayerDisplay();
+    });
+    
+    function addToStartingXI(name, jersey, position, eligible, suspensionReason) {
+        if (selectedPlayers.starting.length >= 11) {
+            alert('Starting XI is full (11 players maximum)');
+            return;
+        }
+        
+        const player = {
+            name: name,
+            jersey: jersey,
+            position: position,
+            is_starting: true,
+            is_captain: false,
+            is_vice_captain: false,
+            is_eligible: eligible,
+            suspension_reason: suspensionReason
+        };
+        
+        selectedPlayers.starting.push(player);
+        updatePlayerDisplay();
+    }
+    
+    function addToSubstitutes(name, jersey, position, eligible, suspensionReason) {
+        if (selectedPlayers.substitutes.length >= 7) {
+            alert('Substitutes are full (7 players maximum)');
+            return;
+        }
+        
+        const player = {
+            name: name,
+            jersey: jersey,
+            position: position,
+            is_starting: false,
+            is_captain: false,
+            is_vice_captain: false,
+            is_eligible: eligible,
+            suspension_reason: suspensionReason
+        };
+        
+        selectedPlayers.substitutes.push(player);
+        updatePlayerDisplay();
+    }
+    
+    function removePlayer(playerName, isStarting) {
+        if (isStarting) {
+            selectedPlayers.starting = selectedPlayers.starting.filter(p => p.name !== playerName);
+        } else {
+            selectedPlayers.substitutes = selectedPlayers.substitutes.filter(p => p.name !== playerName);
+        }
+        updatePlayerDisplay();
+    }
+    
+    function toggleCaptain(playerName, isStarting) {
+        if (isStarting) {
+            selectedPlayers.starting.forEach(p => {
+                if (p.name === playerName) {
+                    p.is_captain = !p.is_captain;
+                    if (p.is_captain) p.is_vice_captain = false;
+                } else if (p.is_captain) {
+                    p.is_captain = false;
+                }
+            });
+        }
+        updatePlayerDisplay();
+    }
+    
+    function toggleViceCaptain(playerName, isStarting) {
+        if (isStarting) {
+            selectedPlayers.starting.forEach(p => {
+                if (p.name === playerName) {
+                    p.is_vice_captain = !p.is_vice_captain;
+                    if (p.is_vice_captain) p.is_captain = false;
+                } else if (p.is_vice_captain) {
+                    p.is_vice_captain = false;
+                }
+            });
+        }
+        updatePlayerDisplay();
+    }
+    
+    function updatePlayerDisplay() {
+        // Update starting XI
+        const startingContainer = document.getElementById('startingXI');
+        startingContainer.innerHTML = '';
+        
+        selectedPlayers.starting.forEach(player => {
+            const playerCard = createPlayerCard(player, true);
+            startingContainer.appendChild(playerCard);
+        });
+        
+        // Update substitutes
+        const substitutesContainer = document.getElementById('substitutes');
+        substitutesContainer.innerHTML = '';
+        
+        selectedPlayers.substitutes.forEach(player => {
+            const playerCard = createPlayerCard(player, false);
+            substitutesContainer.appendChild(playerCard);
+        });
+        
+        // Update form data
+        document.getElementById('playersData').value = JSON.stringify([
+            ...selectedPlayers.starting,
+            ...selectedPlayers.substitutes
+        ]);
+    }
+    
+    function createPlayerCard(player, isStarting) {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 col-lg-4';
+        
+        const cardClass = player.is_eligible ? 'player-card selected-player' : 'player-card selected-player player-ineligible';
+        
+        col.innerHTML = `
+            <div class="${cardClass}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">${player.name}</div>
+                        <small class="text-muted">#${player.jersey} - ${player.position}</small>
+                        ${!player.is_eligible ? `<div class="text-warning small"><i class="bi bi-exclamation-triangle"></i> Suspended</div>` : ''}
+                    </div>
+                    <div class="d-flex gap-1">
+                        ${isStarting ? `
+                            <button type="button" class="btn btn-sm ${player.is_captain ? 'btn-warning' : 'btn-outline-warning'}" 
+                                    onclick="toggleCaptain('${player.name}', true)" title="Captain">
+                                <i class="bi bi-star"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm ${player.is_vice_captain ? 'btn-info' : 'btn-outline-info'}" 
+                                    onclick="toggleViceCaptain('${player.name}', true)" title="Vice Captain">
+                                <i class="bi bi-star-half"></i>
+                            </button>
+                        ` : ''}
+                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                onclick="removePlayer('${player.name}', ${isStarting})">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        return col;
+    }
+    
+    function saveAsTemplate() {
+        if (selectedPlayers.starting.length === 0 && selectedPlayers.substitutes.length === 0) {
+            alert('Please select players before saving as template');
+            return;
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('templateModal'));
+        modal.show();
+    }
+    
+    function loadFromPrevious() {
+        // This would load from the most recent team sheet
+        alert('Load from previous functionality would be implemented here');
+    }
+    
+    // Form submission
+    document.getElementById('teamSheetForm').addEventListener('submit', function(e) {
+        if (selectedPlayers.starting.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one starting player');
+            return;
+        }
+        
+        // Update captain and vice captain fields
+        const captain = selectedPlayers.starting.find(p => p.is_captain);
+        const viceCaptain = selectedPlayers.starting.find(p => p.is_vice_captain);
+        
+        document.getElementById('captain').value = captain ? captain.name : '';
+        document.getElementById('vice_captain').value = viceCaptain ? viceCaptain.name : '';
+    });
+</script>
+{% endblock %}

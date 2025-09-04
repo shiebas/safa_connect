@@ -490,8 +490,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     showField(clubContainer);
                     if (clubField) clubField.required = true;
                 } else if (role === 'ASSOCIATION_ADMIN') {
-                    showField(associationContainer);
-                    if (associationSelect) associationSelect.required = true;
+                    // Association Admin doesn't need association dropdown - they manage associations
+                    hideField(associationContainer);
+                    if (associationSelect) associationSelect.required = false;
                 } else if (role === 'SUPPORTER') {
                     const locationContainer = document.getElementById('headingThree').parentNode;
                     if (locationContainer) {

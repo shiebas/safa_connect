@@ -708,7 +708,54 @@
                             {% endif %}
                         </li>
                         {% if user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin/">
+                                    <i class="fas fa-cog me-1"></i>Admin Panel
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% if user.is_superuser %}
                             <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-trophy me-1"></i>League Management
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'league_management:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'league_management:fixture_generation' %}">
+                                        <i class="fas fa-calendar-plus me-2"></i>Generate Fixtures
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'league_management:activity_logs' %}">
+                                        <i class="fas fa-history me-2"></i>Activity Logs
+                                    </a></li>
+                                </ul>
+                            </li>
+                            
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-coins me-1"></i>Digital Coins
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'digital_coins:wallet' %}">
+                                        <i class="fas fa-wallet me-2"></i>Wallet
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'digital_coins:transaction_history' %}">
+                                        <i class="fas fa-history me-2"></i>Transaction History
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'digital_coins:send_coins' %}">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Coins
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'digital_coins:competitions' %}">
+                                        <i class="fas fa-trophy me-2"></i>Competitions
+                                    </a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        
+                        {% if user.is_staff or user.role in 'ADMIN_NATIONAL,ADMIN_PROVINCE,ADMIN_REGION,ADMIN_LOCAL_FED,CLUB_ADMIN,ASSOCIATION_ADMIN' %}
+                        <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-cogs me-1"></i>Administration
                                 </a>

@@ -1,0 +1,423 @@
+{% extends "league_management/base.html" %}
+
+{% block title %}{{ team.team.name }} Statistics - SAFA League Management{% endblock %}
+
+{% block content %}
+    <!-- Team Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                    <a href="{% url 'league_management:competition_detail' competition.id %}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back to Competition
+                    </a>
+                    <div>
+                        <h1 class="page-title mb-0">{{ team.team.name }}</h1>
+                        <p class="page-subtitle">{{ competition.name }} - {{ competition.season_year }}</p>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <span class="badge bg-primary fs-6">
+                                <i class="bi bi-geo-alt"></i> {{ competition.region.name }}
+                            </span>
+                            <span class="badge bg-info fs-6">{{ competition.category.name }}</span>
+                            {% if team.team.short_name %}
+                            <span class="badge bg-secondary fs-6">{{ team.team.short_name }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                    <button class="btn btn-primary" onclick="exportToPDF()">
+                        <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Overview Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy-fill stat-icon"></i>
+                    <div class="stat-number">{{ team.points }}</div>
+                    <div class="stat-label">Points</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card-green">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle-fill stat-icon"></i>
+                    <div class="stat-number">{{ team.won }}</div>
+                    <div class="stat-label">Wins</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card-orange">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-left-right stat-icon"></i>
+                    <div class="stat-number">{{ team.drawn }}</div>
+                    <div class="stat-label">Draws</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card-red">
+                <div class="card-body text-center">
+                    <i class="bi bi-x-circle-fill stat-icon"></i>
+                    <div class="stat-number">{{ team.lost }}</div>
+                    <div class="stat-label">Losses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Team Statistics -->
+        <div class="col-lg-8">
+            <!-- Match History -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-clock-history"></i> Match History
+                </h3>
+                <div class="match-history">
+                    {% for match in matches %}
+                    <div class="match-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <div class="match-date text-center">
+                                    <div class="fw-bold">{{ match.match_date|date:"M d" }}</div>
+                                    <small class="text-muted">{{ match.kickoff_time|time:"H:i" }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="match-teams">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="team-name {% if match.home_team == team %}fw-bold{% endif %}">
+                                            {{ match.home_team.team.name }}
+                                        </div>
+                                        <div class="match-score fw-bold {% if match.status == 'completed' %}text-primary{% else %}text-muted{% endif %} fs-5">
+                                            {% if match.status == 'completed' %}
+                                                {{ match.home_score }} - {{ match.away_score }}
+                                            {% else %}
+                                                vs
+                                            {% endif %}
+                                        </div>
+                                        <div class="team-name {% if match.away_team == team %}fw-bold{% endif %}">
+                                            {{ match.away_team.team.name }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if match.venue %}
+                                <div class="match-venue mt-1">
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt me-1"></i> {{ match.venue }}
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 text-end">
+                                {% if match.status == 'completed' %}
+                                    {% if match.home_team == team %}
+                                        {% if match.home_score > match.away_score %}
+                                            <span class="badge bg-success">W</span>
+                                        {% elif match.home_score < match.away_score %}
+                                            <span class="badge bg-danger">L</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">D</span>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if match.away_score > match.home_score %}
+                                            <span class="badge bg-success">W</span>
+                                        {% elif match.away_score < match.home_score %}
+                                            <span class="badge bg-danger">L</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">D</span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ match.status|title }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No matches found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Team Form -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-graph-up"></i> Recent Form
+                </h3>
+                <div class="team-form">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <div class="form-display">
+                            {% for char in form %}
+                            <span class="form-indicator form-{{ char|lower }}">{{ char }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <small class="text-muted">Last 5 matches: W=Win, D=Draw, L=Loss</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Player Statistics -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-people-fill"></i> Squad Statistics
+                </h3>
+                <div class="squad-stats">
+                    {% for player in players %}
+                    <div class="player-card mb-3 p-3 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">{{ player.player_name }}</div>
+                                <small class="text-muted">{{ player.position|default:"Player" }}</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="d-flex gap-3">
+                                    <div class="stat-mini">
+                                        <div class="fw-bold text-primary">{{ player.goals }}</div>
+                                        <small class="text-muted">Goals</small>
+                                    </div>
+                                    <div class="stat-mini">
+                                        <div class="fw-bold text-success">{{ player.assists }}</div>
+                                        <small class="text-muted">Assists</small>
+                                    </div>
+                                    {% if player.position == 'GK' %}
+                                    <div class="stat-mini">
+                                        <div class="fw-bold text-warning">{{ player.clean_sheets }}</div>
+                                        <small class="text-muted">Clean Sheets</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-person text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No player statistics available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Team Performance -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-bar-chart-fill"></i> Performance Stats
+                </h3>
+                <div class="performance-stats">
+                    <div class="stat-row mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Goals Scored:</span>
+                            <span class="fw-bold text-success">{{ team.goals_for }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-row mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Goals Conceded:</span>
+                            <span class="fw-bold text-danger">{{ team.goals_against }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-row mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Goal Difference:</span>
+                            <span class="fw-bold {% if team.goal_difference > 0 %}text-success{% elif team.goal_difference < 0 %}text-danger{% endif %}">
+                                {{ team.goal_difference|stringformat:"+d" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-row mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Matches Played:</span>
+                            <span class="fw-bold">{{ team.played }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-row mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Win Rate:</span>
+                            <span class="fw-bold text-primary">
+                                {% if team.played > 0 %}
+                                    {{ team.won|floatformat:0|div:team.played|mul:100 }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Points per Game:</span>
+                            <span class="fw-bold text-primary">
+                                {% if team.played > 0 %}
+                                    {{ team.points|floatformat:1|div:team.played }}
+                                {% else %}
+                                    0.0
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Info -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-info-circle-fill"></i> Team Information
+                </h3>
+                <div class="team-info">
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Team Name:</span>
+                            <span class="fw-bold">{{ team.team.name }}</span>
+                        </div>
+                    </div>
+                    {% if team.team.short_name %}
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Short Name:</span>
+                            <span class="fw-bold">{{ team.team.short_name }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Competition:</span>
+                            <span class="fw-bold">{{ competition.name }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Season:</span>
+                            <span class="fw-bold">{{ competition.season_year }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Region:</span>
+                            <span class="fw-bold">{{ competition.region.name }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-display {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .form-indicator {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .form-w {
+        background-color: #059669;
+    }
+    
+    .form-d {
+        background-color: #d97706;
+    }
+    
+    .form-l {
+        background-color: #dc2626;
+    }
+    
+    .match-score {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+    
+    .stat-mini {
+        text-align: center;
+    }
+    
+    .stat-mini .fw-bold {
+        font-size: 1.1rem;
+    }
+    
+    .stat-row {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .stat-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .player-card {
+        transition: all 0.3s ease;
+    }
+    
+    .player-card:hover {
+        background: #f1f5f9 !important;
+        transform: translateY(-2px);
+    }
+    
+    @media print {
+        .btn, .page-header .col-auto {
+            display: none !important;
+        }
+        
+        .page-header {
+            border-bottom: 2px solid #000;
+            margin-bottom: 2rem;
+        }
+        
+        .section-card {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function exportToPDF() {
+        // Simple print functionality - in a real implementation, you'd use a PDF library
+        window.print();
+    }
+</script>
+{% endblock %}

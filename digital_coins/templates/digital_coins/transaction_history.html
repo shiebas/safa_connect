@@ -10,7 +10,7 @@
         border-radius: 12px;
         margin-bottom: 1rem;
         transition: all 0.3s ease;
-        background: white;
+        background: rgb(255, 255, 255);
     }
     
     .transaction-card:hover {
@@ -20,7 +20,7 @@
     
     .transaction-header {
         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        color: white;
+        color: rgb(255, 255, 255);
         padding: 1rem;
         border-radius: 12px 12px 0 0;
         display: flex;
@@ -42,7 +42,7 @@
     }
     
     .transaction-amount.transferred {
-        color: #ffc107;
+        color: #000000;
     }
     
     .transaction-details {
@@ -70,8 +70,8 @@
     }
     
     .transaction-type.transferred {
-        background: #fff3cd;
-        color: #856404;
+        background: #f8f9fa;
+        color: #000000;
     }
     
     .transaction-type.reward {
@@ -208,7 +208,7 @@
 {% endblock %}
 
 {% block digital_coins_content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-2">
     <div class="row">
         <div class="col-12">
             <!-- Header -->

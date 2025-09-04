@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.contrib.auth.decorators import user_passes_test
 from .models import (
     SAFACoinWallet, SAFACoinTransaction, SAFACoinTransfer,
     SAFACoinReward, SAFACoinCompetition, SAFACoinCompetitionParticipation,
@@ -10,6 +11,20 @@ from .models import (
 
 @admin.register(SAFACoinWallet)
 class SAFACoinWalletAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
     list_display = ['user', 'balance', 'total_earned', 'total_spent', 'created_at', 'wallet_actions']
     list_filter = ['created_at', 'updated_at']
     search_fields = ['user__first_name', 'user__last_name', 'user__email', 'user__safa_id']
@@ -26,6 +41,20 @@ class SAFACoinWalletAdmin(admin.ModelAdmin):
 
 @admin.register(SAFACoinTransaction)
 class SAFACoinTransactionAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
     list_display = ['id', 'wallet_user', 'transaction_type', 'amount', 'reason', 'balance_after', 'created_at']
     list_filter = ['transaction_type', 'created_at', 'wallet__user__role']
     search_fields = ['wallet__user__first_name', 'wallet__user__last_name', 'wallet__user__email', 'reason']
@@ -47,6 +76,20 @@ class SAFACoinTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(SAFACoinTransfer)
 class SAFACoinTransferAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
     list_display = ['id', 'from_user', 'to_user', 'amount', 'status', 'created_at', 'transfer_actions']
     list_filter = ['status', 'created_at']
     search_fields = ['from_wallet__user__first_name', 'from_wallet__user__last_name', 'to_wallet__user__first_name', 'to_wallet__user__last_name']
@@ -88,6 +131,20 @@ class SAFACoinTransferAdmin(admin.ModelAdmin):
 
 @admin.register(SAFACoinReward)
 class SAFACoinRewardAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
     list_display = ['user', 'reward_type', 'amount', 'reason', 'claimed', 'created_at', 'reward_actions']
     list_filter = ['reward_type', 'claimed', 'created_at']
     search_fields = ['user__first_name', 'user__last_name', 'user__email', 'reason']
@@ -110,6 +167,20 @@ class SAFACoinRewardAdmin(admin.ModelAdmin):
 
 @admin.register(SAFACoinCompetition)
 class SAFACoinCompetitionAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
     list_display = ['name', 'competition_type', 'entry_fee', 'prize_pool', 'current_participants', 'status', 'start_date', 'competition_actions']
     list_filter = ['competition_type', 'status', 'start_date', 'end_date']
     search_fields = ['name', 'description']
@@ -159,6 +230,20 @@ class SAFACoinCompetitionAdmin(admin.ModelAdmin):
 
 @admin.register(SAFACoinCompetitionParticipation)
 class SAFACoinCompetitionParticipationAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
     list_display = ['competition', 'user', 'entry_fee_paid', 'score', 'rank', 'prizes_won', 'joined_at']
     list_filter = ['competition__competition_type', 'joined_at', 'competition__status']
     search_fields = ['user__first_name', 'user__last_name', 'competition__name']
@@ -170,6 +255,20 @@ class SAFACoinCompetitionParticipationAdmin(admin.ModelAdmin):
 
 @admin.register(SAFACoinLoyaltyConversion)
 class SAFACoinLoyaltyConversionAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
     list_display = ['user', 'loyalty_points', 'coins_awarded', 'conversion_rate', 'converted_at']
     list_filter = ['converted_at']
     search_fields = ['user__first_name', 'user__last_name', 'user__email']
@@ -215,7 +314,4 @@ def claim_rewards(modeladmin, request, queryset):
 SAFACoinTransferAdmin.actions = [execute_transfers]
 SAFACoinRewardAdmin.actions = [claim_rewards]
 
-# Admin site customization
-admin.site.site_header = "SAFA Connect - Digital Coins Administration"
-admin.site.site_title = "SAFA Digital Coins"
-admin.site.index_title = "SAFA Coin Management Dashboard"
+# Note: Admin site customization moved to main admin.py to avoid conflicts

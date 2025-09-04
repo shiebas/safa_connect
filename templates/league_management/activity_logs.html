@@ -1,0 +1,309 @@
+{% extends "league_management/base.html" %}
+
+{% block title %}Activity Logs{% if competition %} - {{ competition.name }}{% endif %}{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                    {% if competition %}
+                    <a href="{% url 'league_management:competition_detail' competition.id %}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back to Competition
+                    </a>
+                    {% else %}
+                    <a href="{% url 'league_management:dashboard' %}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                    {% endif %}
+                    <div>
+                        <h1 class="page-title mb-0">Activity Logs</h1>
+                        {% if competition %}
+                        <p class="page-subtitle">{{ competition.name }} - {{ competition.season_year }}</p>
+                        {% else %}
+                        <p class="page-subtitle">System-wide activity tracking</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="exportLogs()">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                    <button class="btn btn-primary" onclick="refreshLogs()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="section-card">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="action_type" class="form-label fw-bold">Action Type</label>
+                        <select class="form-select" id="action_type" name="action_type">
+                            <option value="">All Actions</option>
+                            {% for value, label in action_types %}
+                            <option value="{{ value }}" {% if selected_action_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_from" class="form-label fw-bold">From Date</label>
+                        <input type="date" class="form-control" id="date_from" name="date_from">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_to" class="form-label fw-bold">To Date</label>
+                        <input type="date" class="form-control" id="date_to" name="date_to">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel"></i> Apply Filters
+                        </button>
+                        <a href="{% url 'league_management:activity_logs' %}{% if competition %}{{ competition.id }}/{% endif %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x"></i> Clear Filters
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Logs -->
+    <div class="row">
+        <div class="col-12">
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-clock-history"></i> Activity Logs
+                    <span class="badge bg-primary">{{ page_obj.paginator.count }} total</span>
+                </h3>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Description</th>
+                                <th>Competition</th>
+                                <th>Match</th>
+                                <th>Team</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in page_obj %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <div class="fw-bold">{{ log.timestamp|date:"M d, Y" }}</div>
+                                        <small class="text-muted">{{ log.timestamp|time:"H:i:s" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if log.user %}
+                                        <div>
+                                            <div class="fw-bold">{{ log.user.get_full_name|default:log.user.username }}</div>
+                                            <small class="text-muted">{{ log.user.email }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">System</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ log.get_action_type_display }}</span>
+                                </td>
+                                <td>
+                                    <div class="log-description">
+                                        {{ log.description }}
+                                        {% if log.details %}
+                                        <button class="btn btn-sm btn-outline-info ms-2" onclick="showDetails('{{ log.id }}')">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if log.competition %}
+                                        <div>
+                                            <div class="fw-bold">{{ log.competition.name }}</div>
+                                            <small class="text-muted">{{ log.competition.season_year }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.match %}
+                                        <div>
+                                            <div class="fw-bold">{{ log.match.home_team.team.name }} vs {{ log.match.away_team.team.name }}</div>
+                                            <small class="text-muted">{{ log.match.match_date|date:"M d" }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.team %}
+                                        <div>
+                                            <div class="fw-bold">{{ log.team.team.name }}</div>
+                                            {% if log.team.team.short_name %}
+                                            <small class="text-muted">{{ log.team.team.short_name }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ log.ip_address|default:"-" }}</small>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <i class="bi bi-clock-history text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-2">No activity logs found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Activity logs pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if selected_action_type %}&action_type={{ selected_action_type }}{% endif %}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_action_type %}&action_type={{ selected_action_type }}{% endif %}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_action_type %}&action_type={{ selected_action_type }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_action_type %}&action_type={{ selected_action_type }}{% endif %}">Last</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Activity Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detailsContent">
+                        <!-- Details will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .log-description {
+        max-width: 300px;
+        word-wrap: break-word;
+    }
+    
+    .table th {
+        background: var(--light-bg);
+        border: none;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+    }
+    
+    .pagination .page-link {
+        color: var(--primary-color);
+        border-color: #e2e8f0;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .pagination .page-link:hover {
+        color: var(--primary-dark);
+        background-color: #f8fafc;
+        border-color: #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showDetails(logId) {
+        // This would typically make an AJAX call to get detailed information
+        // For now, we'll show a placeholder
+        document.getElementById('detailsContent').innerHTML = `
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                Detailed information for log entry ${logId} would be displayed here.
+                This could include JSON data, additional context, or related information.
+            </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        modal.show();
+    }
+    
+    function exportLogs() {
+        // This would export the current filtered logs to CSV or Excel
+        alert('Export functionality would be implemented here');
+    }
+    
+    function refreshLogs() {
+        location.reload();
+    }
+    
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 30000);
+</script>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends "league_management/base.html" %}
+
+{% block title %}Team Sheets - {{ competition.name }}{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                    <a href="{% url 'league_management:competition_detail' competition.id %}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back to Competition
+                    </a>
+                    <div>
+                        <h1 class="page-title mb-0">Team Sheets</h1>
+                        <p class="page-subtitle">{{ competition.name }} - {{ competition.season_year }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Matches -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-calendar-week-fill"></i> Upcoming Matches
+                </h3>
+                <div class="row">
+                    {% for match in upcoming_matches %}
+                    <div class="col-lg-6 mb-3">
+                        <div class="match-card">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <div class="match-date text-center">
+                                        <div class="fw-bold">{{ match.match_date|date:"M d" }}</div>
+                                        <small class="text-muted">{{ match.kickoff_time|time:"H:i" }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="match-teams">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="team-name fw-bold">{{ match.home_team.team.name }}</div>
+                                            <div class="vs-text text-muted mx-2">vs</div>
+                                            <div class="team-name fw-bold">{{ match.away_team.team.name }}</div>
+                                        </div>
+                                    </div>
+                                    {% if match.venue %}
+                                    <div class="match-venue mt-1">
+                                        <small class="text-muted">
+                                            <i class="bi bi-geo-alt me-1"></i> {{ match.venue }}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="{% url 'league_management:team_sheet_detail' match.id match.home_team.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Home
+                                        </a>
+                                        <a href="{% url 'league_management:team_sheet_detail' match.id match.away_team.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Away
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">No upcoming matches</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Team Sheets -->
+    <div class="row">
+        <div class="col-12">
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-clock-history"></i> Recent Team Sheets
+                </h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Match</th>
+                                <th>Team</th>
+                                <th>Status</th>
+                                <th>Formation</th>
+                                <th>Submitted By</th>
+                                <th>Submitted At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sheet in recent_sheets %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <div class="fw-bold">{{ sheet.match.home_team.team.name }} vs {{ sheet.match.away_team.team.name }}</div>
+                                        <small class="text-muted">{{ sheet.match.match_date|date:"M d, Y" }} {{ sheet.match.kickoff_time|time:"H:i" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="team-logo me-2" style="width: 30px; height: 30px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-shield text-muted"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ sheet.team.team.name }}</div>
+                                            {% if sheet.team.team.short_name %}
+                                            <small class="text-muted">{{ sheet.team.team.short_name }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if sheet.status == 'submitted' %}bg-success
+                                        {% elif sheet.status == 'confirmed' %}bg-primary
+                                        {% elif sheet.status == 'amended' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ sheet.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ sheet.formation }}</span>
+                                </td>
+                                <td>
+                                    {% if sheet.submitted_by %}
+                                        {{ sheet.submitted_by.get_full_name|default:sheet.submitted_by.username }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if sheet.submitted_at %}
+                                        {{ sheet.submitted_at|date:"M d, Y H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'league_management:team_sheet_detail' sheet.match.id sheet.team.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if sheet.can_be_edited %}
+                                        <a href="{% url 'league_management:team_sheet_create' sheet.match.id sheet.team.id %}" 
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="bi bi-clipboard text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-2">No team sheets found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .match-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .match-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .match-date {
+        background: var(--light-bg);
+        border-radius: 8px;
+        padding: 0.5rem;
+    }
+    
+    .team-logo {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    }
+</style>
+{% endblock %}

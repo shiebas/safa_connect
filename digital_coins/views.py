@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
@@ -10,6 +10,11 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 from decimal import Decimal
 import json
+
+def superuser_required(view_func):
+    """Decorator to require superuser access"""
+    decorated_view = user_passes_test(lambda u: u.is_superuser)(view_func)
+    return decorated_view
 
 from .models import (
     SAFACoinWallet, SAFACoinTransaction, SAFACoinTransfer,
@@ -24,7 +29,7 @@ User = get_user_model()
 # WALLET MANAGEMENT
 # ============================================================================
 
-@login_required
+@superuser_required
 def coin_wallet(request):
     """Display user's SAFA Coin wallet"""
     try:
@@ -36,7 +41,7 @@ def coin_wallet(request):
         wallet.add_coins(Decimal('100.0'), "Welcome bonus - New SAFA member")
     
     # Get recent transactions
-    transactions = SAFACoinTransaction.objects.filter(wallet=wallet).order_by('-created')[:10]
+    transactions = SAFACoinTransaction.objects.filter(wallet=wallet).order_by('-created_at')[:10]
     
     # Get pending rewards
     pending_rewards = SAFACoinReward.objects.filter(
@@ -68,7 +73,7 @@ def coin_wallet(request):
     
     return render(request, 'digital_coins/wallet.html', context)
 
-@login_required
+@superuser_required
 def transaction_history(request):
     """Display full transaction history"""
     try:
@@ -78,7 +83,7 @@ def transaction_history(request):
         return redirect('digital_coins:wallet')
     
     # Get all transactions with pagination
-    transactions = SAFACoinTransaction.objects.filter(wallet=wallet).order_by('-created')
+    transactions = SAFACoinTransaction.objects.filter(wallet=wallet).order_by('-created_at')
     
     # Filter by transaction type if specified
     transaction_type = request.GET.get('transaction_type')
@@ -88,11 +93,11 @@ def transaction_history(request):
     # Filter by date range if specified
     date_from = request.GET.get('date_from')
     if date_from:
-        transactions = transactions.filter(created__date__gte=date_from)
+        transactions = transactions.filter(created_at__date__gte=date_from)
     
     date_to = request.GET.get('date_to')
     if date_to:
-        transactions = transactions.filter(created__date__lte=date_to)
+        transactions = transactions.filter(created_at__date__lte=date_to)
     
     # Pagination
     paginator = Paginator(transactions, 25)
@@ -111,7 +116,7 @@ def transaction_history(request):
 # COIN TRANSFERS
 # ============================================================================
 
-@login_required
+@superuser_required
 def send_coins(request):
     """Send coins to another user"""
     if request.method == 'POST':
@@ -181,7 +186,7 @@ def send_coins(request):
     
     return render(request, 'digital_coins/send_coins.html', context)
 
-@login_required
+@superuser_required
 def receive_coins(request):
     """Display received coins and transfer history"""
     try:
@@ -212,7 +217,7 @@ def receive_coins(request):
 # REWARDS SYSTEM
 # ============================================================================
 
-@login_required
+@superuser_required
 def claim_reward(request, reward_id):
     """Claim a specific reward"""
     reward = get_object_or_404(SAFACoinReward, id=reward_id, user=request.user)
@@ -224,7 +229,7 @@ def claim_reward(request, reward_id):
     
     return redirect('digital_coins:wallet')
 
-@login_required
+@superuser_required
 def claim_all_rewards(request):
     """Claim all available rewards"""
     pending_rewards = SAFACoinReward.objects.filter(
@@ -253,7 +258,7 @@ def claim_all_rewards(request):
 # LOYALTY CONVERSION
 # ============================================================================
 
-@login_required
+@superuser_required
 def loyalty_conversion(request):
     """Convert loyalty points to SAFA Coins"""
     if request.method == 'POST':
@@ -313,7 +318,7 @@ def loyalty_conversion(request):
 # GAMING COMPETITIONS
 # ============================================================================
 
-@login_required
+@superuser_required
 def competitions_list(request):
     """Display all available competitions"""
     competitions = SAFACoinCompetition.objects.all().order_by('-start_date')
@@ -348,7 +353,7 @@ def competitions_list(request):
     
     return render(request, 'digital_coins/competitions.html', context)
 
-@login_required
+@superuser_required
 def competition_detail(request, competition_id):
     """Display competition details and allow joining"""
     competition = get_object_or_404(SAFACoinCompetition, id=competition_id)
@@ -379,7 +384,7 @@ def competition_detail(request, competition_id):
     
     return render(request, 'digital_coins/competition_detail.html', context)
 
-@login_required
+@superuser_required
 @require_POST
 def join_competition(request, competition_id):
     """Join a competition"""
@@ -396,7 +401,7 @@ def join_competition(request, competition_id):
 # API ENDPOINTS
 # ============================================================================
 
-@login_required
+@superuser_required
 def api_wallet_balance(request):
     """API endpoint to get wallet balance"""
     try:
@@ -409,7 +414,7 @@ def api_wallet_balance(request):
     except SAFACoinWallet.DoesNotExist:
         return JsonResponse({'error': 'Wallet not found'}, status=404)
 
-@login_required
+@superuser_required
 def api_recent_transactions(request):
     """API endpoint to get recent transactions"""
     try:
@@ -432,7 +437,7 @@ def api_recent_transactions(request):
     except SAFACoinWallet.DoesNotExist:
         return JsonResponse({'error': 'Wallet not found'}, status=404)
 
-@login_required
+@superuser_required
 def api_search_users(request):
     """API endpoint to search for users to send coins to"""
     query = request.GET.get('q', '').strip()

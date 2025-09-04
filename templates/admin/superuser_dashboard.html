@@ -47,26 +47,105 @@ footer .text-muted {
     padding: 1.5rem;
 }
 
+/* Override card-body background for metric cards */
+.metric-card .card-body {
+    background-color: transparent !important;
+}
+
 /* Metric cards */
 .metric-card {
-    border: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease-in-out;
+    border: none !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    transition: transform 0.2s ease-in-out !important;
 }
 
 .metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15) !important;
 }
 
 .metric-card-revenue {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    color: white !important;
+}
+
+.metric-card-revenue .card-body {
+    background: transparent !important;
+    color: white !important;
+}
+
+.metric-card-revenue .card-body * {
+    color: white !important;
+}
+
+.metric-card-revenue h3,
+.metric-card-revenue p,
+.metric-card-revenue small,
+.metric-card-revenue i {
+    color: white !important;
 }
 
 .metric-card-membership {
-    background: linear-gradient(135deg, #007bff, #6610f2);
-    color: white;
+    background: linear-gradient(135deg, #007bff, #6610f2) !important;
+    color: white !important;
+}
+
+.metric-card-membership .card-body {
+    background: transparent !important;
+    color: white !important;
+}
+
+.metric-card-membership .card-body * {
+    color: white !important;
+}
+
+.metric-card-membership h3,
+.metric-card-membership p,
+.metric-card-membership small,
+.metric-card-membership i {
+    color: white !important;
+}
+
+.metric-card-league {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    color: white !important;
+}
+
+.metric-card-league .card-body {
+    background: transparent !important;
+    color: white !important;
+}
+
+.metric-card-league .card-body * {
+    color: white !important;
+}
+
+.metric-card-league h3,
+.metric-card-league p,
+.metric-card-league small,
+.metric-card-league i {
+    color: white !important;
+}
+
+.metric-card-coins {
+    background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+    color: white !important;
+}
+
+.metric-card-coins .card-body {
+    background: transparent !important;
+    color: white !important;
+}
+
+.metric-card-coins .card-body * {
+    color: white !important;
+}
+
+.metric-card-coins h3,
+.metric-card-coins p,
+.metric-card-coins small,
+.metric-card-coins i {
+    color: white !important;
 }
 
 /* Quick action buttons */
@@ -84,11 +163,22 @@ footer .text-muted {
     text-decoration: none;
 }
 
-/* Section headers */
+/* Section headers - ALL WHITE TEXT */
 .section-header {
-    color: #2c3e50;
+    color: white !important;
     font-weight: 600;
     font-size: 1.1rem;
+}
+
+/* ALL section headers are white */
+.card-header .section-header,
+.card-header h5,
+.card-header h6 {
+    color: white !important;
+}
+
+.card-header i {
+    color: white !important;
 }
 
 /* Recent users table */
@@ -124,6 +214,36 @@ footer .text-muted {
     font-size: 1.2rem;
 }
 
+/* Superuser exclusive section */
+.superuser-exclusive {
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.superuser-exclusive .card-header {
+    background: linear-gradient(135deg, #ffc107, #ff8c00) !important;
+    color: #000 !important;
+    font-weight: 600;
+}
+
+.feature-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.feature-card.league-card:hover {
+    border-color: #007bff;
+}
+
+.feature-card.coins-card:hover {
+    border-color: #28a745;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .quick-action-btn {
@@ -134,6 +254,10 @@ footer .text-muted {
     .metric-card .card-body h3 {
         font-size: 1.5rem;
     }
+    
+    .feature-card {
+        margin-bottom: 1rem;
+    }
 }
 </style>
 {% endblock %}
@@ -142,35 +266,57 @@ footer .text-muted {
 <div class="container-fluid my-4">
     <!-- Key Metrics Row -->
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-3">
             <div class="card metric-card metric-card-revenue">
                 <div class="card-body text-center">
                     <i class="bi bi-cash fs-1 mb-2"></i>
-                    <h3 class="mb-0">R {{ invoice_metrics.total_revenue|floatformat:0 }}</h3>
+                    <h3 class="mb-0">R {{ invoice_metrics.total_revenue|default:0|floatformat:0 }}</h3>
                     <p class="mb-1">Total Revenue</p>
-                    <small>R {{ invoice_metrics.recent_revenue_7days|floatformat:0 }} this week</small>
+                    <small>R {{ invoice_metrics.recent_revenue_7days|default:0|floatformat:0 }} this week</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
             <div class="card metric-card metric-card-membership">
                 <div class="card-body text-center">
                     <i class="bi bi-award fs-1 mb-2"></i>
-                    <h3 class="mb-0">{{ membership_metrics.total_members|floatformat:0 }}</h3>
+                    <h3 class="mb-0">{{ membership_metrics.total_members|default:0|floatformat:0 }}</h3>
                     <p class="mb-1">Total Members</p>
-                    <small>{{ membership_metrics.active_members }} active</small>
+                    <small>{{ membership_metrics.active_members|default:0 }} active</small>
                 </div>
             </div>
         </div>
+        {% if user.is_superuser %}
+        <div class="col-md-3">
+            <div class="card metric-card metric-card-league">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy fs-1 mb-2"></i>
+                    <h3 class="mb-0">{{ league_metrics.total_competitions|default:0|floatformat:0 }}</h3>
+                    <p class="mb-1">Competitions</p>
+                    <small>{{ league_metrics.upcoming_matches|default:0 }} upcoming matches</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card metric-card metric-card-coins">
+                <div class="card-body text-center">
+                    <i class="bi bi-coin fs-1 mb-2"></i>
+                    <h3 class="mb-0">{{ coins_metrics.total_wallets|default:0|floatformat:0 }}</h3>
+                    <p class="mb-1">Digital Wallets</p>
+                    <small>{{ coins_metrics.recent_transactions_7days|default:0 }} transactions this week</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-lightning text-warning"></i> Quick Actions
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
+                    <h5 class="section-header mb-0">
+                        <i class="bi bi-lightning"></i> Quick Actions
                     </h5>
                 </div>
                 <div class="card-body">
@@ -235,13 +381,81 @@ footer .text-muted {
         </div>
     </div>
 
+    <!-- Superuser Exclusive Features -->
+    {% if user.is_superuser %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card superuser-exclusive">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-check me-2"></i> Superuser Exclusive Features
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- League Management -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 feature-card league-card">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-trophy-fill me-2"></i>League Management System
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted mb-3">Comprehensive league and competition management with team sheets, discipline tracking, and match management.</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'league_management:dashboard' %}" class="btn btn-primary">
+                                            <i class="bi bi-speedometer2 me-2"></i>League Dashboard
+                                        </a>
+                                        <a href="{% url 'league_management:fixture_generation' %}" class="btn btn-outline-primary">
+                                            <i class="bi bi-calendar-plus me-2"></i>Generate Fixtures
+                                        </a>
+                                        <a href="{% url 'league_management:activity_logs' %}" class="btn btn-outline-primary">
+                                            <i class="bi bi-clock-history me-2"></i>Activity Logs
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Digital Coins -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 feature-card coins-card">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-coin me-2"></i>Digital Coins System
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted mb-3">Manage the digital currency system, transactions, rewards, and gaming competitions.</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'digital_coins:wallet' %}" class="btn btn-success">
+                                            <i class="bi bi-wallet2 me-2"></i>Digital Wallet
+                                        </a>
+                                        <a href="{% url 'digital_coins:transaction_history' %}" class="btn btn-outline-success">
+                                            <i class="bi bi-list-ul me-2"></i>Transaction History
+                                        </a>
+                                        <a href="{% url 'digital_coins:competitions' %}" class="btn btn-outline-success">
+                                            <i class="bi bi-trophy me-2"></i>Gaming Competitions
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row">
         <!-- Online Users Section -->
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header bg-white">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
                     <h5 class="section-header mb-0">
-                        <i class="bi bi-person-circle text-success"></i> Online Users
+                        <i class="bi bi-person-circle"></i> Online Users
                     </h5>
                 </div>
                 <div class="card-body">
@@ -276,9 +490,9 @@ footer .text-muted {
         <!-- Recent Users Section -->
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #059669, #047857);">
                     <h5 class="section-header mb-0">
-                        <i class="bi bi-people text-info"></i> Recent Users
+                        <i class="bi bi-people"></i> Recent Users
                     </h5>
                     <a href="{% url 'user_management' %}" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-arrow-right"></i> Manage All
@@ -330,9 +544,9 @@ footer .text-muted {
         <!-- Pending Approvals -->
         <div class="col-12 mb-4">
             <div class="card">
-                <div class="card-header bg-white">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
                     <h5 class="section-header mb-0">
-                        <i class="bi bi-person-check-fill text-warning"></i> Pending Member Approvals
+                        <i class="bi bi-person-check-fill"></i> Pending Member Approvals
                     </h5>
                 </div>
                 <div class="card-body">
@@ -378,9 +592,9 @@ footer .text-muted {
         <!-- All Members -->
         <div class="col-12 mb-4">
             <div class="card">
-                <div class="card-header bg-white">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
                     <h5 class="section-header mb-0">
-                        <i class="bi bi-people-fill text-primary"></i> All Members
+                        <i class="bi bi-people-fill"></i> All Members
                     </h5>
                 </div>
                 <div class="card-body">
@@ -445,9 +659,9 @@ footer .text-muted {
         <!-- Revenue & Invoicing -->
         <div class="col-lg-8 mb-4">
             <div class="card">
-                <div class="card-header bg-white">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
                     <h5 class="section-header mb-0">
-                        <i class="bi bi-graph-up text-warning"></i> Revenue & Invoicing
+                        <i class="bi bi-graph-up"></i> Revenue & Invoicing
                     </h5>
                 </div>
                 <div class="card-body">
@@ -483,9 +697,9 @@ footer .text-muted {
         <!-- Recent Activity -->
         <div class="col-lg-4 mb-4">
             <div class="card">
-                <div class="card-header bg-white">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
                     <h5 class="section-header mb-0">
-                        <i class="bi bi-activity text-info"></i> Recent Activity
+                        <i class="bi bi-activity"></i> Recent Activity
                     </h5>
                 </div>
                 <div class="card-body" style="max-height: 500px; overflow-y: auto;">
@@ -512,9 +726,9 @@ footer .text-muted {
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-white">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669, #047857);">
                     <h5 class="section-header mb-0">
-                        <i class="bi bi-bar-chart text-dark"></i> System Overview
+                        <i class="bi bi-bar-chart"></i> System Overview
                     </h5>
                 </div>
                 <div class="card-body">

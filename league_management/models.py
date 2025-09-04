@@ -303,10 +303,15 @@ class MatchEvent(models.Model):
         ('penalty_goal', 'Penalty Goal'),
         ('yellow_card', 'Yellow Card'),
         ('red_card', 'Red Card'),
+        ('second_yellow', 'Second Yellow Card'),
         ('substitution', 'Substitution'),
         ('penalty_miss', 'Penalty Miss'),
+        ('injury', 'Injury'),
+        ('offside', 'Offside'),
+        ('foul', 'Foul'),
     ]
     
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='events')
     team = models.ForeignKey(CompetitionTeam, on_delete=models.CASCADE)
     
@@ -319,16 +324,22 @@ class MatchEvent(models.Model):
     substitute_in = models.CharField(max_length=200, blank=True, help_text="Player coming on")
     substitute_out = models.CharField(max_length=200, blank=True, help_text="Player going off")
     
+    # Event details
     description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    is_penalty = models.BooleanField(default=False)
+    is_own_goal = models.BooleanField(default=False)
+    
+    # Recording details
+    recorded_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['minute', 'created_at']
+        ordering = ['minute', 'recorded_at']
         
     def __str__(self):
         if self.event_type == 'substitution':
-            return f"{self.minute}' - SUB: {self.substitute_in} for {self.substitute_out} ({self.team.team.short_name})"
-        return f"{self.minute}' - {self.get_event_type_display()}: {self.player_name} ({self.team.team.short_name})"
+            return f"{self.minute}' - Substitution: {self.substitute_out} → {self.substitute_in}"
+        return f"{self.minute}' - {self.get_event_type_display()}: {self.player_name}"
 
 class PlayerStatistics(models.Model):
     """Individual player statistics for a competition"""
@@ -393,3 +404,255 @@ class LeagueTable(models.Model):
     def __str__(self):
         group_info = f" ({self.group.name})" if self.group else ""
         return f"{self.position}. {self.team.team.name}{group_info}"
+
+class TeamSheet(models.Model):
+    """Team sheet for a specific match"""
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('confirmed', 'Confirmed'),
+        ('amended', 'Amended'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='team_sheets')
+    team = models.ForeignKey(CompetitionTeam, on_delete=models.CASCADE, related_name='team_sheets')
+    
+    # Team sheet details
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    submitted_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Formation and tactics
+    formation = models.CharField(max_length=10, default='4-4-2', help_text="e.g., 4-4-2, 3-5-2")
+    captain = models.CharField(max_length=200, blank=True)
+    vice_captain = models.CharField(max_length=200, blank=True)
+    
+    # Notes
+    notes = models.TextField(blank=True, help_text="Team notes, tactics, etc.")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['match', 'team']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.team.team.name} - {self.match} ({self.get_status_display()})"
+    
+    @property
+    def is_submitted(self):
+        return self.status in ['submitted', 'confirmed', 'amended']
+    
+    @property
+    def can_be_edited(self):
+        return self.status in ['draft', 'amended'] and self.match.status == 'scheduled'
+
+class TeamSheetPlayer(models.Model):
+    """Individual player in a team sheet"""
+    POSITION_CHOICES = [
+        ('GK', 'Goalkeeper'),
+        ('LB', 'Left Back'),
+        ('CB', 'Center Back'),
+        ('RB', 'Right Back'),
+        ('LWB', 'Left Wing Back'),
+        ('RWB', 'Right Wing Back'),
+        ('CDM', 'Defensive Midfielder'),
+        ('CM', 'Central Midfielder'),
+        ('CAM', 'Attacking Midfielder'),
+        ('LM', 'Left Midfielder'),
+        ('RM', 'Right Midfielder'),
+        ('LW', 'Left Winger'),
+        ('RW', 'Right Winger'),
+        ('ST', 'Striker'),
+        ('CF', 'Center Forward'),
+        ('SUB', 'Substitute'),
+    ]
+    
+    team_sheet = models.ForeignKey(TeamSheet, on_delete=models.CASCADE, related_name='players')
+    player_name = models.CharField(max_length=200)
+    jersey_number = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(99)])
+    position = models.CharField(max_length=10, choices=POSITION_CHOICES)
+    
+    # Player status
+    is_starting = models.BooleanField(default=True)
+    is_captain = models.BooleanField(default=False)
+    is_vice_captain = models.BooleanField(default=False)
+    
+    # Eligibility checks
+    is_eligible = models.BooleanField(default=True)
+    suspension_reason = models.TextField(blank=True, help_text="Reason if not eligible")
+    
+    # Match performance (filled during/after match)
+    minutes_played = models.PositiveIntegerField(default=0)
+    goals_scored = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)
+    yellow_cards = models.PositiveIntegerField(default=0)
+    red_cards = models.PositiveIntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['team_sheet', 'jersey_number']
+        ordering = ['jersey_number']
+    
+    def __str__(self):
+        return f"{self.player_name} (#{self.jersey_number}) - {self.get_position_display()}"
+
+class PlayerDiscipline(models.Model):
+    """Track player discipline across competitions"""
+    CARD_TYPES = [
+        ('yellow', 'Yellow Card'),
+        ('red', 'Red Card'),
+        ('second_yellow', 'Second Yellow Card'),
+    ]
+    
+    SUSPENSION_TYPES = [
+        ('automatic', 'Automatic Suspension'),
+        ('manual', 'Manual Suspension'),
+        ('appeal', 'Appeal Suspension'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='player_discipline')
+    team = models.ForeignKey(CompetitionTeam, on_delete=models.CASCADE, related_name='player_discipline')
+    player_name = models.CharField(max_length=200)
+    
+    # Card tracking
+    total_yellow_cards = models.PositiveIntegerField(default=0)
+    total_red_cards = models.PositiveIntegerField(default=0)
+    total_second_yellows = models.PositiveIntegerField(default=0)
+    
+    # Suspension tracking
+    is_suspended = models.BooleanField(default=False)
+    suspension_matches = models.PositiveIntegerField(default=0)
+    suspension_until = models.DateField(null=True, blank=True)
+    suspension_reason = models.TextField(blank=True)
+    suspension_type = models.CharField(max_length=20, choices=SUSPENSION_TYPES, blank=True)
+    
+    # Reset tracking (for new seasons)
+    last_reset_date = models.DateTimeField(auto_now_add=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['competition', 'team', 'player_name']
+        ordering = ['-total_red_cards', '-total_yellow_cards', 'player_name']
+    
+    def __str__(self):
+        return f"{self.player_name} ({self.team.team.name}) - {self.total_yellow_cards}Y {self.total_red_cards}R"
+    
+    @property
+    def is_eligible_for_selection(self):
+        """Check if player is eligible for selection"""
+        from django.utils import timezone
+        if self.is_suspended:
+            if self.suspension_until and timezone.now().date() <= self.suspension_until:
+                return False
+            elif self.suspension_matches > 0:
+                return False
+        return True
+    
+    def add_card(self, card_type, match=None):
+        """Add a card and update suspension status"""
+        if card_type == 'yellow':
+            self.total_yellow_cards += 1
+            # Check for automatic suspension (2 yellow cards)
+            if self.total_yellow_cards >= 2:
+                self.is_suspended = True
+                self.suspension_matches = 1
+                self.suspension_type = 'automatic'
+                self.suspension_reason = f"Automatic suspension for {self.total_yellow_cards} yellow cards"
+        elif card_type == 'red':
+            self.total_red_cards += 1
+            self.is_suspended = True
+            self.suspension_matches = 1
+            self.suspension_type = 'automatic'
+            self.suspension_reason = "Automatic suspension for red card"
+        elif card_type == 'second_yellow':
+            self.total_second_yellows += 1
+            self.total_red_cards += 1  # Second yellow = red card
+            self.is_suspended = True
+            self.suspension_matches = 1
+            self.suspension_type = 'automatic'
+            self.suspension_reason = "Automatic suspension for second yellow card"
+        
+        self.save()
+    
+    def serve_suspension(self):
+        """Mark one match suspension as served"""
+        if self.suspension_matches > 0:
+            self.suspension_matches -= 1
+            if self.suspension_matches == 0:
+                self.is_suspended = False
+                self.suspension_reason = ""
+            self.save()
+
+class ActivityLog(models.Model):
+    """Comprehensive activity logging for the league management system"""
+    ACTION_TYPES = [
+        ('team_sheet_created', 'Team Sheet Created'),
+        ('team_sheet_submitted', 'Team Sheet Submitted'),
+        ('team_sheet_amended', 'Team Sheet Amended'),
+        ('player_selected', 'Player Selected'),
+        ('player_deselected', 'Player Deselected'),
+        ('card_issued', 'Card Issued'),
+        ('suspension_applied', 'Suspension Applied'),
+        ('suspension_served', 'Suspension Served'),
+        ('match_event_added', 'Match Event Added'),
+        ('match_result_updated', 'Match Result Updated'),
+        ('fixture_generated', 'Fixture Generated'),
+        ('competition_created', 'Competition Created'),
+        ('team_registered', 'Team Registered'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES)
+    
+    # Related objects
+    competition = models.ForeignKey(Competition, on_delete=models.SET_NULL, null=True, blank=True)
+    match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True)
+    team = models.ForeignKey(CompetitionTeam, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Action details
+    description = models.TextField()
+    details = models.JSONField(default=dict, blank=True)
+    
+    # Metadata
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['action_type', 'timestamp']),
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['competition', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_action_type_display()} - {self.user} at {self.timestamp}"
+
+class TeamSheetTemplate(models.Model):
+    """Templates for quick team sheet creation"""
+    name = models.CharField(max_length=200)
+    team = models.ForeignKey(CompetitionTeam, on_delete=models.CASCADE, related_name='sheet_templates')
+    formation = models.CharField(max_length=10, default='4-4-2')
+    
+    # Template players
+    players = models.JSONField(default=list, help_text="List of player data for template")
+    
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.name} - {self.team.team.name} ({self.formation})"

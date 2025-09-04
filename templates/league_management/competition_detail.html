@@ -1,26 +1,18 @@
 {% extends "league_management/base.html" %}
 
-{% block title %}{{ competition.name }} Statistics - SAFA League Management{% endblock %}
+{% block title %}{{ competition.name }} - SAFA League Management{% endblock %}
 
 {% block content %}
-    <!-- Statistics Header -->
+    <!-- Competition Header -->
     <div class="page-header">
         <div class="row align-items-center">
             <div class="col">
                 <div class="d-flex align-items-center mb-2">
-                    {% if user.is_superuser %}
-                    <a href="{% url 'superuser_dashboard' %}" class="btn btn-outline-primary me-2">
-                        <i class="bi bi-house"></i> Superuser Dashboard
-                    </a>
-                    {% endif %}
-                    <a href="{% url 'league_management:competition_detail' competition.id %}" class="btn btn-outline-secondary me-3">
-                        <i class="bi bi-arrow-left"></i> Back to Competition
+                    <a href="{% url 'league_management:dashboard' %}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
                     </a>
                     <div>
-                        <h1 class="page-title mb-0">{{ competition.name }} Statistics</h1>
-                        {% if group %}
-                        <h2 class="page-subtitle">{{ group.name }}</h2>
-                        {% endif %}
+                        <h1 class="page-title mb-0">{{ competition.name }}</h1>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <span class="badge bg-primary fs-6">
                                 <i class="bi bi-geo-alt"></i> {{ competition.region.name }}
@@ -28,24 +20,75 @@
                             <span class="badge bg-secondary fs-6">
                                 <i class="bi bi-calendar"></i> {{ competition.season_year }}
                             </span>
+                            <span class="badge bg-info fs-6">{{ competition.category.name }}</span>
+                            {% if competition.main_sponsor %}
+                            <span class="badge bg-success fs-6">{{ competition.main_sponsor }}</span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-auto">
                 <div class="d-flex gap-2">
-                    <button class="btn btn-outline-primary" onclick="window.print()">
-                        <i class="bi bi-printer"></i> Print
-                    </button>
-                    <button class="btn btn-primary" onclick="exportToPDF()">
-                        <i class="bi bi-file-earmark-pdf"></i> Export PDF
-                    </button>
+                    <a href="{% url 'league_management:team_sheet_list' competition.id %}" class="btn btn-outline-info">
+                        <i class="bi bi-clipboard"></i> Team Sheets
+                    </a>
+                    <a href="{% url 'league_management:player_discipline_list' competition.id %}" class="btn btn-outline-warning">
+                        <i class="bi bi-shield-exclamation"></i> Discipline
+                    </a>
+                    <a href="{% url 'league_management:league_statistics' competition.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-bar-chart"></i> Statistics
+                    </a>
+                    <a href="{% url 'league_management:fixture_generation' %}" class="btn btn-primary">
+                        <i class="bi bi-calendar-plus"></i> Generate Fixtures
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-    <!-- League Table -->
+
+    <!-- Competition Overview Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill stat-icon"></i>
+                    <div class="stat-number">{{ teams.count }}</div>
+                    <div class="stat-label">Teams</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card-green">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-event-fill stat-icon"></i>
+                    <div class="stat-number">{{ matches.count }}</div>
+                    <div class="stat-label">Total Matches</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card-orange">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle-fill stat-icon"></i>
+                    <div class="stat-number">{{ completed_matches.count }}</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card-purple">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-fill stat-icon"></i>
+                    <div class="stat-number">{{ matches.count|add:"-"|add:completed_matches.count }}</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
+        <!-- League Table -->
         <div class="col-lg-8">
             <div class="section-card">
                 <h3 class="section-title">
@@ -71,13 +114,7 @@
                         <tbody>
                             {% for team in league_table %}
                             <tr>
-                                <td class="fw-bold">
-                                    {% if forloop.counter <= 3 %}
-                                        <span class="position-medal position-{{ forloop.counter }}">{{ forloop.counter }}</span>
-                                    {% else %}
-                                        {{ forloop.counter }}
-                                    {% endif %}
-                                </td>
+                                <td class="fw-bold">{{ forloop.counter }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="team-logo me-2" style="width: 30px; height: 30px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -113,7 +150,7 @@
                             <tr>
                                 <td colspan="11" class="text-center py-4">
                                     <i class="bi bi-trophy text-muted" style="font-size: 3rem;"></i>
-                                    <p class="text-muted mt-2">No teams in this competition</p>
+                                    <p class="text-muted mt-2">No teams registered yet</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -121,82 +158,13 @@
                     </table>
                 </div>
             </div>
-        </div>
-        
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Top Scorers -->
-            <div class="section-card">
-                <h3 class="section-title">
-                    <i class="bi bi-trophy-fill"></i> Top Scorers
-                </h3>
-                <div class="top-scorers">
-                    {% for player in top_scorers %}
-                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                        <div class="d-flex align-items-center">
-                            <div class="player-number me-3 fw-bold text-primary">{{ forloop.counter }}</div>
-                            <div>
-                                <div class="fw-bold">{{ player.player_name }}</div>
-                                <small class="text-muted">{{ player.team.team.short_name|default:player.team.team.name }}</small>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-bold text-primary fs-5">{{ player.goals }}</div>
-                            <small class="text-muted">goals</small>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-4">
-                        <i class="bi bi-person text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2">No player statistics available</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
 
-            <!-- Competition Statistics -->
+            <!-- Recent Matches -->
             <div class="section-card">
                 <h3 class="section-title">
-                    <i class="bi bi-bar-chart-fill"></i> Competition Stats
+                    <i class="bi bi-clock-history"></i> Recent Matches
                 </h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">{{ match_stats.total_matches }}</div>
-                        <div class="stat-label">Total Matches</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ match_stats.total_goals }}</div>
-                        <div class="stat-label">Total Goals</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ match_stats.avg_goals_per_match }}</div>
-                        <div class="stat-label">Avg Goals/Match</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ match_stats.home_wins }}</div>
-                        <div class="stat-label">Home Wins</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ match_stats.away_wins }}</div>
-                        <div class="stat-label">Away Wins</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ match_stats.draws }}</div>
-                        <div class="stat-label">Draws</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent Results -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="section-card">
-                <h3 class="section-title">
-                    <i class="bi bi-clock-history"></i> Recent Results
-                </h3>
-                <div class="recent-results">
+                <div class="recent-matches">
                     {% for match in recent_matches %}
                     <div class="match-item">
                         <div class="row align-items-center">
@@ -232,9 +200,90 @@
                     {% empty %}
                     <div class="text-center py-4">
                         <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2">No recent matches</p>
+                        <p class="text-muted mt-2">No matches played yet</p>
                     </div>
                     {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Top Scorers -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-trophy-fill"></i> Top Scorers
+                </h3>
+                <div class="top-scorers">
+                    {% for player in top_scorers %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
+                        <div class="d-flex align-items-center">
+                            <div class="player-number me-2 fw-bold text-primary">{{ forloop.counter }}</div>
+                            <div>
+                                <div class="fw-bold">{{ player.player_name }}</div>
+                                <small class="text-muted">{{ player.team.team.name }}</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-primary">{{ player.goals }}</div>
+                            <small class="text-muted">goals</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-person text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No player statistics available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Competition Info -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-info-circle-fill"></i> Competition Info
+                </h3>
+                <div class="competition-info">
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Season:</span>
+                            <span class="fw-bold">{{ competition.season_year }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Start Date:</span>
+                            <span class="fw-bold">{{ competition.start_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">End Date:</span>
+                            <span class="fw-bold">{{ competition.end_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Points System:</span>
+                            <span class="fw-bold">{{ competition.points_win }}-{{ competition.points_draw }}-{{ competition.points_loss }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Status:</span>
+                            <span class="badge {% if competition.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if competition.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Registration:</span>
+                            <span class="badge {% if competition.registration_open %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if competition.registration_open %}Open{% else %}Closed{% endif %}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -243,31 +292,6 @@
 
 {% block extra_css %}
 <style>
-    .position-medal {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: white;
-    }
-    
-    .position-1 {
-        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-        color: #333;
-    }
-    
-    .position-2 {
-        background: linear-gradient(135deg, #c0c0c0 0%, #e5e5e5 100%);
-        color: #333;
-    }
-    
-    .position-3 {
-        background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
-    }
-    
     .form-indicators {
         display: flex;
         gap: 2px;
@@ -318,54 +342,13 @@
         font-size: 0.9rem;
     }
     
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 1rem;
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
     }
     
-    .stat-item {
-        text-align: center;
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 8px;
-    }
-    
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--primary-color);
-    }
-    
-    .stat-label {
-        font-size: 0.8rem;
-        color: var(--secondary-color);
-        margin-top: 0.25rem;
-    }
-    
-    @media print {
-        .btn, .page-header .col-auto {
-            display: none !important;
-        }
-        
-        .page-header {
-            border-bottom: 2px solid #000;
-            margin-bottom: 2rem;
-        }
-        
-        .section-card {
-            break-inside: avoid;
-            margin-bottom: 1rem;
-        }
+    .info-item:last-child {
+        border-bottom: none;
     }
 </style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function exportToPDF() {
-        // Simple print functionality - in a real implementation, you'd use a PDF library
-        window.print();
-    }
-</script>
 {% endblock %}

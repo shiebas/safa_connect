@@ -1,57 +1,152 @@
-{% extends "base.html" %}
+{% extends "league_management/base.html" %}
 
-{% block title %}Fixture Generation{% endblock %}
+{% block title %}Fixture Generation - SAFA League Management{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Generate League Fixtures</h2>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                    {% if user.is_superuser %}
+                    <a href="{% url 'superuser_dashboard' %}" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-house"></i> Superuser Dashboard
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'league_management:dashboard' %}" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <div>
+                        <h1 class="page-title mb-0">Fixture Generation</h1>
+                        <p class="page-subtitle">Generate league fixtures for competitions and groups</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Messages -->
     {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
+        <div class="row mb-4">
+            <div class="col-12">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="competition" class="form-label">Select Competition:</label>
-            <select class="form-select" id="competition" name="competition" required>
-                <option value="">-- Select a Competition --</option>
-                {% for comp in competitions %}
-                    <option value="{{ comp.id }}">{{ comp.name }} ({{ comp.season_year }})</option>
-                {% endfor %}
-            </select>
-        </div>
+    <!-- Fixture Generation Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-calendar-plus-fill"></i> Generate Fixtures
+                </h3>
+                
+                <form method="post" id="fixtureForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="competition" class="form-label fw-bold">
+                                <i class="bi bi-trophy me-2"></i>Select Competition
+                            </label>
+                            <select class="form-select form-select-lg" id="competition" name="competition" required>
+                                <option value="">-- Select a Competition --</option>
+                                {% for comp in competitions %}
+                                    <option value="{{ comp.id }}">{{ comp.name }} ({{ comp.season_year }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose the competition for which to generate fixtures</div>
+                        </div>
 
-        <div class="mb-3">
-            <label for="group" class="form-label">Select Group (Optional):</label>
-            <select class="form-select" id="group" name="group">
-                <option value="">-- All Teams in Competition (or no groups) --</option>
-                {% for group in groups %}
-                    <option value="{{ group.id }}" data-competition-id="{{ group.competition.id }}">{{ group.name }} ({{ group.competition.name }})</option>
-                {% endfor %}
-            </select>
-        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="group" class="form-label fw-bold">
+                                <i class="bi bi-people me-2"></i>Select Group (Optional)
+                            </label>
+                            <select class="form-select form-select-lg" id="group" name="group">
+                                <option value="">-- All Teams in Competition (or no groups) --</option>
+                                {% for group in groups %}
+                                    <option value="{{ group.id }}" data-competition-id="{{ group.competition.id }}">{{ group.name }} ({{ group.competition.name }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select a specific group or leave blank for all teams</div>
+                        </div>
+                    </div>
 
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="clear_existing" name="clear_existing">
-            <label class="form-check-label" for="clear_existing">
-                Clear existing matches before generating new ones
-            </label>
-        </div>
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="clear_existing" name="clear_existing">
+                                <label class="form-check-label fw-bold" for="clear_existing">
+                                    <i class="bi bi-trash me-2"></i>Clear existing matches before generating new ones
+                                </label>
+                                <div class="form-text">⚠️ This will delete all existing matches for the selected competition/group</div>
+                            </div>
+                        </div>
+                    </div>
 
-        <button type="submit" class="btn btn-primary">Generate Fixtures</button>
-    </form>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-outline-secondary me-md-2" onclick="resetForm()">
+                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
+                                    <i class="bi bi-calendar-plus"></i> Generate Fixtures
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Cards -->
+    <div class="row mt-4">
+        <div class="col-lg-4 mb-3">
+            <div class="section-card">
+                <h5 class="fw-bold text-primary">
+                    <i class="bi bi-info-circle-fill me-2"></i>How it works
+                </h5>
+                <p class="mb-0">The system will automatically generate a round-robin fixture list where each team plays every other team twice (home and away).</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="section-card">
+                <h5 class="fw-bold text-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Important Notes
+                </h5>
+                <p class="mb-0">Make sure all teams are registered before generating fixtures. You can assign specific dates and venues later.</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="section-card">
+                <h5 class="fw-bold text-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>After Generation
+                </h5>
+                <p class="mb-0">Once generated, you can edit individual matches, assign dates, venues, and referees through the admin panel.</p>
+            </div>
+        </div>
+    </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const competitionSelect = document.getElementById('competition');
         const groupSelect = document.getElementById('group');
         const allGroupOptions = Array.from(groupSelect.options); // Store all options
+        const generateBtn = document.getElementById('generateBtn');
+        const form = document.getElementById('fixtureForm');
 
         function filterGroups() {
             const selectedCompetitionId = competitionSelect.value;
@@ -77,6 +172,25 @@
 
         // Add event listener for competition change
         competitionSelect.addEventListener('change', filterGroups);
+
+        // Form submission with loading state
+        form.addEventListener('submit', function(e) {
+            const originalText = generateBtn.innerHTML;
+            generateBtn.innerHTML = '<span class="loading"></span> Generating...';
+            generateBtn.disabled = true;
+            
+            // Re-enable button after 10 seconds as fallback
+            setTimeout(() => {
+                generateBtn.innerHTML = originalText;
+                generateBtn.disabled = false;
+            }, 10000);
+        });
+
+        // Reset form function
+        window.resetForm = function() {
+            form.reset();
+            filterGroups();
+        };
     });
 </script>
 {% endblock %}
