@@ -89,3 +89,4 @@ android/app/release/
 
 # Exclude corrected codes folder
 corrected_codes/
+blockchain_credentials.py
