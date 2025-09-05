@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'digital_coins',  # SAFA Coin digital currency system
     
     'league_management',  # Competition management system
+    'tournament_verification',  # Tournament registration with photo verification
     # 'tools',  # REMOVED - functionality moved to other apps
     'supporters',
     'events.apps.EventsConfig',  # International events & ticketing

@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+    
+    .success-card {
+        background: white;
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+    }
+    
+    .registration-id {
+        background: linear-gradient(135deg, #059669, #047857);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin: 1rem 0;
+        display: inline-block;
+    }
+    
+    .verification-status {
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        font-weight: bold;
+    }
+    
+    .status-verified {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .status-manual-review {
+        background: #cce5ff;
+        color: #004085;
+        border: 1px solid #b3d7ff;
+    }
+    
+    .status-failed {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .action-buttons {
+        margin-top: 2rem;
+    }
+    
+    .btn-action {
+        margin: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary-action {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        color: white;
+    }
+    
+    .btn-secondary-action {
+        background: linear-gradient(135deg, #6c757d, #545b62);
+        color: white;
+        border: none;
+    }
+    
+    .btn-secondary-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108,117,125,0.3);
+        color: white;
+    }
+    
+    .registration-details {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: bold;
+        color: #495057;
+    }
+    
+    .detail-value {
+        color: #6c757d;
+    }
+    
+    .confidence-score {
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+    
+    .score-high {
+        color: #28a745;
+    }
+    
+    .score-medium {
+        color: #ffc107;
+    }
+    
+    .score-low {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        
+        <h2 class="text-success mb-3">Registration Successful!</h2>
+        <p class="lead">Thank you for registering for the tournament.</p>
+        
+        <div class="registration-id">
+            <i class="bi bi-ticket-perforated me-2"></i>
+            Registration ID: {{ registration.id|slice:":8"|upper }}
+        </div>
+        
+        <!-- Verification Status -->
+        <div class="verification-status status-{{ registration.verification_status|lower|cut:'_' }}">
+            {% if registration.verification_status == 'VERIFIED' %}
+                <i class="bi bi-shield-check me-2"></i>
+                <strong>Verification Complete</strong>
+                <br>
+                <small>Your identity has been successfully verified</small>
+            {% elif registration.verification_status == 'PENDING' %}
+                <i class="bi bi-hourglass-split me-2"></i>
+                <strong>Verification Pending</strong>
+                <br>
+                <small>Your registration is being processed</small>
+            {% elif registration.verification_status == 'MANUAL_REVIEW' %}
+                <i class="bi bi-person-check me-2"></i>
+                <strong>Manual Review Required</strong>
+                <br>
+                <small>Your registration requires manual verification</small>
+            {% elif registration.verification_status == 'FAILED' %}
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Verification Failed</strong>
+                <br>
+                <small>Please contact tournament officials</small>
+            {% else %}
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Status: {{ registration.get_verification_status_display }}</strong>
+            {% endif %}
+        </div>
+        
+        <!-- Confidence Score (if available) -->
+        {% if registration.verification_score %}
+        <div class="mt-3">
+            <strong>Verification Confidence:</strong>
+            <span class="confidence-score 
+                {% if registration.verification_confidence_percentage >= 80 %}score-high
+                {% elif registration.verification_confidence_percentage >= 60 %}score-medium
+                {% else %}score-low{% endif %}">
+                {{ registration.verification_confidence_percentage }}%
+            </span>
+        </div>
+        {% endif %}
+        
+        <!-- Registration Details -->
+        <div class="registration-details">
+            <h5><i class="bi bi-person-lines-fill me-2"></i>Registration Details</h5>
+            
+            <div class="detail-row">
+                <span class="detail-label">Name:</span>
+                <span class="detail-value">{{ registration.full_name }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{ registration.email }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Phone:</span>
+                <span class="detail-value">{{ registration.phone_number }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Tournament:</span>
+                <span class="detail-value">{{ registration.tournament.name }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Registration Type:</span>
+                <span class="detail-value">{{ registration.get_registration_type_display }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Registered At:</span>
+                <span class="detail-value">{{ registration.registered_at|date:"F d, Y H:i" }}</span>
+            </div>
+        </div>
+        
+        <!-- Verification Notes (if available) -->
+        {% if registration.verification_notes %}
+        <div class="alert alert-info mt-3">
+            <h6><i class="bi bi-info-circle me-2"></i>Verification Notes:</h6>
+            <p class="mb-0">{{ registration.verification_notes }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Next Steps -->
+        <div class="mt-4">
+            <h5><i class="bi bi-list-check me-2"></i>What's Next?</h5>
+            <ul class="list-unstyled text-start">
+                {% if registration.verification_status == 'VERIFIED' %}
+                    <li><i class="bi bi-check-circle text-success me-2"></i>Your registration is complete and verified</li>
+                    <li><i class="bi bi-calendar-check text-info me-2"></i>Check tournament schedule for your matches</li>
+                    <li><i class="bi bi-geo-alt text-warning me-2"></i>Arrive at the venue on time</li>
+                {% elif registration.verification_status == 'PENDING' %}
+                    <li><i class="bi bi-hourglass-split text-warning me-2"></i>Your registration is being processed</li>
+                    <li><i class="bi bi-envelope text-info me-2"></i>You will receive an email confirmation shortly</li>
+                    <li><i class="bi bi-telephone text-primary me-2"></i>Contact us if you don't hear back within 24 hours</li>
+                {% elif registration.verification_status == 'MANUAL_REVIEW' %}
+                    <li><i class="bi bi-person-check text-info me-2"></i>Your registration requires manual review</li>
+                    <li><i class="bi bi-clock text-warning me-2"></i>This may take 1-2 business days</li>
+                    <li><i class="bi bi-envelope text-primary me-2"></i>You will be notified of the outcome</li>
+                {% else %}
+                    <li><i class="bi bi-exclamation-triangle text-danger me-2"></i>Please contact tournament officials</li>
+                    <li><i class="bi bi-telephone text-primary me-2"></i>Call the tournament hotline for assistance</li>
+                {% endif %}
+            </ul>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'tournament_verification:tournament_list' %}" class="btn-action btn-primary-action">
+                <i class="bi bi-list me-2"></i>View All Tournaments
+            </a>
+            
+            <a href="{% url 'tournament_verification:tournament_dashboard' registration.tournament.id %}" class="btn-action btn-secondary-action">
+                <i class="bi bi-speedometer2 me-2"></i>Tournament Dashboard
+            </a>
+            
+            <button onclick="window.print()" class="btn-action btn-secondary-action">
+                <i class="bi bi-printer me-2"></i>Print Confirmation
+            </button>
+        </div>
+        
+        <!-- Contact Information -->
+        <div class="mt-4 pt-3 border-top">
+            <h6><i class="bi bi-telephone me-2"></i>Need Help?</h6>
+            <p class="text-muted mb-0">
+                Contact tournament officials at <strong>tournament@safa.co.za</strong> or call <strong>+27 11 123 4567</strong>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh verification status if pending
+{% if registration.verification_status == 'PENDING' %}
+setTimeout(function() {
+    location.reload();
+}, 30000); // Refresh every 30 seconds
+{% endif %}
+
+// Print styles
+window.addEventListener('beforeprint', function() {
+    document.body.classList.add('printing');
+});
+
+window.addEventListener('afterprint', function() {
+    document.body.classList.remove('printing');
+});
+</script>
+{% endblock %}

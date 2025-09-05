@@ -1,0 +1,683 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Management - Tournament System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bulk-actions-bar {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        display: none;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .bulk-actions-bar.show {
+        display: block;
+    }
+    
+    .selected-count {
+        font-weight: 700;
+        color: #155724;
+        font-size: 1.1rem;
+    }
+    
+    .table-checkbox {
+        width: 20px;
+    }
+    
+    .bulk-delete-btn {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+    }
+    
+    .bulk-delete-btn:hover {
+        background: linear-gradient(135deg, #c82333, #a71e2a);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+        color: white;
+    }
+    
+    .bulk-delete-btn:disabled {
+        background: #6c757d;
+        transform: none;
+        box-shadow: none;
+        opacity: 0.6;
+    }
+    
+    .select-all-btn {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+    }
+    
+    .select-all-btn:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4);
+    }
+    
+    .entity-card {
+        transition: all 0.3s ease;
+        border: 2px solid #e3f2fd;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+    }
+    
+    .entity-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.2);
+        border-color: #2196f3;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+    
+    .entity-card.selected {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+    }
+    
+    .entity-card .card-title {
+        color: #1565c0;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .entity-card .card-text {
+        color: #1976d2;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    
+    .entity-card .card-text small {
+        color: #1976d2;
+    }
+    
+    .entity-card.selected .card-title {
+        color: #155724;
+    }
+    
+    .entity-card.selected .card-text {
+        color: #155724;
+    }
+    
+    .entity-card.selected .card-text small {
+        color: #155724;
+    }
+    
+    .entity-checkbox {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        transform: scale(1.3);
+        accent-color: #2196f3;
+        cursor: pointer;
+    }
+    
+    .entity-checkbox:checked {
+        accent-color: #28a745;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .stats-card:nth-child(2) {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    .stats-card:nth-child(3) {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+    }
+    
+    .stats-card:nth-child(4) {
+        background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+        box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+    }
+    
+    /* Tab Styling */
+    .nav-tabs {
+        border-bottom: 3px solid #2196f3;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px 12px 0 0;
+        padding: 0.5rem 0.5rem 0 0.5rem;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #495057;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #dee2e6;
+        border-bottom: none;
+        border-radius: 10px 10px 0 0;
+        margin-right: 8px;
+        padding: 15px 25px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: #2196f3;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-color: #2196f3 #2196f3 transparent;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #ffffff;
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        border-color: #1976d2 #1976d2 transparent;
+        font-weight: 700;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+        z-index: 10;
+    }
+    
+    .nav-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    }
+    
+    .nav-tabs .nav-link i {
+        margin-right: 8px;
+        font-size: 1.1em;
+    }
+    
+    /* Tab Content Styling */
+    .tab-content {
+        background: white;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 2px solid #e3f2fd;
+        border-top: none;
+        padding: 2rem;
+        margin-top: -2px;
+    }
+    
+    .tab-pane {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 2px solid #2196f3;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+    }
+    
+    .page-header h2 {
+        color: #1565c0;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .page-header .btn {
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .page-header .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-tasks me-2"></i>Bulk Management</h2>
+                <a href="{% url 'tournament_verification:admin_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_tournaments }}</div>
+                <div class="stats-label">Total Tournaments</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_teams }}</div>
+                <div class="stats-label">Total Teams</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_registrations }}</div>
+                <div class="stats-label">Total Registrations</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ pending_verifications }}</div>
+                <div class="stats-label">Pending Verifications</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions-bar" id="bulkActionsBar">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="selected-count" id="selectedCount">0 items selected</span>
+            </div>
+            <div>
+                <button class="btn btn-secondary btn-sm me-2" id="selectAllBtn">
+                    <i class="fas fa-check-square me-1"></i>Select All
+                </button>
+                <button class="btn bulk-delete-btn btn-sm" id="bulkDeleteBtn" disabled>
+                    <i class="fas fa-trash me-1"></i>Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="managementTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tournaments-tab" data-bs-toggle="tab" data-bs-target="#tournaments" type="button" role="tab">
+                <i class="fas fa-trophy me-2"></i>Tournaments
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab">
+                <i class="fas fa-users me-2"></i>Teams
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="registrations-tab" data-bs-toggle="tab" data-bs-target="#registrations" type="button" role="tab">
+                <i class="fas fa-user-plus me-2"></i>Registrations
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="managementTabsContent">
+        <!-- Tournaments Tab -->
+        <div class="tab-pane fade show active" id="tournaments" role="tabpanel">
+            <div class="row">
+                {% for tournament in tournaments %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card entity-card h-100 position-relative" data-entity-type="tournament" data-entity-id="{{ tournament.id }}">
+                        <input type="checkbox" class="form-check-input entity-checkbox" value="{{ tournament.id }}" data-name="{{ tournament.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ tournament.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ tournament.start_date|date:"M d, Y" }}<br>
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ tournament.location }}<br>
+                                    <i class="fas fa-users me-1"></i>{{ tournament.teams.count }} teams<br>
+                                    <i class="fas fa-user-plus me-1"></i>{{ tournament.registrations.count }} registrations
+                                </small>
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{% if tournament.is_active %}success{% else %}secondary{% endif %}">
+                                    {% if tournament.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                                <small class="text-muted">{{ tournament.sport_code.name }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Tournaments Found</h4>
+                        <p class="text-muted">Create some tournaments to manage them here.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Teams Tab -->
+        <div class="tab-pane fade" id="teams" role="tabpanel">
+            <div class="row">
+                {% for team in teams %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card entity-card h-100 position-relative" data-entity-type="team" data-entity-id="{{ team.id }}">
+                        <input type="checkbox" class="form-check-input entity-checkbox" value="{{ team.id }}" data-name="{{ team.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ team.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-trophy me-1"></i>{{ team.tournament.name }}<br>
+                                    <i class="fas fa-users me-1"></i>{{ team.total_players }} players<br>
+                                    <i class="fas fa-user-plus me-1"></i>{{ team.registrations.count }} registrations<br>
+                                    <i class="fas fa-user me-1"></i>Captain: {{ team.captain_name }}
+                                </small>
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{% if team.is_confirmed %}success{% else %}warning{% endif %}">
+                                    {% if team.is_confirmed %}Confirmed{% else %}Pending{% endif %}
+                                </span>
+                                <small class="text-muted">{{ team.short_name }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Teams Found</h4>
+                        <p class="text-muted">Create some teams to manage them here.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Registrations Tab -->
+        <div class="tab-pane fade" id="registrations" role="tabpanel">
+            <div class="row">
+                {% for registration in registrations %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card entity-card h-100 position-relative" data-entity-type="registration" data-entity-id="{{ registration.id }}">
+                        <input type="checkbox" class="form-check-input entity-checkbox" value="{{ registration.id }}" data-name="{{ registration.full_name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ registration.full_name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-trophy me-1"></i>{{ registration.tournament.name }}<br>
+                                    <i class="fas fa-users me-1"></i>{{ registration.team.name }}<br>
+                                    <i class="fas fa-envelope me-1"></i>{{ registration.email }}<br>
+                                    <i class="fas fa-id-card me-1"></i>{{ registration.id_number }}
+                                </small>
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{% if registration.verification_status == 'VERIFIED' %}success{% elif registration.verification_status == 'PENDING' %}warning{% elif registration.verification_status == 'FAILED' %}danger{% else %}secondary{% endif %}">
+                                    {{ registration.get_verification_status_display }}
+                                </span>
+                                <small class="text-muted">{{ registration.registered_at|date:"M d" }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Registrations Found</h4>
+                        <p class="text-muted">No registrations to manage at the moment.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    const selectedCount = document.getElementById('selectedCount');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const entityCheckboxes = document.querySelectorAll('.entity-checkbox');
+    
+    let currentEntityType = 'tournament';
+    
+    // Tab change handler
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const target = e.target.getAttribute('data-bs-target');
+            if (target === '#tournaments') currentEntityType = 'tournament';
+            else if (target === '#teams') currentEntityType = 'team';
+            else if (target === '#registrations') currentEntityType = 'registration';
+            
+            updateBulkActions();
+        });
+    });
+    
+    // Checkbox change handlers
+    entityCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const card = this.closest('.entity-card');
+            if (this.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+            updateBulkActions();
+        });
+    });
+    
+    // Select All button
+    selectAllBtn.addEventListener('click', function() {
+        const currentCheckboxes = document.querySelectorAll(`#${currentEntityType}s .entity-checkbox`);
+        const allChecked = Array.from(currentCheckboxes).every(cb => cb.checked);
+        
+        currentCheckboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
+            const card = checkbox.closest('.entity-card');
+            if (!allChecked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+        
+        updateBulkActions();
+    });
+    
+    // Bulk Delete button
+    bulkDeleteBtn.addEventListener('click', function() {
+        const selectedCheckboxes = document.querySelectorAll(`#${currentEntityType}s .entity-checkbox:checked`);
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+        const selectedNames = Array.from(selectedCheckboxes).map(cb => cb.dataset.name);
+        
+        if (selectedIds.length === 0) {
+            showErrorMessage('Please select items to delete');
+            return;
+        }
+        
+        showBulkDeleteConfirmation(currentEntityType, selectedIds, selectedNames);
+    });
+    
+    function updateBulkActions() {
+        const currentCheckboxes = document.querySelectorAll(`#${currentEntityType}s .entity-checkbox`);
+        const checkedCount = Array.from(currentCheckboxes).filter(cb => cb.checked).length;
+        
+        if (checkedCount > 0) {
+            bulkActionsBar.classList.add('show');
+            selectedCount.textContent = `${checkedCount} ${currentEntityType}(s) selected`;
+            bulkDeleteBtn.disabled = false;
+            bulkDeleteBtn.innerHTML = `<i class="fas fa-trash me-1"></i>Delete ${checkedCount} ${currentEntityType}(s)`;
+        } else {
+            bulkActionsBar.classList.remove('show');
+            bulkDeleteBtn.disabled = true;
+        }
+    }
+    
+    function showBulkDeleteConfirmation(entityType, ids, names) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('aria-labelledby', 'bulkDeleteModalLabel');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="bulkDeleteModalLabel">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Confirm Bulk Delete
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Warning:</strong> This action cannot be undone!
+                        </div>
+                        <p>Are you sure you want to delete the following ${entityType}(s)?</p>
+                        <ul class="list-group">
+                            ${names.map(name => `<li class="list-group-item">${name}</li>`).join('')}
+                        </ul>
+                        <p class="mt-3 mb-0"><strong>Total:</strong> ${ids.length} ${entityType}(s)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-danger" id="confirmBulkDeleteBtn">
+                            <i class="fas fa-trash me-1"></i>Delete ${ids.length} ${entityType}(s)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        // Handle confirmation
+        modal.querySelector('#confirmBulkDeleteBtn').addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
+            
+            const url = `/tournaments/bulk-delete/${entityType}s/`;
+            const dataKey = `${entityType}_ids`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    [dataKey]: ids
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessMessage(data.message);
+                    bsModal.hide();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showErrorMessage(data.error);
+                    this.disabled = false;
+                    this.innerHTML = `<i class="fas fa-trash me-1"></i>Delete ${ids.length} ${entityType}(s)`;
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Network error: ' + error);
+                this.disabled = false;
+                this.innerHTML = `<i class="fas fa-trash me-1"></i>Delete ${ids.length} ${entityType}(s)`;
+            });
+        });
+        
+        // Clean up modal when hidden
+        modal.addEventListener('hidden.bs.modal', function() {
+            modal.remove();
+        });
+    }
+    
+    function showSuccessMessage(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    function showErrorMessage(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,578 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tournament Teams - {{ tournament.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 20px rgba(33, 150, 243, 0.3);
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .teams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .team-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        border-color: #2196f3;
+    }
+    
+    .team-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #2196f3, #4caf50);
+    }
+    
+    .team-photo-container {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .team-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #2196f3;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .team-photo:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+    }
+    
+    .team-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0 auto;
+        border: 4px solid #2196f3;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    }
+    
+    .team-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .team-short-name {
+        font-size: 1rem;
+        color: #7f8c8d;
+        text-align: center;
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+    
+    .team-info {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .team-info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .team-info-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .team-info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .team-info-value {
+        color: #6c757d;
+    }
+    
+    .team-colors {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .color-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .team-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .btn-team-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-register {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+    }
+    
+    .btn-register:hover {
+        background: linear-gradient(135deg, #45a049, #3d8b40);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .btn-view {
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+        color: white;
+    }
+    
+    .btn-view:hover {
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+    
+    .stats-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        border-color: #2196f3;
+        transform: translateY(-2px);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2196f3;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .back-button:hover {
+        background: linear-gradient(135deg, #5a6268, #495057);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .empty-state h3 {
+        margin-bottom: 1rem;
+        color: #495057;
+    }
+    
+    .players-section {
+        margin-top: 1rem;
+        border-top: 1px solid #e9ecef;
+        padding-top: 1rem;
+    }
+    
+    .players-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+    
+    .player-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+        transition: background-color 0.2s ease;
+    }
+    
+    .player-item:last-child {
+        border-bottom: none;
+    }
+    
+    .player-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .player-info {
+        flex: 1;
+    }
+    
+    .player-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+    
+    .player-details {
+        font-size: 0.85rem;
+    }
+    
+    .player-photo {
+        margin-left: 1rem;
+    }
+    
+    .player-thumbnail {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #2196f3;
+    }
+    
+    .no-players {
+        text-align: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #dee2e6;
+    }
+    
+    .badge-sm {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .teams-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .team-card {
+            padding: 1.5rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .player-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .player-photo {
+            margin-left: 0;
+            align-self: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-people-fill me-3"></i>Tournament Teams</h1>
+                    <p>{{ tournament.name }} - {{ tournament.description|default:"Professional Tournament" }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="btn btn-light">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                        </a>
+                        <a href="{% url 'tournament_verification:tournament_list' %}" class="btn btn-outline-light">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Tournaments
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Back Button -->
+        <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            Back to Tournament Dashboard
+        </a>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <h3 class="mb-3"><i class="bi bi-graph-up me-2"></i>Tournament Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ teams.count }}</div>
+                    <div class="stat-label">Total Teams</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ teams_with_photos }}</div>
+                    <div class="stat-label">Teams with Photos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_players }}</div>
+                    <div class="stat-label">Total Players</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ tournament.max_teams|default:"Unlimited" }}</div>
+                    <div class="stat-label">Max Teams</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teams Grid -->
+        {% if teams %}
+            <div class="teams-grid">
+                {% for team in teams %}
+                    <div class="team-card">
+                        <!-- Team Photo -->
+                        <div class="team-photo-container">
+                            {% if team.get_team_photo_url %}
+                                <img src="{{ team.get_team_photo_url }}" alt="{{ team.name }} Photo" class="team-photo">
+                            {% else %}
+                                <div class="team-placeholder" style="background: linear-gradient(135deg, {{ team.team_color_primary }}, {{ team.team_color_secondary }});">
+                                    {{ team.short_name|slice:":2"|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Team Name -->
+                        <h3 class="team-name">{{ team.name }}</h3>
+                        <p class="team-short-name">{{ team.short_name }}</p>
+                        
+                        <!-- Team Colors -->
+                        <div class="team-colors">
+                            <div class="color-dot" style="background-color: {{ team.team_color_primary }}"></div>
+                            <div class="color-dot" style="background-color: {{ team.team_color_secondary }}"></div>
+                        </div>
+                        
+                        <!-- Team Information -->
+                        <div class="team-info">
+                            <div class="team-info-item">
+                                <span class="team-info-label">Captain:</span>
+                                <span class="team-info-value">{{ team.captain_name|default:"Not assigned" }}</span>
+                            </div>
+                            <div class="team-info-item">
+                                <span class="team-info-label">Players:</span>
+                                <span class="team-info-value">{{ team.registrations.count }}/{{ tournament.max_players_per_team|default:"15" }}</span>
+                            </div>
+                            <div class="team-info-item">
+                                <span class="team-info-label">Registration:</span>
+                                <span class="team-info-value">{{ team.registration_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="team-info-item">
+                                <span class="team-info-label">Status:</span>
+                                <span class="team-info-value">
+                                    <span class="badge bg-success">Active</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Players Section -->
+                        {% if team.registrations.exists %}
+                            <div class="players-section">
+                                <button class="btn btn-outline-primary btn-sm w-100 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#players{{ team.id }}" aria-expanded="false">
+                                    <i class="bi bi-people me-2"></i>View Players ({{ team.registrations.count }})
+                                </button>
+                                <div class="collapse" id="players{{ team.id }}">
+                                    <div class="players-list">
+                                        {% for registration in team.registrations.all %}
+                                            <div class="player-item">
+                                                <div class="player-info">
+                                                    <div class="player-name">{{ registration.full_name }}</div>
+                                                    <div class="player-details">
+                                                        <small class="text-muted">
+                                                            {{ registration.email }} | 
+                                                            ID: {{ registration.id_number }} |
+                                                            <span class="badge badge-sm bg-{% if registration.verification_status == 'VERIFIED' %}success{% elif registration.verification_status == 'PENDING' %}warning{% elif registration.verification_status == 'FAILED' %}danger{% else %}secondary{% endif %}">
+                                                                {{ registration.verification_status }}
+                                                            </span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                {% if registration.live_photo %}
+                                                    <div class="player-photo">
+                                                        <img src="{{ registration.live_photo.url }}" alt="{{ registration.full_name }}" class="player-thumbnail">
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="no-players">
+                                <p class="text-muted text-center mb-0">
+                                    <i class="bi bi-person-x me-2"></i>No players registered yet
+                                </p>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Team Actions -->
+                        <div class="team-actions">
+                            <a href="{% url 'tournament_verification:tournament_registration' tournament.id team.id %}" class="btn-team-action btn-register">
+                                <i class="bi bi-person-plus me-2"></i>Register Player
+                            </a>
+                            <a href="{% url 'tournament_verification:team_selection' tournament.id %}" class="btn-team-action btn-view">
+                                <i class="bi bi-eye me-2"></i>View Team
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-people"></i>
+                <h3>No Teams Found</h3>
+                <p>There are no teams registered for this tournament yet.</p>
+                <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Add Teams
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add some interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate team cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all team cards
+        document.querySelectorAll('.team-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

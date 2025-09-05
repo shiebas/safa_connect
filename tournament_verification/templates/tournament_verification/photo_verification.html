@@ -1,0 +1,731 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Photo Verification - Tournament System{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-camera me-2"></i>Photo Verification Dashboard</h2>
+                <a href="{% url 'tournament_verification:admin_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pending Verifications</h5>
+                    <div class="bulk-actions" style="display: none;">
+                        <button class="btn btn-danger btn-sm" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash me-1"></i>Delete Selected
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="selectAllBtn">
+                            <i class="fas fa-check-square me-1"></i>Select All
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if pending_registrations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
+                                        </th>
+                                        <th>Player</th>
+                                        <th>Tournament</th>
+                                        <th>Registration Date</th>
+                                        <th>Photo</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for registration in pending_registrations %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input registration-checkbox" 
+                                                   value="{{ registration.id }}" data-name="{{ registration.full_name }}">
+                                        </td>
+                                        <td>
+                                            <strong>{{ registration.full_name }}</strong><br>
+                                            <small class="text-muted">{{ registration.email }}</small><br>
+                                            <small class="text-muted">ID: {{ registration.id_number }}</small>
+                                        </td>
+                                        <td>{{ registration.tournament.name }}</td>
+                                        <td>{{ registration.registered_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            {% if registration.live_photo %}
+                                                <img src="{{ registration.live_photo.url }}" 
+                                                     class="img-thumbnail" 
+                                                     style="width: 80px; height: 80px; object-fit: cover;"
+                                                     data-bs-toggle="modal" 
+                                                     data-bs-target="#photoModal{{ registration.id }}">
+                                            {% else %}
+                                                <span class="text-muted">No photo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group-vertical" role="group">
+                                                <div class="btn-group mb-1" role="group">
+                                                    <button type="button" 
+                                                            class="btn btn-info btn-sm"
+                                                            onclick="autoVerifyRegistration('{{ registration.id }}')">
+                                                        <i class="fas fa-robot"></i> Auto-Verify
+                                                    </button>
+                                                    <button type="button" 
+                                                            class="btn btn-secondary btn-sm"
+                                                            onclick="uploadReferencePhoto('{{ registration.id }}')">
+                                                        <i class="fas fa-upload"></i> Upload Reference
+                                                    </button>
+                                                </div>
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" 
+                                                            class="btn btn-success btn-sm"
+                                                            onclick="verifyRegistration('{{ registration.id }}', 'VERIFIED')">
+                                                        <i class="fas fa-check"></i> Approve
+                                                    </button>
+                                                    <button type="button" 
+                                                            class="btn btn-warning btn-sm"
+                                                            onclick="verifyRegistration('{{ registration.id }}', 'MANUAL_REVIEW')">
+                                                        <i class="fas fa-eye"></i> Review
+                                                    </button>
+                                                    <button type="button" 
+                                                            class="btn btn-danger btn-sm"
+                                                            onclick="verifyRegistration('{{ registration.id }}', 'REJECTED')">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Photo Modal -->
+                                    <div class="modal fade" id="photoModal{{ registration.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Photo Verification - {{ registration.full_name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    {% if registration.live_photo %}
+                                                        <img src="{{ registration.live_photo.url }}" 
+                                                             class="img-fluid rounded" 
+                                                             style="max-height: 500px;">
+                                                    {% endif %}
+                                                    <div class="mt-3">
+                                                        <p><strong>Player Details:</strong></p>
+                                                        <p>Name: {{ registration.full_name }}</p>
+                                                        <p>Email: {{ registration.email }}</p>
+                                                        <p>ID Number: {{ registration.id_number }}</p>
+                                                        {% if registration.phone_number %}
+                                                            <p>Phone: {{ registration.phone_number }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="button" 
+                                                            class="btn btn-success"
+                                                            onclick="verifyRegistration('{{ registration.id }}', 'VERIFIED')">
+                                                        <i class="fas fa-check"></i> Approve
+                                                    </button>
+                                                    <button type="button" 
+                                                            class="btn btn-danger"
+                                                            onclick="verifyRegistration('{{ registration.id }}', 'REJECTED')">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h4>No Pending Verifications</h4>
+                            <p class="text-muted">All registrations have been verified!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function verifyRegistration(registrationId, status) {
+    const statusConfig = {
+        'VERIFIED': {
+            action: 'approve',
+            title: 'Approve Registration',
+            message: 'Are you sure you want to APPROVE this registration?',
+            confirmText: 'Yes, Approve',
+            cancelText: 'Cancel',
+            icon: 'success',
+            confirmColor: '#28a745'
+        },
+        'MANUAL_REVIEW': {
+            action: 'mark for manual review',
+            title: 'Mark for Review',
+            message: 'Are you sure you want to mark this registration for MANUAL REVIEW?',
+            confirmText: 'Yes, Mark for Review',
+            cancelText: 'Cancel',
+            icon: 'warning',
+            confirmColor: '#ffc107'
+        },
+        'REJECTED': {
+            action: 'reject',
+            title: 'Reject Registration',
+            message: 'Are you sure you want to REJECT this registration?',
+            confirmText: 'Yes, Reject',
+            cancelText: 'Cancel',
+            icon: 'error',
+            confirmColor: '#dc3545'
+        }
+    };
+    
+    const config = statusConfig[status];
+    
+    // Create custom modal
+    const modal = createConfirmationModal(config, registrationId, status);
+    document.body.appendChild(modal);
+    
+    // Show modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+function createConfirmationModal(config, registrationId, status) {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.id = `confirmModal_${registrationId}`;
+    modal.setAttribute('tabindex', '-1');
+    modal.setAttribute('aria-labelledby', 'confirmModalLabel');
+    modal.setAttribute('aria-hidden', 'true');
+    
+    modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom: 1px solid #dee2e6;">
+                    <h5 class="modal-title" id="confirmModalLabel">
+                        <i class="fas fa-${config.icon === 'success' ? 'check-circle' : config.icon === 'warning' ? 'exclamation-triangle' : 'times-circle'} me-2" 
+                           style="color: ${config.confirmColor}"></i>
+                        ${config.title}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-${config.icon === 'success' ? 'check-circle' : config.icon === 'warning' ? 'exclamation-triangle' : 'times-circle'} fa-3x" 
+                               style="color: ${config.confirmColor}"></i>
+                        </div>
+                        <p class="mb-0">${config.message}</p>
+                        <small class="text-muted">This action cannot be undone.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>${config.cancelText}
+                    </button>
+                    <button type="button" class="btn" id="confirmBtn" style="background-color: ${config.confirmColor}; border-color: ${config.confirmColor}; color: white;">
+                        <i class="fas fa-${config.icon === 'success' ? 'check' : config.icon === 'warning' ? 'eye' : 'times'} me-1"></i>${config.confirmText}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add event listener for confirm button
+    modal.addEventListener('shown.bs.modal', function() {
+        const confirmBtn = modal.querySelector('#confirmBtn');
+        confirmBtn.addEventListener('click', function() {
+            // Disable button to prevent double-clicks
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+            
+            // Process the verification
+            processVerification(registrationId, status, modal);
+        });
+    });
+    
+    // Clean up modal when hidden
+    modal.addEventListener('hidden.bs.modal', function() {
+        modal.remove();
+    });
+    
+    return modal;
+}
+
+function processVerification(registrationId, status, modal) {
+    fetch(`/tournaments/verify/${registrationId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            'status': status,
+            'notes': 'Manual verification'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showSuccessMessage(status);
+            // Close modal
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            bsModal.hide();
+            // Reload page after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            // Show error message
+            showErrorMessage(data.error);
+            // Re-enable button
+            const confirmBtn = modal.querySelector('#confirmBtn');
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check me-1"></i>Yes, Approve';
+        }
+    })
+    .catch(error => {
+        showErrorMessage('Network error: ' + error);
+        // Re-enable button
+        const confirmBtn = modal.querySelector('#confirmBtn');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-check me-1"></i>Yes, Approve';
+    });
+}
+
+function showSuccessMessage(status) {
+    const statusMessages = {
+        'VERIFIED': 'Registration approved successfully!',
+        'MANUAL_REVIEW': 'Registration marked for manual review!',
+        'REJECTED': 'Registration rejected successfully!'
+    };
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${statusMessages[status]}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+
+function showErrorMessage(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-exclamation-circle me-2"></i>
+        Error: ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function autoVerifyRegistration(registrationId) {
+    const modal = createAutoVerifyModal(registrationId);
+    document.body.appendChild(modal);
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+function createAutoVerifyModal(registrationId) {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.id = `autoVerifyModal_${registrationId}`;
+    modal.setAttribute('tabindex', '-1');
+    modal.setAttribute('aria-labelledby', 'autoVerifyModalLabel');
+    modal.setAttribute('aria-hidden', 'true');
+    
+    modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom: 1px solid #dee2e6;">
+                    <h5 class="modal-title" id="autoVerifyModalLabel">
+                        <i class="fas fa-robot me-2" style="color: #17a2b8"></i>
+                        Automatic Facial Verification
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-robot fa-3x" style="color: #17a2b8"></i>
+                        </div>
+                        <p class="mb-0">This will automatically verify the registration using facial recognition technology.</p>
+                        <small class="text-muted">The system will compare the live photo against stored reference photos.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-info" id="autoVerifyBtn">
+                        <i class="fas fa-robot me-1"></i>Start Auto-Verification
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add event listener for auto-verify button
+    modal.addEventListener('shown.bs.modal', function() {
+        const autoVerifyBtn = modal.querySelector('#autoVerifyBtn');
+        autoVerifyBtn.addEventListener('click', function() {
+            autoVerifyBtn.disabled = true;
+            autoVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+            
+            // Process auto-verification
+            processAutoVerification(registrationId, modal);
+        });
+    });
+    
+    // Clean up modal when hidden
+    modal.addEventListener('hidden.bs.modal', function() {
+        modal.remove();
+    });
+    
+    return modal;
+}
+
+function processAutoVerification(registrationId, modal) {
+    fetch(`/tournaments/auto-verify/${registrationId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show detailed results
+            showAutoVerificationResults(data);
+            // Close modal
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            bsModal.hide();
+            // Reload page after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        } else {
+            showErrorMessage(data.error);
+            // Re-enable button
+            const autoVerifyBtn = modal.querySelector('#autoVerifyBtn');
+            autoVerifyBtn.disabled = false;
+            autoVerifyBtn.innerHTML = '<i class="fas fa-robot me-1"></i>Start Auto-Verification';
+        }
+    })
+    .catch(error => {
+        showErrorMessage('Network error: ' + error);
+        // Re-enable button
+        const autoVerifyBtn = modal.querySelector('#autoVerifyBtn');
+        autoVerifyBtn.disabled = false;
+        autoVerifyBtn.innerHTML = '<i class="fas fa-robot me-1"></i>Start Auto-Verification';
+    });
+}
+
+function showAutoVerificationResults(data) {
+    const result = data.verification_result;
+    const confidence = (data.confidence * 100).toFixed(1);
+    
+    let alertClass = 'alert-info';
+    let icon = 'fas fa-robot';
+    let message = `Auto-verification completed with ${confidence}% confidence.`;
+    
+    if (data.status === 'VERIFIED') {
+        alertClass = 'alert-success';
+        icon = 'fas fa-check-circle';
+        message = `✅ Auto-verified with ${confidence}% confidence!`;
+    } else if (data.status === 'MANUAL_REVIEW') {
+        alertClass = 'alert-warning';
+        icon = 'fas fa-exclamation-triangle';
+        message = `⚠️ Auto-review: ${confidence}% confidence - requires manual review.`;
+    } else if (data.status === 'FAILED') {
+        alertClass = 'alert-danger';
+        icon = 'fas fa-times-circle';
+        message = `❌ Auto-verification failed: ${confidence}% confidence.`;
+    }
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 400px;';
+    alertDiv.innerHTML = `
+        <i class="${icon} me-2"></i>
+        <strong>Facial Recognition Results:</strong><br>
+        ${message}<br>
+        <small class="text-muted">
+            Face detected in live photo: ${result.face_detected_live ? 'Yes' : 'No'}<br>
+            Face detected in stored photo: ${result.face_detected_stored ? 'Yes' : 'No'}
+            ${result.error ? '<br>Error: ' + result.error : ''}
+        </small>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 8000);
+}
+
+function uploadReferencePhoto(registrationId) {
+    // Create file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('reference_photo', file);
+            
+            // Show loading
+            showInfoMessage('Uploading reference photo and performing verification...');
+            
+            fetch(`/tournaments/upload-reference/${registrationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAutoVerificationResults(data);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    showErrorMessage(data.error);
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Upload error: ' + error);
+            });
+        }
+    });
+    
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
+}
+
+function showInfoMessage(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-info-circle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Bulk Delete Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const registrationCheckboxes = document.querySelectorAll('.registration-checkbox');
+    const bulkActions = document.querySelector('.bulk-actions');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    
+    // Show bulk actions if there are registrations
+    if (registrationCheckboxes.length > 0) {
+        bulkActions.style.display = 'block';
+    }
+    
+    // Select All functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        registrationCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateBulkDeleteButton();
+    });
+    
+    // Individual checkbox change
+    registrationCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllState();
+            updateBulkDeleteButton();
+        });
+    });
+    
+    // Select All button
+    selectAllBtn.addEventListener('click', function() {
+        const allChecked = Array.from(registrationCheckboxes).every(cb => cb.checked);
+        registrationCheckboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
+        });
+        selectAllCheckbox.checked = !allChecked;
+        updateBulkDeleteButton();
+    });
+    
+    // Bulk Delete button
+    bulkDeleteBtn.addEventListener('click', function() {
+        const selectedIds = Array.from(registrationCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        if (selectedIds.length === 0) {
+            showErrorMessage('Please select registrations to delete');
+            return;
+        }
+        
+        const selectedNames = Array.from(registrationCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.dataset.name);
+        
+        showBulkDeleteConfirmation(selectedIds, selectedNames);
+    });
+    
+    function updateSelectAllState() {
+        const checkedCount = Array.from(registrationCheckboxes).filter(cb => cb.checked).length;
+        selectAllCheckbox.checked = checkedCount === registrationCheckboxes.length;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < registrationCheckboxes.length;
+    }
+    
+    function updateBulkDeleteButton() {
+        const checkedCount = Array.from(registrationCheckboxes).filter(cb => cb.checked).length;
+        bulkDeleteBtn.disabled = checkedCount === 0;
+        bulkDeleteBtn.innerHTML = `<i class="fas fa-trash me-1"></i>Delete Selected (${checkedCount})`;
+    }
+    
+    function showBulkDeleteConfirmation(ids, names) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('aria-labelledby', 'bulkDeleteModalLabel');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="bulkDeleteModalLabel">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Confirm Bulk Delete
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Warning:</strong> This action cannot be undone!
+                        </div>
+                        <p>Are you sure you want to delete the following registrations?</p>
+                        <ul class="list-group">
+                            ${names.map(name => `<li class="list-group-item">${name}</li>`).join('')}
+                        </ul>
+                        <p class="mt-3 mb-0"><strong>Total:</strong> ${ids.length} registration(s)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-danger" id="confirmBulkDeleteBtn">
+                            <i class="fas fa-trash me-1"></i>Delete ${ids.length} Registration(s)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        // Handle confirmation
+        modal.querySelector('#confirmBulkDeleteBtn').addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
+            
+            fetch('/tournaments/bulk-delete/registrations/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    'registration_ids': ids
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessMessage(data.message);
+                    bsModal.hide();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showErrorMessage(data.error);
+                    this.disabled = false;
+                    this.innerHTML = `<i class="fas fa-trash me-1"></i>Delete ${ids.length} Registration(s)`;
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Network error: ' + error);
+                this.disabled = false;
+                this.innerHTML = `<i class="fas fa-trash me-1"></i>Delete ${ids.length} Registration(s)`;
+            });
+        });
+        
+        // Clean up modal when hidden
+        modal.addEventListener('hidden.bs.modal', function() {
+            modal.remove();
+        });
+    }
+});
+</script>
+{% endblock %}

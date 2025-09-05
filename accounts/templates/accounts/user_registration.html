@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const passportContainer = document.getElementById('passport_container');
     const manualDobGenderContainer = document.getElementById('manual_dob_gender_container');
     const clubContainer = document.getElementById('club_container');
-    const associationContainer = document.getElementById('div_id_association');
+    const associationContainer = document.getElementById('association_container');
     const idNumberField = document.getElementById('id_id_number');
     const dobField = document.getElementById('id_date_of_birth');
     const genderField = document.getElementById('id_gender');
@@ -490,9 +490,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     showField(clubContainer);
                     if (clubField) clubField.required = true;
                 } else if (role === 'ASSOCIATION_ADMIN') {
-                    // Association Admin doesn't need association dropdown - they manage associations
-                    hideField(associationContainer);
-                    if (associationSelect) associationSelect.required = false;
+                    // Association Admin needs to select which association they will administer
+                    showField(associationContainer);
+                    if (associationSelect) associationSelect.required = true;
                 } else if (role === 'SUPPORTER') {
                     const locationContainer = document.getElementById('headingThree').parentNode;
                     if (locationContainer) {

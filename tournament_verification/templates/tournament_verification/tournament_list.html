@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-trophy me-2 text-warning"></i>Active Tournaments
+                </h2>
+                {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'admin:index' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-cog me-2"></i>Admin Panel
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if tournaments %}
+                <div class="row">
+                    {% for tournament in tournaments %}
+                    <div class="col-lg-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-trophy me-2"></i>{{ tournament.name }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Date:</strong></p>
+                                        <p class="text-muted">{{ tournament.start_date|date:"F d, Y H:i" }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Location:</strong></p>
+                                        <p class="text-muted">{{ tournament.location }}</p>
+                                    </div>
+                                </div>
+                                
+                                {% if tournament.sport_code %}
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Sport:</strong></p>
+                                        <p class="text-muted">{{ tournament.sport_code.name }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Type:</strong></p>
+                                        <p class="text-muted">{{ tournament.get_tournament_type_display }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Registration Deadline:</strong></p>
+                                        <p class="text-muted">{{ tournament.registration_deadline|date:"F d, Y H:i" }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Max Teams:</strong></p>
+                                        <p class="text-muted">{{ tournament.max_teams }}</p>
+                                    </div>
+                                </div>
+                                
+                                {% if tournament.description %}
+                                    <p class="mb-3"><strong>Description:</strong></p>
+                                    <p class="text-muted">{{ tournament.description|truncatewords:20 }}</p>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% now "Y-m-d H:i:s" as current_time %}
+                                        {% if tournament.is_published and tournament.is_registration_open and tournament.registration_deadline|date:"Y-m-d H:i:s" > current_time %}
+                                            <span class="badge bg-success">Registration Open</span>
+                                        {% elif not tournament.is_published %}
+                                            <span class="badge bg-warning">Not Published</span>
+                                        {% elif not tournament.is_registration_open %}
+                                            <span class="badge bg-warning">Registration Closed</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Registration Closed</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {% if tournament.is_published and tournament.is_registration_open and tournament.registration_deadline|date:"Y-m-d H:i:s" > current_time %}
+                                            <a href="{% url 'tournament_verification:team_selection' tournament.id %}" 
+                                               class="btn btn-primary">
+                                                <i class="fas fa-users me-2"></i>Select Team
+                                            </a>
+                                        {% else %}
+                                            <button class="btn btn-secondary" disabled>
+                                                <i class="fas fa-lock me-2"></i>Registration Closed
+                                            </button>
+                                        {% endif %}
+                                        
+                                        <a href="{% url 'tournament_verification:team_list' tournament.id %}" 
+                                           class="btn btn-outline-success ms-2">
+                                            <i class="fas fa-eye me-2"></i>View Teams
+                                        </a>
+                                        
+                                        {% if user.is_authenticated and user.is_staff %}
+                                            <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" 
+                                               class="btn btn-outline-info ms-2">
+                                                <i class="fas fa-chart-bar me-2"></i>Dashboard
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Active Tournaments</h4>
+                    <p class="text-muted">There are currently no active tournaments available for registration.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

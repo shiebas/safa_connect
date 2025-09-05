@@ -244,6 +244,10 @@ footer .text-muted {
     border-color: #28a745;
 }
 
+.feature-card.tournament-card:hover {
+    border-color: #ffc107;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .quick-action-btn {
@@ -437,6 +441,34 @@ footer .text-muted {
                                         </a>
                                         <a href="{% url 'digital_coins:competitions' %}" class="btn btn-outline-success">
                                             <i class="bi bi-trophy me-2"></i>Gaming Competitions
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Second Row for Tournament Verification -->
+                    <div class="row">
+                        <!-- Tournament Verification System -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 feature-card tournament-card">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-camera-video me-2"></i>Tournament Verification System
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted mb-3">On-the-day player registration with live photo capture and facial verification for tournaments.</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'tournament_verification:tournament_list' %}" class="btn btn-warning">
+                                            <i class="bi bi-list-check me-2"></i>Tournament List
+                                        </a>
+                                        <a href="{% url 'tournament_verification:admin_dashboard' %}" class="btn btn-outline-warning">
+                                            <i class="bi bi-speedometer2 me-2"></i>Tournament Dashboard
+                                        </a>
+                                        <a href="/admin/tournament_verification/" class="btn btn-outline-warning">
+                                            <i class="bi bi-gear me-2"></i>Admin Panel
                                         </a>
                                     </div>
                                 </div>

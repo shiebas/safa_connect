@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tournament Fixtures - {{ tournament.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 20px rgba(33, 150, 243, 0.3);
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .fixture-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .fixture-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-color: #2196f3;
+    }
+    
+    .fixture-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .fixture-date {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2196f3;
+    }
+    
+    .fixture-venue {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .fixture-round {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .fixture-teams {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .team-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+    }
+    
+    .team-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-left: 0.5rem;
+    }
+    
+    .team-logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #2196f3;
+    }
+    
+    .team-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        border: 2px solid #2196f3;
+    }
+    
+    .vs-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 1rem;
+        min-width: 80px;
+    }
+    
+    .vs-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2196f3;
+        margin-bottom: 0.5rem;
+    }
+    
+    .fixture-score {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+    }
+    
+    .fixture-status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-scheduled {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .status-in-progress {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+    
+    .status-completed {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+    
+    .status-postponed {
+        background: #fce4ec;
+        color: #c2185b;
+    }
+    
+    .status-cancelled {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+    
+    .fixture-officials {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .no-fixtures {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+    
+    .no-fixtures i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .no-fixtures h3 {
+        margin-bottom: 1rem;
+        color: #495057;
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .back-button:hover {
+        background: linear-gradient(135deg, #5a6268, #495057);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    
+    .generate-fixtures-btn {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .generate-fixtures-btn:hover {
+        background: linear-gradient(135deg, #45a049, #3d8b40);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .fixtures-stats {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        border-color: #2196f3;
+        transform: translateY(-2px);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2196f3;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+    }
+    
+    @media (max-width: 768px) {
+        .fixture-teams {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .vs-section {
+            margin: 0;
+        }
+        
+        .fixture-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-calendar-event me-3"></i>Tournament Fixtures</h1>
+                    <p>{{ tournament.name }} - {{ tournament.description|default:"Professional Tournament" }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="btn btn-light">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                        </a>
+                        <a href="{% url 'tournament_verification:tournament_list' %}" class="btn btn-outline-light">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Tournaments
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Back Button -->
+        <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            Back to Tournament Dashboard
+        </a>
+
+        {% if has_fixtures %}
+            <!-- Statistics Section -->
+            <div class="fixtures-stats">
+                <h3 class="mb-3"><i class="bi bi-graph-up me-2"></i>Fixture Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ fixtures.count }}</div>
+                        <div class="stat-label">Total Fixtures</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ fixtures|length|add:"-1"|add:"1"|default:"0" }}</div>
+                        <div class="stat-label">Scheduled</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ tournament.teams.count }}</div>
+                        <div class="stat-label">Teams</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fixtures List -->
+            <div class="fixtures-list">
+                {% for fixture in fixtures %}
+                    <div class="fixture-card">
+                        <div class="fixture-header">
+                            <div>
+                                <div class="fixture-date">
+                                    <i class="bi bi-calendar me-2"></i>{{ fixture.match_date|date:"F d, Y" }}
+                                </div>
+                                <div class="fixture-venue">
+                                    <i class="bi bi-geo-alt me-2"></i>{{ fixture.venue|default:tournament.location }}
+                                </div>
+                            </div>
+                            <div class="fixture-round">{{ fixture.round_name|default:"Match" }}</div>
+                        </div>
+                        
+                        <div class="fixture-teams">
+                            <div class="team-info">
+                                {% if fixture.home_team.get_team_photo_url %}
+                                    <img src="{{ fixture.home_team.get_team_photo_url }}" alt="{{ fixture.home_team.name }}" class="team-logo">
+                                {% else %}
+                                    <div class="team-placeholder" style="background: linear-gradient(135deg, {{ fixture.home_team.team_color_primary }}, {{ fixture.home_team.team_color_secondary }});">
+                                        {{ fixture.home_team.short_name|slice:":2"|upper }}
+                                    </div>
+                                {% endif %}
+                                <div class="team-name">{{ fixture.home_team.name }}</div>
+                            </div>
+                            
+                            <div class="vs-section">
+                                <div class="vs-text">VS</div>
+                                <div class="fixture-score">{{ fixture.get_score_display }}</div>
+                            </div>
+                            
+                            <div class="team-info" style="justify-content: flex-end;">
+                                <div class="team-name" style="margin-right: 0.5rem;">{{ fixture.away_team.name }}</div>
+                                {% if fixture.away_team.get_team_photo_url %}
+                                    <img src="{{ fixture.away_team.get_team_photo_url }}" alt="{{ fixture.away_team.name }}" class="team-logo">
+                                {% else %}
+                                    <div class="team-placeholder" style="background: linear-gradient(135deg, {{ fixture.away_team.team_color_primary }}, {{ fixture.away_team.team_color_secondary }});">
+                                        {{ fixture.away_team.short_name|slice:":2"|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="fixture-status">
+                            <div>
+                                <span class="status-badge status-{{ fixture.status|lower|cut:'_' }}">
+                                    {{ fixture.get_status_display }}
+                                </span>
+                                <span class="fixture-officials ms-3">
+                                    {% if fixture.referee %}
+                                        <i class="bi bi-person me-1"></i>Ref: {{ fixture.referee }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="fixture-officials">
+                                <i class="bi bi-clock me-1"></i>{{ fixture.match_date|time:"H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- No Fixtures State -->
+            <div class="no-fixtures">
+                <i class="bi bi-calendar-x"></i>
+                <h3>No Fixtures Generated</h3>
+                <p>Fixtures need to be generated before teams can be selected for registration.</p>
+                {% if user.is_superuser %}
+                    <a href="{% url 'tournament_verification:generate_fixtures' tournament.id %}" class="generate-fixtures-btn">
+                        <i class="bi bi-plus-circle me-2"></i>Generate Fixtures
+                    </a>
+                {% else %}
+                    <p class="text-muted">Contact an administrator to generate fixtures for this tournament.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add some interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate fixture cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all fixture cards
+        document.querySelectorAll('.fixture-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}
+
+

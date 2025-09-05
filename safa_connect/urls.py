@@ -40,6 +40,7 @@ urlpatterns = [
     path('cards/', RedirectView.as_view(url='/membership-cards/', permanent=False)),  # Redirect for convenience
     path('digital-coins/', include('digital_coins.urls', namespace='digital_coins')),
     path('league-management/', include('league_management.urls')),
+    path('tournaments/', include('tournament_verification.urls', namespace='tournament_verification')),
     path('supporters/', include('supporters.urls', namespace='supporters')),
     path('events/', include('events.urls', namespace='events')),
     path('store/', include('merchandise.urls', namespace='merchandise')),

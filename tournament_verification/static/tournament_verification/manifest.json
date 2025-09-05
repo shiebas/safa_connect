@@ -1,0 +1,114 @@
+{
+  "name": "SAFA Tournament Registration",
+  "short_name": "Tournament App",
+  "description": "Professional tournament registration with facial verification",
+  "start_url": "/tournaments/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "scope": "/tournaments/",
+  "lang": "en",
+  "categories": ["sports", "utilities"],
+  "icons": [
+    {
+      "src": "/static/tournament_verification/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/tournament_verification/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/tournament_verification/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/tournament_verification/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/tournament_verification/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/tournament_verification/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/tournament_verification/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/tournament_verification/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/tournament_verification/screenshots/team-selection.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Team Selection Interface"
+    },
+    {
+      "src": "/static/tournament_verification/screenshots/registration.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Registration Form"
+    }
+  ],
+  "features": [
+    "Visual team selection",
+    "Live photo capture",
+    "Facial verification",
+    "Offline support",
+    "Touch-friendly interface"
+  ],
+  "shortcuts": [
+    {
+      "name": "Tournament List",
+      "short_name": "Tournaments",
+      "description": "View active tournaments",
+      "url": "/tournaments/",
+      "icons": [
+        {
+          "src": "/static/tournament_verification/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "short_name": "Admin",
+      "description": "Tournament administration",
+      "url": "/tournaments/admin/",
+      "icons": [
+        {
+          "src": "/static/tournament_verification/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
+
+

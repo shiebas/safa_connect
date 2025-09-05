@@ -416,7 +416,10 @@ class RegistrationForm(forms.ModelForm):
                 self.fields['lfa'].widget = forms.HiddenInput()
                 self.fields['club'].widget = forms.HiddenInput()
                 self.fields['association'].widget = forms.HiddenInput()
-            else: # For ADMIN roles
+            elif role == 'ASSOCIATION_ADMIN':
+                self.fields['club'].required = False
+                self.fields['association'].required = True
+            else: # For other ADMIN roles
                 self.fields['club'].required = False
                 self.fields['association'].required = False
         

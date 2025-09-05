@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>{{ tournament.name }} - Dashboard
+                    </h2>
+                    <p class="text-muted mb-0">{{ tournament.start_date|date:"F d, Y" }} at {{ tournament.location }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'tournament_verification:tournament_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Tournaments
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0">{{ total_registrations }}</h4>
+                                    <p class="mb-0">Total Registrations</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0">{{ verified_registrations }}</h4>
+                                    <p class="mb-0">Verified</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0">{{ manual_review }}</h4>
+                                    <p class="mb-0">Manual Review</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-user-check fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0">{{ failed_verifications }}</h4>
+                                    <p class="mb-0">Failed</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-times-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bolt me-2"></i>Quick Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'tournament_verification:team_list' tournament.id %}" class="btn btn-primary w-100">
+                                        <i class="fas fa-users me-2"></i>View All Teams
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'tournament_verification:team_selection' tournament.id %}" class="btn btn-success w-100">
+                                        <i class="fas fa-user-plus me-2"></i>Register Player
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'tournament_verification:photo_verification' %}" class="btn btn-info w-100">
+                                        <i class="fas fa-camera me-2"></i>Verify Photos
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'tournament_verification:tournament_fixtures' tournament.id %}" class="btn btn-warning w-100">
+                                        <i class="fas fa-calendar-alt me-2"></i>View Fixtures
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'tournament_verification:bulk_management' %}" class="btn btn-secondary w-100">
+                                        <i class="fas fa-tools me-2"></i>Bulk Management
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registrations Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Registrations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if registrations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>ID Number</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Confidence</th>
+                                        <th>Registered</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for registration in registrations %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if registration.live_photo %}
+                                                    <img src="{{ registration.live_photo.url }}" 
+                                                         class="rounded-circle me-2" 
+                                                         style="width: 40px; height: 40px; object-fit: cover;" 
+                                                         alt="Photo">
+                                                {% endif %}
+                                                <div>
+                                                    <strong>{{ registration.full_name }}</strong>
+                                                    {% if registration.player %}
+                                                        <br><small class="text-muted">System Player</small>
+                                                    {% else %}
+                                                        <br><small class="text-muted">Walk-in</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ registration.email }}</td>
+                                        <td>{{ registration.id_number }}</td>
+                                        <td>
+                                            {% if registration.registration_type == 'SYSTEM_PLAYER' %}
+                                                <span class="badge bg-info">System Player</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Walk-in</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if registration.verification_status == 'VERIFIED' %}
+                                                <span class="badge bg-success">Verified</span>
+                                            {% elif registration.verification_status == 'PENDING' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif registration.verification_status == 'FAILED' %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% elif registration.verification_status == 'MANUAL_REVIEW' %}
+                                                <span class="badge bg-info">Manual Review</span>
+                                            {% elif registration.verification_status == 'REJECTED' %}
+                                                <span class="badge bg-dark">Rejected</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if registration.verification_confidence_percentage %}
+                                                {{ registration.verification_confidence_percentage }}%
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ registration.registered_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#viewModal{{ registration.id }}">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                
+                                                {% if registration.verification_status == 'MANUAL_REVIEW' %}
+                                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#verifyModal{{ registration.id }}">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Registrations Yet</h5>
+                            <p class="text-muted">Registrations will appear here once players start registering.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Registration Modal -->
+{% for registration in registrations %}
+<div class="modal fade" id="viewModal{{ registration.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registration Details - {{ registration.full_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Personal Information</h6>
+                        <p><strong>Name:</strong> {{ registration.full_name }}</p>
+                        <p><strong>Email:</strong> {{ registration.email }}</p>
+                        <p><strong>Phone:</strong> {{ registration.phone_number }}</p>
+                        <p><strong>ID Number:</strong> {{ registration.id_number }}</p>
+                        <p><strong>Registration Type:</strong> {{ registration.get_registration_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Verification Details</h6>
+                        <p><strong>Status:</strong> {{ registration.get_verification_status_display }}</p>
+                        {% if registration.verification_confidence_percentage %}
+                            <p><strong>Confidence:</strong> {{ registration.verification_confidence_percentage }}%</p>
+                        {% endif %}
+                        {% if registration.verification_notes %}
+                            <p><strong>Notes:</strong> {{ registration.verification_notes }}</p>
+                        {% endif %}
+                        <p><strong>Registered:</strong> {{ registration.registered_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                {% if registration.live_photo %}
+                <div class="mt-3">
+                    <h6>Registration Photo</h6>
+                    <img src="{{ registration.live_photo.url }}" class="img-thumbnail" style="max-width: 200px;" alt="Registration Photo">
+                </div>
+                {% endif %}
+                
+                {% if registration.stored_photo %}
+                <div class="mt-3">
+                    <h6>Stored Photo</h6>
+                    <img src="{{ registration.stored_photo.url }}" class="img-thumbnail" style="max-width: 200px;" alt="Stored Photo">
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Manual Verification Modal -->
+{% for registration in registrations %}
+{% if registration.verification_status == 'MANUAL_REVIEW' %}
+<div class="modal fade" id="verifyModal{{ registration.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'tournament_verification:manual_verification' registration.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Manual Verification - {{ registration.full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Live Photo</h6>
+                            {% if registration.live_photo %}
+                                <img src="{{ registration.live_photo.url }}" class="img-thumbnail" style="max-width: 150px;" alt="Live Photo">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Stored Photo</h6>
+                            {% if registration.stored_photo %}
+                                <img src="{{ registration.stored_photo.url }}" class="img-thumbnail" style="max-width: 150px;" alt="Stored Photo">
+                            {% else %}
+                                <p class="text-muted">No stored photo available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <label for="notes{{ registration.id }}" class="form-label">Verification Notes</label>
+                        <textarea class="form-control" id="notes{{ registration.id }}" name="notes" rows="3" placeholder="Add any notes about this verification..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
+                    <button type="submit" name="action" value="approve" class="btn btn-success">Approve</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}
+

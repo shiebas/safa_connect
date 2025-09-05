@@ -1,0 +1,27 @@
+# Facial Recognition Dependencies
+# Install these packages for facial verification functionality
+
+# Core facial recognition library
+face_recognition==1.3.0
+
+# Computer vision library
+opencv-python==4.8.1.78
+
+# Image processing
+Pillow==10.0.1
+
+# Scientific computing
+numpy==1.24.3
+
+# Additional dependencies for face_recognition
+dlib==19.24.2
+
+# Alternative: If dlib installation fails on Windows, use:
+# dlib-binary==19.24.2
+
+# For better performance (optional)
+# cmake==3.27.7
+# boost==1.82.0
+
+
+
