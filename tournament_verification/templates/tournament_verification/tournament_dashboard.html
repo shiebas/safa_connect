@@ -121,6 +121,16 @@
                                     </a>
                                 </div>
                                 <div class="col-md-3 mb-2">
+                                    <a href="{% url 'tournament_verification:fixture_team_selection' tournament.id %}" class="btn btn-info w-100">
+                                        <i class="fas fa-users me-2"></i>Select Teams
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'tournament_verification:tournament_standings' tournament.id %}" class="btn btn-success w-100">
+                                        <i class="fas fa-trophy me-2"></i>Standings
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
                                     <a href="{% url 'tournament_verification:bulk_management' %}" class="btn btn-secondary w-100">
                                         <i class="fas fa-tools me-2"></i>Bulk Management
                                     </a>

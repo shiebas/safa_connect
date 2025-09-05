@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 20px rgba(108, 117, 125, 0.3);
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .fixture-info {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid #e9ecef;
+    }
+    
+    .fixture-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .fixture-date {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #6c757d;
+    }
+    
+    .fixture-venue {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .fixture-round {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .teamsheet-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .team-section {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .team-section:hover {
+        border-color: #6c757d;
+        transform: translateY(-2px);
+    }
+    
+    .team-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .team-logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #6c757d;
+    }
+    
+    .team-placeholder {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        font-weight: bold;
+        border: 3px solid #6c757d;
+    }
+    
+    .team-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .player-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .player-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #6c757d;
+    }
+    
+    .player-photo {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #dee2e6;
+    }
+    
+    .player-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+    }
+    
+    .player-info {
+        flex: 1;
+    }
+    
+    .player-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+    
+    .player-details {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .verification-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .verification-verified {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .verification-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .verification-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .back-button:hover {
+        background: linear-gradient(135deg, #5a6268, #495057);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    
+    .no-players {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+    
+    .no-players i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .no-players h4 {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .btn-action {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: linear-gradient(135deg, #1e7e34, #155724);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+        .teamsheet-container {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-list-check me-3"></i>Team Sheet</h1>
+                    <p>{{ fixture.home_team.name }} vs {{ fixture.away_team.name }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'tournament_verification:fixture_team_selection' fixture.tournament.id %}" class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Fixtures
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Back Button -->
+        <a href="{% url 'tournament_verification:fixture_team_selection' fixture.tournament.id %}" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            Back to Fixture Management
+        </a>
+
+        <!-- Fixture Information -->
+        <div class="fixture-info">
+            <div class="fixture-header">
+                <div>
+                    <div class="fixture-date">
+                        <i class="bi bi-calendar me-2"></i>{{ fixture.match_date|date:"F d, Y" }}
+                    </div>
+                    <div class="fixture-venue">
+                        <i class="bi bi-geo-alt me-2"></i>{{ fixture.venue|default:fixture.tournament.location }}
+                    </div>
+                </div>
+                <div class="fixture-round">{{ fixture.round_name|default:"Match" }}</div>
+            </div>
+        </div>
+
+        <!-- Team Sheets -->
+        <div class="teamsheet-container">
+            <!-- Home Team -->
+            <div class="team-section">
+                <div class="team-header">
+                    {% if fixture.home_team.get_team_photo_url %}
+                        <img src="{{ fixture.home_team.get_team_photo_url }}" alt="{{ fixture.home_team.name }}" class="team-logo">
+                    {% else %}
+                        <div class="team-placeholder" style="background: linear-gradient(135deg, {{ fixture.home_team.team_color_primary }}, {{ fixture.home_team.team_color_secondary }});">
+                            {{ fixture.home_team.short_name|slice:":2"|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="team-name">{{ fixture.home_team.name }}</div>
+                </div>
+                
+                <div class="player-list">
+                    {% for player in home_team_players %}
+                        <div class="player-item">
+                            {% if player.live_photo %}
+                                <img src="{{ player.live_photo.url }}" alt="{{ player.first_name }} {{ player.last_name }}" class="player-photo">
+                            {% else %}
+                                <div class="player-placeholder">
+                                    {{ player.first_name|slice:":1"|upper }}{{ player.last_name|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="player-info">
+                                <div class="player-name">{{ player.first_name }} {{ player.last_name }}</div>
+                                <div class="player-details">
+                                    <span class="verification-badge verification-{{ player.verification_status|lower }}">
+                                        {{ player.get_verification_status_display }}
+                                    </span>
+                                    {% if player.verification_score %}
+                                        • Score: {{ player.verification_score|floatformat:2 }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="no-players">
+                            <i class="bi bi-person-x"></i>
+                            <h4>No Players Selected</h4>
+                            <p>Players need to be selected for this match.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Away Team -->
+            <div class="team-section">
+                <div class="team-header">
+                    {% if fixture.away_team.get_team_photo_url %}
+                        <img src="{{ fixture.away_team.get_team_photo_url }}" alt="{{ fixture.away_team.name }}" class="team-logo">
+                    {% else %}
+                        <div class="team-placeholder" style="background: linear-gradient(135deg, {{ fixture.away_team.team_color_primary }}, {{ fixture.away_team.team_color_secondary }});">
+                            {{ fixture.away_team.short_name|slice:":2"|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="team-name">{{ fixture.away_team.name }}</div>
+                </div>
+                
+                <div class="player-list">
+                    {% for player in away_team_players %}
+                        <div class="player-item">
+                            {% if player.live_photo %}
+                                <img src="{{ player.live_photo.url }}" alt="{{ player.first_name }} {{ player.last_name }}" class="player-photo">
+                            {% else %}
+                                <div class="player-placeholder">
+                                    {{ player.first_name|slice:":1"|upper }}{{ player.last_name|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="player-info">
+                                <div class="player-name">{{ player.first_name }} {{ player.last_name }}</div>
+                                <div class="player-details">
+                                    <span class="verification-badge verification-{{ player.verification_status|lower }}">
+                                        {{ player.get_verification_status_display }}
+                                    </span>
+                                    {% if player.verification_score %}
+                                        • Score: {{ player.verification_score|floatformat:2 }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="no-players">
+                            <i class="bi bi-person-x"></i>
+                            <h4>No Players Selected</h4>
+                            <p>Players need to be selected for this match.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'tournament_verification:fixture_player_selection' fixture.id %}" class="btn-action btn-primary">
+                <i class="bi bi-people me-2"></i>Select Players
+            </a>
+            <a href="{% url 'tournament_verification:match_results' fixture.id %}" class="btn-action btn-success">
+                <i class="bi bi-trophy me-2"></i>Enter Results
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some interactive effects
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all team sections
+    document.querySelectorAll('.team-section').forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(section);
+    });
+});
+</script>
+{% endblock %}

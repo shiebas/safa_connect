@@ -1,0 +1,566 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .fixture-info {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid #e9ecef;
+    }
+    
+    .fixture-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .fixture-date {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #28a745;
+    }
+    
+    .fixture-venue {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .fixture-round {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .results-form {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid #e9ecef;
+    }
+    
+    .teams-display {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 2rem;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+    }
+    
+    .team-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .team-logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #28a745;
+    }
+    
+    .team-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        border: 3px solid #28a745;
+    }
+    
+    .team-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .vs-section {
+        text-align: center;
+    }
+    
+    .vs-text {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+    
+    .current-score {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 2px solid #28a745;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .form-section h4 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .score-inputs {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .score-input {
+        text-align: center;
+    }
+    
+    .score-input input {
+        width: 80px;
+        height: 60px;
+        font-size: 2rem;
+        font-weight: 700;
+        text-align: center;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        transition: border-color 0.3s ease;
+    }
+    
+    .score-input input:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+    
+    .score-input label {
+        display: block;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .vs-display {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-save:hover {
+        background: linear-gradient(135deg, #1e7e34, #155724);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-save:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .back-button:hover {
+        background: linear-gradient(135deg, #5a6268, #495057);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+    }
+    
+    @media (max-width: 768px) {
+        .teams-display {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .score-inputs {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-trophy me-3"></i>Match Results</h1>
+                    <p>{{ fixture.home_team.name }} vs {{ fixture.away_team.name }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'tournament_verification:fixture_team_selection' fixture.tournament.id %}" class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Fixtures
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Back Button -->
+        <a href="{% url 'tournament_verification:fixture_team_selection' fixture.tournament.id %}" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            Back to Fixture Management
+        </a>
+
+        <!-- Alert Messages -->
+        <div id="alert-container"></div>
+
+        <!-- Fixture Information -->
+        <div class="fixture-info">
+            <div class="fixture-header">
+                <div>
+                    <div class="fixture-date">
+                        <i class="bi bi-calendar me-2"></i>{{ fixture.match_date|date:"F d, Y" }}
+                    </div>
+                    <div class="fixture-venue">
+                        <i class="bi bi-geo-alt me-2"></i>{{ fixture.venue|default:fixture.tournament.location }}
+                    </div>
+                </div>
+                <div class="fixture-round">{{ fixture.round_name|default:"Match" }}</div>
+            </div>
+        </div>
+
+        <!-- Teams Display -->
+        <div class="teams-display">
+            <div class="team-info">
+                {% if fixture.home_team.get_team_photo_url %}
+                    <img src="{{ fixture.home_team.get_team_photo_url }}" alt="{{ fixture.home_team.name }}" class="team-logo">
+                {% else %}
+                    <div class="team-placeholder" style="background: linear-gradient(135deg, {{ fixture.home_team.team_color_primary }}, {{ fixture.home_team.team_color_secondary }});">
+                        {{ fixture.home_team.short_name|slice:":2"|upper }}
+                    </div>
+                {% endif %}
+                <div class="team-name">{{ fixture.home_team.name }}</div>
+            </div>
+            
+            <div class="vs-section">
+                <div class="vs-text">VS</div>
+                <div class="current-score">
+                    {% if fixture.home_score is not None and fixture.away_score is not None %}
+                        {{ fixture.home_score }} - {{ fixture.away_score }}
+                    {% else %}
+                        - - -
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="team-info" style="justify-content: flex-end;">
+                <div class="team-name" style="text-align: right;">{{ fixture.away_team.name }}</div>
+                {% if fixture.away_team.get_team_photo_url %}
+                    <img src="{{ fixture.away_team.get_team_photo_url }}" alt="{{ fixture.away_team.name }}" class="team-logo">
+                {% else %}
+                    <div class="team-placeholder" style="background: linear-gradient(135deg, {{ fixture.away_team.team_color_primary }}, {{ fixture.away_team.team_color_secondary }});">
+                        {{ fixture.away_team.short_name|slice:":2"|upper }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Results Form -->
+        <div class="results-form">
+            <form id="results-form">
+                <!-- Regular Time Score -->
+                <div class="form-section">
+                    <h4><i class="bi bi-clock me-2"></i>Regular Time Score</h4>
+                    <div class="score-inputs">
+                        <div class="score-input">
+                            <label for="home_score">{{ fixture.home_team.short_name }}</label>
+                            <input type="number" id="home_score" name="home_score" min="0" value="{{ fixture.home_score|default:'' }}" class="form-control">
+                        </div>
+                        <div class="vs-display">VS</div>
+                        <div class="score-input">
+                            <label for="away_score">{{ fixture.away_team.short_name }}</label>
+                            <input type="number" id="away_score" name="away_score" min="0" value="{{ fixture.away_score|default:'' }}" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Extra Time Score (if applicable) -->
+                <div class="form-section">
+                    <h4><i class="bi bi-clock-history me-2"></i>Extra Time Score (Optional)</h4>
+                    <div class="score-inputs">
+                        <div class="score-input">
+                            <label for="home_score_et">{{ fixture.home_team.short_name }} (ET)</label>
+                            <input type="number" id="home_score_et" name="home_score_et" min="0" value="{{ fixture.home_score_et|default:'' }}" class="form-control">
+                        </div>
+                        <div class="vs-display">VS</div>
+                        <div class="score-input">
+                            <label for="away_score_et">{{ fixture.away_team.short_name }} (ET)</label>
+                            <input type="number" id="away_score_et" name="away_score_et" min="0" value="{{ fixture.away_score_et|default:'' }}" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Penalties (if applicable) -->
+                <div class="form-section">
+                    <h4><i class="bi bi-bullseye me-2"></i>Penalties (Optional)</h4>
+                    <div class="score-inputs">
+                        <div class="score-input">
+                            <label for="home_penalties">{{ fixture.home_team.short_name }} (Pens)</label>
+                            <input type="number" id="home_penalties" name="home_penalties" min="0" value="{{ fixture.home_penalties|default:'' }}" class="form-control">
+                        </div>
+                        <div class="vs-display">VS</div>
+                        <div class="score-input">
+                            <label for="away_penalties">{{ fixture.away_team.short_name }} (Pens)</label>
+                            <input type="number" id="away_penalties" name="away_penalties" min="0" value="{{ fixture.away_penalties|default:'' }}" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Match Details -->
+                <div class="form-section">
+                    <h4><i class="bi bi-info-circle me-2"></i>Match Details</h4>
+                    <div class="form-group">
+                        <label for="referee">Referee</label>
+                        <input type="text" id="referee" name="referee" value="{{ fixture.referee|default:'' }}" class="form-control" placeholder="Referee name">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Match Status</label>
+                        <select id="status" name="status" class="form-control">
+                            <option value="SCHEDULED" {% if fixture.status == 'SCHEDULED' %}selected{% endif %}>Scheduled</option>
+                            <option value="IN_PROGRESS" {% if fixture.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                            <option value="COMPLETED" {% if fixture.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                            <option value="POSTPONED" {% if fixture.status == 'POSTPONED' %}selected{% endif %}>Postponed</option>
+                            <option value="CANCELLED" {% if fixture.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Additional match notes...">{{ fixture.notes|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn-save" id="save-results">
+                        <i class="bi bi-check-circle me-2"></i>Save Match Results
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('results-form');
+    const saveBtn = document.getElementById('save-results');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = {
+            home_score: document.getElementById('home_score').value,
+            away_score: document.getElementById('away_score').value,
+            home_score_et: document.getElementById('home_score_et').value,
+            away_score_et: document.getElementById('away_score_et').value,
+            home_penalties: document.getElementById('home_penalties').value,
+            away_penalties: document.getElementById('away_penalties').value,
+            referee: document.getElementById('referee').value,
+            status: document.getElementById('status').value,
+            notes: document.getElementById('notes').value
+        };
+        
+        // Validate required fields
+        if (!formData.home_score || !formData.away_score) {
+            showAlert('Please enter both home and away scores.', 'danger');
+            return;
+        }
+        
+        // Disable button during save
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Saving...';
+        
+        // Send save request
+        fetch(`/tournaments/update-match-results/{{ fixture.id }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                // Update current score display
+                document.querySelector('.current-score').textContent = `${formData.home_score} - ${formData.away_score}`;
+            } else {
+                showAlert(data.error || 'Failed to save match results', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while saving the results.', 'danger');
+        })
+        .finally(() => {
+            // Re-enable button
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Save Match Results';
+        });
+    });
+    
+    function showAlert(message, type) {
+        const alertContainer = document.getElementById('alert-container');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        alertContainer.appendChild(alertDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

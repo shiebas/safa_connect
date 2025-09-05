@@ -169,6 +169,11 @@
             <a href="/admin/tournament_verification/" class="btn btn-info">
                 <i class="bi bi-gear me-2"></i>Admin Panel
             </a>
+            {% if recent_tournaments %}
+                <a href="{% url 'tournament_verification:tournament_fixtures' recent_tournaments.0.id %}" class="btn btn-warning">
+                    <i class="bi bi-calendar-event me-2"></i>View Fixtures
+                </a>
+            {% endif %}
         </div>
 
         <div class="row">

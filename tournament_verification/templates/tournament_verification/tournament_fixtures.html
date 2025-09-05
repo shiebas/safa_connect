@@ -327,6 +327,9 @@
                 </div>
                 <div class="col-md-4 text-end">
                     <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'tournament_verification:fixture_team_selection' tournament.id %}" class="btn btn-warning">
+                            <i class="bi bi-people me-2"></i>Select Teams
+                        </a>
                         <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="btn btn-light">
                             <i class="bi bi-speedometer2 me-2"></i>Dashboard
                         </a>
@@ -399,7 +402,6 @@
                             </div>
                             
                             <div class="vs-section">
-                                <div class="vs-text">VS</div>
                                 <div class="fixture-score">{{ fixture.get_score_display }}</div>
                             </div>
                             

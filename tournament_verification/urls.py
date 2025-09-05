@@ -26,4 +26,12 @@ urlpatterns = [
     path('bulk-management/', views.bulk_management, name='bulk_management'),
     path('dashboard/<uuid:tournament_id>/', views.tournament_dashboard, name='tournament_dashboard'),
     path('manual-verify/<uuid:registration_id>/', views.manual_verification, name='manual_verification'),
+    path('fixture-team-selection/<uuid:tournament_id>/', views.fixture_team_selection, name='fixture_team_selection'),
+    path('update-fixture-teams/<uuid:fixture_id>/', views.update_fixture_teams, name='update_fixture_teams'),
+    path('fixture-player-selection/<uuid:fixture_id>/', views.fixture_player_selection, name='fixture_player_selection'),
+    path('update-fixture-players/<uuid:fixture_id>/', views.update_fixture_players, name='update_fixture_players'),
+    path('fixture-teamsheet/<uuid:fixture_id>/', views.fixture_teamsheet, name='fixture_teamsheet'),
+    path('match-results/<uuid:fixture_id>/', views.match_results, name='match_results'),
+    path('update-match-results/<uuid:fixture_id>/', views.update_match_results, name='update_match_results'),
+    path('tournament-standings/<uuid:tournament_id>/', views.tournament_standings, name='tournament_standings'),
 ]

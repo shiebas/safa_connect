@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #212529;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        margin-bottom: 0;
+    }
+    
+    .standings-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .standings-table {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid #e9ecef;
+    }
+    
+    .standings-table h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+        text-align: center;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        color: #2c3e50;
+        font-weight: 700;
+        border: none;
+        padding: 0.75rem;
+        text-align: center;
+    }
+    
+    .table td {
+        border: none;
+        padding: 0.75rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table tbody tr {
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .team-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-align: left;
+    }
+    
+    .team-logo {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ffc107;
+    }
+    
+    .team-placeholder {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: bold;
+        border: 2px solid #ffc107;
+    }
+    
+    .team-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .position-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    
+    .position-1 {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #b8860b;
+    }
+    
+    .position-2 {
+        background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
+        color: #666;
+    }
+    
+    .position-3 {
+        background: linear-gradient(135deg, #cd7f32, #daa520);
+        color: #8b4513;
+    }
+    
+    .position-other {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+    }
+    
+    .points-highlight {
+        font-weight: 700;
+        color: #28a745;
+        font-size: 1.1rem;
+    }
+    
+    .fixtures-section {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid #e9ecef;
+    }
+    
+    .fixtures-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .fixture-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .fixture-teams {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .fixture-score {
+        font-weight: 700;
+        color: #2c3e50;
+        min-width: 60px;
+        text-align: center;
+    }
+    
+    .fixture-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+        min-width: 100px;
+        text-align: right;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-scheduled {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .status-in-progress {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .back-button:hover {
+        background: linear-gradient(135deg, #5a6268, #495057);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    
+    .stats-summary {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffc107;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+        .standings-container {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .fixture-item {
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-trophy me-3"></i>Tournament Standings</h1>
+                    <p>{{ tournament.name }} - League Table & Match Results</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="btn btn-outline-dark">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Back Button -->
+        <a href="{% url 'tournament_verification:tournament_dashboard' tournament.id %}" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            Back to Tournament Dashboard
+        </a>
+
+        <!-- Statistics Summary -->
+        <div class="stats-summary">
+            <h4 class="mb-3"><i class="bi bi-graph-up me-2"></i>Tournament Statistics</h4>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ team_stats|length }}</div>
+                    <div class="stat-label">Teams</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ fixtures.count }}</div>
+                    <div class="stat-label">Total Matches</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ completed_matches.count }}</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ fixtures.count|add:"-1"|add:"1"|default:"0" }}</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Standings and Fixtures -->
+        <div class="standings-container">
+            <!-- League Table -->
+            <div class="standings-table">
+                <h3><i class="bi bi-trophy me-2"></i>League Table</h3>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Team</th>
+                                <th>P</th>
+                                <th>W</th>
+                                <th>D</th>
+                                <th>L</th>
+                                <th>GF</th>
+                                <th>GA</th>
+                                <th>GD</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in team_stats %}
+                                <tr>
+                                    <td>
+                                        <span class="position-badge 
+                                            {% if forloop.counter == 1 %}position-1
+                                            {% elif forloop.counter == 2 %}position-2
+                                            {% elif forloop.counter == 3 %}position-3
+                                            {% else %}position-other{% endif %}">
+                                            {{ forloop.counter }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="team-info">
+                                            {% if stat.team.get_team_photo_url %}
+                                                <img src="{{ stat.team.get_team_photo_url }}" alt="{{ stat.team.name }}" class="team-logo">
+                                            {% else %}
+                                                <div class="team-placeholder" style="background: linear-gradient(135deg, {{ stat.team.team_color_primary }}, {{ stat.team.team_color_secondary }});">
+                                                    {{ stat.team.short_name|slice:":2"|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <span class="team-name">{{ stat.team.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ stat.played }}</td>
+                                    <td>{{ stat.won }}</td>
+                                    <td>{{ stat.drawn }}</td>
+                                    <td>{{ stat.lost }}</td>
+                                    <td>{{ stat.goals_for }}</td>
+                                    <td>{{ stat.goals_against }}</td>
+                                    <td>
+                                        {% if stat.goal_difference > 0 %}+{% endif %}{{ stat.goal_difference }}
+                                    </td>
+                                    <td class="points-highlight">{{ stat.points }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">
+                                        <i class="bi bi-info-circle me-2"></i>No teams found
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Fixtures -->
+            <div class="fixtures-section">
+                <h3><i class="bi bi-calendar-event me-2"></i>Recent Matches</h3>
+                <div class="fixtures-list">
+                    {% for fixture in fixtures|slice:":10" %}
+                        <div class="fixture-item">
+                            <div class="fixture-teams">
+                                <span>{{ fixture.home_team.short_name }}</span>
+                                <span class="fixture-score">
+                                    {% if fixture.home_score is not None and fixture.away_score is not None %}
+                                        {{ fixture.home_score }} - {{ fixture.away_score }}
+                                    {% else %}
+                                        vs
+                                    {% endif %}
+                                </span>
+                                <span>{{ fixture.away_team.short_name }}</span>
+                            </div>
+                            <div class="fixture-date">
+                                <span class="status-badge status-{{ fixture.status|lower|cut:'_' }}">
+                                    {{ fixture.get_status_display }}
+                                </span>
+                                <br>
+                                {{ fixture.match_date|date:"M d, H:i" }}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-calendar-x me-2"></i>No fixtures found
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center mt-4">
+            <a href="{% url 'tournament_verification:fixture_team_selection' tournament.id %}" class="btn btn-primary me-2">
+                <i class="bi bi-people me-2"></i>Manage Fixtures
+            </a>
+            <a href="{% url 'tournament_verification:tournament_fixtures' tournament.id %}" class="btn btn-warning">
+                <i class="bi bi-calendar-event me-2"></i>View All Fixtures
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some interactive effects
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all sections
+    document.querySelectorAll('.standings-table, .fixtures-section, .stats-summary').forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(section);
+    });
+});
+</script>
+{% endblock %}

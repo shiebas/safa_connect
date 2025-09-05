@@ -14,7 +14,7 @@ from PIL import Image
 import io
 
 from .models import TournamentRegistration, VerificationLog
-from .tournament_models import TournamentCompetition, TournamentPlayer, TournamentTeam
+from .tournament_models import TournamentCompetition, TournamentPlayer, TournamentTeam, TournamentFixture, TournamentTeamPlayer
 from accounts.models import CustomUser
 from .team_photo_generator import team_photo_generator
 from .bulk_views import bulk_management
@@ -754,3 +754,314 @@ def bulk_delete_tournaments(request):
         return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def fixture_team_selection(request, tournament_id):
+    """View for managing fixture teams and player selection"""
+    tournament = get_object_or_404(TournamentCompetition, id=tournament_id)
+    
+    # Get all teams for this tournament with their players
+    teams = TournamentTeam.objects.filter(tournament=tournament).prefetch_related('players').order_by('name')
+    
+    # Get all fixtures for this tournament
+    fixtures = TournamentFixture.objects.filter(tournament=tournament).order_by('match_date')
+    
+    context = {
+        'tournament': tournament,
+        'teams': teams,
+        'fixtures': fixtures,
+        'title': f'Fixture Management - {tournament.name}'
+    }
+    
+    return render(request, 'tournament_verification/fixture_team_selection.html', context)
+
+@login_required
+@require_POST
+@csrf_exempt
+def update_fixture_teams(request, fixture_id):
+    """Update teams for a specific fixture"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Access denied'})
+    
+    try:
+        fixture = get_object_or_404(TournamentFixture, id=fixture_id)
+        data = json.loads(request.body)
+        
+        home_team_id = data.get('home_team_id')
+        away_team_id = data.get('away_team_id')
+        
+        if not home_team_id or not away_team_id:
+            return JsonResponse({'success': False, 'error': 'Both home and away teams are required'})
+        
+        if home_team_id == away_team_id:
+            return JsonResponse({'success': False, 'error': 'Home and away teams cannot be the same'})
+        
+        # Get the teams
+        home_team = get_object_or_404(TournamentTeam, id=home_team_id, tournament=fixture.tournament)
+        away_team = get_object_or_404(TournamentTeam, id=away_team_id, tournament=fixture.tournament)
+        
+        # Update the fixture
+        fixture.home_team = home_team
+        fixture.away_team = away_team
+        fixture.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Fixture updated: {home_team.name} vs {away_team.name}',
+            'fixture': {
+                'id': str(fixture.id),
+                'home_team': home_team.name,
+                'away_team': away_team.name,
+                'match_date': fixture.match_date.strftime('%Y-%m-%d %H:%M')
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def fixture_player_selection(request, fixture_id):
+    """View for selecting players for a specific fixture"""
+    fixture = get_object_or_404(TournamentFixture, id=fixture_id)
+    
+    # Get only verified players from both teams through the TournamentRegistration relationship
+    home_team_players = TournamentRegistration.objects.filter(
+        tournament=fixture.tournament, 
+        team=fixture.home_team,
+        verification_status='VERIFIED'
+    ).order_by('last_name', 'first_name')
+    
+    away_team_players = TournamentRegistration.objects.filter(
+        tournament=fixture.tournament, 
+        team=fixture.away_team,
+        verification_status='VERIFIED'
+    ).order_by('last_name', 'first_name')
+    
+    context = {
+        'fixture': fixture,
+        'home_team_players': home_team_players,
+        'away_team_players': away_team_players,
+        'title': f'Player Selection - {fixture.home_team.name} vs {fixture.away_team.name}'
+    }
+    
+    return render(request, 'tournament_verification/fixture_player_selection.html', context)
+
+@login_required
+@require_POST
+@csrf_exempt
+def update_fixture_players(request, fixture_id):
+    """Update selected players for a specific fixture"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Access denied'})
+    
+    try:
+        fixture = get_object_or_404(TournamentFixture, id=fixture_id)
+        data = json.loads(request.body)
+        
+        selected_home_players = data.get('home_players', [])
+        selected_away_players = data.get('away_players', [])
+        
+        # For now, we'll store this in the fixture notes field
+        # In a real implementation, you might want a separate model for fixture lineups
+        from django.utils import timezone
+        fixture.notes = json.dumps({
+            'home_players': selected_home_players,
+            'away_players': selected_away_players,
+            'updated_by': request.user.username,
+            'updated_at': timezone.now().isoformat()
+        })
+        fixture.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Player selection updated for {fixture.home_team.name} vs {fixture.away_team.name}',
+            'fixture': {
+                'id': str(fixture.id),
+                'home_team': fixture.home_team.name,
+                'away_team': fixture.away_team.name,
+                'home_players_count': len(selected_home_players),
+                'away_players_count': len(selected_away_players)
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def fixture_teamsheet(request, fixture_id):
+    """View team sheet for a specific fixture"""
+    fixture = get_object_or_404(TournamentFixture, id=fixture_id)
+    
+    # Get selected players from fixture notes
+    selected_players = {}
+    if fixture.notes:
+        try:
+            import json
+            notes_data = json.loads(fixture.notes)
+            selected_players = {
+                'home_players': notes_data.get('home_players', []),
+                'away_players': notes_data.get('away_players', [])
+            }
+        except (json.JSONDecodeError, TypeError):
+            selected_players = {'home_players': [], 'away_players': []}
+    
+    # Get player details for selected players
+    home_team_players = []
+    away_team_players = []
+    
+    if selected_players.get('home_players'):
+        home_team_players = TournamentRegistration.objects.filter(
+            id__in=selected_players['home_players']
+        ).order_by('last_name', 'first_name')
+    
+    if selected_players.get('away_players'):
+        away_team_players = TournamentRegistration.objects.filter(
+            id__in=selected_players['away_players']
+        ).order_by('last_name', 'first_name')
+    
+    context = {
+        'fixture': fixture,
+        'home_team_players': home_team_players,
+        'away_team_players': away_team_players,
+        'title': f'Team Sheet - {fixture.home_team.name} vs {fixture.away_team.name}'
+    }
+    
+    return render(request, 'tournament_verification/fixture_teamsheet.html', context)
+
+@login_required
+def match_results(request, fixture_id):
+    """View and update match results"""
+    fixture = get_object_or_404(TournamentFixture, id=fixture_id)
+    
+    context = {
+        'fixture': fixture,
+        'title': f'Match Results - {fixture.home_team.name} vs {fixture.away_team.name}'
+    }
+    
+    return render(request, 'tournament_verification/match_results.html', context)
+
+@login_required
+@require_POST
+@csrf_exempt
+def update_match_results(request, fixture_id):
+    """Update match results"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Access denied'})
+    
+    try:
+        fixture = get_object_or_404(TournamentFixture, id=fixture_id)
+        data = json.loads(request.body)
+        
+        # Update match results
+        fixture.home_score = data.get('home_score')
+        fixture.away_score = data.get('away_score')
+        fixture.home_score_et = data.get('home_score_et')
+        fixture.away_score_et = data.get('away_score_et')
+        fixture.home_penalties = data.get('home_penalties')
+        fixture.away_penalties = data.get('away_penalties')
+        fixture.status = data.get('status', 'COMPLETED')
+        fixture.referee = data.get('referee', '')
+        fixture.notes = data.get('notes', '')
+        
+        fixture.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Match results updated for {fixture.home_team.name} vs {fixture.away_team.name}',
+            'fixture': {
+                'id': str(fixture.id),
+                'home_team': fixture.home_team.name,
+                'away_team': fixture.away_team.name,
+                'home_score': fixture.home_score,
+                'away_score': fixture.away_score,
+                'status': fixture.status
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def tournament_standings(request, tournament_id):
+    """View tournament standings and logs"""
+    tournament = get_object_or_404(TournamentCompetition, id=tournament_id)
+    
+    # Get all fixtures for this tournament
+    fixtures = TournamentFixture.objects.filter(tournament=tournament).order_by('match_date')
+    
+    # Get completed matches
+    completed_matches = fixtures.filter(status='COMPLETED')
+    
+    # Get teams and their stats
+    teams = TournamentTeam.objects.filter(tournament=tournament)
+    team_stats = []
+    
+    for team in teams:
+        # Calculate team statistics
+        home_matches = fixtures.filter(home_team=team, status='COMPLETED')
+        away_matches = fixtures.filter(away_team=team, status='COMPLETED')
+        
+        played = home_matches.count() + away_matches.count()
+        won = 0
+        drawn = 0
+        lost = 0
+        goals_for = 0
+        goals_against = 0
+        
+        # Calculate stats from home matches
+        for match in home_matches:
+            if match.home_score is not None and match.away_score is not None:
+                goals_for += match.home_score
+                goals_against += match.away_score
+                if match.home_score > match.away_score:
+                    won += 1
+                elif match.home_score == match.away_score:
+                    drawn += 1
+                else:
+                    lost += 1
+        
+        # Calculate stats from away matches
+        for match in away_matches:
+            if match.home_score is not None and match.away_score is not None:
+                goals_for += match.away_score
+                goals_against += match.home_score
+                if match.away_score > match.home_score:
+                    won += 1
+                elif match.away_score == match.home_score:
+                    drawn += 1
+                else:
+                    lost += 1
+        
+        points = (won * 3) + (drawn * 1)
+        goal_difference = goals_for - goals_against
+        
+        team_stats.append({
+            'team': team,
+            'played': played,
+            'won': won,
+            'drawn': drawn,
+            'lost': lost,
+            'goals_for': goals_for,
+            'goals_against': goals_against,
+            'goal_difference': goal_difference,
+            'points': points
+        })
+    
+    # Sort by points, then goal difference, then goals for
+    team_stats.sort(key=lambda x: (-x['points'], -x['goal_difference'], -x['goals_for']))
+    
+    context = {
+        'tournament': tournament,
+        'fixtures': fixtures,
+        'completed_matches': completed_matches,
+        'team_stats': team_stats,
+        'title': f'Tournament Standings - {tournament.name}'
+    }
+    
+    return render(request, 'tournament_verification/tournament_standings.html', context)
