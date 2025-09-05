@@ -94,3 +94,4 @@ whitenoise==6.6.0
 xhtml2pdf==0.2.17
 xlsxwriter==3.2.5
 zopfli==0.2.3.post1
+web3==6.15.1
